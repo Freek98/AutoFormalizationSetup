@@ -1,5 +1,5 @@
 {-# OPTIONS --cubical --guardedness #-}
-
+-- Note from Freek, this is quite useless, it's mostly comments. Also takes way too long to compile.  
 -- ==========================================================================
 --
 -- LLPOWork: N∞ is a Stone space, and the proof of LLPO
