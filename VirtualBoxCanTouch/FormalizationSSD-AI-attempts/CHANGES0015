@@ -1,41 +1,35 @@
-CHANGES0015 - Added closedOr structure with postulate
+CHANGES0015 - Fix Agda 2.6.4.3 compatibility issues; LLPOWork compiles
 
 Summary:
-- Added closedOr definition (closed propositions closed under disjunction)
-- Added closedDeMorgan helper (needs LLPO for the De Morgan step)
-- Moved closedOr to after openAnd (due to dependency)
+Fixed multiple Agda 2.6.4.3 compatibility issues that arose because
+the old cached .agdai files were from Agda 2.8.0 and incompatible.
+When Agda rechecked files, several implicit/explicit argument issues
+surfaced.
 
-Key additions:
-1. closedDeMorgan : converts ¬(¬P ∧ ¬Q) → ∥P ⊎ Q∥₁ for closed P, Q
-   - Uses postulatedClosedDeMorganStep (the LLPO-dependent part)
+Fixes applied:
+1. Axioms/StoneDuality.agda:229 - unsolved meta: replaced `_` with
+   explicit `(ε ⟦ F ⟅ y ⟆ ⟧)` in a `cong` expression.
 
-2. closedOr : full proof that closed props are closed under disjunction
-   - Uses openAnd to get ¬P ∧ ¬Q is open
-   - Forward direction: P ∨ Q → ∀n.γn=false (constructive)
-   - Backward direction: ∀n.γn=false → P ∨ Q (uses closedDeMorgan)
+2. work/Part02.agda:469,472,630,634 - QB.evalInduce calls used
+   `{g}` and `{gfx=0}` (implicit braces) for arguments that are
+   explicit module parameters. Removed the braces.
 
-Proof structure:
-- If P closed with α, Q closed with β
-- ¬P and ¬Q are open (by negClosedIsOpen, using MP)
-- ¬P ∧ ¬Q is open (by openAnd)
-- Witness γ for ¬P ∧ ¬Q being open
-- Forward: If P ∨ Q, then ¬(¬P ∧ ¬Q), so no witness for ¬P ∧ ¬Q exists
-- Backward: If ∀n.γn=false, then ¬P ∧ ¬Q has no witness, so ¬(¬P ∧ ¬Q)
-  Need: ¬(¬P ∧ ¬Q) → P ∨ Q (De Morgan for closed, needs LLPO)
+3. work/Part02.agda:2169 - `let` pattern-matching: Agda doesn't
+   allow function definitions in `let`; converted to `where` clause.
 
-Status: work.agda (1323 lines, compiles cleanly)
-Previous backup: bck0014 (1219 lines)
-Difference: +104 lines (closedOr infrastructure)
+4. work/Part04.agda:327,335,804 - same QB.evalInduce implicit/explicit
+   brace issue as Part02.
 
-Postulates remaining (7 total):
-1. mp : MarkovPrinciple
-2. llpo : LLPO
-3. postulatedClosedDeMorganStep (inside closedDeMorgan) - the LLPO step
-4. implicationOpenClosed
-5. closedMarkov
-6. cantorPair-unpair (Cantor pairing bijectivity)
-7. (closedOr postulate removed - now proven modulo postulatedClosedDeMorganStep)
+5. work/Part05.agda:235,646,654,1329 - same QB.evalInduce issue.
 
-Next steps:
-- Try to prove postulatedClosedDeMorganStep from llpo directly
-- Or prove implicationOpenClosed (now that closedOr is available)
+6. work/LLPOWork.agda - fixed copattern syntax for Iso (used `iso`
+   constructor instead), fixed QB.inducedHomUnique braces, removed
+   duplicate definitions that conflicted with Part06 exports
+   (SpB∞≃ℕ∞, ℕ∞-Stone), trimmed unnecessary imports.
+
+LLPOWork.agda (386 lines) compiles successfully.
+The 17-line decrease from bck0015 (403 lines) is due to removing
+duplicate definitions already in Part06 (SpB∞≃ℕ∞, ℕ∞-isStone,
+ℕ∞-Stone) and unnecessary imports.
+
+Previous backup: bck0015

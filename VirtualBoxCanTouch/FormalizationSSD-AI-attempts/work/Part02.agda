@@ -466,10 +466,10 @@ quotientPreservesBooleω α = ∣ presentationWitness ∣₁
     -- Similar to step1-equiv proofs
 
     step3-forward-eval : step3-forward-hom ∘cr π-h ≡ π-rec
-    step3-forward-eval = QB.evalInduce {B = freeBA ℕ} {f = h} rec-quotient {π-rec} {π-rec-sends-h-to-0}
+    step3-forward-eval = QB.evalInduce {B = freeBA ℕ} {f = h} rec-quotient π-rec π-rec-sends-h-to-0
 
     step3-backward-eval : step3-backward-hom ∘cr π-rec ≡ π-h
-    step3-backward-eval = QB.evalInduce {B = freeBA ℕ} {f = ⊎.rec f₀ g} h-quotient {π-h} {π-h-sends-rec-to-0}
+    step3-backward-eval = QB.evalInduce {B = freeBA ℕ} {f = ⊎.rec f₀ g} h-quotient π-h π-h-sends-rec-to-0
 
     -- For backward∘forward on h-quotient, we need to show (via π-h):
     -- step3-backward (step3-forward (π-h x)) = π-h x
@@ -627,11 +627,11 @@ quotientPreservesBooleω α = ∣ presentationWitness ∣₁
 
     -- evalInduce for forward-hom
     forward-eval : forward-hom ∘cr π-α ≡ composite-hom
-    forward-eval = QB.evalInduce {B = BoolBR} {f = α} target {composite-hom} {composite-sends-α-to-0}
+    forward-eval = QB.evalInduce {B = BoolBR} {f = α} target composite-hom composite-sends-α-to-0
 
     -- evalInduce for backward-hom
     backward-eval : backward-hom ∘cr π-α' ≡ backward-composite
-    backward-eval = QB.evalInduce {B = freeBA ℕ QB./Im f₀} {f = α'} source {backward-composite} {backward-composite-sends-α'-to-0}
+    backward-eval = QB.evalInduce {B = freeBA ℕ QB./Im f₀} {f = α'} source backward-composite backward-composite-sends-α'-to-0
 
     -- The retract property: equiv⁻¹ ∘ embBR = id
     equiv⁻¹∘embBR≡id : (x : Bool) → fst equiv⁻¹-hom (embBR x) ≡ x
@@ -2166,11 +2166,12 @@ closedOr P Q Pclosed Qclosed = γ , forward , backward
   -- Backward: ∀k. γk = false → ∥P ⊎ Q∥₁
   backward : ((n : ℕ) → γ n ≡ false) → ∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁
   backward all-false =
-    let ¬¬P∧¬Q : ¬ ((¬ ⟨ P ⟩) × (¬ ⟨ Q ⟩))
-        ¬¬P∧¬Q (¬p , ¬q) =
-          let (n , γn=t) = fst (snd ¬P∧¬Qopen) (¬p , ¬q)
-          in false≢true (sym (all-false n) ∙ γn=t)
-    in closedDeMorgan P Q Pclosed Qclosed ¬¬P∧¬Q
+    closedDeMorgan P Q Pclosed Qclosed ¬¬P∧¬Q
+    where
+    ¬¬P∧¬Q : ¬ ((¬ ⟨ P ⟩) × (¬ ⟨ Q ⟩))
+    ¬¬P∧¬Q (¬p , ¬q) =
+      let (n , γn=t) = fst (snd ¬P∧¬Qopen) (¬p , ¬q)
+      in false≢true (sym (all-false n) ∙ γn=t)
 
 -- Bundled version: join (∨) on Open
 _∨-Open_ : Open → Open → Open

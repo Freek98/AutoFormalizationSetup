@@ -232,7 +232,7 @@ module B∞×B∞-Presentation where
 
   -- φ sends g× n to genProd n
   φ-on-g× : (n : ℕ) → fst φ (g× n) ≡ genProd n
-  φ-on-g× n = funExt⁻ (cong fst (QB.evalInduce B∞×B∞)) (gen n) ∙ funExt⁻ genProd-free-on-gen n
+  φ-on-g× n = funExt⁻ (cong fst (QB.evalInduce B∞×B∞ genProd-free genProd-respects-rel)) (gen n) ∙ funExt⁻ genProd-free-on-gen n
 
   -- Step 4: Build ψ : B∞×B∞ → B∞×B∞-quotient
   -- The construction requires building homomorphisms for each factor of the product.
@@ -643,7 +643,7 @@ module B∞×B∞-Presentation where
   ψ-left-on-gen : (m : ℕ) → fst ψ-left (g∞ m) ≡ g×-left-gen m
   ψ-left-on-gen m =
     fst ψ-left (g∞ m)
-      ≡⟨ funExt⁻ (cong fst (QB.evalInduce B∞×B∞-quotient)) (gen m) ⟩
+      ≡⟨ funExt⁻ (cong fst (QB.evalInduce B∞×B∞-quotient ψ-left-free ψ-left-respects-relB∞)) (gen m) ⟩
     fst ψ-left-free (gen m)
       ≡⟨ funExt⁻ ψ-left-free-on-gen m ⟩
     g×-left-gen m ∎
@@ -651,7 +651,7 @@ module B∞×B∞-Presentation where
   ψ-right-on-gen : (m : ℕ) → fst ψ-right (g∞ m) ≡ g×-right-gen m
   ψ-right-on-gen m =
     fst ψ-right (g∞ m)
-      ≡⟨ funExt⁻ (cong fst (QB.evalInduce B∞×B∞-quotient)) (gen m) ⟩
+      ≡⟨ funExt⁻ (cong fst (QB.evalInduce B∞×B∞-quotient ψ-right-free ψ-right-respects-relB∞)) (gen m) ⟩
     fst ψ-right-free (gen m)
       ≡⟨ funExt⁻ ψ-right-free-on-gen m ⟩
     g×-right-gen m ∎
@@ -1327,7 +1327,7 @@ opaque
   ℕ∞-to-SpB∞-eval : (α : ℕ∞) →
     (ℕ∞-to-SpB∞ α) ∘cr π∞ ≡ ℕ∞-to-SpB∞-free α
   ℕ∞-to-SpB∞-eval α = QB.evalInduce {B = freeBA ℕ} {f = relB∞}
-                        BoolBR {g = ℕ∞-to-SpB∞-free α} {gfx=0 = ℕ∞-to-SpB∞-respects-rel α}
+                        BoolBR (ℕ∞-to-SpB∞-free α) (ℕ∞-to-SpB∞-respects-rel α)
 
 -- The sequence equality
 SpB∞-roundtrip-seq : (α : ℕ∞) (n : ℕ) →

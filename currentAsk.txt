@@ -1,0 +1,7 @@
+❯ So far, you have been formalizing monolithic.tex. In the                     
+  OmnisciencePrinciples file, there is a proof of LLPO, which I think you have  
+  tried to formalize in parts 3-6 of the work directory. I don't follow these   
+  files, and I want you to write new files called LLPOWork, in which you redo   
+  this work in a more organized and clear way. Make sure you follow the         
+  argument structure in the omniscienceprinciples file. Also prove first that   
+  N_infty is a Stone space, and then go over the argument. 

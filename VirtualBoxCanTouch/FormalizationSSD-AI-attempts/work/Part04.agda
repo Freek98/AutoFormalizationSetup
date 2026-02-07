@@ -324,7 +324,7 @@ module Bool²-presentation where
     fst quotient→Bool² (fst π g₁)
       ≡⟨ cong (fst quotient→Bool²) refl ⟩
     fst (quotient→Bool² ∘cr π) g₁
-      ≡⟨ cong (λ h → fst h g₁) (QB.evalInduce Bool² {freeBool→Bool²} {freeBool→Bool²-on-rels}) ⟩
+      ≡⟨ cong (λ h → fst h g₁) (QB.evalInduce Bool² freeBool→Bool² freeBool→Bool²-on-rels) ⟩
     fst freeBool→Bool² g₁
       ≡⟨ evalBAInduce ℕ Bool² gens→Bool² ≡$ 1 ⟩
     (false , true) ∎
@@ -332,7 +332,7 @@ module Bool²-presentation where
     fst quotient→Bool² (fst π g₀)
       ≡⟨ cong (fst quotient→Bool²) refl ⟩
     fst (quotient→Bool² ∘cr π) g₀
-      ≡⟨ cong (λ h → fst h g₀) (QB.evalInduce Bool² {freeBool→Bool²} {freeBool→Bool²-on-rels}) ⟩
+      ≡⟨ cong (λ h → fst h g₀) (QB.evalInduce Bool² freeBool→Bool² freeBool→Bool²-on-rels) ⟩
     fst freeBool→Bool² g₀
       ≡⟨ evalBAInduce ℕ Bool² gens→Bool² ≡$ 0 ⟩
     (true , false) ∎
@@ -802,7 +802,7 @@ opaque
   unfolding QB.quotientImageHom
   f-eval : f ∘cr π∞ ≡ f-free
   f-eval = QB.evalInduce {B = freeBA ℕ} {f = relB∞}
-             B∞×B∞ {g = f-free} {gfx=0 = f-free-on-relB∞}
+             B∞×B∞ f-free f-free-on-relB∞
 
 -- Key lemma: f on generators equals f-on-gen
 f-on-gen-eq : (n : ℕ) → fst f (g∞ n) ≡ f-on-gen n
