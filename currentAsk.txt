@@ -5,3 +5,8 @@
   this work in a more organized and clear way. Make sure you follow the         
   argument structure in the omniscienceprinciples file. Also prove first that   
   N_infty is a Stone space, and then go over the argument. 
+
+  ❯ I like your work in parts 1 and 2. I want you to clean them up though.        
+  Please split it into a file on the axioms of the paper, and a file on the     
+  results of open and closed propositions. I don't want you to delete part 1    
+  and 2, just make the new files.

@@ -1,0 +1,349 @@
+{-# OPTIONS --cubical --guardedness #-}
+
+-- ==========================================================================
+--
+-- OpenClosedWork: Open and closed propositions in Synthetic Stone Duality
+--
+-- This file presents the theory of open and closed propositions from
+-- main-monolithic.tex (Sections on open/closed, starting at Definition
+-- ~line 600).
+--
+-- OUTLINE
+--   1.  Definitions: isOpenProp, isClosedProp, Open, Closed
+--   2.  Basic examples: ⊥, ⊤, decidable propositions
+--   3.  Canonical constructions: allFalse ↦ Closed, someTrue ↦ Open
+--   4.  Boolean and ℕ equality
+--   5.  Cantor space and ℕ∞ equality
+--   6.  Negation: ¬Open = Closed, ¬Closed = Open (MP)
+--   7.  Stability: closedIsStable, openIsStable, double negation
+--   8.  Finite operations: ∧, ∨ for Open and Closed
+--   9.  Countable operations: ⋀-Closed, ⋁-Open
+--   10. De Morgan laws
+--   11. Implication: Open→Closed is Closed, Closed→Open is Open
+--   12. Decidability: clopen ↔ decidable
+--   13. Dependent sums / dominance
+--   14. Synthetic topology: open/closed subsets
+--   15. Surjections from 2^ℕ
+--
+-- ==========================================================================
+
+module work.OpenClosedWork where
+
+-- Import Part02, which transitively provides everything from Part01.
+open import work.Part02 public
+
+-- ==========================================================================
+--
+--  1. DEFINITIONS (tex Definition ~line 600)
+--
+-- ==========================================================================
+--
+-- A proposition P (as an hProp) is:
+--   - Open   if ∃ α : 2^ℕ such that P ↔ ∃ n, α n = true
+--   - Closed if ∃ α : 2^ℕ such that P ↔ ∀ n, α n = false
+--
+-- Re-exported from Part01:
+--   binarySequence : Type₀              (= ℕ → Bool, the Cantor space)
+--   CantorSpace    : Type₀              (= binarySequence)
+--   isOpenProp   : hProp ℓ-zero → Type₀ (concrete witness)
+--   isClosedProp : hProp ℓ-zero → Type₀ (concrete witness)
+--   Open   : Type₁                      (= Σ[ P ∈ hProp ] isOpenProp P)
+--   Closed : Type₁                      (= Σ[ P ∈ hProp ] isClosedProp P)
+--   isOpen   : hProp ℓ-zero → hProp ℓ-zero  (truncated: ∥ isOpenProp P ∥₁)
+--   isClosed : hProp ℓ-zero → hProp ℓ-zero  (truncated: ∥ isClosedProp P ∥₁)
+--
+-- Set-level properties:
+--   isSetBinarySequence : isSet binarySequence
+--   isSetIsOpenProp     : (P : hProp ℓ-zero) → isSet (isOpenProp P)
+--   isSetIsClosedProp   : (P : hProp ℓ-zero) → isSet (isClosedProp P)
+--
+-- Projections:
+--   openProp, closedProp     : Open/Closed → hProp ℓ-zero
+--   openType, closedType     : Open/Closed → Type₀
+--   open→hProp, closed→hProp : Open/Closed → hProp ℓ-zero
+
+-- ==========================================================================
+--
+--  2. BASIC EXAMPLES (tex Examples ~line 620)
+--
+-- ==========================================================================
+--
+-- ⊥ and ⊤ are both open and closed (they are decidable).
+--
+-- Re-exported from Part01:
+--   ⊥-isOpen   : isOpenProp ⊥-hProp
+--   ⊥-isClosed : isClosedProp ⊥-hProp
+--   ⊤-isOpen   : isOpenProp ⊤-hProp
+--   ⊤-isClosed : isClosedProp ⊤-hProp
+--   ⊥-Open, ⊥-Closed : Open, Closed    (bundled)
+--   ⊤-Open, ⊤-Closed : Open, Closed    (bundled)
+--
+-- Every decidable proposition is both open and closed:
+--   decIsOpen   : (P : hProp ℓ-zero) → Dec ⟨ P ⟩ → isOpenProp P
+--   decIsClosed : (P : hProp ℓ-zero) → Dec ⟨ P ⟩ → isClosedProp P
+
+-- ==========================================================================
+--
+--  3. CANONICAL CONSTRUCTIONS
+--
+-- ==========================================================================
+--
+-- The defining witnesses for open and closed propositions:
+--
+-- Re-exported from Part01:
+--   allFalseIsClosed : (α : binarySequence) →
+--     isClosedProp (∀n. α n ≡ false)
+--
+-- Re-exported from Part02:
+--   allFalseProp  : binarySequence → hProp ℓ-zero
+--   someTrueProp  : binarySequence → hProp ℓ-zero
+--   someTrueIsOpen : (α : binarySequence) →
+--     isOpenProp (∥ Σ n. α n ≡ true ∥₁)    (uses MP)
+
+-- ==========================================================================
+--
+--  4. BOOLEAN AND ℕ EQUALITY
+--
+-- ==========================================================================
+--
+-- Equality in Bool and ℕ is decidable, hence both open and closed.
+--
+-- Re-exported from Part01:
+--   Bool-equality-open   : (a b : Bool) → isOpenProp (a ≡ b)
+--   Bool-equality-closed : (a b : Bool) → isClosedProp (a ≡ b)
+--   ℕ-equality-open   : (m n : ℕ) → isOpenProp (m ≡ n)
+--   ℕ-equality-closed : (m n : ℕ) → isClosedProp (m ≡ n)
+
+-- ==========================================================================
+--
+--  5. CANTOR SPACE AND ℕ∞ EQUALITY (tex Examples)
+--
+-- ==========================================================================
+--
+-- Equality in CantorSpace (= 2^ℕ) is closed:
+--   α = β ↔ ∀n. α n = β n  (pointwise, each decidable)
+--
+-- Re-exported from Part01:
+--   CantorSpace-equality-closed : (α β : CantorSpace) →
+--     isClosedProp (α ≡ β)
+--
+-- Equality in ℕ∞ is closed:
+--
+-- Re-exported from Part02:
+--   ℕ∞-equality-closed : (α β : ℕ∞) →
+--     isClosedProp (α ≡ β)
+
+-- ==========================================================================
+--
+--  6. NEGATION (tex Remark rmkOpenClosedNegation)
+--
+-- ==========================================================================
+--
+-- The negation of an open proposition is closed (constructive):
+--   If P ↔ ∃n. αn = true, then ¬P ↔ ∀n. αn = false.
+--
+-- The negation of a closed proposition is open (requires MP):
+--   If P ↔ ∀n. αn = false, then ¬P ↔ ∃n. αn = true.
+--
+-- Re-exported from Part01:
+--   negOpenIsClosed : (P : hProp) → isOpenProp P → isClosedProp (¬ P)
+--   ¬-Open : Open → Closed
+--
+-- Re-exported from Part02:
+--   negClosedIsOpen : MarkovPrinciple → (P : hProp) → isClosedProp P → isOpenProp (¬ P)
+--   ¬-Closed : Closed → Open                (uses mp)
+
+-- ==========================================================================
+--
+--  7. STABILITY (tex Proposition ~line 650)
+--
+-- ==========================================================================
+--
+-- Closed propositions are ¬¬-stable (constructive):
+--   closedIsStable : (P : hProp) → isClosedProp P → ¬¬P → P
+--
+-- Open propositions are ¬¬-stable (requires MP):
+--   openIsStable : MarkovPrinciple → (P : hProp) → isOpenProp P → ¬¬P → P
+--
+-- Double negation preserves open/closed:
+--   doubleNegOpenIsOpen     : MP → (P : hProp) → isOpenProp P → isOpenProp (¬¬P)
+--   doubleNegClosedIsClosed : MP → (P : hProp) → isClosedProp P → isClosedProp (¬¬P)
+--
+-- All from Part01.
+
+-- ==========================================================================
+--
+--  8. FINITE OPERATIONS (tex Propositions ~line 670-720)
+--
+-- ==========================================================================
+--
+-- Conjunction (∧):
+--   closedAnd : P closed, Q closed → P ∧ Q closed    (Part01, interleaving)
+--   openAnd   : P open, Q open → P ∧ Q open          (Part02, Cantor pairing)
+--
+-- Disjunction (∨):
+--   openOr    : P open, Q open → P ∨ Q open           (Part02, uses MP)
+--   openOrMP  : explicit MP argument                   (Part01)
+--   closedOr  : P closed, Q closed → P ∨ Q closed     (Part02, uses LLPO)
+--
+-- De Morgan:
+--   closedDeMorgan : P closed, Q closed →
+--     ¬(¬P ∧ ¬Q) → ∥P ⊎ Q∥₁                          (Part02, uses LLPO)
+--
+-- Bundled operators:
+--   _∧-Open_  : Open → Open → Open                    (Part02)
+--   _∧-Closed_ : Closed → Closed → Closed             (Part02)
+--   _∨-Open_  : Open → Open → Open                    (Part02)
+--   _∨-Closed_ : Closed → Closed → Closed             (Part02)
+
+-- ==========================================================================
+--
+--  9. COUNTABLE OPERATIONS (tex Propositions ~line 730-760)
+--
+-- ==========================================================================
+--
+-- Countable intersection preserves closedness:
+--   closedCountableIntersection : (P : ℕ → hProp) →
+--     ((n : ℕ) → isClosedProp (P n)) → isClosedProp (∀n. P n)
+--
+-- Countable union preserves openness (uses MP):
+--   openCountableUnion : (P : ℕ → hProp) →
+--     ((n : ℕ) → isOpenProp (P n)) → isOpenProp (∃n. P n)
+--
+-- Bundled:
+--   ⋀-Closed : (ℕ → Closed) → Closed
+--   ⋁-Open   : (ℕ → Open) → Open
+--
+-- All from Part02.
+
+-- ==========================================================================
+--
+--  10. DE MORGAN LAWS (tex ~line 710-720)
+--
+-- ==========================================================================
+--
+-- For closed propositions (uses LLPO):
+--   closedDeMorgan : P closed, Q closed →
+--     ¬(¬P ∧ ¬Q) → ∥P ⊎ Q∥₁
+--
+-- For open propositions (uses LLPO + MP):
+--   openDeMorgan : P open, Q open →
+--     ¬(P ∧ Q) ↔ ∥¬P ⊎ ¬Q∥₁
+--
+-- Markov-type principles for families (tex Lemma 807):
+--   closedMarkovTex : (P : ℕ → hProp) → all closed →
+--     ¬(∀n. Pₙ) ↔ ∥ Σn. ¬Pₙ ∥₁
+--   openMarkovTex : (P : ℕ → hProp) → all open →
+--     ¬(∃n. Pₙ) ↔ (∀n. ¬Pₙ)
+--
+-- All from Part02.
+
+-- ==========================================================================
+--
+--  11. IMPLICATION (tex Lemma ~line 850)
+--
+-- ==========================================================================
+--
+-- If P is open and Q is closed, then (P → Q) is closed:
+--   implicationOpenClosed : isOpenProp P → isClosedProp Q →
+--     isClosedProp (P → Q)
+--
+-- If P is closed and Q is open, then (P → Q) is open:
+--   implicationClosedOpen : isClosedProp P → isOpenProp Q →
+--     isOpenProp (P → Q)
+--
+-- Both from Part02.
+
+-- ==========================================================================
+--
+--  12. DECIDABILITY CHARACTERIZATION (tex Corollary ClopenDecidable, line 774)
+--
+-- ==========================================================================
+--
+-- A proposition is decidable if and only if it is both open and closed.
+--
+-- Re-exported from Part02:
+--   clopenIsDecidable : (P : hProp) → isOpenProp P → isClosedProp P → Dec P
+--   decidable↔open×closed : (P : hProp) → Dec P ↔ (isOpenProp P × isClosedProp P)
+--
+-- Also: openness/closedness transport along equivalences and paths:
+--   openEquiv   : P ↔ Q → isOpenProp P → isOpenProp Q
+--   closedEquiv : P ↔ Q → isClosedProp P → isClosedProp Q
+--   openPath    : P ≡ Q → isOpenProp P → isOpenProp Q
+--   closedPath  : P ≡ Q → isClosedProp P → isClosedProp Q
+
+-- ==========================================================================
+--
+--  13. DEPENDENT SUMS / DOMINANCE (tex ~line 870-900)
+--
+-- ==========================================================================
+--
+-- Open propositions form a dominance: if D is decidable and Q(d) is open
+-- for all d : D, then Σ D Q is open.  Similarly for closed.
+--
+-- Re-exported from Part02:
+--   openSigmaDecidable  : Dec D → (D → isOpenProp Q) → isOpenProp (Σ D Q)
+--   closedSigmaDecidable : Dec D → (D → isClosedProp Q) → isClosedProp (Σ D Q)
+--   openSigmaOpen : isOpenProp P → (P → isOpenProp Q) → isOpenProp (Σ P Q)
+--
+-- Fixed-argument versions:
+--   openAndFixed  : P → (Q open → Σ P Q open)
+--   closedAndFixed : P → (Q closed → Σ P Q closed)
+
+-- ==========================================================================
+--
+--  14. SYNTHETIC TOPOLOGY: OPEN AND CLOSED SUBSETS
+--
+-- ==========================================================================
+--
+-- A subset A : T → hProp is open (resp. closed) if A(t) is open
+-- (resp. closed) for every t : T.
+--
+-- Re-exported from Part02:
+--   isOpenSubset   : {T : Type₀} → (T → hProp) → Type₀
+--   isClosedSubset : {T : Type₀} → (T → hProp) → Type₀
+--
+-- Preimage preserves openness/closedness:
+--   preimageOpenIsOpen       : f continuous for open subsets
+--   preimageClosedIsClosed   : f continuous for closed subsets
+--
+-- Empty and full subsets:
+--   emptySubsetOpen, emptySubsetClosed   : ∅ is open/closed
+--   fullSubsetOpen, fullSubsetClosed     : T is open/closed
+--
+-- Finite operations on subsets:
+--   openSubsetIntersection   : A open, B open → A ∩ B open
+--   closedSubsetIntersection : A closed, B closed → A ∩ B closed
+--   openSubsetUnion          : A open, B open → A ∪ B open
+--   closedSubsetUnion        : A closed, B closed → A ∪ B closed
+--
+-- Countable operations on subsets:
+--   closedSubsetCountableIntersection : countable ∩ of closed is closed
+--   openSubsetCountableUnion          : countable ∪ of open is open
+--
+-- Complements:
+--   complementOpenIsClosed : A open → complement is closed
+--   complementClosedIsOpen : A closed → complement is open (uses MP)
+--
+-- Transitivity:
+--   openSubsetTransitive : V ⊆ W, both open → V open in T
+--
+-- All from Part02.
+
+-- ==========================================================================
+--
+--  15. SURJECTIONS FROM 2^ℕ
+--
+-- ==========================================================================
+--
+-- Every closed proposition can be presented as "∀n. α n ≡ false"
+-- for some α : 2^ℕ, and every open proposition as "∃n. α n ≡ true".
+--
+-- Re-exported from Part02:
+--   binarySeqToClosed : binarySequence → Closed
+--   binarySeqToOpen   : binarySequence → Open
+--
+--   binarySeqToClosed-surjective :
+--     (C : Closed) → ∥ Σ[ α ∈ 2^ℕ ] (⟨ fst C ⟩ ↔ ⟨ fst (binarySeqToClosed α) ⟩) ∥₁
+--   binarySeqToOpen-surjective :
+--     (O : Open) → ∥ Σ[ α ∈ 2^ℕ ] (⟨ fst O ⟩ ↔ ⟨ fst (binarySeqToOpen α) ⟩) ∥₁

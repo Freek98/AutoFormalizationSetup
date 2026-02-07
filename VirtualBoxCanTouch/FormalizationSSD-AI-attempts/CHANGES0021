@@ -1,0 +1,28 @@
+CHANGES0021: Create AxiomsWork.agda and OpenClosedWork.agda
+
+Summary:
+  Created two new "presentation layer" files that organize the content
+  from Parts 01-02 into clean, readable, well-documented modules
+  following the structure of main-monolithic.tex.
+
+New files:
+  work/AxiomsWork.agda (211 lines)
+    - Presents the four axioms: Stone Duality, SurjectionsAreFormalSurjections,
+      Local Choice, Dependent Choice
+    - Documents consequences: Markov's Principle, LLPO, ¬WLPO
+    - Lists all postulates and their status
+    - Pattern: imports Part02 public + extensive documentation comments
+
+  work/OpenClosedWork.agda (349 lines)
+    - Presents the full theory of open and closed propositions
+    - Organized into 15 sections matching the tex structure:
+      definitions, examples, negation, stability, finite/countable
+      operations, De Morgan laws, implication, decidability,
+      dependent sums, synthetic topology, surjections from 2^ℕ
+    - Pattern: imports Part02 public + extensive documentation comments
+
+Both files follow the same pattern as work/LLPOWork.agda: they import
+from existing Part files with `public` re-export and add structured
+documentation comments. No existing files were modified.
+
+No decrease in code: these are purely additive new files.
