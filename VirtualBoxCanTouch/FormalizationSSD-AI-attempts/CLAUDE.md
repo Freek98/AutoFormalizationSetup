@@ -1,7 +1,14 @@
-# Rules for Working on Math_Background.mg
+# Rules for Working 
+1. I want you to clean up the agda files in the work directory. 
+2. If something is in monolithic.tex, it is a relevant result. The statement and possible proofs should remain there.
+3. If a function can be deleted and nothing anywhere breaks down, it should be deleted **unless** it is mentioned in monolithic.tex as a result (theorem,proposition, proof).
+4. Almost all comments are useless, as they are not written in agda. They can go. The only useful comments are those that state that a specific theorem (which is proven in agda, not in comments) can be found somewhere in the tex file. 
+5. You should check if some functions already exist in cubical library somewhere. If they do, clean them up. 
+
+
+
 
 ## STRICT PROHIBITIONS
-Only work in the work directory. 
 
 ## Never throw away useful work
 1. You should almost never revert to previous backups (you can use temporary admits when something is hard).

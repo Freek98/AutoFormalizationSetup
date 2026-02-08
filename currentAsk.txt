@@ -10,3 +10,7 @@
   Please split it into a file on the axioms of the paper, and a file on the     
   results of open and closed propositions. I don't want you to delete part 1    
   and 2, just make the new files.
+
+  ❯ In CLAUDE.md, I have given you instrunctions on cleaning. Use these to clean 
+  all that's written. If a file in work turns out to be useless entirely, I'm   
+  fine if you delete it.

@@ -1,0 +1,83 @@
+CHANGES0022: Comprehensive cleanup of all work/*.agda files
+================================================================
+
+Summary: Removed 7 useless files, fixed import chain, stripped 11,548+
+comment lines, removed dead code. Total reduction: ~20,000 lines (63%).
+
+Previous backup (bck0021): 31,853 lines across 29 files
+Current backup (bck0022):  11,574 lines across 23 files
+
+Decrease justified: ALL removed content was either:
+- Entirely useless files (documentation-only, no unique code)
+- Comment lines (explanatory comments, section decorators, summaries)
+- Dead code (decNeg, decProd, decCoprod never used anywhere)
+No useful theorems, definitions, or proofs were lost.
+
+Phase 1: Deleted entirely useless files
+----------------------------------------
+- work/AxiomsWork.agda (211 lines): Only `open import work.Part02 public` + comments
+- work/OpenClosedWork.agda (349 lines): Only `open import work.Part02 public` + comments
+- work/LLPOWork.agda (386 lines): Duplicated code from Part06 + comments
+
+Phase 2: Deleted documentation-only files and fixed import chain
+-----------------------------------------------------------------
+- work/Part16.agda (4,141 lines): 100% documentation modules, no unique code
+- work/Part17.agda (1,131 lines): Documentation modules, no downstream usage
+- work/Part18.agda (898 lines): Documentation modules, no downstream usage
+- work/Part22.agda (648 lines): Documentation modules, terminal file unused
+
+Import chain fixed:
+  Before: Part15 -> Part16 -> Part17 -> Part18 -> Part19 -> ... -> Part22
+  After:  Part15 -> Part19 -> Part20 -> Part21
+  Part19 now imports from work.Part15 directly.
+
+Phase 3: Removed dead code
+---------------------------
+- Part01.agda: Removed decNeg, decProd, decCoprod (never used anywhere,
+  confirmed by grep; only referenced in a comment in Part02 which was also removed)
+- Part08.agda: Fixed 5 instances of QB.evalInduce called with implicit argument
+  syntax {x} {y} instead of explicit x y (pre-existing bug surfaced by
+  interface cache invalidation after import chain change)
+
+Phase 4: Stripped comments from all remaining files
+----------------------------------------------------
+Rule applied: Remove ALL comments except those stating where an Agda-proven
+theorem is in the tex file (e.g., "-- tex Theorem X, line Y").
+
+Per-file changes:
+  Part01.agda:  644 -> 422 (222 lines, -34%)
+  Part02.agda: 3147 -> 1972 (1175 lines, -37%)
+  Part03.agda:  405 -> 239 (166 lines, -41%)
+  Part04.agda: 1322 -> 840 (482 lines, -36%)
+  Part05.agda: 2223 -> 1277 (946 lines, -43%)
+  Part05a.agda: 343 -> 259 (84 lines, -24%)
+  Part06.agda: 1883 -> 935 (948 lines, -50%)
+  Part07.agda:  989 -> 513 (476 lines, -48%)
+  Part08.agda: 1170 -> 697 (473 lines, -40%)
+  Part09.agda:  258 -> 157 (101 lines, -39%)
+  Part10.agda:  252 -> 159 (93 lines, -37%)
+  Part10a.agda: 464 -> 360 (104 lines, -22%)
+  Part10b.agda: 182 -> 135 (47 lines, -26%)
+  Part10c.agda: 111 -> 87 (24 lines, -22%)
+  Part11.agda: 1087 -> 576 (511 lines, -47%)
+  Part12.agda:  619 -> 323 (296 lines, -48%)
+  Part13.agda:  438 -> 218 (220 lines, -50%)
+  Part14.agda: 4562 -> 1344 (3218 lines, -71%)
+  Part15.agda: 1867 -> 494 (1373 lines, -74%)
+  Part19.agda:  816 -> 228 (588 lines, -72%)
+  Part20.agda:  844 -> 212 (632 lines, -75%)
+  Part21.agda:  435 -> 112 (323 lines, -74%)
+
+Phase 5: Updated All.agda
+---------------------------
+- Removed imports for deleted files: Part16, Part17, Part18, Part22
+- All.agda: 29 -> 26 lines
+
+Tex reference comments preserved (examples):
+- Part02: "-- (tex line 716)" for openDeMorgan
+- Part04: "-- tex definition (line 554-559)"
+- Part04: "-- tex Injectivity of f (tex line 567-583)"
+- Part14: Multiple tex references for Stone space theorems
+
+Verification: Full compilation of work/All.agda - SUCCESS
+(Pre-existing warning: isProp→isSet deprecated, use isPropIsSet in Part15)
