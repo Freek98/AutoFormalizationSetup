@@ -1,5 +1,5 @@
 {-# OPTIONS --cubical --guardedness #-}
-
+-- Note from Freek, after cleaning up, only postulates remained. I guess the phrasing of the postulates could have some value as stating the future proof goals. 
 module work.Part21 where
 
 open import work.Part20 public

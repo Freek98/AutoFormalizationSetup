@@ -14,3 +14,4 @@
   ❯ In CLAUDE.md, I have given you instrunctions on cleaning. Use these to clean 
   all that's written. If a file in work turns out to be useless entirely, I'm   
   fine if you delete it.
+  -- This wasn't that useful a command, there's still a lot of unnecessary things remaining, and it mostly deleted it's own comments (I didn't check all files). 

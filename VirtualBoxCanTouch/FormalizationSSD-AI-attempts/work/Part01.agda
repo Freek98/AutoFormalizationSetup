@@ -1,5 +1,5 @@
 {-# OPTIONS --cubical --guardedness #-}
-
+-- Note from Freek, this file contains some useless imports, so it didn't clean those out properly. It did clean out most comments, and some results about decidable props being closed under negation and disjunction (I think this fell within the mandate)
 module work.Part01 where
 
 open import Cubical.Foundations.Prelude
