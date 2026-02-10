@@ -3,6 +3,7 @@
 module QuotientBool where
 {- This module restricts the quotients of commutative rings to quotients of Boolean rings -}
 
+
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Structure
 open import Cubical.Foundations.HLevels
@@ -77,10 +78,14 @@ module _ {ℓ : Level} {B : BooleanRing ℓ} {X : Type ℓ} {f : X → ⟨ B ⟩
         inducedHom : BoolHom (B /Im f) S
         inducedHom = IQ.inducedHom R f g gfx=0 
 
-        evalInduce : inducedHom ∘cr quotientImageHom ≡ g
-        evalInduce = IQ.evalInduce (BooleanRing→CommRing B) f {S = BooleanRing→CommRing S} g gfx=0 
-
         inducedHomUnique : (h : BoolHom (B /Im f) S) →
                            (p : g ≡ (h ∘cr quotientImageHom)) →
                            inducedHom ≡ h
         inducedHomUnique = IQ.inducedHomUnique R f g gfx=0
+  opaque
+    unfolding inducedHom
+    evalInduce : 
+       (S : BooleanRing ℓ) {g : BoolHom B S}
+       {gfx=0 : ∀ (x : X) → g $cr (f x) ≡ BooleanRingStr.𝟘 (snd S)} → 
+       inducedHom S g gfx=0 ∘cr quotientImageHom ≡ g
+    evalInduce S = IQ.evalInduce {ℓ = ℓ} (BooleanRing→CommRing B) {S = BooleanRing→CommRing S}
