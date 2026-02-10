@@ -151,7 +151,7 @@ module _ (α : binarySequence) where
       ((QB.inducedHom _ freeℕ→freeA _) ∘cr quotientImageHom)  $cr generator (fst a) 
         ≡⟨ 
           cong (λ h → h $cr generator (fst a)) 
-          (QB.evalInduce _ _ _ ) 
+          (QB.evalInduce _) 
          ⟩
       freeℕ→freeA $cr generator (fst a) 
         ≡⟨ 
@@ -217,7 +217,7 @@ module _ (α : binarySequence) where
       (freeA→freeAcp ∘cr freeAcp→freeA ∘cr quotientImageHom) $cr generator n 
          ≡⟨⟩ 
       (freeA→freeAcp ∘cr ((QB.inducedHom (freeBA A) freeℕ→freeA _) ∘cr quotientImageHom)) $cr generator n
-         ≡⟨ cong (λ h → (freeA→freeAcp ∘cr h) $cr generator n) (QB.evalInduce _ _ _) ⟩ 
+         ≡⟨ cong (λ h → (freeA→freeAcp ∘cr h) $cr generator n) (QB.evalInduce _ ) ⟩ 
       (freeA→freeAcp ∘cr freeℕ→freeA) $cr generator n
          ≡⟨ cong (λ x → freeA→freeAcp $cr x ) (funExt⁻ (evalBAInduce _ _ _) n ) ⟩ 
       freeA→freeAcp $cr gensℕinFreeA n
