@@ -77,10 +77,6 @@ module StoneEqualityClosedModule where
     s=t→βFalse : s ≡ t → (k : ℕ) → β k ≡ false
     s=t→βFalse s=t = fst (snd ∀P-closed) (agree-forward s=t)
 
-    BoolHom-ext : {A B : BooleanRing ℓ-zero} → (h k : BoolHom A B)
-      → ((x : ⟨ A ⟩) → fst h x ≡ fst k x) → h ≡ k
-    BoolHom-ext h k pw = CommRingHom≡ (funExt pw)
-
     presEquiv⁻¹-hom : BoolHom Q B
     presEquiv⁻¹-hom = BooleanEquivToHomInv B Q equiv
 
@@ -125,30 +121,28 @@ module StoneEqualityClosedModule where
       QB.quotientImageHomEpi (Bool , isSetBool) (cong fst (s-on-free=t-on-free allP))
 
     s-on-Q=t-on-Q : ((n : ℕ) → fst (P n)) → s-on-Q ≡ t-on-Q
-    s-on-Q=t-on-Q allP = BoolHom-ext {Q} {BoolBR} s-on-Q t-on-Q (λ q → funExt⁻ (s-on-Q=t-on-Q-fst allP) q)
+    s-on-Q=t-on-Q allP = CommRingHom≡ (s-on-Q=t-on-Q-fst allP)
 
     leftInv : presEquiv⁻¹-hom ∘cr presEquiv-hom ≡ idBoolHom B
     leftInv = BooleanEquivLeftInv B Q equiv
 
     ∀P→s=t : ((n : ℕ) → fst (P n)) → s ≡ t
     ∀P→s=t allP =
-      let s-on-Q=t-on-Q' : s-on-Q ≡ t-on-Q
-          s-on-Q=t-on-Q' = s-on-Q=t-on-Q allP
-          s=s∘id : s ≡ s ∘cr idBoolHom B
-          s=s∘id = BoolHom-ext {B} {BoolBR} s (s ∘cr idBoolHom B) (λ _ → refl)
-          t=t∘id : t ≡ t ∘cr idBoolHom B
-          t=t∘id = BoolHom-ext {B} {BoolBR} t (t ∘cr idBoolHom B) (λ _ → refl)
-          step1 : s ∘cr idBoolHom B ≡ s ∘cr (presEquiv⁻¹-hom ∘cr presEquiv-hom)
-          step1 = cong (s ∘cr_) (sym leftInv)
-          step2 : s ∘cr (presEquiv⁻¹-hom ∘cr presEquiv-hom) ≡ s-on-Q ∘cr presEquiv-hom
-          step2 = BoolHom-ext {B} {BoolBR} (s ∘cr (presEquiv⁻¹-hom ∘cr presEquiv-hom)) (s-on-Q ∘cr presEquiv-hom) (λ _ → refl)
-          step3 : s-on-Q ∘cr presEquiv-hom ≡ t-on-Q ∘cr presEquiv-hom
-          step3 = cong (_∘cr presEquiv-hom) s-on-Q=t-on-Q'
-          step4 : t-on-Q ∘cr presEquiv-hom ≡ t ∘cr (presEquiv⁻¹-hom ∘cr presEquiv-hom)
-          step4 = BoolHom-ext {B} {BoolBR} (t-on-Q ∘cr presEquiv-hom) (t ∘cr (presEquiv⁻¹-hom ∘cr presEquiv-hom)) (λ _ → refl)
-          step5 : t ∘cr (presEquiv⁻¹-hom ∘cr presEquiv-hom) ≡ t ∘cr idBoolHom B
-          step5 = cong (t ∘cr_) leftInv
-      in s=s∘id ∙ step1 ∙ step2 ∙ step3 ∙ step4 ∙ step5 ∙ sym t=t∘id
+      s
+        ≡⟨ CommRingHom≡ (funExt (λ _ → refl)) ⟩
+      s ∘cr idBoolHom B
+        ≡⟨ cong (s ∘cr_) (sym leftInv) ⟩
+      s ∘cr (presEquiv⁻¹-hom ∘cr presEquiv-hom)
+        ≡⟨ CommRingHom≡ (funExt (λ _ → refl)) ⟩
+      s-on-Q ∘cr presEquiv-hom
+        ≡⟨ cong (_∘cr presEquiv-hom) (s-on-Q=t-on-Q allP) ⟩
+      t-on-Q ∘cr presEquiv-hom
+        ≡⟨ CommRingHom≡ (funExt (λ _ → refl)) ⟩
+      t ∘cr (presEquiv⁻¹-hom ∘cr presEquiv-hom)
+        ≡⟨ cong (t ∘cr_) leftInv ⟩
+      t ∘cr idBoolHom B
+        ≡⟨ sym (CommRingHom≡ (funExt (λ _ → refl))) ⟩
+      t ∎
 
     βFalse→s=t : ((k : ℕ) → β k ≡ false) → s ≡ t
     βFalse→s=t = λ h → ∀P→s=t (snd (snd ∀P-closed) h)

@@ -50,9 +50,6 @@ interpretB∞ (t ·T s) = interpretB∞ t ·∞ interpretB∞ s
 π∞-1 : fst π∞ (BooleanRingStr.𝟙 (snd (freeBA ℕ))) ≡ 𝟙∞
 π∞-1 = IsCommRingHom.pres1 (snd π∞)
 
-π∞-gen : (n : ℕ) → fst π∞ (generator n) ≡ g∞ n
-π∞-gen n = refl
-
 private
   _+Free_ = BooleanRingStr._+_ (snd (freeBA ℕ))
   _·Free_ = BooleanRingStr._·_ (snd (freeBA ℕ))
@@ -70,8 +67,6 @@ private
 interpretB∞-eq-composition : (t : freeBATerms ℕ) → interpretB∞ t ≡ π∞-from-terms t
 interpretB∞-eq-composition (Tvar n) =
   g∞ n
-    ≡⟨ sym (π∞-gen n) ⟩
-  fst π∞ (generator n)
     ≡⟨ cong (fst π∞) (sym (includeBATerms-Tvar n)) ⟩
   π∞-from-terms (Tvar n) ∎
 interpretB∞-eq-composition (Tconst false) =

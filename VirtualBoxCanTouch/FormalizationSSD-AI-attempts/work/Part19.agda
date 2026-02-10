@@ -128,17 +128,10 @@ module NotWLPOTC where
 
     SD-property : (α : binarySequence) → decide-fn α ≡ WLPOmod.evaluate α $cr elem-c
     SD-property α = sym (
-      WLPOmod.evaluate α $cr elem-c
-        ≡⟨ refl ⟩
-      evaluationMap freeBA-ℕ-Booleω elem-c (WLPOmod.evaluate α)
-        ≡⟨ cong (evaluationMap freeBA-ℕ-Booleω elem-c) evaluate-is-Iso-inv ⟩
       evaluationMap freeBA-ℕ-Booleω elem-c (Iso.inv Sp-freeBA-ℕ-Iso α)
         ≡⟨ decPred→elem-property' (decide-fn ∘ Iso.fun Sp-freeBA-ℕ-Iso) (Iso.inv Sp-freeBA-ℕ-Iso α) ⟩
       decide-fn (Iso.fun Sp-freeBA-ℕ-Iso (Iso.inv Sp-freeBA-ℕ-Iso α))
         ≡⟨ cong decide-fn (Iso.sec Sp-freeBA-ℕ-Iso α) ⟩
       decide-fn α ∎)
-      where
-      evaluate-is-Iso-inv : WLPOmod.evaluate α ≡ Iso.inv Sp-freeBA-ℕ-Iso α
-      evaluate-is-Iso-inv = refl
 
     open WLPOmod.PlayingWithWLPO' decide-fn WLPOf elem-c SD-property

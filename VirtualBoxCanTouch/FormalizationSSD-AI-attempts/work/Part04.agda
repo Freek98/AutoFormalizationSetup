@@ -180,9 +180,6 @@ module Bool²-presentation where
     neg≡selfQ : (y : ⟨ Bool²-quotient ⟩) → BooleanRingStr.-_ (snd Bool²-quotient) y ≡ y
     neg≡selfQ y = sym (BooleanAlgebraStr.-IsId Bool²-quotient)
 
-  Bool²→quotient-pres1 : Bool²→quotient-fun 𝟙² ≡ 𝟙Q
-  Bool²→quotient-pres1 = refl
-
   Bool²→quotient-pres+ : (x y : ⟨ Bool² ⟩) → Bool²→quotient-fun (x +² y) ≡ Bool²→quotient-fun x +Q Bool²→quotient-fun y
   Bool²→quotient-pres+ (false , false) (false , false) = sym (BooleanRingStr.+IdL (snd Bool²-quotient) _)
   Bool²→quotient-pres+ (false , false) (false , true) = sym (BooleanRingStr.+IdL (snd Bool²-quotient) _)
