@@ -1,0 +1,27 @@
+bck0073 → bck0074: Dead code removal + isSet helper inlining (6350 → 6335, -15 lines)
+
+Part02.agda (1108 → 1105, -3 lines):
+- Removed dead import and definition (-3 lines):
+  Deleted unused `import Cubical.Algebra.CommRing.Quotient.ImageQuotient as IQ`
+  and dead definition `R = BooleanRing→CommRing (freeBA ℕ)`.
+  Neither was used anywhere in the file or downstream.
+
+Part08.agda (565 → 553, -12 lines):
+- Inlined h-quotient-isSet (-2 lines):
+  Replaced with BooleanRingStr.is-set (snd h-quotient) at sole use in
+  step3-backward∘forward.
+- Inlined rec-quotient-isSet (-2 lines):
+  Replaced with BooleanRingStr.is-set (snd rec-quotient) at sole use in
+  step3-forward∘backward.
+- Inlined B/d-ring-isSet (-2 lines):
+  Replaced with BooleanRingStr.is-set (snd B/d-ring) at sole use in
+  step1-backward∘forward.
+- Inlined target-ring-isSet (-2 lines):
+  Replaced with BooleanRingStr.is-set (snd target-ring) at sole use in
+  step1-forward∘backward.
+- Removed blank separator lines (-4 lines).
+
+Full chain (Part21) compilation verified.
+Line decrease justified: dead code removed (unused import + dead definition),
+and 4 single-use isSet wrapper definitions inlined at their sole call sites.
+No theorems, proofs, or tex-referenced results affected.

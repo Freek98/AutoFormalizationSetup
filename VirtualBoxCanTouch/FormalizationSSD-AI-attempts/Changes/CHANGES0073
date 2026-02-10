@@ -1,0 +1,34 @@
+bck0072 → bck0073: Single-use helper inlining + alias collapse (6400 → 6350, -50 lines)
+
+Part02.agda (1145 → 1108, -37 lines):
+- Inlined source-isSet/target-isSet (-6 lines):
+  Replaced with direct BooleanRingStr.is-set (snd source/target) at call sites.
+- Inlined embBR-pres0/1 and π₀-pres0/1 (-8 lines):
+  Replaced with direct pres0/pres1 (snd equiv) / pres0/pres1 (snd QB.quotientImageHom)
+  in α'≡π₀∘g-pointwise's with-branches.
+- Collapsed step1-equiv', invStep2, invStep3, step12 into equivToPresentation (-12 lines):
+  Merged all single-use intermediate equivalences into single compBoolRingEquiv chain.
+  Also collapsed A'/B'/C'/D' type aliases onto single lines each.
+- Inlined αn∧βm=t trivial alias in backward (-2 lines):
+  Was just γk=t; replaced at both uses with direct γk=t reference.
+- Inlined Pstable/Qstable in forward of openDeMorgan (-7 already in bck0072):
+  [This was actually done in bck0072; residual blank line cleanup here]
+- Removed associated blank separator lines (-2 lines).
+
+Part11.agda (471 → 458, -13 lines):
+- Inlined Dσ in proj₁-preserves-CC (-2 lines):
+  Replaced with lambda (λ (a , b) → D a).
+- Inlined p_a in make-f (-2 lines):
+  Moved StoneCompactHausdorffTotallyDisconnected-forward call inline.
+- Inlined p_x≡refl in make-f-xy (-2 lines):
+  Replaced with direct isSetS x x p_x refl.
+- Inlined p_x'≡x≡x' in make-f-x'y' (-2 lines):
+  Replaced with direct isSetS x x' p_x' x≡x'.
+- Inlined y'-in-Qy in y≡y'-in-Tx (-3 lines):
+  Replaced with lambda (λ D yInD → sym (g-agrees D) ∙ yInD).
+- Removed blank separator lines (-2 lines).
+
+Full chain (Part21) compilation verified.
+Line decrease justified: all removed items are single-use where-clause helpers,
+trivial aliases, or intermediate bindings inlined into their sole call sites.
+No theorems, proofs, or tex-referenced results affected.

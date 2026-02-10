@@ -1,0 +1,19 @@
+bck0064 → bck0065: Dead code removal (6795 → 6779, -16 lines)
+
+Part02.agda (1302 → 1296, -6 lines):
+- Removed dead `encode∘decode` (Iso.sec alias, never invoked by any code)
+- Removed dead `h≡rec∘decode` (funExt version; only the pointwise version is used)
+  Neither is tex-referenced. Both were redundant wrappers never called.
+
+Part04.agda (751 → 747, -4 lines):
+- Removed dead `δ∞-misses-m` (proves δ∞ n misses m when n≠m)
+  Never used anywhere downstream. δ∞ and δ∞-hits-n (the positive witness) ARE used in Part05.
+  Not tex-referenced.
+
+Part08.agda (587 → 581, -6 lines):
+- Removed dead `encode∘decode` and `h≡rec∘decode` (parallel to Part02 removals)
+  Same pattern: Iso.sec alias and funExt wrapper, never used, not tex-referenced.
+
+Full chain (Part21) compiles successfully.
+Line decrease justified: all removed items are genuinely dead (never used by live code)
+and not mentioned in monolithic.tex. No theorems, proofs, or tex-referenced results affected.

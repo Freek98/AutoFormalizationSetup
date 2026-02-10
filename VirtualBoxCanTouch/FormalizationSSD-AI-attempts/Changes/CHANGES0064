@@ -1,0 +1,21 @@
+bck0063 → bck0064: Dead code removal (6860 → 6795, -65 lines)
+
+Part07.agda (347 → 347... wait: 355 → 347, -8 lines):
+- Removed dead 0≢1-isClosed from ODiscInfrastructure module (7 lines + blank)
+  Never used anywhere, not tex-referenced. The 0=1-isOpen it depends on is still used.
+
+Part11.agda (491 → 488, -3 lines):
+- Removed dead StoneΣ convenience wrapper (2 lines + blank)
+  Never used anywhere, not tex-referenced. StoneSigmaClosed (the actual theorem) is kept.
+
+Part12.agda (284 → 230, -54 lines):
+- Removed 7 dead derived lemmas from IntervalTopologyModule:
+  <I-irrefl, <I-implies-≢, <I-trans, <I-≤I-trans, ≤I-<I-trans, ≤I-from-≡, <I-implies-¬≤I
+  None of these were used by any live code (they only used each other in a dead cascade).
+  None are tex-referenced. All the postulates they depend on are retained.
+  The IVT proof only uses: <I-asymmetric (postulate), <I-from-≤-≢ (postulate),
+  ≤-from-<I (postulate), ≤I-antisym (postulate), ≤I-trans (postulate), ≤I-refl (postulate).
+
+Full chain (Part21) compiles successfully.
+Line decrease justified: all removed items are genuinely dead (never used by live code)
+and not mentioned in monolithic.tex. No theorems, proofs, or tex-referenced results affected.

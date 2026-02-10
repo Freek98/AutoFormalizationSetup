@@ -1,0 +1,38 @@
+bck0062 → bck0063: Refl-step merging across Part04, Part05, Part09, Part14 (6938 → 6860, -78 lines)
+
+Part04.agda (787 → 751, -36 lines):
+- Merged 3 end-of-chain refls in freeBool→Bool²-on-rels (cases 0, 1, suc suc n)
+  (unfold of ·² and +² computations on concrete Bool² pairs)
+- Merged 2 end-of-chain refls in composite-on-gens (cases 0, 1)
+  (unfold of Bool²→quotient on concrete pairs)
+- Merged 2 start-of-chain refls in inl-inr-mult-zero and inr-inl-mult-zero
+  (unfold of ·× on pairs)
+- Merged 2×2 refls in parity-double and parity-double-suc
+  (unfold of suc+suc and parity(suc(suc n))=parity n)
+- Merged 2×2 refls in div2-double and div2-double-suc
+  (unfold of suc+suc and div2(suc(suc n))=suc(div2 n))
+- Merged 2 start-of-chain refls in zero-join-left and zero-join-right
+  (unfold of ∨∞)
+- Merged 2×2 refls in f-on-finJoin true/false cases
+  (unfold of ∨× on pairs and finJoin∞ with ∷)
+- Merged 3 refls in f-pres-neg (unfold of ¬∞, +× on pairs, fold ¬∞ back)
+
+Part05.agda (926 → 914, -12 lines):
+- Merged start-of-chain refl in h-pres-join-Bool (unfold of ∨∞)
+- Merged start-of-chain refl in h-pres-neg-Bool (unfold of ¬∞)
+- Merged refl in h'-on-f-neg-gen-even (unfold of h' on pair)
+- Merged refl in h'-on-f-neg-gen-odd (unfold of h' on pair)
+- Merged refl in h'-on-f-finMeetNeg [] (unfold of h' on (𝟙∞,𝟙∞))
+- Merged start-of-chain refl in h'-on-f-finMeetNeg cons (unfold of finMeetNeg∞)
+
+Part09.agda (277 → 276, -1 line):
+- Merged refl in ClosedInStoneIsStone all-zero chain (unfold of α')
+
+Part14.agda (510 → 506, -4 lines):
+- Merged 2 refls in combined-is-refl chain
+  (unfold of p-uv = sym pu ∙ pv, and p-vw = sym pv ∙ pw)
+
+Full chain (Part21) compiles successfully.
+Line decrease justified: all changes are purely mechanical merging of ≡⟨ refl ⟩ steps
+by dropping intermediate definitionally-equal terms in equational chains.
+No definitions, theorems, or tex-referenced results were removed.

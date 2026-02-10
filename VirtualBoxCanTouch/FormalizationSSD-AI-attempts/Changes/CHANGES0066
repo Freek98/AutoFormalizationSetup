@@ -1,0 +1,31 @@
+bck0065 → bck0066: Dead code removal + postulate merging + library replacement (6779 → 6753, -26 lines)
+
+Part02.agda (1296 → 1292, -4 lines):
+- Replaced local `⊎-rec` where-clause definition with library's `⊎.rec` in clopenIsDecidable
+  Also simplified `⊎.rec (λ p → yes p) (λ ¬p → no ¬p)` to `⊎.rec yes no`
+
+Part04.agda (747 → 747, 0 lines):
+- No changes in this backup (δ∞-misses-m was already removed in bck0065)
+
+Part11.agda (488 → 486, -2 lines):
+- Merged two adjacent postulate blocks in ConnectedComponentModule into one
+  (ConnectedComponentClosedInCompactHausdorff + ConnectedComponentSubOpenHasDecidableInbetween)
+
+Part12.agda (230 → 218, -12 lines):
+- Merged 3 postulate blocks in IntervalIsCHausModule into 1
+  (UnitInterval/isSetUnitInterval + cs/cs-surjective + IntervalIsCHaus)
+- Merged 2 postulate blocks in IntervalTopologyModule into 1
+  (_≤I_/_<I_/isProp + 0I/1I)
+- Merged 5 postulate blocks into 1
+  (≤I-antisym + ≤I-trans + ≤I-refl + <I-from-≤-≢/≤-from-<I + <I-asymmetric)
+  Postulates with tex comments (like <I-isOpen, ≠I-apartness) kept separate.
+
+Part13.agda (71 → 63, -8 lines):
+- Merged 4 postulate blocks into 1
+  (Disk2/isSetDisk2 + Circle + boundary-inclusion + Disk2IsCHaus kept separate due to comment)
+- Merged 2 postulate blocks into 1
+  (no-retraction + retraction-from-no-fixpoint)
+
+Full chain (Part21) compiles successfully.
+Line decrease justified: no definitions, theorems, or tex-referenced results removed.
+All changes are purely structural (merging adjacent postulate blocks, library replacement).

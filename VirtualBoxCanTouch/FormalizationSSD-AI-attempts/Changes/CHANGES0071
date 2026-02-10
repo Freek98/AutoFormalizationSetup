@@ -1,0 +1,50 @@
+bck0070 → bck0071: Single-use helper inlining + dead code removal (6515 → 6464, -51 lines)
+
+Part02.agda (1163 → 1158, -5 lines):
+- Inlined Qd→∃ and ∃→Qd aliases in openSigmaDecidable (yes d) case (-2 lines):
+  Replaced with direct fst/snd (snd (Qopen d)) at call sites.
+- Inlined helper2 in backward-equiv (-3 lines):
+  Replaced with lambda (λ (αn=t , qw) → ∣ witness n αn=t , qw ∣₁).
+
+Part06.agda (75 → 69, -6 lines):
+- Inlined agree-on-gens (-2 lines): was just eta-expansion of seq-eq-pointwise.
+  Passed seq-eq-pointwise directly to equalityFromEqualityOnGenerators.
+- Inlined fst-hom-eq into B∞-hom-eq (-4 lines):
+  Moved QB.quotientImageHomEpi call directly into CommRingHom≡ argument.
+
+Part08.agda (581 → 565, -16 lines):
+- Inlined zeroOnImage-applied in Sp-quotient→ClosedSubset (-3 lines):
+  Equational chain now directly in lambda body.
+- Inlined induced alias + path in forward∘backward (-3 lines):
+  Replaced with direct QB.evalInduce call.
+- Inlined allZero alias in backward∘forward (-3 lines):
+  Replaced with snd (Sp-quotient→ClosedSubset h) directly.
+- Inlined step2-path into step2-equiv (-3 lines):
+  Replaced with direct BoolQuotientEquiv call.
+- Inlined decode∘encode trivial alias (-2 lines):
+  Replaced with direct Iso.ret ℕ⊎ℕ≅ℕ at sole call site.
+- Removed blank separator lines (-2 lines).
+
+Part09.agda (276 → 270, -6 lines):
+- Inlined D alias (-2 lines): replaced D n with (λ x → α' x n) at call sites
+  in elemFromDecPred and decPred-elem-correspondence.
+- Inlined allFalse' where-clause in ClosedSubsetB→ΣA (-4 lines):
+  Equational chain now inline as lambda argument to allFalse→A.
+
+Part10.agda (152 → 146, -6 lines):
+- Inlined SpQ≃ClosedSubsetSp alias (-3 lines):
+  Replaced with direct SQS.Sp-quotient-≃ at sole call site.
+- Inlined equiv-hom in SpB≃SpQ (-3 lines):
+  Replaced with (fst B≃Q , snd equiv) pair directly.
+
+Part12.agda (216 → 204, -12 lines):
+- Deleted dead U₀-U₁-disjoint (-3 lines):
+  Never used by any code, not tex-referenced. Was trivial wrapper around <I-asymmetric.
+- Inlined 0-in-U₀ (-3 lines): replaced with <I-from-≤-≢ (f 0I) y at sole call site.
+- Inlined 1-in-U₁ (-3 lines): replaced with <I-from-≤-≢ y (f 1I) at sole call site.
+- Removed blank separator lines (-3 lines).
+
+Full chain (Part21) compiles successfully.
+Line decrease justified: all removed items are dead code, unused aliases, or single-use
+intermediaries inlined into their sole call sites. No theorems, proofs, or tex-referenced
+results affected.

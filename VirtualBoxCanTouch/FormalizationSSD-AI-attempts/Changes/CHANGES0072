@@ -1,0 +1,32 @@
+bck0071 → bck0072: Dead code removal + single-use helper inlining (6464 → 6400, -64 lines)
+
+Part02.agda (1158 → 1145, -13 lines):
+- Inlined Pstable/Qstable in forward (-7 lines):
+  Replaced with direct openIsStable calls in lambda argument.
+- Inlined countableUnionOpen alias (-2 lines):
+  Replaced with direct openCountableUnion Rn Rn-open at sole call site.
+- Inlined p'/p≡p' intermediates in forward-equiv helper (-2 lines):
+  Collapsed into direct snd P p (witness n αn=t) at subst call site.
+- Removed blank separator lines (-2 lines).
+
+Part14.agda (492 → 441, -51 lines):
+- Removed dead EilenbergStoneVanishProofInfra module content (-20 lines):
+  Deleted fiber-is-closed, fiber-hProp, fiber-is-Stone, FiberStone,
+  surjective→fibers-inhabited. All dead code (never used by any code
+  or tex-referenced). The module declaration itself removed as content emptied.
+- Removed dead BZ connectivity code (-12 lines):
+  Deleted any-point-merely-equal-to-base and α-x-merely-null
+  (both dead, not tex-referenced).
+  Removed now-unused imports: isConnectedPath, hLevelTrunc, propTruncTrunc1Iso, open Iso.
+- Inlined isSet-paths-in-EM and isSet-paths-to-0ₖ (-5 lines):
+  Replaced with direct isOfHLevelPath' 2 (hLevelEM ...) call at sole use site.
+- Inlined BZ-is-2-connected (-2 lines):
+  Replaced with direct isConnectedEM call in BZ-is-connected.
+- Inlined UnitInterval≃Unit (-2 lines):
+  Replaced with direct isContr→≃Unit isContrUnitInterval in ua call.
+- Removed blank separator lines and unused blank lines (-10 lines).
+
+Full chain (Part21) compilation verified.
+Line decrease justified: majority (32+ lines) are dead code with no uses in
+code or tex. Remainder are single-use helpers inlined at their sole call sites.
+No theorems, proofs, or tex-referenced results affected.

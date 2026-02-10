@@ -1,0 +1,42 @@
+bck0067 → bck0068: Dead code removal + single-use where-clause inlining (6630 → 6584, -46 lines)
+
+Part04.agda (747 → 743, -4 lines):
+- Removed trivial `≡⟨ cong (fst quotient→Bool²) refl ⟩` steps in roundtrip-Bool²
+  for (false,true) and (true,false) cases. Since `fst quotient→Bool² (fst π gₙ)`
+  and `fst (quotient→Bool² ∘cr π) gₙ` are definitionally equal, the cong-refl
+  step was unnecessary. Merged adjacent chain terms.
+
+Part05.agda (914 → 907, -7 lines):
+- Removed `xor-false-left` where-clause in unit-left-false→unit-right-true (-5 lines)
+  Since `false ⊕ b` reduces to `b` definitionally (pattern match on first arg),
+  the `sym (xor-false-left ...) ∙` step was a `sym refl ∙` no-op. Removed step
+  and where-clause; Agda accepts the chain starting from the cong step directly.
+- Inlined `lemma` in ℕ∞-gen-respects-relations using `with ... in` syntax (-2 lines)
+  Replaced explicit helper taking `refl refl` with direct `with` pattern matching.
+  Used `builtin→Path-Bool` to convert captured equations to cubical paths.
+
+Part05a.agda (399 → 393, -6 lines):
+- Inlined single-use `BooleanRing-neg-id` into its sole call site (-3 lines)
+  Replaced with direct `BooleanAlgebraStr.-IsId (freeBA ℕ) {x = ...}`.
+- Inlined single-use `helper` in interpretB∞-surjective (-3 lines)
+  Replaced with pattern-matching lambda `λ { (t , eq) → ... }`.
+
+Part11.agda (486 → 471, -15 lines):
+- Inlined `¬∀→¬¬` into backward in AllOpenSubspaceOpen (-3 lines)
+  Replaced with direct lambda `λ ¬Ux → ¬∃¬U ∣ x , ¬Ux ∣₁`.
+- Inlined trivial alias chain in proj₁-preserves-CC (-6 lines)
+  Removed `xyInDσ = xInD`, `x'y'InDσ = ccσ Dσ xyInDσ`, `goal = x'y'InDσ`;
+  collapsed to `ccσ Dσ xInD` directly.
+- Inlined `goal'` in y'-in-Qy (-3 lines)
+  Replaced with direct `sym (g-agrees D) ∙ yInD`.
+- Inlined `y'-path` into ΣPathP call in goal (-3 lines)
+  Moved cong/transportTransport⁻ expression directly into toPathP.
+
+Part14.agda (506 → 492, -14 lines):
+- Removed dead module `EMGroupOps` (EM0-carrier, ΩEM1→EM0, EM0→ΩEM1)
+  Module was never opened or referenced anywhere in work/ files or monolithic.tex.
+  All three definitions were unused aliases for EM-iso components.
+
+Full chain (Part21) compiles successfully.
+Line decrease justified: all removed items are dead code or single-use intermediaries.
+No theorems, proofs, or tex-referenced results affected.

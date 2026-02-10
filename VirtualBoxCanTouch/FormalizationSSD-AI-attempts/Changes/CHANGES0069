@@ -1,0 +1,35 @@
+bck0068 → bck0069: Single-use helper inlining + dead code removal (6584 → 6539, -45 lines)
+
+Part03.agda (178 → 162, -16 lines):
+- Collapsed SpB∞-seq-atMostOnce proof's let-chain in `no m≠n` case
+  Removed 6 intermediate let-bindings (h-pres·, mult-zero, h-mult, h-and-eq,
+  step1, contradiction) and consolidated into a single `and-is-false` definition
+  using `pres·` directly (from opened IsCommRingHom scope).
+  The proof logic is unchanged: shows true and true ≡ false is contradictory.
+
+Part07.agda (347 → 332, -15 lines):
+- Removed dead `isSetSp-quotient` (defined but never used, -2 lines)
+- Inlined `isPropP = snd P` into its sole use site (-2 lines)
+- Inlined `all-false-from-h` into `α-to-0` (eta-reduced, -3 lines)
+- Inlined `h∘π-on-false` and `h∘π-on-true` into h∘π≡id-pointwise (-6 lines)
+  Direct case-split now provides the proof terms inline.
+- Removed associated blank separator lines (-2 lines)
+
+Part19.agda (136 → 130, -6 lines):
+- Inlined `pointwise` in funspace-I-local (-3 lines)
+  Replaced with direct lambda: `funExt (λ a → B-local (λ i → g i a) x y)`.
+- Removed single-use `Sp-to-fun B h = fst h` alias (-3 lines)
+  Replaced usage `Sp-to-fun B (f i)` with `fst (f i)` directly.
+
+Part20.agda (72 → 64, -8 lines):
+- Removed dead `R-cont-path-connected-from` (trivial eta-expansion of postulate,
+  never used by any code, -2 lines)
+- Merged two adjacent postulate blocks in RIContractibleTC (R + D²) into one (-3 lines)
+- Removed dead duplicate `Ω-S¹-is-ℤ` in NoRetractionTC (-3 lines)
+  Was identical to `loop-space-S¹` in ShapeS1IsBZTC (both = ΩS¹≡ℤ).
+  Never used by any code downstream.
+
+Full chain (Part21) compiles successfully.
+Line decrease justified: all removed items are dead code, unused aliases, or single-use
+intermediaries inlined into their sole call sites. No theorems, proofs, or tex-referenced
+results affected.

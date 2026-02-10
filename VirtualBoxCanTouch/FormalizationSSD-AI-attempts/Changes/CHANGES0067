@@ -1,0 +1,32 @@
+bck0066 → bck0067: Dead code removal + inline simplification in Part02 (6753 → 6630, -123 lines)
+
+Part02.agda (1292 → 1169, -123 lines):
+
+Dead code removed (90 lines):
+- Removed entire `ι : ℕ → ℕ∞` embedding function and all its helpers:
+  ι, ι-at-n, ι-at-m≠n, ι≠∞, ι-injective (-35 lines)
+  None of these were used by any live code or referenced in monolithic.tex.
+  The ι function was only used by its own helpers which were all dead.
+- Removed 6 dead ℕ∞ utility functions:
+  ℕ∞-notInfty→witness, witness→ℕ∞-notInfty, ℕ∞-witness-unique,
+  ∞-char, ℕ∞-witness→ι, ℕ∞-equality-closed (-55 lines)
+  None used downstream, none tex-referenced.
+  Note: ℕ∞-Markov (tex Theorem line 500) is KEPT.
+
+Single-use where-clause inlining (21 lines):
+- Inlined step3-backward∘forward-ext into step3-backward∘forward (-3 lines)
+- Inlined step3-forward∘backward-ext into step3-forward∘backward (-3 lines)
+- Inlined step3-equiv-fun into step3-equiv' (-3 lines)
+- Inlined step3-h-eq into step3-equiv (-3 lines)
+- Inlined step1-equiv-fun into step1-equiv (-3 lines)
+- Inlined backward∘forward-ext into backward∘forward (-3 lines)
+- Inlined forward∘backward-ext into forward∘backward (-3 lines)
+
+mp-from-SD proof simplification (12 lines):
+- Inlined sp-empty into 0≡1-BR (-3 lines)
+- Inlined 1≡0-CR, true-in-αIdeal, true-in-ideal chain into single call (-9 lines)
+
+Full chain (Part21) compiles successfully.
+Line decrease justified: all removed items are genuinely dead (verified by grep across
+all work/ files AND monolithic.tex). Inlined helpers were single-use intermediaries.
+No theorems, proofs, or tex-referenced results affected.

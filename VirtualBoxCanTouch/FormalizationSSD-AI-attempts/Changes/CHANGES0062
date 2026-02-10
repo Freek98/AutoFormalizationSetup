@@ -1,0 +1,49 @@
+bck0061 → bck0062: Library dedup + dead code removal + refl-inline (7153 → 6938, -215 lines)
+
+Part01.agda (266 → 256, -10 lines):
+- Merged refl steps in interleave-2k, interleave-2k+1 (unfold of interleave)
+- Simplified interleave-even and interleave-odd from 4-line chains to single cong
+
+Part02.agda (1314 → 1302, -12 lines):
+- Merged 4 refl steps in backward∘forward-on-π and forward∘backward-on-π chains
+  (unfold steps for backward-composite and composite-hom compositions)
+- Merged 1 refl step in backward-composite-sends-α'-to-0
+- Merged 1 refl step in βk=t (unfold of β)
+
+Part03.agda (192 → 178, -14 lines):
+- Replaced hand-rolled ≮→≥ with library's <-asym' from Cubical.Data.Nat.Order (-5 lines)
+- Simplified relB∞-encodes from 6-line equational chain to 1-line cong (-4 lines)
+- Merged refl step in g∞-lt-mult-zero (unfold of g∞) (-1 line)
+- Simplified g∞-distinct-mult-zero last case from verbose let+8-lines to 1-line
+
+Part04.agda (797 → 787, -10 lines):
+- Removed dead orthogonal→join-is-sum (never used, not tex-referenced, -8 lines)
+- Merged refl step in f-on-gen-eq (unfold of g∞)
+
+Part05.agda (946 → 926, -20 lines, plus -149 from dead code = -169 total):
+- Removed entire dead Sp(B∞×B∞)≅Sp(B∞)⊎Sp(B∞) infrastructure (-144 lines):
+  restrict-to-left, restrict-to-right, Sp-prod-to-sum, inject-left, inject-right,
+  Sp-sum-to-prod, inject-left-unit-left, inject-right-unit-left,
+  restrict-inject-left, restrict-inject-right
+  (These were superseded by the actual LLPO proof which uses a different approach)
+- Removed dead splitByParity-ns-nonempty (-5 lines)
+- Removed duplicate ≮→≥ definition (replaced with library <-asym') (-5 lines)
+- Narrowed import: Cubical.Foundations.Isomorphism using (Iso) instead of (iso; isoToEquiv; Iso)
+- Merged 3 refl steps in SpB∞-roundtrip-seq (unfold of SpB∞-to-ℕ∞-seq, g∞, ℕ∞-on-gen)
+- Merged end-of-chain refl steps in:
+  h-join-monotone (true or b = true)
+  h₀-on-neg-gen (not false = true)
+  h-meet-preserves-true (true and true = true)
+  h'-on-f-neg-gen-odd (not false = true)
+  h'-on-f-finMeetNeg cons case (true and true = true)
+- Merged 2 refl steps in φ-hits-left-gen and φ-hits-right-gen (unfold of genProd⊎)
+
+Part08.agda (598 → 587, -11 lines):
+- Merged refl step in zeroOnImage-applied (unfold of ∘cr)
+- Merged refl step in backward-composite-sends-d'-to-0 (unfold)
+- Merged 4 refl steps in step1-backward∘forward-on-π and step1-forward∘backward-on-π
+
+Full chain (Part21) compiles successfully.
+Line decrease justified: removed dead Sp-prod/sum infrastructure (never used by actual LLPO
+proof), replaced duplicate ≮→≥ with library <-asym', removed dead orthogonal→join-is-sum,
+merged trivial refl steps throughout. No tex results affected.

@@ -1,0 +1,25 @@
+bck0069 → bck0070: Single-use helper inlining + alias collapse (6539 → 6515, -24 lines)
+
+Part02.agda (1169 → 1163, -6 lines):
+- Collapsed backward's alias chain in openCountableUnion: removed trivial
+  intermediate let-bindings αnm=t, exists→Pn, Pn and inlined their expressions
+  directly into the final ∣ n , snd (snd (αs n)) (m , βk=t) ∣₁ call.
+
+Part04.agda (743 → 734, -9 lines):
+- Inlined step1/step2 in f-pres-join (-7 lines):
+  Combined into single expression: f-pres+ (a +∞ b) (a ·∞ b) ∙ cong₂ _+× (f-pres+ a b) (f-pres·' a b)
+- Inlined div2-neq lambda aliases in f-respects-relations (-2 lines):
+  Replaced named where-clauses with inline lambdas.
+
+Part05.agda (907 → 898, -9 lines):
+- Inlined f-meetNeg-nonzero where-chain (-7 lines):
+  Removed single-use helpers h'-on-0, h'-on-f-meetNeg, h'-on-f-meetNeg-eq-0
+  and merged their logic into the main proof expression.
+- Inlined f-kernel-from-trunc let-block (-2 lines):
+  Replaced pattern let { (nf , eq) → ... } with fst/snd projections
+  (paths cannot be pattern-matched in Cubical Agda).
+
+Full chain (Part21) compilation verified.
+Line decrease justified: all removed items are single-use where-clause helpers
+or trivial aliases inlined into their sole call sites. No theorems, proofs,
+or tex-referenced results affected.
