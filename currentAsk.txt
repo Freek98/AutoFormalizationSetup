@@ -23,4 +23,5 @@
   (Cubical.Data.Nat.Bijections has the N x N = N bijection you want)   
 
   ❯ I've update the cubical library and something broke. Fix this please.
-  See Claude.md (in the work folder). 
+  ❯ See your instrunctions in CLAUDE.md I want you to keep on working and never  
+  ask for permissions (I'll be asleep). Change the file if you wish to do so. 
