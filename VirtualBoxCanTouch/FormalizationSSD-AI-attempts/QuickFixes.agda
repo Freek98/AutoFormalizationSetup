@@ -73,10 +73,7 @@ module 2/3 {ℓ ℓ' ℓ'' : Level} {A : Type ℓ} {B : Type ℓ'} { C : Type �
            h ∎ 
 
 module _ {ℓ ℓ' : Level} {A : Type ℓ} (P : A → Type ℓ') (Pprop : (a : A) → isProp (P a)) where
-  private 
-    π : Σ A P → A
-    π = fst 
-  fstEmbedding : isEmbedding π
+  fstEmbedding : isEmbedding (fst :> (Σ A P → A))
   fstEmbedding _ _ = isEmbeddingFstΣProp Pprop 
   ΣpropEmbedding : Σ A P ↪ A
   ΣpropEmbedding = fst , λ _ _ → isEmbeddingFstΣProp Pprop 

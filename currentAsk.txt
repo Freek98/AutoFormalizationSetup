@@ -19,5 +19,7 @@
   reasoning. Please Don't do that. I prefer equational reasoning. Change your   
   own md file to   make sure you don't do that anymore.
 
-❯ by the way, triangular I think already exists in the library                  
+  ❯ by the way, triangular I think already exists in the library                  
   (Cubical.Data.Nat.Bijections has the N x N = N bijection you want)   
+
+  ❯ I've update the cubical library and something broke. Fix this please.
