@@ -302,6 +302,8 @@ module B∞×B∞-Presentation where
       ≡⟨ φ-on-g× (encode× (⊎.inl m)) ⟩
     genProd (encode× (⊎.inl m))
       ≡⟨ cong genProd⊎ (decode×∘encode× (⊎.inl m)) ⟩
+    genProd⊎ (⊎.inl m)
+      ≡⟨ refl ⟩
     (g∞ m , 𝟘∞) ∎
 
   φ-hits-right-gen : (m : ℕ) → fst φ (g×-right-gen m) ≡ (𝟘∞ , g∞ m)
@@ -310,6 +312,8 @@ module B∞×B∞-Presentation where
       ≡⟨ φ-on-g× (encode× (⊎.inr m)) ⟩
     genProd (encode× (⊎.inr m))
       ≡⟨ cong genProd⊎ (decode×∘encode× (⊎.inr m)) ⟩
+    genProd⊎ (⊎.inr m)
+      ≡⟨ refl ⟩
     (𝟘∞ , g∞ m) ∎
 
   ψ-left-on-gen : (m : ℕ) → fst ψ-left (g∞ m) ≡ g×-left-gen m
@@ -623,8 +627,17 @@ opaque
 SpB∞-roundtrip-seq : (α : ℕ∞) (n : ℕ) →
   SpB∞-to-ℕ∞-seq (ℕ∞-to-SpB∞ α) n ≡ fst α n
 SpB∞-roundtrip-seq α n =
-  funExt⁻ (cong fst (ℕ∞-to-SpB∞-eval α)) (gen n) ∙
-  funExt⁻ (ℕ∞-to-SpB∞-free-on-gen α) n
+  SpB∞-to-ℕ∞-seq (ℕ∞-to-SpB∞ α) n
+    ≡⟨ refl ⟩
+  (ℕ∞-to-SpB∞ α) $cr (g∞ n)
+    ≡⟨ refl ⟩
+  (ℕ∞-to-SpB∞ α) $cr (fst π∞ (gen n))
+    ≡⟨ funExt⁻ (cong fst (ℕ∞-to-SpB∞-eval α)) (gen n) ⟩
+  fst (ℕ∞-to-SpB∞-free α) (gen n)
+    ≡⟨ funExt⁻ (ℕ∞-to-SpB∞-free-on-gen α) n ⟩
+  ℕ∞-on-gen α n
+    ≡⟨ refl ⟩
+  fst α n ∎
 
 SpB∞-roundtrip : (α : ℕ∞) → SpB∞-to-ℕ∞ (ℕ∞-to-SpB∞ α) ≡ α
 SpB∞-roundtrip α = Σ≡Prop
@@ -655,14 +668,26 @@ h-pres-join-Bool : (h : Sp B∞-Booleω) (a b : ⟨ B∞ ⟩) →
   h $cr (a ∨∞ b) ≡ (h $cr a) or (h $cr b)
 h-pres-join-Bool h a b =
   let open IsCommRingHom (snd h) renaming (pres+ to h-pres+ ; pres· to h-pres·)
-  in h-pres+ (a +∞ b) (a ·∞ b) ∙
-     cong₂ _⊕_ (h-pres+ a b) (h-pres· a b) ∙
-     xor-and-is-or (h $cr a) (h $cr b)
+  in h $cr (a ∨∞ b)
+       ≡⟨ refl ⟩
+     h $cr (a +∞ b +∞ (a ·∞ b))
+       ≡⟨ h-pres+ (a +∞ b) (a ·∞ b) ⟩
+     (h $cr (a +∞ b)) ⊕ (h $cr (a ·∞ b))
+       ≡⟨ cong₂ _⊕_ (h-pres+ a b) (h-pres· a b) ⟩
+     ((h $cr a) ⊕ (h $cr b)) ⊕ ((h $cr a) and (h $cr b))
+       ≡⟨ xor-and-is-or (h $cr a) (h $cr b) ⟩
+     (h $cr a) or (h $cr b) ∎
 
 h-join-monotone : (h : Sp B∞-Booleω) (a b : ⟨ B∞ ⟩) →
   h $cr a ≡ true → h $cr (a ∨∞ b) ≡ true
 h-join-monotone h a b ha=t =
-  h-pres-join-Bool h a b ∙ cong (_or (h $cr b)) ha=t
+  h $cr (a ∨∞ b)
+    ≡⟨ h-pres-join-Bool h a b ⟩
+  (h $cr a) or (h $cr b)
+    ≡⟨ cong (_or (h $cr b)) ha=t ⟩
+  true or (h $cr b)
+    ≡⟨ refl ⟩
+  true ∎
 
 finJoin∞-zero→empty : (ns : List ℕ) → finJoin∞ ns ≡ 𝟘∞ → ns ≡ []
 finJoin∞-zero→empty [] _ = refl
@@ -705,10 +730,17 @@ h-pres-neg-Bool : (h : Sp B∞-Booleω) (x : ⟨ B∞ ⟩) →
   h $cr (¬∞ x) ≡ not (h $cr x)
 h-pres-neg-Bool h x =
   let open IsCommRingHom (snd h) renaming (pres+ to h-pres+ ; pres1 to h-pres1)
-  in h-pres+ 𝟙∞ x ∙
-     cong (_⊕ (h $cr x)) h-pres1 ∙
-     ⊕-comm true (h $cr x) ∙
-     helper (h $cr x)
+  in h $cr (¬∞ x)
+       ≡⟨ refl ⟩
+     h $cr (𝟙∞ +∞ x)
+       ≡⟨ h-pres+ 𝟙∞ x ⟩
+     (h $cr 𝟙∞) ⊕ (h $cr x)
+       ≡⟨ cong (_⊕ (h $cr x)) h-pres1 ⟩
+     true ⊕ (h $cr x)
+       ≡⟨ ⊕-comm true (h $cr x) ⟩
+     (h $cr x) ⊕ true
+       ≡⟨ helper (h $cr x) ⟩
+     not (h $cr x) ∎
   where
   helper : (b : Bool) → b ⊕ true ≡ not b
   helper false = refl
@@ -716,7 +748,13 @@ h-pres-neg-Bool h x =
 
 h₀-on-neg-gen : (n : ℕ) → h₀ $cr (¬∞ (g∞ n)) ≡ true
 h₀-on-neg-gen n =
-  h-pres-neg-Bool h₀ (g∞ n) ∙ cong not (h₀-on-gen n)
+  h₀ $cr (¬∞ (g∞ n))
+    ≡⟨ h-pres-neg-Bool h₀ (g∞ n) ⟩
+  not (h₀ $cr (g∞ n))
+    ≡⟨ cong not (h₀-on-gen n) ⟩
+  not false
+    ≡⟨ refl ⟩
+  true ∎
 
 h-pres-meet-Bool : (h : Sp B∞-Booleω) (a b : ⟨ B∞ ⟩) →
   h $cr (a ∧∞ b) ≡ (h $cr a) and (h $cr b)
@@ -725,7 +763,13 @@ h-pres-meet-Bool h a b = IsCommRingHom.pres· (snd h) a b
 h-meet-preserves-true : (h : Sp B∞-Booleω) (a b : ⟨ B∞ ⟩) →
   h $cr a ≡ true → h $cr b ≡ true → h $cr (a ∧∞ b) ≡ true
 h-meet-preserves-true h a b ha=t hb=t =
-  h-pres-meet-Bool h a b ∙ cong₂ _and_ ha=t hb=t
+  h $cr (a ∧∞ b)
+    ≡⟨ h-pres-meet-Bool h a b ⟩
+  (h $cr a) and (h $cr b)
+    ≡⟨ cong₂ _and_ ha=t hb=t ⟩
+  true and true
+    ≡⟨ refl ⟩
+  true ∎
 
 h₀-on-finMeetNeg : (ns : List ℕ) → h₀ $cr (finMeetNeg∞ ns) ≡ true
 h₀-on-finMeetNeg [] = IsCommRingHom.pres1 (snd h₀)
@@ -831,16 +875,31 @@ f-kernel-normalForm (meetNegForm ns) fx=0 =
 
   h'-on-f-neg-gen-even : (k : ℕ) → h' (fst f (¬∞ (g∞ (2 ·ℕ k)))) ≡ true
   h'-on-f-neg-gen-even k =
-    cong h' (f-pres-neg (g∞ (2 ·ℕ k))) ∙
-    cong (λ x → h' (¬∞ (fst x) , ¬∞ (snd x))) (f-even-gen k) ∙
-    h₀-on-neg-gen k
+    h' (fst f (¬∞ (g∞ (2 ·ℕ k))))
+      ≡⟨ cong h' (f-pres-neg (g∞ (2 ·ℕ k))) ⟩
+    h' (¬∞ (fst (fst f (g∞ (2 ·ℕ k)))) , ¬∞ (snd (fst f (g∞ (2 ·ℕ k)))))
+      ≡⟨ cong (λ x → h' (¬∞ (fst x) , ¬∞ (snd x))) (f-even-gen k) ⟩
+    h' (¬∞ (g∞ k) , ¬∞ 𝟘∞)
+      ≡⟨ refl ⟩
+    h₀ $cr (¬∞ (g∞ k))
+      ≡⟨ h₀-on-neg-gen k ⟩
+    true ∎
 
   h'-on-f-neg-gen-odd : (k : ℕ) → h' (fst f (¬∞ (g∞ (suc (2 ·ℕ k))))) ≡ true
   h'-on-f-neg-gen-odd k =
-    cong h' (f-pres-neg (g∞ (suc (2 ·ℕ k)))) ∙
-    cong (λ x → h' (¬∞ (fst x) , ¬∞ (snd x))) (f-odd-gen k) ∙
-    h-pres-neg-Bool h₀ 𝟘∞ ∙
-    cong not (IsCommRingHom.pres0 (snd h₀))
+    h' (fst f (¬∞ (g∞ (suc (2 ·ℕ k)))))
+      ≡⟨ cong h' (f-pres-neg (g∞ (suc (2 ·ℕ k)))) ⟩
+    h' (¬∞ (fst (fst f (g∞ (suc (2 ·ℕ k))))) , ¬∞ (snd (fst f (g∞ (suc (2 ·ℕ k))))))
+      ≡⟨ cong (λ x → h' (¬∞ (fst x) , ¬∞ (snd x))) (f-odd-gen k) ⟩
+    h' (¬∞ 𝟘∞ , ¬∞ (g∞ k))
+      ≡⟨ refl ⟩
+    h₀ $cr (¬∞ 𝟘∞)
+      ≡⟨ h-pres-neg-Bool h₀ 𝟘∞ ⟩
+    not (h₀ $cr 𝟘∞)
+      ≡⟨ cong not (IsCommRingHom.pres0 (snd h₀)) ⟩
+    not false
+      ≡⟨ refl ⟩
+    true ∎
 
   h'-on-f-neg-gen : (n : ℕ) → h' (fst f (¬∞ (g∞ n))) ≡ true
   h'-on-f-neg-gen n = h'-on-f-neg-gen-aux (isEven n) refl
@@ -862,11 +921,25 @@ f-kernel-normalForm (meetNegForm ns) fx=0 =
 
   h'-on-f-finMeetNeg : (ms : List ℕ) → h' (fst f (finMeetNeg∞ ms)) ≡ true
   h'-on-f-finMeetNeg [] =
-    cong h' f-pres1 ∙ IsCommRingHom.pres1 (snd h₀)
+    h' (fst f 𝟙∞)
+      ≡⟨ cong h' f-pres1 ⟩
+    h' (𝟙∞ , 𝟙∞)
+      ≡⟨ refl ⟩
+    h₀ $cr 𝟙∞
+      ≡⟨ IsCommRingHom.pres1 (snd h₀) ⟩
+    true ∎
   h'-on-f-finMeetNeg (m ∷ ms) =
-    cong h' (IsCommRingHom.pres· (snd f) (¬∞ (g∞ m)) (finMeetNeg∞ ms)) ∙
-    h'-pres-· (fst f (¬∞ (g∞ m))) (fst f (finMeetNeg∞ ms)) ∙
-    cong₂ _and_ (h'-on-f-neg-gen m) (h'-on-f-finMeetNeg ms)
+    h' (fst f (finMeetNeg∞ (m ∷ ms)))
+      ≡⟨ refl ⟩
+    h' (fst f ((¬∞ (g∞ m)) ∧∞ (finMeetNeg∞ ms)))
+      ≡⟨ cong h' (IsCommRingHom.pres· (snd f) (¬∞ (g∞ m)) (finMeetNeg∞ ms)) ⟩
+    h' ((fst f (¬∞ (g∞ m))) ·× (fst f (finMeetNeg∞ ms)))
+      ≡⟨ h'-pres-· (fst f (¬∞ (g∞ m))) (fst f (finMeetNeg∞ ms)) ⟩
+    (h' (fst f (¬∞ (g∞ m)))) and (h' (fst f (finMeetNeg∞ ms)))
+      ≡⟨ cong₂ _and_ (h'-on-f-neg-gen m) (h'-on-f-finMeetNeg ms) ⟩
+    true and true
+      ≡⟨ refl ⟩
+    true ∎
 
   f-meetNeg-nonzero : fst f (finMeetNeg∞ ns) ≡ (𝟘∞ , 𝟘∞) → ⊥
   f-meetNeg-nonzero f-meetNeg=0 = false≢true (sym h'-on-0 ∙ h'-on-f-meetNeg-eq-0)

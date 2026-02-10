@@ -286,8 +286,13 @@ quotientPreservesBooleω α = ∣ presentationWitness ∣₁
 
     backward-composite-sends-α'-to-0 : (n : ℕ) → backward-composite $cr (α' n) ≡ BooleanRingStr.𝟘 (snd source)
     backward-composite-sends-α'-to-0 n =
-      cong (π-α $cr_) (Iso.ret (equivToIso (fst equiv)) (α n)) ∙
-      QB.zeroOnImage {f = α} n
+      backward-composite $cr (α' n)
+        ≡⟨ refl ⟩
+      π-α $cr (equiv⁻¹-hom $cr (embBR (α n)))
+        ≡⟨ cong (π-α $cr_) (Iso.ret (equivToIso (fst equiv)) (α n)) ⟩
+      π-α $cr (α n)
+        ≡⟨ QB.zeroOnImage {f = α} n ⟩
+      BooleanRingStr.𝟘 (snd source) ∎
 
     backward-hom : BoolHom target source
     backward-hom = QB.inducedHom source backward-composite backward-composite-sends-α'-to-0
@@ -317,9 +322,17 @@ quotientPreservesBooleω α = ∣ presentationWitness ∣₁
 
     backward∘forward-on-π : (x : Bool) → backward-fun (forward-fun (fst π-α x)) ≡ fst π-α x
     backward∘forward-on-π x =
-      cong backward-fun (cong (λ h → fst h x) forward-eval) ∙
-      cong (λ h → fst h (embBR x)) backward-eval ∙
-      cong (fst π-α) (equiv⁻¹∘embBR≡id x)
+      backward-fun (forward-fun (fst π-α x))
+        ≡⟨ cong backward-fun (cong (λ h → fst h x) forward-eval) ⟩
+      backward-fun (fst composite-hom x)
+        ≡⟨ refl ⟩
+      backward-fun (fst π-α' (embBR x))
+        ≡⟨ cong (λ h → fst h (embBR x)) backward-eval ⟩
+      fst backward-composite (embBR x)
+        ≡⟨ refl ⟩
+      fst π-α (fst equiv⁻¹-hom (embBR x))
+        ≡⟨ cong (fst π-α) (equiv⁻¹∘embBR≡id x) ⟩
+      fst π-α x ∎
 
     backward∘forward-ext : (backward-fun ∘ forward-fun) ∘ fst π-α ≡ (λ x → x) ∘ fst π-α
     backward∘forward-ext = funExt backward∘forward-on-π
@@ -332,9 +345,17 @@ quotientPreservesBooleω α = ∣ presentationWitness ∣₁
 
     forward∘backward-on-π : (y : ⟨ freeBA ℕ QB./Im f₀ ⟩) → forward-fun (backward-fun (fst π-α' y)) ≡ fst π-α' y
     forward∘backward-on-π y =
-      cong forward-fun (cong (λ h → fst h y) backward-eval) ∙
-      cong (λ h → fst h (fst equiv⁻¹-hom y)) forward-eval ∙
-      cong (fst π-α') (embBR∘equiv⁻¹≡id y)
+      forward-fun (backward-fun (fst π-α' y))
+        ≡⟨ cong forward-fun (cong (λ h → fst h y) backward-eval) ⟩
+      forward-fun (fst backward-composite y)
+        ≡⟨ refl ⟩
+      forward-fun (fst π-α (fst equiv⁻¹-hom y))
+        ≡⟨ cong (λ h → fst h (fst equiv⁻¹-hom y)) forward-eval ⟩
+      fst composite-hom (fst equiv⁻¹-hom y)
+        ≡⟨ refl ⟩
+      fst π-α' (embBR (fst equiv⁻¹-hom y))
+        ≡⟨ cong (fst π-α') (embBR∘equiv⁻¹≡id y) ⟩
+      fst π-α' y ∎
 
     forward∘backward-ext : (forward-fun ∘ backward-fun) ∘ fst π-α' ≡ (λ y → y) ∘ fst π-α'
     forward∘backward-ext = funExt forward∘backward-on-π
@@ -693,13 +714,19 @@ cantorUnpair k =
 +-∸-assoc a zero (suc c) sc≤0 = ex-falso (¬-<-zero sc≤0)
 +-∸-assoc a (suc b) zero _ = refl
 +-∸-assoc a (suc b) (suc c) sc≤sb =
-  cong (_∸ suc c) (+-suc a b) ∙ +-∸-assoc a b c (pred-≤-pred sc≤sb)
+  a +ℕ suc b ∸ suc c   ≡⟨ cong (_∸ suc c) (+-suc a b) ⟩
+  suc (a +ℕ b) ∸ suc c ≡⟨ refl ⟩
+  a +ℕ b ∸ c           ≡⟨ +-∸-assoc a b c (pred-≤-pred sc≤sb) ⟩
+  a +ℕ (b ∸ c)         ∎
 
 ∸+-cancel : (a b : ℕ) → b ≤ a → (a ∸ b) +ℕ b ≡ a
 ∸+-cancel a zero _ = +-zero a
 ∸+-cancel zero (suc b) sb≤0 = ex-falso (¬-<-zero sb≤0)
 ∸+-cancel (suc a) (suc b) sb≤sa =
-  +-suc (a ∸ b) b ∙ cong suc (∸+-cancel a b (pred-≤-pred sb≤sa))
+  (suc a ∸ suc b) +ℕ suc b   ≡⟨ refl ⟩
+  (a ∸ b) +ℕ suc b           ≡⟨ +-suc (a ∸ b) b ⟩
+  suc ((a ∸ b) +ℕ b)         ≡⟨ cong suc (∸+-cancel a b (pred-≤-pred sb≤sa)) ⟩
+  suc a ∎
 
 triangular≤cantorPair : (m n : ℕ) → triangular (m +ℕ n) ≤ cantorPair m n
 triangular≤cantorPair m n = n , +-comm n (triangular (m +ℕ n))
@@ -858,9 +885,14 @@ cantorUnpair-pair m n =
       w = m +ℕ n
       findW = findDiagonal-correct m n
   in
-  cong (λ w' → ((w' ∸ (k ∸ triangular w')) , (k ∸ triangular w'))) findW ∙
-  cong (λ x → (w ∸ x , x)) (cantorPair-triangular-diff m n) ∙
-  cong (λ x → (x , n)) (+∸ m n)
+  cantorUnpair k                                         ≡⟨ refl ⟩
+  (let w' = findDiagonal (suc k) k 0
+       n' = k ∸ triangular w'
+       m' = w' ∸ n'
+   in (m' , n'))                                          ≡⟨ cong (λ w' → ((w' ∸ (k ∸ triangular w')) , (k ∸ triangular w'))) findW ⟩
+  (w ∸ (k ∸ triangular w) , k ∸ triangular w)             ≡⟨ cong (λ x → (w ∸ x , x)) (cantorPair-triangular-diff m n) ⟩
+  (w ∸ n , n)                                              ≡⟨ cong (λ x → (x , n)) (+∸ m n) ⟩
+  (m , n) ∎
 
 openAnd : (P Q : hProp ℓ-zero) → isOpenProp P → isOpenProp Q
         → isOpenProp ((⟨ P ⟩ × ⟨ Q ⟩) , isProp× (snd P) (snd Q))
@@ -1247,7 +1279,14 @@ openCountableUnion P αs = β , forward , backward
             (m , αnm=t) = Pn→exists pn
             k = cantorPair n m
             βk=t : β k ≡ true
-            βk=t = cong (λ p → αP (fst p) (snd p)) (cantorUnpair-pair n m) ∙ αnm=t
+            βk=t =
+              β k
+                ≡⟨ refl ⟩
+              αP (fst (cantorUnpair k)) (snd (cantorUnpair k))
+                ≡⟨ cong (λ p → αP (fst p) (snd p)) (cantorUnpair-pair n m) ⟩
+              αP n m
+                ≡⟨ αnm=t ⟩
+              true ∎
         in false≢true (sym (allFalse k) ∙ βk=t)
 
 ⋀-Closed : (ℕ → Closed) → Closed

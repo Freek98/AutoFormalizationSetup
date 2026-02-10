@@ -7,7 +7,6 @@
 
 
 
-
 ## STRICT PROHIBITIONS
 
 ## Never throw away useful work
@@ -16,6 +15,7 @@
 3. In particular, you have to ensure that all compiling theorems and definitions added since are kept.
 4. If you later discover such screwup, you have to immedially start working on salvaging the lost work.
 5. **SIMPLE CHECK**: after each backup, run wc on the current and previous backup. If the current backup is smaller, you have to explicitly justify (in the CHANGES file) the decrease and explain that you have not thrown out useful work.
+6. I moved your backups to a backup direct ory , and your changes comments to a changes directory. 
 
 ### Logic System (Agda)
 
@@ -94,8 +94,8 @@ While doing the above, keep the following principles in mind:
     - equality/path lemmas,
     - equivalence constructions,
     - standard HITs or truncations.
-- **You can introduce new axioms but only those mentioned in the tex file.**
-  - Temporary `postulate`s are acceptable only as placeholders and must be eliminated.
+- **You can no longer introduce new axioms.**
+  - Temporary holes are acceptable only as placeholders and must be filled.
 - Any newly introduced definitions or lemmas must:
   - respect Cubical Agda’s definitional equality and computation rules,
   - be compatible with path-based equality and univalence.
