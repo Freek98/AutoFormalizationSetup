@@ -1,0 +1,10 @@
+bck0037 → bck0038: Import cleanup in Part07 ODiscInfrastructure (7790 → 7787, -3 lines)
+
+Part07.agda (448 → 445, -3 lines):
+- Removed 2 unused imports from ODiscInfrastructure module:
+  - Cubical.Data.Sequence (1 line)
+  - SequentialColimit.Base (1 line)
+- Narrowed PresentedBoole using clause (removed BooleanRingEquiv, idBoolEquiv)
+- Net: -3 lines (2 removed imports + 1 from narrowing)
+
+Full chain (Part21) compiles successfully.

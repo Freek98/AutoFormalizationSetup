@@ -1,0 +1,11 @@
+bck0035 → bck0036: Dead code and import cleanup in Part06 (7861 → 7824, -37 lines)
+
+Part06.agda (133 → 96, -37 lines):
+- Removed dead chain in BoolIsStoneModule: Bool-Stone, ℕ∞-Stone, ℕ∞-const-family,
+  ΣBool-ℕ∞-has-StoneStr, ⊎-as-Σ (15 lines), ℕ∞⊎ℕ∞≃ΣBool-ℕ∞, ℕ∞⊎ℕ∞-has-StoneStr-alt
+  - None used downstream, none tex-referenced
+  - Kept Bool-has-StoneStr (tex line 1527) and LocalStoneSigmaClosed (tex Theorem 2214)
+- Removed 3 unused top-level imports: Cubical.Data.Bool, HLevels, Cubical.Data.Sum
+- Added Bool import to BoolIsStoneModule locally (was from removed top-level import)
+
+Full chain (Part21) compiles successfully.

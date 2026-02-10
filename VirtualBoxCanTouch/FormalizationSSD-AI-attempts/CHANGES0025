@@ -1,0 +1,43 @@
+CHANGES0025: Dead code removal across Part02, Part06, Part07, Part08, Part09, Part10b
+
+Line count: bck0025 = 10731, current = 10580, decrease = 151 lines.
+
+JUSTIFICATION FOR DECREASE: All removed content was dead code (unused functions,
+duplicate definitions, redundant aliases). No functional code was lost.
+
+DETAILED CHANGES:
+
+Part06.agda: 935 → 876 lines (-59)
+- Removed dead code: join-joinForm, meet-meetNegForm (unused normal form helpers)
+- Removed dead code: interpretB∞', interpret-eq (unused alternative interpretation)
+- Removed dead code: termHom, normalForm-from-term (unused aliases)
+- Removed dead code chain: g∞-induced, g∞-induced-on-gen, π∞-on-gen,
+  g∞-induced-eq-π∞, g∞-induced-fun-eq (unused universal property lemmas)
+- Removed Sp-f-surjective-from-proof module (duplicates Part05's Sp-f-surjective)
+- Cleaned up unused imports (inducedBAHom, evalBAInduce, inducedBAHomUnique)
+
+Part08.agda: 697 → 691 lines (-6)
+- Replaced duplicate Bool-eq-decidable (5-line manual proof) with
+  Bool-equality-decidable from Part01
+- Bool-eq-closed now delegates to Bool-equality-closed from Part01
+
+Part07.agda: 513 → 493 lines (-20)
+- Removed dead code: spectrumEmptyFrom0=1 (alias for 0=1→¬Sp)
+- Removed dead code: Sp-canonical (never used externally)
+- Removed dead code: canonicalMap, canonicalMapInjective (superseded by
+  canonical-hom, canonical-hom-injective)
+
+Part02.agda: 1972 → 1962 lines (-10)
+- Removed dead code: boolRingPath→commRingPath (trivial cong, never used)
+- Removed dead code: Sp-Bool≃Unit and its private helper local-isContrUnit
+
+Part09.agda: 157 → 153 lines (-4)
+- Removed dead code: closedComplementIsOpen (never used externally)
+
+Part10b.agda: 136 → 83 lines (-53)
+- Removed dead code from StoneAsClosedSubsetOfCantorModule2:
+  ClosedSubsetWithType, closedSubsetType, ClosedSubsetOfCantor→Stone,
+  Stone→ClosedWithEquiv, ClosedSubset-roundtrip,
+  ClosedSubsetCountableIntersection, CantorFullCorrespondence,
+  EmptyCorrespondence, ClosedSubsetPreimageCantor, OpenSubsetPreimageCantor
+- Removed unused Stone import

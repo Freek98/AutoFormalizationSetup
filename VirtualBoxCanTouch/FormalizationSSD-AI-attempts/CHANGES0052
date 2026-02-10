@@ -1,0 +1,20 @@
+bck0051 → bck0052: Dead code cleanup (7742 → 7718, -24 lines)
+
+Part11.agda (527 → 519, -8 lines):
+- Removed dead definition `precomp-surj-inj` (never used downstream, not tex-referenced)
+- Removed redundant `open import Cubical.Functions.Surjection` (already imported earlier in file)
+
+Part14.agda (552 → 550, -2 lines):
+- Removed dead definition `isOfHLevel-BZ` (never used downstream, not tex-referenced)
+
+Part06.agda (86 → 75, -11 lines):
+- Removed dead module `ℕ∞⊎ℕ∞IsStoneModule` with its two definitions
+  `SpB∞×B∞→ℕ∞⊎ℕ∞` and `ℕ∞⊎ℕ∞→SpB∞×B∞` (never used downstream, not tex-referenced)
+- These were partial infrastructure for a Stone proof of ℕ∞ ⊎ ℕ∞ that was never completed.
+- Also removed the `open ... public` line for this module.
+
+Continuing from cleanup started at bck0051:
+- Removed 3 dead definitions and 1 dead module across 3 files
+
+Full chain (Part21) compiles successfully.
+Line decrease justified: removed dead code only. No useful work lost.

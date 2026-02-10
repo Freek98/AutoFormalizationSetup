@@ -1,0 +1,31 @@
+CHANGES0028: Dead code removal in Part05 and Part06
+bck0027 = 9074 lines, bck0028 = 8261 lines (decrease: 813 lines)
+
+JUSTIFICATION FOR DECREASE:
+All removed code was dead (never used outside its own module, never referenced in tex).
+No useful work was discarded. All tex-referenced definitions are preserved.
+Full chain check (Part21) passes.
+
+CHANGES:
+
+Part05.agda (1254 → 1173, -81):
+  - Removed dead `Sp-f-value` (trivial refl, 3 lines)
+  - Removed dead normal form definitions: g∞-nf, g∞-nf-correct, 𝟙∞-nf, 𝟙∞-nf-correct,
+    𝟘∞-nf, 𝟘∞-nf-correct (~26 lines) - none used outside Part05
+  - Removed dead sum/product roundtrip chain: pair-decomposition, h-factors-left,
+    h-factors-right, inject-left-restrict-left, inject-right-restrict-right,
+    Sp-sum-prod-roundtrip' (~50 lines) - none used outside Part05
+
+Part06.agda (865 → 133, -732):
+  - MASSIVE dead code removal. Entire normal form / xor / list infrastructure was dead.
+  - Removed: B∞-BoolAlg module alias, neg-distrib-join/meet, neg-finJoin/MeetNeg,
+    neg-nf-correct (~42 lines of negation distribution operations)
+  - Removed: ALL list operations (_∈?_, _∩L_, _∖L_, _△L_), ALL join/meet form lemmas,
+    ALL xor operations (~20 functions), ALL normalization infrastructure,
+    ALL surjectivity proofs, f-kernel-from-trunc, f-injective-from-trunc
+    (~680 lines, the bulk of old Part06)
+  - Added missing imports: Cubical.Data.Nat (ℕ), BooleanRing.Instances.Bool (BoolBR)
+    (were previously in scope via removed code's imports)
+  - KEPT: SpB∞-to-ℕ∞-injective, SpB∞-retraction, SpB∞≅ℕ∞, SpB∞≃ℕ∞
+  - KEPT: ℕ∞IsStoneModule (ℕ∞-has-StoneStr), ℕ∞⊎ℕ∞IsStoneModule,
+    BoolIsStoneModule (Bool-has-StoneStr tex line 1527, Theorem 2214)

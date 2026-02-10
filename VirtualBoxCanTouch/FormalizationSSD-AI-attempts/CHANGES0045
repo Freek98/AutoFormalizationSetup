@@ -1,0 +1,47 @@
+bck0044 → bck0045: Import narrowing, dead code removal, and module simplification across Part09-Part21 (7618 → 7558, -60 lines)
+
+Part09.agda (150 → 148, -2 lines):
+- Removed unused `isPropΠ` from HLevels import (only `hProp` used)
+- Removed entire `Cubical.Foundations.Function` import (`_∘_` unused)
+- Removed unused `equivFun` from Equiv import
+- Removed unused `_⊕_` from Bool import
+- Removed entire `Cubical.Data.Unit` import (`Unit` and `tt` unused)
+- Removed unused `Dec; yes; no` from Nullary import (only `¬_` used)
+- Removed unused `elim` from PT import
+- Removed unused `isoToEquiv` from Isomorphism import
+- Removed unused `CommRingHom; IsCommRingHom` from CommRing import
+
+Part10.agda (155 → 155, no line change):
+- Removed unused `invEq; equivFun` from Equiv import
+- Removed unused `true≢false` from Bool import
+- Removed unused `elim` from PT import
+- Removed unused `CommRingHom` from CommRing import
+
+Part12.agda (307 → 304, -3 lines):
+- Removed redundant `open import Cubical.Foundations.Prelude` (available via Part10b public re-export chain)
+- Removed redundant module-level `open import Cubical.Foundations.Prelude using (Type; ℓ-zero)` inside IntervalIsCHausModule
+
+Part14.agda (577 → 555, -22 lines):
+- Removed unused `import Cubical.Algebra.AbGroup.Properties as AbGrpProps`
+- Removed unused `IsAbGroup; makeIsAbGroup` from AbGroup.Base import
+- Merged two `Cubical.Algebra.AbGroup.Base` imports into one
+- Merged three `Cubical.Homotopy.Connected` imports into one
+- Removed unused `_+ₕ_; -ₕ_` from EilenbergMacLane.Base import
+- Simplified `IntervalConnectedFromContr` module from 15 lines to 3 (trivial isContr derivation)
+- Cleaned `CircleCohomologyFromLibrary` imports: removed unused `S₊`, `Hⁿ-contrType≅0`, `MorphismProperties`, `coHom`, `Circle`
+
+Part15.agda (11 → 10, -1 line):
+- Removed trailing blank line
+
+Part19.agda (176 → 145, -31 lines):
+- Removed trailing blank line
+- Removed dead code in BZILocalTC: `paths-at-bz₀-I-local` and all supporting infrastructure
+  (ΩBZ≃ℤ, path-to-int, int-to-path, and 7 unused imports including ℤ, _∘_, invEq, retEq, secEq, EM≃ΩEM+1, ℤAbGroup)
+  These were superseded by the simpler `BZ-I-local = contr-map-const-local isContrUnitInterval`
+- Narrowed CohomologyModule import from 6 names to just `BZ`
+
+Part20.agda (73 → 72, -1 line):
+- Removed trailing blank line
+
+Full chain (Part21) compiles successfully.
+Line count decrease justified: all removed code was either unused imports, dead definitions (superseded by simpler proofs), or trivial module structure that was collapsed.

@@ -3,7 +3,7 @@
 module work.Part05 where
 
 open import work.Part04 public
-open import work.Part05a using (f-injective-05a ; char2-B∞ ; char2-B∞×B∞) public
+open import work.Part05a using (char2-B∞ ; char2-B∞×B∞ ; normalFormExists-trunc) public
 
 open import Cubical.Algebra.BooleanRing
 open import Cubical.Algebra.CommRing
@@ -13,13 +13,13 @@ open import Cubical.Foundations.Function using (_∘_)
 open import Cubical.Data.Sigma
 open import Cubical.Data.Nat renaming (_+_ to _+ℕ_ ; _·_ to _·ℕ_)
 open import Cubical.Data.Nat.Order
-open import Cubical.Data.Bool using (Bool; true; false; _⊕_; _and_; true≢false; false≢true; isSetBool)
+open import Cubical.Data.Bool using (Bool; true; false; _⊕_; _and_; _or_; not; true≢false; false≢true; isSetBool)
 open import Cubical.Relation.Nullary using (¬_; Dec; yes; no)
 import QuotientBool as QB
-open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator; inducedBAHom; evalBAInduce; inducedBAHomUnique)
-open import CountablyPresentedBooleanRings.PresentedBoole using (BooleanRingEquiv; idBoolEquiv; has-Boole-ω')
+open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator; inducedBAHom; evalBAInduce)
+open import CountablyPresentedBooleanRings.PresentedBoole using (BooleanRingEquiv; has-Boole-ω')
 open import Axioms.StoneDuality using (Booleω; Sp)
-open import Cubical.HITs.PropositionalTruncation as PT using (∣_∣₁; ∥_∥₁; rec; elim; squash₁)
+open import Cubical.HITs.PropositionalTruncation as PT using (∣_∣₁; ∥_∥₁; rec)
 open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
 import Cubical.Data.Sum as ⊎
 open import Cubical.Data.Sum using (_⊎_; inl; inr)
@@ -30,7 +30,7 @@ open import Cubical.Functions.Embedding using (isEmbedding→Inj)
 open import Cubical.Data.Sum.Properties using (isEmbedding-inl; isEmbedding-inr)
 open import Cubical.Data.List using (List; []; _∷_; ¬cons≡nil)
 open import Cubical.Data.Bool.Properties using (⊕-comm)
-open import Cubical.Foundations.HLevels using (isPropΠ; isPropΠ2; isSetΠ)
+open import Cubical.Foundations.HLevels using (isPropΠ)
 
 module B∞×B∞-Units where
   open BooleanRingStr (snd B∞×B∞) using () renaming (𝟙 to 𝟙×)
@@ -179,6 +179,30 @@ module B∞×B∞-Presentation where
     decode× (encode× (⊎.inl n))  ≡⟨ decode×∘encode× (⊎.inl n) ⟩
     ⊎.inl n            ∎)
 
+  g×-orthog-base : (i j : ℕ) → i < j →
+    BooleanRingStr._·_ (snd B∞×B∞-quotient) (g× i) (g× j) ≡
+    BooleanRingStr.𝟘 (snd B∞×B∞-quotient)
+  g×-orthog-base i j i<j =
+    let k = cantorPair i (j ∸ suc i)
+        rel-eq : relB∞×B∞ k ≡ gen i · gen j
+        rel-eq = cong relB∞×B∞-from-pair (cantorUnpair-pair i (j ∸ suc i))
+               ∙ cong (λ x → gen i · gen x) (i+suc[j∸suc-i]≡j i j i<j)
+    in sym (IsCommRingHom.pres· (snd π×) (gen i) (gen j))
+       ∙ cong (fst π×) (sym rel-eq)
+       ∙ QB.zeroOnImage k
+
+  g×-orthog : (i j : ℕ) → ¬ (i ≡ j) →
+    BooleanRingStr._·_ (snd B∞×B∞-quotient) (g× i) (g× j) ≡
+    BooleanRingStr.𝟘 (snd B∞×B∞-quotient)
+  g×-orthog i j i≠j with Cubical.Data.Nat.Order.<Dec i j
+  ... | yes i<j = g×-orthog-base i j i<j
+  ... | no ¬i<j with Cubical.Data.Nat.Order.<Dec j i
+  ...   | yes j<i =
+          BooleanRingStr.·Comm (snd B∞×B∞-quotient) (g× i) (g× j)
+          ∙ g×-orthog-base j i j<i
+  ...   | no ¬j<i =
+          ex-falso (i≠j (≤-antisym (≮→≥ ¬j<i) (≮→≥ ¬i<j)))
+
   g×-left-orthog : (m n : ℕ) → ¬ (m ≡ n) →
     BooleanRingStr._·_ (snd B∞×B∞-quotient) (g×-left-gen m) (g×-left-gen n) ≡
     BooleanRingStr.𝟘 (snd B∞×B∞-quotient)
@@ -188,30 +212,6 @@ module B∞×B∞-Presentation where
         i≠j : ¬ (i ≡ j)
         i≠j = λ eq → m≠n (encode×-inl-injective m n eq)
     in g×-orthog i j i≠j
-    where
-    g×-orthog-base : (i j : ℕ) → i < j →
-      BooleanRingStr._·_ (snd B∞×B∞-quotient) (g× i) (g× j) ≡
-      BooleanRingStr.𝟘 (snd B∞×B∞-quotient)
-    g×-orthog-base i j i<j =
-      let k = cantorPair i (j ∸ suc i)
-          rel-eq : relB∞×B∞ k ≡ gen i · gen j
-          rel-eq = cong relB∞×B∞-from-pair (cantorUnpair-pair i (j ∸ suc i))
-                 ∙ cong (λ x → gen i · gen x) (i+suc[j∸suc-i]≡j i j i<j)
-      in sym (IsCommRingHom.pres· (snd π×) (gen i) (gen j))
-         ∙ cong (fst π×) (sym rel-eq)
-         ∙ QB.zeroOnImage k
-
-    g×-orthog : (i j : ℕ) → ¬ (i ≡ j) →
-      BooleanRingStr._·_ (snd B∞×B∞-quotient) (g× i) (g× j) ≡
-      BooleanRingStr.𝟘 (snd B∞×B∞-quotient)
-    g×-orthog i j i≠j with Cubical.Data.Nat.Order.<Dec i j
-    ... | yes i<j = g×-orthog-base i j i<j
-    ... | no ¬i<j with Cubical.Data.Nat.Order.<Dec j i
-    ...   | yes j<i =
-            BooleanRingStr.·Comm (snd B∞×B∞-quotient) (g× i) (g× j)
-            ∙ g×-orthog-base j i j<i
-    ...   | no ¬j<i =
-            ex-falso (i≠j (≤-antisym (≮→≥ ¬j<i) (≮→≥ ¬i<j)))
 
   ψ-left-respects-relB∞ : (k : ℕ) → fst ψ-left-free (relB∞ k) ≡ BooleanRingStr.𝟘 (snd B∞×B∞-quotient)
   ψ-left-respects-relB∞ k =
@@ -251,31 +251,7 @@ module B∞×B∞-Presentation where
         j = encode× (⊎.inr n)
         i≠j : ¬ (i ≡ j)
         i≠j = λ eq → m≠n (encode×-inr-injective m n eq)
-    in g×-orthog-helper i j i≠j
-    where
-    g×-orthog-helper-base : (i j : ℕ) → i < j →
-      BooleanRingStr._·_ (snd B∞×B∞-quotient) (g× i) (g× j) ≡
-      BooleanRingStr.𝟘 (snd B∞×B∞-quotient)
-    g×-orthog-helper-base i j i<j =
-      let k = cantorPair i (j ∸ suc i)
-          rel-eq : relB∞×B∞ k ≡ gen i · gen j
-          rel-eq = cong relB∞×B∞-from-pair (cantorUnpair-pair i (j ∸ suc i))
-                 ∙ cong (λ x → gen i · gen x) (i+suc[j∸suc-i]≡j i j i<j)
-      in sym (IsCommRingHom.pres· (snd π×) (gen i) (gen j))
-         ∙ cong (fst π×) (sym rel-eq)
-         ∙ QB.zeroOnImage k
-
-    g×-orthog-helper : (i j : ℕ) → ¬ (i ≡ j) →
-      BooleanRingStr._·_ (snd B∞×B∞-quotient) (g× i) (g× j) ≡
-      BooleanRingStr.𝟘 (snd B∞×B∞-quotient)
-    g×-orthog-helper i j i≠j with Cubical.Data.Nat.Order.<Dec i j
-    ... | yes i<j = g×-orthog-helper-base i j i<j
-    ... | no ¬i<j with Cubical.Data.Nat.Order.<Dec j i
-    ...   | yes j<i =
-            BooleanRingStr.·Comm (snd B∞×B∞-quotient) (g× i) (g× j)
-            ∙ g×-orthog-helper-base j i j<i
-    ...   | no ¬j<i =
-            ex-falso (i≠j (≤-antisym (≮→≥ ¬j<i) (≮→≥ ¬i<j)))
+    in g×-orthog i j i≠j
 
   ψ-right-respects-relB∞ : (k : ℕ) → fst ψ-right-free (relB∞ k) ≡ BooleanRingStr.𝟘 (snd B∞×B∞-quotient)
   ψ-right-respects-relB∞ k =
@@ -312,30 +288,6 @@ module B∞×B∞-Presentation where
         i≠j : ¬ (i ≡ j)
         i≠j = encode×-inl-inr-distinct m n
     in g×-orthog i j i≠j
-    where
-    g×-orthog-base : (i j : ℕ) → i < j →
-      BooleanRingStr._·_ (snd B∞×B∞-quotient) (g× i) (g× j) ≡
-      BooleanRingStr.𝟘 (snd B∞×B∞-quotient)
-    g×-orthog-base i j i<j =
-      let k = cantorPair i (j ∸ suc i)
-          rel-eq : relB∞×B∞ k ≡ gen i · gen j
-          rel-eq = cong relB∞×B∞-from-pair (cantorUnpair-pair i (j ∸ suc i))
-                 ∙ cong (λ x → gen i · gen x) (i+suc[j∸suc-i]≡j i j i<j)
-      in sym (IsCommRingHom.pres· (snd π×) (gen i) (gen j))
-         ∙ cong (fst π×) (sym rel-eq)
-         ∙ QB.zeroOnImage k
-
-    g×-orthog : (i j : ℕ) → ¬ (i ≡ j) →
-      BooleanRingStr._·_ (snd B∞×B∞-quotient) (g× i) (g× j) ≡
-      BooleanRingStr.𝟘 (snd B∞×B∞-quotient)
-    g×-orthog i j i≠j with Cubical.Data.Nat.Order.<Dec i j
-    ... | yes i<j = g×-orthog-base i j i<j
-    ... | no ¬i<j with Cubical.Data.Nat.Order.<Dec j i
-    ...   | yes j<i =
-            BooleanRingStr.·Comm (snd B∞×B∞-quotient) (g× i) (g× j)
-            ∙ g×-orthog-base j i j<i
-    ...   | no ¬j<i =
-            ex-falso (i≠j (≤-antisym (≮→≥ ¬j<i) (≮→≥ ¬i<j)))
 
   g×-cross-orthog-sym : (m n : ℕ) →
     BooleanRingStr._·_ (snd B∞×B∞-quotient) (g×-right-gen n) (g×-left-gen m) ≡
@@ -344,27 +296,12 @@ module B∞×B∞-Presentation where
     BooleanRingStr.·Comm (snd B∞×B∞-quotient) (g×-right-gen n) (g×-left-gen m)
     ∙ g×-cross-orthog m n
 
-  module Q = BooleanRingStr (snd B∞×B∞-quotient)
-
-  ψ-map : ⟨ B∞×B∞ ⟩ → ⟨ B∞×B∞-quotient ⟩
-  ψ-map (x , y) = Q._+_ (fst ψ-left x) (fst ψ-right y)
-
-  ψ-pres0 : ψ-map (𝟘∞ , 𝟘∞) ≡ Q.𝟘
-  ψ-pres0 =
-    Q._+_ (fst ψ-left 𝟘∞) (fst ψ-right 𝟘∞)
-      ≡⟨ cong₂ Q._+_ (IsCommRingHom.pres0 (snd ψ-left)) (IsCommRingHom.pres0 (snd ψ-right)) ⟩
-    Q._+_ Q.𝟘 Q.𝟘
-      ≡⟨ Q.+IdR Q.𝟘 ⟩
-    Q.𝟘 ∎
-
   φ-hits-left-gen : (m : ℕ) → fst φ (g×-left-gen m) ≡ (g∞ m , 𝟘∞)
   φ-hits-left-gen m =
     fst φ (g× (encode× (⊎.inl m)))
       ≡⟨ φ-on-g× (encode× (⊎.inl m)) ⟩
     genProd (encode× (⊎.inl m))
       ≡⟨ cong genProd⊎ (decode×∘encode× (⊎.inl m)) ⟩
-    genProd⊎ (⊎.inl m)
-      ≡⟨ refl ⟩
     (g∞ m , 𝟘∞) ∎
 
   φ-hits-right-gen : (m : ℕ) → fst φ (g×-right-gen m) ≡ (𝟘∞ , g∞ m)
@@ -373,8 +310,6 @@ module B∞×B∞-Presentation where
       ≡⟨ φ-on-g× (encode× (⊎.inr m)) ⟩
     genProd (encode× (⊎.inr m))
       ≡⟨ cong genProd⊎ (decode×∘encode× (⊎.inr m)) ⟩
-    genProd⊎ (⊎.inr m)
-      ≡⟨ refl ⟩
     (𝟘∞ , g∞ m) ∎
 
   ψ-left-on-gen : (m : ℕ) → fst ψ-left (g∞ m) ≡ g×-left-gen m
@@ -416,8 +351,6 @@ restrict-to-left h' h'-unit-left-true = h-on-left , h-on-left-is-hom
   open IsCommRingHom (snd h') renaming (pres0 to h'-pres0 ; pres1 to h'-pres1 ; pres+ to h'-pres+ ; pres· to h'-pres·)
   open CommRingStr (snd (BooleanRing→CommRing B∞)) renaming (_+_ to _+B∞_ ; _·_ to _·B∞_ ; +IdL to +B∞-IdL)
   open CommRingStr (snd (BooleanRing→CommRing B∞×B∞)) renaming (_+_ to _+B∞×B∞_ ; _·_ to _·B∞×B∞_)
-  open import Cubical.Algebra.CommRing using (makeIsCommRingHom)
-
   h-on-left : ⟨ B∞ ⟩ → Bool
   h-on-left x = h' $cr (x , 𝟘∞)
 
@@ -452,8 +385,6 @@ restrict-to-right h' h'-unit-left-false = h-on-right , h-on-right-is-hom
   open IsCommRingHom (snd h') renaming (pres0 to h'-pres0 ; pres1 to h'-pres1 ; pres+ to h'-pres+ ; pres· to h'-pres·)
   open CommRingStr (snd (BooleanRing→CommRing B∞)) renaming (_+_ to _+B∞_ ; _·_ to _·B∞_ ; +IdL to +B∞-IdL ; +IdR to +B∞-IdR)
   open CommRingStr (snd (BooleanRing→CommRing B∞×B∞)) renaming (_+_ to _+B∞×B∞_ ; _·_ to _·B∞×B∞_)
-  open import Cubical.Algebra.CommRing using (makeIsCommRingHom)
-
   h-on-right : ⟨ B∞ ⟩ → Bool
   h-on-right x = h' $cr (𝟘∞ , x)
 
@@ -560,36 +491,6 @@ restrict-inject-right h pf = Σ≡Prop
   refl
 
 private
-  _=B'_ : (a b : Bool) → Dec (a ≡ b)
-  _=B'_ = Bool-equality-decidable
-
-  ¬true→false' : (b : Bool) → ¬ (b ≡ true) → b ≡ false
-  ¬true→false' true ¬p = ex-falso (¬p refl)
-  ¬true→false' false ¬p = refl
-
-Sp-prod-to-sum' : Sp B∞×B∞-Booleω → (Sp B∞-Booleω) ⊎.⊎ (Sp B∞-Booleω)
-Sp-prod-to-sum' h with (h $cr unit-left) =B' true
-... | yes pf = ⊎.inl (restrict-to-left h pf)
-... | no ¬pf = ⊎.inr (restrict-to-right h (¬true→false' (h $cr unit-left) ¬pf))
-
-private
-  Sp-prod-sum-roundtrip'-inl : (h : Sp B∞-Booleω) → Sp-prod-to-sum' (inject-left h) ≡ ⊎.inl h
-  Sp-prod-sum-roundtrip'-inl h with (inject-left h $cr unit-left) =B' true
-  ... | yes pf = cong ⊎.inl (restrict-inject-left h pf)
-  ... | no ¬pf = ex-falso (¬pf (inject-left-unit-left h))
-
-  Sp-prod-sum-roundtrip'-inr : (h : Sp B∞-Booleω) → Sp-prod-to-sum' (inject-right h) ≡ ⊎.inr h
-  Sp-prod-sum-roundtrip'-inr h with (inject-right h $cr unit-left) =B' true
-  ... | yes pf = ex-falso (true≢false (sym pf ∙ inject-right-unit-left h))
-  ... | no ¬pf = cong ⊎.inr (Σ≡Prop
-    (λ f → isPropIsCommRingHom (snd (BooleanRing→CommRing B∞)) f (snd (BooleanRing→CommRing BoolBR)))
-    refl)
-
-Sp-prod-sum-roundtrip' : (x : (Sp B∞-Booleω) ⊎.⊎ (Sp B∞-Booleω)) → Sp-prod-to-sum' (Sp-sum-to-prod x) ≡ x
-Sp-prod-sum-roundtrip' (⊎.inl h) = Sp-prod-sum-roundtrip'-inl h
-Sp-prod-sum-roundtrip' (⊎.inr h) = Sp-prod-sum-roundtrip'-inr h
-
-private
   units-sum-to-one : unit-left +× unit-right ≡ (𝟙∞ , 𝟙∞)
   units-sum-to-one = cong₂ _,_ (+right-unit 𝟙∞) (+left-unit 𝟙∞)
     where
@@ -630,19 +531,6 @@ private
 
 Sp-f : Sp B∞×B∞-Booleω → Sp B∞-Booleω
 Sp-f h = h ∘cr f
-
-f-is-injective-hom : isInjectiveBoolHom B∞-Booleω B∞×B∞-Booleω f
-f-is-injective-hom = f-injective-05a
-
-Sp-f-surjective' : isSurjectiveSpHom B∞-Booleω B∞×B∞-Booleω f
-Sp-f-surjective' = injective→Sp-surjective B∞-Booleω B∞×B∞-Booleω f f-is-injective-hom
-
-Sp-f-surjective : (h : Sp B∞-Booleω) → ∥ Σ[ h' ∈ Sp B∞×B∞-Booleω ] Sp-f h' ≡ h ∥₁
-Sp-f-surjective = Sp-f-surjective'
-
-Sp-f-value : (h' : Sp B∞×B∞-Booleω) (x : ⟨ B∞ ⟩) →
-  (Sp-f h') $cr x ≡ h' $cr (fst f x)
-Sp-f-value h' x = refl
 
 unit-left-right-orth : (y : ⟨ B∞ ⟩) → unit-left ·× (𝟘∞ , y) ≡ (𝟘∞ , 𝟘∞)
 unit-left-right-orth y = cong₂ _,_ (0∞-absorbs-right 𝟙B∞) (0∞-absorbs-left y)
@@ -735,17 +623,8 @@ opaque
 SpB∞-roundtrip-seq : (α : ℕ∞) (n : ℕ) →
   SpB∞-to-ℕ∞-seq (ℕ∞-to-SpB∞ α) n ≡ fst α n
 SpB∞-roundtrip-seq α n =
-  SpB∞-to-ℕ∞-seq (ℕ∞-to-SpB∞ α) n
-    ≡⟨ refl ⟩
-  (ℕ∞-to-SpB∞ α) $cr (g∞ n)
-    ≡⟨ refl ⟩
-  (ℕ∞-to-SpB∞ α) $cr (fst π∞ (gen n))
-    ≡⟨ funExt⁻ (cong fst (ℕ∞-to-SpB∞-eval α)) (gen n) ⟩
-  fst (ℕ∞-to-SpB∞-free α) (gen n)
-    ≡⟨ funExt⁻ (ℕ∞-to-SpB∞-free-on-gen α) n ⟩
-  ℕ∞-on-gen α n
-    ≡⟨ refl ⟩
-  fst α n ∎
+  funExt⁻ (cong fst (ℕ∞-to-SpB∞-eval α)) (gen n) ∙
+  funExt⁻ (ℕ∞-to-SpB∞-free-on-gen α) n
 
 SpB∞-roundtrip : (α : ℕ∞) → SpB∞-to-ℕ∞ (ℕ∞-to-SpB∞ α) ≡ α
 SpB∞-roundtrip α = Σ≡Prop
@@ -766,40 +645,24 @@ g∞-nonzero n gn=0 =
       h-gn=f = cong (h $cr_) gn=0 ∙ h-0=f
   in true≢false (sym h-gn=t ∙ h-gn=f)
 
-_orBool_ : Bool → Bool → Bool
-false orBool b = b
-true orBool _ = true
-
-xor-and-is-or : (a b : Bool) → (a ⊕ b) ⊕ (a and b) ≡ a orBool b
+xor-and-is-or : (a b : Bool) → (a ⊕ b) ⊕ (a and b) ≡ a or b
 xor-and-is-or false false = refl
 xor-and-is-or false true = refl
 xor-and-is-or true false = refl
 xor-and-is-or true true = refl
 
 h-pres-join-Bool : (h : Sp B∞-Booleω) (a b : ⟨ B∞ ⟩) →
-  h $cr (a ∨∞ b) ≡ (h $cr a) orBool (h $cr b)
+  h $cr (a ∨∞ b) ≡ (h $cr a) or (h $cr b)
 h-pres-join-Bool h a b =
   let open IsCommRingHom (snd h) renaming (pres+ to h-pres+ ; pres· to h-pres·)
-  in h $cr (a ∨∞ b)
-       ≡⟨ refl ⟩
-     h $cr (a +∞ b +∞ (a ·∞ b))
-       ≡⟨ h-pres+ (a +∞ b) (a ·∞ b) ⟩
-     (h $cr (a +∞ b)) ⊕ (h $cr (a ·∞ b))
-       ≡⟨ cong₂ _⊕_ (h-pres+ a b) (h-pres· a b) ⟩
-     ((h $cr a) ⊕ (h $cr b)) ⊕ ((h $cr a) and (h $cr b))
-       ≡⟨ xor-and-is-or (h $cr a) (h $cr b) ⟩
-     (h $cr a) orBool (h $cr b) ∎
+  in h-pres+ (a +∞ b) (a ·∞ b) ∙
+     cong₂ _⊕_ (h-pres+ a b) (h-pres· a b) ∙
+     xor-and-is-or (h $cr a) (h $cr b)
 
 h-join-monotone : (h : Sp B∞-Booleω) (a b : ⟨ B∞ ⟩) →
   h $cr a ≡ true → h $cr (a ∨∞ b) ≡ true
 h-join-monotone h a b ha=t =
-  h $cr (a ∨∞ b)
-    ≡⟨ h-pres-join-Bool h a b ⟩
-  (h $cr a) orBool (h $cr b)
-    ≡⟨ cong (_orBool (h $cr b)) ha=t ⟩
-  true orBool (h $cr b)
-    ≡⟨ refl ⟩
-  true ∎
+  h-pres-join-Bool h a b ∙ cong (_or (h $cr b)) ha=t
 
 finJoin∞-zero→empty : (ns : List ℕ) → finJoin∞ ns ≡ 𝟘∞ → ns ≡ []
 finJoin∞-zero→empty [] _ = refl
@@ -838,39 +701,22 @@ h₀ = ℕ∞-to-SpB∞ ℕ∞-∞
 h₀-on-gen : (n : ℕ) → h₀ $cr (g∞ n) ≡ false
 h₀-on-gen n = SpB∞-roundtrip-seq ℕ∞-∞ n
 
-notBool : Bool → Bool
-notBool false = true
-notBool true = false
-
 h-pres-neg-Bool : (h : Sp B∞-Booleω) (x : ⟨ B∞ ⟩) →
-  h $cr (¬∞ x) ≡ notBool (h $cr x)
+  h $cr (¬∞ x) ≡ not (h $cr x)
 h-pres-neg-Bool h x =
   let open IsCommRingHom (snd h) renaming (pres+ to h-pres+ ; pres1 to h-pres1)
-  in h $cr (¬∞ x)
-       ≡⟨ refl ⟩
-     h $cr (𝟙∞ +∞ x)
-       ≡⟨ h-pres+ 𝟙∞ x ⟩
-     (h $cr 𝟙∞) ⊕ (h $cr x)
-       ≡⟨ cong (_⊕ (h $cr x)) h-pres1 ⟩
-     true ⊕ (h $cr x)
-       ≡⟨ ⊕-comm true (h $cr x) ⟩
-     (h $cr x) ⊕ true
-       ≡⟨ helper (h $cr x) ⟩
-     notBool (h $cr x) ∎
+  in h-pres+ 𝟙∞ x ∙
+     cong (_⊕ (h $cr x)) h-pres1 ∙
+     ⊕-comm true (h $cr x) ∙
+     helper (h $cr x)
   where
-  helper : (b : Bool) → b ⊕ true ≡ notBool b
+  helper : (b : Bool) → b ⊕ true ≡ not b
   helper false = refl
   helper true = refl
 
 h₀-on-neg-gen : (n : ℕ) → h₀ $cr (¬∞ (g∞ n)) ≡ true
 h₀-on-neg-gen n =
-  h₀ $cr (¬∞ (g∞ n))
-    ≡⟨ h-pres-neg-Bool h₀ (g∞ n) ⟩
-  notBool (h₀ $cr (g∞ n))
-    ≡⟨ cong notBool (h₀-on-gen n) ⟩
-  notBool false
-    ≡⟨ refl ⟩
-  true ∎
+  h-pres-neg-Bool h₀ (g∞ n) ∙ cong not (h₀-on-gen n)
 
 h-pres-meet-Bool : (h : Sp B∞-Booleω) (a b : ⟨ B∞ ⟩) →
   h $cr (a ∧∞ b) ≡ (h $cr a) and (h $cr b)
@@ -879,13 +725,7 @@ h-pres-meet-Bool h a b = IsCommRingHom.pres· (snd h) a b
 h-meet-preserves-true : (h : Sp B∞-Booleω) (a b : ⟨ B∞ ⟩) →
   h $cr a ≡ true → h $cr b ≡ true → h $cr (a ∧∞ b) ≡ true
 h-meet-preserves-true h a b ha=t hb=t =
-  h $cr (a ∧∞ b)
-    ≡⟨ h-pres-meet-Bool h a b ⟩
-  (h $cr a) and (h $cr b)
-    ≡⟨ cong₂ _and_ ha=t hb=t ⟩
-  true and true
-    ≡⟨ refl ⟩
-  true ∎
+  h-pres-meet-Bool h a b ∙ cong₂ _and_ ha=t hb=t
 
 h₀-on-finMeetNeg : (ns : List ℕ) → h₀ $cr (finMeetNeg∞ ns) ≡ true
 h₀-on-finMeetNeg [] = IsCommRingHom.pres1 (snd h₀)
@@ -991,31 +831,16 @@ f-kernel-normalForm (meetNegForm ns) fx=0 =
 
   h'-on-f-neg-gen-even : (k : ℕ) → h' (fst f (¬∞ (g∞ (2 ·ℕ k)))) ≡ true
   h'-on-f-neg-gen-even k =
-    h' (fst f (¬∞ (g∞ (2 ·ℕ k))))
-      ≡⟨ cong h' (f-pres-neg (g∞ (2 ·ℕ k))) ⟩
-    h' (¬∞ (fst (fst f (g∞ (2 ·ℕ k)))) , ¬∞ (snd (fst f (g∞ (2 ·ℕ k)))))
-      ≡⟨ cong (λ x → h' (¬∞ (fst x) , ¬∞ (snd x))) (f-even-gen k) ⟩
-    h' (¬∞ (g∞ k) , ¬∞ 𝟘∞)
-      ≡⟨ refl ⟩
-    h₀ $cr (¬∞ (g∞ k))
-      ≡⟨ h₀-on-neg-gen k ⟩
-    true ∎
+    cong h' (f-pres-neg (g∞ (2 ·ℕ k))) ∙
+    cong (λ x → h' (¬∞ (fst x) , ¬∞ (snd x))) (f-even-gen k) ∙
+    h₀-on-neg-gen k
 
   h'-on-f-neg-gen-odd : (k : ℕ) → h' (fst f (¬∞ (g∞ (suc (2 ·ℕ k))))) ≡ true
   h'-on-f-neg-gen-odd k =
-    h' (fst f (¬∞ (g∞ (suc (2 ·ℕ k)))))
-      ≡⟨ cong h' (f-pres-neg (g∞ (suc (2 ·ℕ k)))) ⟩
-    h' (¬∞ (fst (fst f (g∞ (suc (2 ·ℕ k))))) , ¬∞ (snd (fst f (g∞ (suc (2 ·ℕ k))))))
-      ≡⟨ cong (λ x → h' (¬∞ (fst x) , ¬∞ (snd x))) (f-odd-gen k) ⟩
-    h' (¬∞ 𝟘∞ , ¬∞ (g∞ k))
-      ≡⟨ refl ⟩
-    h₀ $cr (¬∞ 𝟘∞)
-      ≡⟨ h-pres-neg-Bool h₀ 𝟘∞ ⟩
-    notBool (h₀ $cr 𝟘∞)
-      ≡⟨ cong notBool (IsCommRingHom.pres0 (snd h₀)) ⟩
-    notBool false
-      ≡⟨ refl ⟩
-    true ∎
+    cong h' (f-pres-neg (g∞ (suc (2 ·ℕ k)))) ∙
+    cong (λ x → h' (¬∞ (fst x) , ¬∞ (snd x))) (f-odd-gen k) ∙
+    h-pres-neg-Bool h₀ 𝟘∞ ∙
+    cong not (IsCommRingHom.pres0 (snd h₀))
 
   h'-on-f-neg-gen : (n : ℕ) → h' (fst f (¬∞ (g∞ n))) ≡ true
   h'-on-f-neg-gen n = h'-on-f-neg-gen-aux (isEven n) refl
@@ -1037,25 +862,11 @@ f-kernel-normalForm (meetNegForm ns) fx=0 =
 
   h'-on-f-finMeetNeg : (ms : List ℕ) → h' (fst f (finMeetNeg∞ ms)) ≡ true
   h'-on-f-finMeetNeg [] =
-    h' (fst f 𝟙∞)
-      ≡⟨ cong h' f-pres1 ⟩
-    h' (𝟙∞ , 𝟙∞)
-      ≡⟨ refl ⟩
-    h₀ $cr 𝟙∞
-      ≡⟨ IsCommRingHom.pres1 (snd h₀) ⟩
-    true ∎
+    cong h' f-pres1 ∙ IsCommRingHom.pres1 (snd h₀)
   h'-on-f-finMeetNeg (m ∷ ms) =
-    h' (fst f (finMeetNeg∞ (m ∷ ms)))
-      ≡⟨ refl ⟩
-    h' (fst f ((¬∞ (g∞ m)) ∧∞ (finMeetNeg∞ ms)))
-      ≡⟨ cong h' (IsCommRingHom.pres· (snd f) (¬∞ (g∞ m)) (finMeetNeg∞ ms)) ⟩
-    h' ((fst f (¬∞ (g∞ m))) ·× (fst f (finMeetNeg∞ ms)))
-      ≡⟨ h'-pres-· (fst f (¬∞ (g∞ m))) (fst f (finMeetNeg∞ ms)) ⟩
-    (h' (fst f (¬∞ (g∞ m)))) and (h' (fst f (finMeetNeg∞ ms)))
-      ≡⟨ cong₂ _and_ (h'-on-f-neg-gen m) (h'-on-f-finMeetNeg ms) ⟩
-    true and true
-      ≡⟨ refl ⟩
-    true ∎
+    cong h' (IsCommRingHom.pres· (snd f) (¬∞ (g∞ m)) (finMeetNeg∞ ms)) ∙
+    h'-pres-· (fst f (¬∞ (g∞ m))) (fst f (finMeetNeg∞ ms)) ∙
+    cong₂ _and_ (h'-on-f-neg-gen m) (h'-on-f-finMeetNeg ms)
 
   f-meetNeg-nonzero : fst f (finMeetNeg∞ ns) ≡ (𝟘∞ , 𝟘∞) → ⊥
   f-meetNeg-nonzero f-meetNeg=0 = false≢true (sym h'-on-0 ∙ h'-on-f-meetNeg-eq-0)
@@ -1068,6 +879,53 @@ f-kernel-normalForm (meetNegForm ns) fx=0 =
 
     h'-on-f-meetNeg-eq-0 : h' (𝟘∞ , 𝟘∞) ≡ true
     h'-on-f-meetNeg-eq-0 = subst (λ z → h' z ≡ true) f-meetNeg=0 h'-on-f-meetNeg
+
+f-kernel-from-trunc : (x : ⟨ B∞ ⟩) → fst f x ≡ (𝟘∞ , 𝟘∞) → x ≡ 𝟘∞
+f-kernel-from-trunc x fx=0 = PT.rec (BooleanRingStr.is-set (snd B∞) x 𝟘∞)
+  (λ pair → let nf = fst pair
+                eq = snd pair
+            in sym eq ∙ f-kernel-normalForm nf (cong (fst f) eq ∙ fx=0))
+  (normalFormExists-trunc x)
+
+f-injective : (x y : ⟨ B∞ ⟩) → fst f x ≡ fst f y → x ≡ y
+f-injective x y fx=fy =
+  let xy-diff : ⟨ B∞ ⟩
+      xy-diff = x +∞ y
+
+      f-xy-diff : fst f xy-diff ≡ (𝟘∞ , 𝟘∞)
+      f-xy-diff =
+        fst f (x +∞ y)
+          ≡⟨ f-pres+ x y ⟩
+        (fst f x) +× (fst f y)
+          ≡⟨ cong (_+× (fst f y)) fx=fy ⟩
+        (fst f y) +× (fst f y)
+          ≡⟨ char2-B∞×B∞ (fst f y) ⟩
+        (𝟘∞ , 𝟘∞) ∎
+
+      xy=0 : xy-diff ≡ 𝟘∞
+      xy=0 = f-kernel-from-trunc xy-diff f-xy-diff
+
+      x=y : x ≡ y
+      x=y = BooleanRing-xor-eq-to-eq' x y xy=0
+
+  in x=y
+  where
+  BooleanRing-xor-eq-to-eq' : (a b : ⟨ B∞ ⟩) → a +∞ b ≡ 𝟘∞ → a ≡ b
+  BooleanRing-xor-eq-to-eq' a b ab=0 =
+    a
+      ≡⟨ sym (BooleanRingStr.+IdR (snd B∞) a) ⟩
+    a +∞ 𝟘∞
+      ≡⟨ cong (a +∞_) (sym (char2-B∞ b)) ⟩
+    a +∞ (b +∞ b)
+      ≡⟨ BooleanRingStr.+Assoc (snd B∞) a b b ⟩
+    (a +∞ b) +∞ b
+      ≡⟨ cong (_+∞ b) ab=0 ⟩
+    𝟘∞ +∞ b
+      ≡⟨ BooleanRingStr.+IdL (snd B∞) b ⟩
+    b ∎
+
+Sp-f-surjective : (h : Sp B∞-Booleω) → ∥ Σ[ h' ∈ Sp B∞×B∞-Booleω ] Sp-f h' ≡ h ∥₁
+Sp-f-surjective = injective→Sp-surjective B∞-Booleω B∞×B∞-Booleω f f-injective
 
 llpo-from-SD-aux : (h : Sp B∞-Booleω) →
   ((k : ℕ) → h $cr (g∞ (2 ·ℕ k)) ≡ false) ⊎ ((k : ℕ) → h $cr (g∞ (suc (2 ·ℕ k))) ≡ false)
@@ -1170,85 +1028,3 @@ llpo-from-SD α = transport-llpo (llpo-from-SD-aux h)
                    ((k : ℕ) → fst α (suc (2 ·ℕ k)) ≡ false)
   transport-llpo (⊎.inl evens) = ⊎.inl (λ k → sym (seq-eq (2 ·ℕ k)) ∙ evens k)
   transport-llpo (⊎.inr odds) = ⊎.inr (λ k → sym (seq-eq (suc (2 ·ℕ k))) ∙ odds k)
-
-g∞-nf : ℕ → B∞-NormalForm
-g∞-nf n = joinForm (n ∷ [])
-
-g∞-nf-correct : (n : ℕ) → ⟦ g∞-nf n ⟧nf ≡ g∞ n
-g∞-nf-correct n =
-  ⟦ joinForm (n ∷ []) ⟧nf
-    ≡⟨ refl ⟩
-  finJoin∞ (n ∷ [])
-    ≡⟨ refl ⟩
-  g∞ n ∨∞ finJoin∞ []
-    ≡⟨ refl ⟩
-  g∞ n ∨∞ 𝟘∞
-    ≡⟨ zero-join-right (g∞ n) ⟩
-  g∞ n ∎
-
-𝟙∞-nf : B∞-NormalForm
-𝟙∞-nf = meetNegForm []
-
-𝟙∞-nf-correct : ⟦ 𝟙∞-nf ⟧nf ≡ 𝟙∞
-𝟙∞-nf-correct = refl
-
-𝟘∞-nf : B∞-NormalForm
-𝟘∞-nf = joinForm []
-
-𝟘∞-nf-correct : ⟦ 𝟘∞-nf ⟧nf ≡ 𝟘∞
-𝟘∞-nf-correct = refl
-
-neg-nf : B∞-NormalForm → B∞-NormalForm
-neg-nf (joinForm ns) = meetNegForm ns
-neg-nf (meetNegForm ns) = joinForm ns
-
-pair-decomposition : (x y : ⟨ B∞ ⟩) → (x , y) ≡ (x , 𝟘∞) +× (𝟘∞ , y)
-pair-decomposition x y = cong₂ _,_ (sym (+right-unit x)) (sym (+left-unit y))
-  where
-  open CommRingStr (snd (BooleanRing→CommRing B∞)) using () renaming (+IdL to +left-unit ; +IdR to +right-unit)
-
-h-factors-left : (h : Sp B∞×B∞-Booleω) → (pf : h $cr unit-left ≡ true)
-  → (x y : ⟨ B∞ ⟩) → h $cr (x , y) ≡ h $cr (x , 𝟘∞)
-h-factors-left h pf x y =
-  let h-pres+ = IsCommRingHom.pres+ (snd h)
-      h-right-zero = h'-left-true→right-false h pf y
-  in cong (h $cr_) (pair-decomposition x y) ∙
-     h-pres+ (x , 𝟘∞) (𝟘∞ , y) ∙
-     cong (λ b → (h $cr (x , 𝟘∞)) ⊕ b) h-right-zero ∙
-     ⊕-false-right (h $cr (x , 𝟘∞))
-  where
-  ⊕-false-right : (b : Bool) → b ⊕ false ≡ b
-  ⊕-false-right false = refl
-  ⊕-false-right true = refl
-
-h-factors-right : (h : Sp B∞×B∞-Booleω) → (pf : h $cr unit-left ≡ false)
-  → (x y : ⟨ B∞ ⟩) → h $cr (x , y) ≡ h $cr (𝟘∞ , y)
-h-factors-right h pf x y =
-  let h-pres+ = IsCommRingHom.pres+ (snd h)
-      h-right-true = unit-left-false→unit-right-true h pf
-      h-left-zero = h'-right-true→left-false h h-right-true x
-  in cong (h $cr_) (pair-decomposition x y) ∙
-     h-pres+ (x , 𝟘∞) (𝟘∞ , y) ∙
-     cong (λ b → b ⊕ (h $cr (𝟘∞ , y))) h-left-zero ∙
-     ⊕-false-left (h $cr (𝟘∞ , y))
-  where
-  ⊕-false-left : (b : Bool) → false ⊕ b ≡ b
-  ⊕-false-left false = refl
-  ⊕-false-left true = refl
-
-inject-left-restrict-left : (h : Sp B∞×B∞-Booleω) → (pf : h $cr unit-left ≡ true)
-  → inject-left (restrict-to-left h pf) ≡ h
-inject-left-restrict-left h pf = Σ≡Prop
-  (λ f → isPropIsCommRingHom (snd (BooleanRing→CommRing B∞×B∞)) f (snd (BooleanRing→CommRing BoolBR)))
-  (funExt (λ { (x , y) → sym (h-factors-left h pf x y) }))
-
-inject-right-restrict-right : (h : Sp B∞×B∞-Booleω) → (pf : h $cr unit-left ≡ false)
-  → inject-right (restrict-to-right h pf) ≡ h
-inject-right-restrict-right h pf = Σ≡Prop
-  (λ f → isPropIsCommRingHom (snd (BooleanRing→CommRing B∞×B∞)) f (snd (BooleanRing→CommRing BoolBR)))
-  (funExt (λ { (x , y) → sym (h-factors-right h pf x y) }))
-
-Sp-sum-prod-roundtrip' : (h : Sp B∞×B∞-Booleω) → Sp-sum-to-prod (Sp-prod-to-sum' h) ≡ h
-Sp-sum-prod-roundtrip' h with (h $cr unit-left) =B' true
-... | yes pf = inject-left-restrict-left h pf
-... | no ¬pf = inject-right-restrict-right h (¬true→false' (h $cr unit-left) ¬pf)

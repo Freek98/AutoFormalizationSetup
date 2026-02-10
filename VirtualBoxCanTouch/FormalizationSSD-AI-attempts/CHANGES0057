@@ -1,0 +1,20 @@
+bck0056 → bck0057: Dead code removal (7588 → 7532, -56 lines)
+
+Part05a.agda (432 → 404, -28 lines):
+- Removed dead `isSetB∞-NormalForm`, `discreteNF`, `discreteListℕ` chain
+  (isSetB∞-NormalForm was defined but never used; discreteNF and discreteListℕ
+   were only used by isSetB∞-NormalForm)
+- Cleaned up now-unused imports: `Discrete`, `Discrete→isSet` from Cubical.Relation.Nullary;
+  `isOfHLevelList`, `discreteList` from Cubical.Data.List
+
+Part11.agda (519 → 491, -28 lines):
+- Removed dead `CompactHausdorffTopologyModule` (contained only `DecSubset` type alias,
+  never opened/used; the tex Corollary CompactHausdorffTopology 2019 has no actual proof here)
+- Removed dead `evalAtPointIsHom`, `evalCHaus`, `evalCHaus-injective` (infrastructure
+  for StoneCompactHausdorffTotallyDisconnected-backward postulate, but never used/referenced)
+- Removed 3 associated dead imports (2^, SpGeneralBooleanRing, IsBoolRingHom, ICRHom alias)
+
+Full chain (Part21) compiles successfully.
+Line decrease justified: removed dead definitions (type aliases, unused helper lemmas,
+unreferenced discreteness chain). No tex results lost — underlying mathematical facts
+preserved by their canonical proofs.

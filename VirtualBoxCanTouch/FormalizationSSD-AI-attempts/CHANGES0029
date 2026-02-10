@@ -1,0 +1,15 @@
+bck0028 → bck0029: Comment cleanup and deduplication (8286 → 8256, -30 lines)
+
+Changes:
+- Part07: Removed 1 useless proof outline comment (-1 line)
+- Part08: Removed 3 proof explanation comments (-4 lines)
+- Part11: Removed 1 stale comment about tex proof (-2 lines)
+- Part12: Consolidated duplicate tex refs, removed stale comments (-4 lines)
+- Part13: Replaced 12-line progress summary block with single tex ref line (-11 lines)
+- Part19: Deduplicated contr-map-const (3 copies across Part12/Part19 → 1 in Part12)
+  - IntervalConnectednessDerivedTC now uses ZILocalModule.Bool-I-local and Z-I-local
+  - BZILocalTC now uses ZILocalModule.contr-map-const-local
+  - Added missing ℤ import (-6 lines net)
+
+All changes verified: full chain (Part21) compiles successfully.
+No useful work removed - only comments and duplicated code.

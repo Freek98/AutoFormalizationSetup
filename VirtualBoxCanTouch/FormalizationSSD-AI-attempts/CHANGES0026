@@ -1,0 +1,62 @@
+CHANGES0026: Dead code removal across Part01, Part02, Part03, Part10a, Part10b, Part11
+
+Line count: bck0025 = 10580, current = 9765, decrease = 815 lines.
+
+JUSTIFICATION FOR DECREASE: All removed content was dead code (unused functions,
+unused postulates, dead module with all contents, trivial wrappers, unused aliases,
+useless comments). No functional code was lost. All tex-referenced results are preserved.
+
+DETAILED CHANGES:
+
+Part10a.agda: 501 → 7 lines (-494)
+- Removed entire BooleanAlgebraLawsModule (never opened/referenced anywhere):
+  35 dead functions proving Boolean algebra laws for closed/open subsets of Cantor space
+  (commutativity, associativity, idempotence, absorption, distributivity, De Morgan laws)
+  Including 2 postulates: closedDeMorganIntersection-fwd, openDeMorganIntersection-fwd
+  None of these were referenced in any other file or in main-monolithic.tex
+
+Part01.agda: 422 → 294 lines (-128)
+- Removed dead code: openProp, closedProp, openType, closedType, open→hProp, closed→hProp
+  (trivial fst projections, never used)
+- Removed dead code: isSetIsOpenProp, isSetIsClosedProp (never used)
+- Removed dead code: ⊥-Open, ⊥-Closed, ⊤-Open, ⊤-Closed (bundled Open/Closed pairs, never used)
+- Removed dead code: Bool-equality-open, ℕ-equality-open, ℕ-equality-closed (never used)
+- Removed dead code: CantorSpace-equality-closed (21-line proof, never used)
+- Removed dead code: ¬-Open (never used)
+- Removed dead code: doubleNegOpenIsOpen, doubleNegClosedIsClosed (never used)
+- Removed dead code: openOrNonTrunc (8-line proof, never used)
+- Removed dead code: ℕ-equality-decidable (trivial alias for discreteℕ)
+- Removed unused imports: isEmbedding-inl, isEmbedding-inr, isEmbedding→Inj
+- Removed useless comment on line 2
+- Removed 32 unused imports: Fin, WellFounded, GroupoidLaws, Nat.Order, Nat.Properties,
+  CommRing.DirectProd, BooleanRing.Instances.Bool, BooleanRing.Initial, StoneDuality,
+  Markov, PresentedBoole, Examples.Bool, FreeBool, BoolRingUnivalence, Bijections.Sum,
+  Isomorphism, Equiv, Univalence, Powerset, Transport, and all 13 EM/cohomology/group imports
+
+Part02.agda: 1962 → 1843 lines (-119)
+- Removed dead code: openPath, closedPath (both dead)
+- Removed dead code: openMarkovTex (closedMarkovTex kept: tex Lemma ClosedMarkov)
+- Removed dead code: openAndFixed, closedAndFixed (never used)
+- Removed dead code: 14 trivial subset wrappers (emptySubsetOpen, emptySubsetClosed,
+  fullSubsetOpen, fullSubsetClosed, openSubsetIntersection, closedSubsetIntersection,
+  openSubsetUnion, closedSubsetUnion, closedSubsetCountableIntersection,
+  openSubsetCountableUnion, complementOpenIsClosed, complementClosedIsOpen,
+  preimageOpenIsOpen, preimageClosedIsClosed) - wait, kept preimage ones
+- Actually removed: emptySubsetOpen/Closed, fullSubsetOpen/Closed,
+  openSubsetIntersection, closedSubsetIntersection, openSubsetUnion, closedSubsetUnion,
+  closedSubsetCountableIntersection, openSubsetCountableUnion,
+  complementOpenIsClosed, complementClosedIsOpen (12 trivial wrappers)
+- Removed dead code: someTrueProp, binarySeqToOpen, binarySeqToOpen-surjective
+  (binarySeqToClosed kept: tex line 1753)
+- Removed dead comments at end of file
+
+Part03.agda: 239 → 200 lines (-39)
+- Removed dead code: countBool (25-line proof of has-Countability-structure Bool)
+- Removed dead code: is-cp-freeBool, freeBool→Bool²-on-gens, freeBool→Bool²-hom
+- Removed associated dead imports
+
+Part10b.agda: 83 → 80 lines (-3)
+- Removed dead postulate: isPropIsOpenProp (only used by now-removed Part10a module)
+
+Part11.agda: 576 → 569 lines (-7)
+- Removed dead postulate: CompactHausdorffTopology-closed (never used)

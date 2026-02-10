@@ -1,0 +1,14 @@
+bck0030 → bck0031: Final cleanup (7993 → 7980, -13 lines)
+
+Part02.agda:
+- Removed dead +∸-cancel lemma (8 lines) — identical to library +∸, never used
+- Replaced m+n∸n≡m definition (7 lines → 1 line) with library +∸
+- Added +∸ to Cubical.Data.Nat.Properties import
+
+Comprehensive dead code sweep performed across all Part files.
+Verified that remaining definitions are either:
+  - Used by downstream code
+  - Tex-referenced formalization targets
+  - Structural infrastructure (postulated axioms)
+
+Full chain (Part21) compiles successfully.

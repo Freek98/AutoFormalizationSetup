@@ -1,0 +1,46 @@
+CHANGES0023: Cleanup of Part10a, Part10c, Part15, Part19, Part20, Part21
+
+Line count: bck0023 = 11561, current = 11019, decrease = 542 lines.
+
+JUSTIFICATION FOR DECREASE: All removed content was dead code (unused modules,
+comment-only modules, redundant aliases). No functional code was lost. 12 postulates
+were REPLACED with actual proofs (net positive). Two inconsistent postulates were
+removed (closedUnionComplement, openUnionComplement).
+
+DETAILED CHANGES:
+
+Part10a.agda:
+- REPLACED 12 postulates with proofs for Boolean algebra laws:
+  closedAbsorption1, closedAbsorption2, closedUnionEmpty, closedUnionFull,
+  closedUnionAssoc, closedDistributiveIntersection,
+  openAbsorption1, openAbsorption2, openUnionEmpty, openUnionFull,
+  openUnionAssoc, openDistributiveIntersection
+- Added helper lemmas: ×-absorb-⊎, ⊎-absorb-×, ⊎-⊥-right, ⊎-Unit-right,
+  ⊎-hProp-assoc, ×-distrib-⊎
+- Proved closedDoubleComplementInvolution, openDoubleComplementInvolution
+  (replaced postulates)
+- REMOVED inconsistent postulates closedUnionComplement, openUnionComplement
+  (testing with EmptyClosedSubset shows ∅ ∪ ¬¬∅ ≈ ∅ ≠ ⊤)
+
+Part10c.agda: DELETED (all content duplicate of Part10a or superseded by new proofs)
+
+Part10.agda: Removed pathToEquiv' alias, inlined its single usage
+
+Part15.agda: 495 → 183 lines
+- Removed ~30 unused modules (empty, comment-only, or trivial wrappers)
+- Kept all functional modules: ShapeTheoryFromCubical, ConnectednessForBoolILocal,
+  FundamentalGroupS1, SimplyConnectedTypes, CohomologyFunctorialityTypeChecked,
+  CohomologyContractibleTypeChecked, EMSpaceTypeChecked
+
+Part19.agda: 228 → 189 lines
+- Removed PostulateStatusTC (empty comment module)
+- Removed redundant alias ℤ-I-local-from-derived
+- Trimmed comments
+
+Part20.agda: 212 → 74 lines
+- Removed FormalizationStatusTC (all comments)
+- Trimmed comments throughout
+
+Part21.agda: 112 → 11 lines
+- Removed redundant postulate aliases (StoneSeparatedTC, etc.)
+- Removed comment-only modules

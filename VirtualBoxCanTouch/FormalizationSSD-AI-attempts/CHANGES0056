@@ -1,0 +1,36 @@
+bck0055 → bck0056: Dead code removal (7676 → 7588, -88 lines)
+
+Part01.agda (272 → 269, -3 lines):
+- Removed dead `allFalseIsClosed` (became orphaned after Part02 cleanup; not tex-referenced)
+
+Part02.agda (1606 → 1579, -27 lines):
+- Removed dead trivial wrappers: `open→¬¬stable` (= openIsStable mp),
+  `closed→¬¬stable` (= closedIsStable), `closed→¬open` (= negClosedIsOpen mp)
+  Underlying proofs (`openIsStable`, `closedIsStable`, `negClosedIsOpen`) remain.
+- Removed dead wrapper block: `decidable→open×closed`, `open×closed→decidable`,
+  `decidable↔open×closed` — trivial combinations of `decIsOpen`/`decIsClosed`/`clopenIsDecidable`
+  which are the actual tex proofs (Corollary ClopenDecidable, Remark rmkOpenClosedNegation)
+- Removed dead `allFalseProp` and `binarySeqToClosed` (not tex-labeled, trivial packaging)
+
+Part04.agda (817 → 803, -14 lines):
+- Removed dead `composite-hom-on-gens` (trivial alias for `composite-on-gens`)
+- Removed dead `·×-componentwise` (= refl, never used)
+- Removed dead `∨×-eq` (= refl, never used)
+- Removed dead `finJoin×` (trivial wrapper, never used)
+
+Part07.agda (359 → 356, -3 lines):
+- Removed dead `closedProp→Stone` (trivial wrapper for `closedProp→hasStoneStr`, never used)
+
+Part12.agda (297 → 290, -7 lines):
+- Removed dead `≤I-hProp` and `≤I-isClosed` postulate
+  (not in tex: Remark LesserOpenPropAndApartness only mentions <I-isOpen and apartness)
+
+Part14.agda (547 → 513, -34 lines):
+- Removed dead `circle-cohomology` postulate (not tex-referenced)
+- Removed dead `DiskCohomologyInline` module + `disk-cohomology-vanishes` (not tex-referenced)
+- Removed dead `CircleCohomologyFromLibrary` module (not tex-referenced)
+  Note: `interval-cohomology-vanishes` and `IntervalCohomologyInline` kept (used by Part20)
+
+Full chain (Part21) compiles successfully.
+Line decrease justified: all removals are dead code (unused definitions, trivial aliases/wrappers,
+unreferenced postulates). Underlying tex results preserved via their canonical Agda proofs.

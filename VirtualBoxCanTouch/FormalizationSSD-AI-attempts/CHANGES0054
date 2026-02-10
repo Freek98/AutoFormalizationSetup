@@ -1,0 +1,28 @@
+bck0053 → bck0054: Cleanup (7709 → 7694, -15 lines)
+
+Part08.agda (621 → 615, -6 lines):
+- Removed 3 redundant imports inside StoneEqualityClosedModule (already at top level)
+- Removed dead alias `Bool-eq-closed` (trivial wrapper for `Bool-equality-closed`)
+  Inlined both call sites (Part08:69 and Part10:83) to use `Bool-equality-closed` directly.
+
+Part10.agda (154 → 154, 0 lines):
+- Updated call site from `StoneEqualityClosedModule.Bool-eq-closed` to `Bool-equality-closed`
+
+Part02.agda (1574 → 1573, -1 line):
+- Removed redundant `open import Cubical.Foundations.Equiv` inside SpectrumEmptyImpliesTrivial
+  (already imported at top level)
+
+Part05.agda (1166 → 1164, -2 lines):
+- Removed 2 redundant `open import Cubical.Algebra.CommRing using (makeIsCommRingHom)`
+  in restrict-to-left and restrict-to-right where blocks
+  (already imported via top-level `open import Cubical.Algebra.CommRing`)
+
+Part14.agda (547 → 544, -3 lines):
+- Removed dead alias `StoneStr` (never used, not tex-referenced)
+
+Note: Investigated removing module-local imports in Part11 that appeared redundant,
+but Agda's scoping rules mean `open import` inside a module does NOT re-export
+through `open M`. So module-local imports are needed.
+
+Full chain (Part21) compiles successfully.
+Line decrease justified: removed dead code, redundant imports, and trivial aliases. No useful work lost.

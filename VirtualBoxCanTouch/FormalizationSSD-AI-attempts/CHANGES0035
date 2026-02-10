@@ -1,0 +1,15 @@
+bck0034 → bck0035: Dead module removal in Part07 and Part13 (7907 → 7861, -46 lines)
+
+Part07.agda (479 → 449, -30 lines):
+- Removed dead module Stone→closedPropModule (30 lines)
+  - Contained: Stone→closedProp function (hasStoneStr → isClosedProp)
+  - Never opened or referenced, not tex-referenced
+
+Part13.agda (197 → 181, -16 lines):
+- Removed dead module ClosedInStoneIsStoneEqualityModule (16 lines)
+  - Contained: isProp-ClosedInStoneIsStone-type, ClosedInStoneIsStone-equality
+  - Proved equality between postulated and proved ClosedInStoneIsStone
+  - Never opened or referenced, not tex-referenced
+
+Decrease justified: both modules were completely unused and not tex-referenced.
+Full chain (Part21) compiles successfully.

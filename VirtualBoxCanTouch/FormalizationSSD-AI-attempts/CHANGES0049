@@ -1,0 +1,19 @@
+bck0048 → bck0049: Dead postulates and code removal (7539 → 7523, -16 lines)
+
+Part06.agda (87 → 87, -9 lines from previous 96):
+- Removed dead private postulate block: `LocalStoneSigmaClosed` and `LocalSigmaStoneType`
+  inside `BoolIsStoneModule`. These were private (never exported), never used anywhere,
+  and the proper non-private version exists as `StoneSigmaClosed` in Part11's
+  `StoneSigmaClosedModule` (tex Theorem 2214).
+- Also removed the associated "-- tex Theorem 2214" comment (since Part11 has the real one)
+
+Part12.agda (304 → 297, -7 lines):
+- Removed unused postulate `≤I-linear : (x y : UnitInterval) → (x ≤I y) ⊎ (y ≤I x)`
+  (commented-out tex section around line 2500, never used in code)
+- Removed unused postulate `<I-trichotomy : (x y : UnitInterval) → (x <I y) ⊎ ((x ≡ y) ⊎ (y <I x))`
+  (no tex reference, never used in code)
+- Kept all other IntervalTopology postulates: many are used downstream or in active tex
+
+Full chain (Part21) compiles successfully.
+Line decrease justified: removed dead code only (unused private postulate + 2 unused postulates
+from commented-out tex section). No useful work lost.

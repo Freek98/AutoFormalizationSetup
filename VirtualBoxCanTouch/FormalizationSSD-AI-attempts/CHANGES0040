@@ -1,0 +1,28 @@
+bck0039 → bck0040: Dead code removal across Part01, Part02, Part05, Part11 (7779 → 7732, -47 lines)
+
+Part01.agda (294 → 281, -13 lines):
+- Removed isSetBinarySequence (2 lines, never used)
+- Removed ⊥-isClosed (2 lines, never used downstream)
+- Removed ⊤-hProp, ⊤-isOpen, ⊤-isClosed (8 lines, all never used)
+- Kept ⊥-hProp and ⊥-isOpen (used in Part02)
+- None tex-referenced
+
+Part02.agda (1616 → 1614, -2 lines):
+- Removed m+n∸n≡m alias (= +∸), replaced sole usage with +∸ directly
+
+Part05.agda (1157 → 1127, -30 lines):
+- Removed Sp-prod-to-sum' and its roundtrip proofs (21 lines):
+  Sp-prod-to-sum', Sp-prod-sum-roundtrip'-inl, -inr, roundtrip' (all dead)
+  Non-primed Sp-prod-to-sum (used in Part06) is the active version
+- Collapsed 3 alias chain f-is-injective-hom → Sp-f-surjective' → Sp-f-surjective
+  into single Sp-f-surjective = injective→Sp-surjective ... f f-injective-05a (6 lines saved)
+- Removed neg-nf (3 lines, never used)
+- Removed now-unused ¬true→false from Bool import
+- NOTE: Kept f-kernel-normalForm + splitByParity infrastructure (~80 lines) because it's
+  a complete proof matching postulate f-kernel-normalForm-05a in Part05a — potential to
+  eliminate the postulate in future work
+
+Part11.agda (551 → 549, -2 lines):
+- Removed ClosedSubsetOfCHaus (2 lines, never used, not tex-referenced)
+
+Full chain (Part21) compiles successfully.

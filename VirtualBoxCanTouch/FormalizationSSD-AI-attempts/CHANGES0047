@@ -1,0 +1,19 @@
+bck0046 → bck0047: Import narrowing sweep (7548 → 7546, -2 lines)
+
+Part03.agda (198 → 198, 0 lines):
+- Removed redundant `open import Cubical.Foundations.Isomorphism using (iso; isoToEquiv; Iso)`
+  (already available from Part02's full `open import ... public` chain)
+  Note: line count unchanged because an earlier edit in this session already removed the line.
+
+Part07.agda (364 → 363, -1 line):
+- Removed entire `open import Cubical.Data.List using (List; []; _∷_; _++_)` (unused in Part07)
+- Narrowed `Cubical.Foundations.HLevels` import: removed `isPropΠ2; isSetΠ` (unused)
+- Narrowed `Cubical.Relation.Nullary` import: removed `Dec; yes; no` (unused)
+- Narrowed `Cubical.HITs.PropositionalTruncation` import: removed `elim` (unused)
+- Narrowed `Cubical.Algebra.BooleanRing.Initial` import: removed `BoolBR→IsUnique` (unused)
+
+Part08.agda (627 → 627, 0 lines):
+- Narrowed `Cubical.Foundations.Transport` import: removed `transport⁻Transport` (unused)
+
+Full chain (Part21) compiles successfully.
+Line decrease justified: only removed unused import names, no functional changes.

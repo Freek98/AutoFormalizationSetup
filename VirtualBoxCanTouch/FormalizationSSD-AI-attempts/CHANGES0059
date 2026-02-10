@@ -1,0 +1,19 @@
+bck0058 → bck0059: Further dead code + refl-inline cleanup (7493 → 7477, -16 lines)
+
+Part02.agda (1570 → 1564, -6 lines):
+- Removed dead `gen` alias (= `generator`, never used externally)
+- Inlined `eq3 = refl` into `goal` expression (subst ... eq2 step1 instead of subst ... (eq2 ∙ eq3) step1)
+
+Part04.agda (803 → 800, -3 lines):
+- Inlined `step3 = refl` in `f-pres-join` (step1 ∙ step2 instead of step1 ∙ step2 ∙ step3)
+
+Part07.agda (356 → 355, -1 line):
+- Removed unused `open import Cubical.Data.Nat.Order` (no Order names used in file)
+
+Part12.agda (290 → 284, -6 lines):
+- Removed dead `ClosedInterval` and `OpenInterval` type aliases
+  (defined but never used, not tex-referenced)
+
+Full chain (Part21) compiles successfully.
+Line decrease justified: removed dead definitions (trivial aliases, unused type aliases,
+refl-valued steps inlined). No tex results affected.

@@ -1,0 +1,43 @@
+bck0045 → bck0046: Two postulates eliminated (7558 → 7548, -10 lines)
+
+POSTULATE ELIMINATED #1: ClosedInStoneIsStone (tex Corollary 1770)
+
+Part07.agda (404 → 364, -40 lines):
+- Removed postulate `ClosedInStoneIsStone` and its module `ClosedInStoneIsStoneModule`
+- Moved `InhabitedClosedSubSpaceClosedModule` (tex Corollary 1776) to Part09
+- Moved `ClosedSigmaClosedDerived` (tex Corollary 1785) to Part09
+
+Part09.agda (148 → 283, +135 lines):
+- Added `ClosedInStoneIsStoneModule` with PROVED version (was postulate in Part07)
+  The proof constructs Stone structure on closed subsets by:
+  1. Using Stone duality to convert decidable predicates to ring elements
+  2. Building a quotient Boolean ring that represents the closed subset
+  3. Showing the quotient's spectrum is equivalent to the closed subset via transport
+- Added `InhabitedClosedSubSpaceClosedModule` (moved from Part07, unchanged)
+- Added `ClosedSigmaClosedDerived` (moved from Part07, unchanged)
+- Added necessary local imports: HLevels, Transport, Isomorphism, Equiv, Univalence
+
+Part13.agda (181 → 78, -103 lines):
+- Removed `ClosedInStoneIsStoneProof` module (now redundant - proof is in Part09)
+
+POSTULATE ELIMINATED #2: f-kernel-normalForm-05a (B∞ injectivity infrastructure)
+
+Part05a.agda (257 → 211, -46 lines):
+- Removed postulate `f-kernel-normalForm-05a`
+- Removed `f-kernel-from-trunc-05a` (moved to Part05)
+- Removed `f-injective-05a` with its helper `BooleanRing-xor-eq-to-eq'` (moved to Part05)
+
+Part05.agda (1124 → 1168, +44 lines):
+- Changed import: `f-injective-05a` → `normalFormExists-trunc` from Part05a
+- Moved `Sp-f-surjective` after the proof of `f-kernel-normalForm`
+- Added `f-kernel-from-trunc` using proved `f-kernel-normalForm` (replaces postulate-based version)
+- Added `f-injective` (renamed from `f-injective-05a`, uses real proof)
+- `Sp-f-surjective` now uses `f-injective` instead of `f-injective-05a`
+
+Both restructurings follow the pattern: postulate is in an earlier file (Part07/Part05a),
+proof is in a later file (Part09/Part05) that has the needed infrastructure.
+Moved the postulate-dependent code to the later file and replaced the postulate with the proof.
+
+Full chain (Part21) compiles successfully.
+Line count decrease justified: two postulates eliminated with minimal code duplication.
+Net -10 lines (mostly from removing the 103-line duplicate proof in Part13).

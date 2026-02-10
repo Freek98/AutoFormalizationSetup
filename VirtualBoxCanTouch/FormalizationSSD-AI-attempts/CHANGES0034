@@ -1,0 +1,17 @@
+bck0033 → bck0034: Dead module removal + import cleanup (7957 → 7907, -50 lines)
+
+Part10b.agda (80 → 30, -50 lines):
+- Removed dead module StoneAsClosedSubsetOfCantorModule2 (46 lines of code)
+  - Contained: ClosedSubsetIntersection, EmptyClosedSubset, FullClosedSubset,
+    ClosedSubsetUnion, OpenSubsetOfCantor, ClosedSubsetComplement,
+    OpenSubsetComplement, OpenSubsetIntersection, OpenSubsetUnion,
+    EmptyOpenSubset, FullOpenSubset
+  - None used downstream, none tex-referenced
+- Removed unused `import Cubical.Data.Sum as ⊎` (was only used in removed module)
+- Removed unused `import Cubical.HITs.PropositionalTruncation as PT` (was only used in removed module)
+
+Part05.agda (1173 → 1165, -8 lines) [from bck0033]:
+- Replaced local _orBool_ with library _or_ from Cubical.Data.Bool
+- Replaced local notBool with library not from Cubical.Data.Bool
+
+Full chain (Part21) compiles successfully.

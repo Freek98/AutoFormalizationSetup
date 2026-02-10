@@ -1,0 +1,37 @@
+bck0043 → bck0044: Import narrowing and minor cleanup across Part01-Part08 (7627 → 7618, -9 lines)
+
+Part04.agda (823 → 821, -2 lines):
+- Narrowed Cubical.Foundations.Equiv import to `using (_≃_)` (only name used)
+- Removed duplicate `open import BooleanRing.FreeBooleanRing.FreeBool using (inducedBAHom; generator; evalBAInduce)` at line 543 (already imported at top level)
+
+Part05a.agda (259 → 257, -2 lines):
+- Removed unused `isPropΠ2` from HLevels import
+- Removed unused `inducedBAHomUnique` from FreeBool import
+- Removed unused `idBoolEquiv` from PresentedBoole import
+- Merged three separate Cubical.Data.List imports (lines 17, 124, 126) into one
+
+Part05.agda (1124 → 1124, no line change):
+- Removed unused `inducedBAHomUnique` from FreeBool import
+- Removed unused `idBoolEquiv` from PresentedBoole import
+
+Part07.agda (404 → 404, no line change):
+- Removed unused `inducedBAHomUnique` from FreeBool import
+
+Part08.agda (627 → 627, no line change):
+- Removed unused `idBoolEquiv` from PresentedBoole import
+- Removed unused `inducedBAHomUnique` from both top-level and module-level FreeBool imports
+
+Part02.agda (1613 → 1611, -2 lines):
+- Removed unused `open import Cubical.Foundations.Univalence` (no Univalence names used in Part02)
+- Removed trailing blank line
+
+Part01.agda (276 → 275, -1 line):
+- Removed trailing blank line
+
+Part03.agda (200 → 199, -1 line):
+- Removed trailing blank line
+
+Part14.agda (578 → 577, -1 line):
+- Removed trailing blank line
+
+Full chain (Part21) compiles successfully.

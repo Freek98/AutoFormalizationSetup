@@ -1,0 +1,18 @@
+bck0052 → bck0053: Cleanup (7718 → 7709, -9 lines)
+
+Part05a.agda (435 → 433, -2 lines):
+- Removed dead definition `isSetListℕ` (defined but never used)
+- Removed unused `isSetℕ` from import
+
+Part07.agda (362 → 359, -3 lines):
+- Inlined alias `¬-of-open-is-closed` (was just `negOpenIsClosed`)
+  Both call sites now use `negOpenIsClosed` directly.
+
+Part02.agda (1576 → 1575, -1 line):
+- Removed inline non-tex comment from `clopenIsDecidable`
+
+Part21.agda (10 → 9, -1 line):
+- Removed non-tex header comment "Remaining postulates (future proof goals):"
+
+Full chain (Part21) compiles successfully.
+Line decrease justified: removed dead code, trivial alias, and non-tex comments. No useful work lost.

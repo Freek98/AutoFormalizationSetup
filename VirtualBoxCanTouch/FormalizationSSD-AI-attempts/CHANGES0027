@@ -1,0 +1,46 @@
+CHANGES0027: Dead module removal and comment cleanup
+bck0026 = 9722 lines, bck0027 = 9074 lines (decrease: 648 lines)
+
+JUSTIFICATION FOR DECREASE:
+All removed code was dead (never used outside its own file, never referenced in tex).
+No useful work was discarded. All tex-referenced definitions are preserved.
+
+CHANGES:
+
+Part02.agda (1836 → 1830, -6):
+  - Removed 4 useless comments (redundant tex refs, proof explanations):
+    line 526 "Postulate this axiom (from tex)", line 564 "Dependent Choice Axiom (from tex):",
+    line 573 "This follows from DependentChoice...", line 1824 duplicate tex ref
+
+Part04.agda (840 → 826, -14):
+  - Removed B∞×B∞-Operations module (0×0, inl-B∞, inr-B∞) - dead, never used
+
+Part06.agda (876 → 865, -11):
+  - Removed useless comments: alternative proof outline for ℕ∞⊎ℕ∞IsStone,
+    duplicate BoolIsStone tex refs
+
+Part13.agda (218 → 208, -10):
+  - Removed useless comments: proof structure outline for no-retraction,
+    "PROVED (modulo geometric postulates)", summary block about interval topology
+
+Part14.agda (1063 → 619, -444):
+  - Removed 7 dead modules (none referenced in tex, none used outside Part14):
+    * NoRetractionFromCohomologyDerived (id-neq-zero-on-ℤ, H¹-Disk2-*)
+    * CohomologyFunctorialityInfrastructure (H¹-induced, coHomFun-comp, coHomFun-id)
+    * NoRetractionCompleteProof (no-retraction-theorem via cohomology)
+    * SequentialColimitInfrastructure (Iₙ, 2^, finite approximation, compatible families)
+    * FiniteApproximationExactness (finite-section-exists, In-section-exists)
+    * BooleomegaSequentialColimit (stone-finite-approximation postulate)
+    * CoboundaryFromInhabitant (isCocycle, coboundary-from-basepoint/inhabited)
+  - Cleaned up 6 proof outline comments
+  - Kept: CohomologyModule (used by Part19/Part20), tex-referenced definitions
+
+Part15.agda (161 → 11, -150):
+  - Removed 6 dead modules (none referenced in tex, none used outside Part15):
+    * ShapeTheoryFromCubical (Unit-initial/terminal-STF, ℤ-not-retract-of-Unit)
+    * FundamentalGroupS1 (loop-winding, S¹-not-contractible, ΩS¹≃ℤ)
+    * SimplyConnectedTypes (is-simply-connected, isContr→is-simply-connected)
+    * CohomologyFunctorialityTypeChecked (coHom-functorial-comp)
+    * CohomologyContractibleTypeChecked (H¹-Unit≅0, H²-Unit≅0)
+    * EMSpaceTypeChecked (EM-loop-equiv-witness)
+  - Kept: ConnectednessForBoolILocal (used by Part19)

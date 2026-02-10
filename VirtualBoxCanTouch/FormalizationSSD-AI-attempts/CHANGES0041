@@ -1,0 +1,19 @@
+bck0040 → bck0041: Dead alias + blank line cleanup (7732 → 7719, -13 lines)
+
+Part04.agda (826 → 823, -3 lines):
+- Removed gen-orthogonal alias (= g∞-distinct-mult-zero, never used)
+- Cleaned extra blank line
+
+Part01.agda (281 → 276, -5 lines):
+- Cleaned 4 extra blank lines left from previous dead code removal
+
+Part02.agda (1614 → 1613, -1 line):
+- Cleaned extra blank line left from m+n∸n≡m removal
+
+Part05.agda (1127 → 1124, -3 lines):
+- Cleaned 2 extra blank lines from Sp-prod-to-sum' and neg-nf removals
+
+Part11.agda (549 → 548, -1 line):
+- Cleaned extra blank line from ClosedSubsetOfCHaus removal
+
+Full chain (Part21) compiles successfully.

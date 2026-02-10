@@ -1,0 +1,12 @@
+bck0032 → bck0033: Library replacement of _orBool_ and notBool in Part05 (7965 → 7957, -8 lines)
+
+Part05.agda (1173 → 1165, -8 lines):
+- Replaced local _orBool_ (3 lines) with library _or_ from Cubical.Data.Bool
+- Replaced local notBool (3 lines) with library not from Cubical.Data.Bool
+- Added _or_ and not to Bool import using clause
+- Updated all 8 usage sites of orBool → or and 7 usage sites of notBool → not
+
+Decrease justified: both local definitions were exact duplicates of library functions
+(_or_ defined identically in Cubical.Data.Bool.Base, not defined identically there too).
+
+Full chain (Part21) compiles successfully.

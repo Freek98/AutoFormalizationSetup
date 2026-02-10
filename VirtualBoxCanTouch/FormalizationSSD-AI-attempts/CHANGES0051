@@ -1,0 +1,16 @@
+bck0050 → bck0051: Dead code cleanup (7754 → 7742, -12 lines)
+
+Part05a.agda (442 → 437, -5 lines):
+- Removed unused private alias `·B∞-DistL+` (-1 line)
+- Removed dead helper `∖L-empty` (-3 lines, was defined but unused in any proof)
+- Removed blank line (-1 line)
+
+Part01.agda (232 → 229, -3 lines):
+- Removed dead definition `¬¬hProp` (never used downstream, not tex-referenced)
+
+Part02.agda (1581 → 1577, -4 lines):
+- Removed dead definition `¬open→closed` (only used ¬¬hProp, never called itself, not tex-referenced)
+  Both `¬¬hProp` and `¬open→closed` were interconnected dead code.
+
+Full chain (Part21) compiles successfully.
+Line decrease justified: removed dead code only. No useful work lost.

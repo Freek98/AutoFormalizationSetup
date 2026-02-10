@@ -1,0 +1,17 @@
+bck0054 → bck0055: Cleanup (7694 → 7676, -18 lines)
+
+Part04.agda (821 → 817, -4 lines):
+- Inlined trivial wrapper `div2-neq→gen-product-zero` (was just `g∞-distinct-mult-zero (div2 m) (div2 n) neq`)
+- Updated 2 call sites (lines 528, 532) to use `g∞-distinct-mult-zero` directly
+
+Part05a.agda (433 → 432, -1 line):
+- Removed trailing blank line
+
+Part05.agda (1164 → 1151, -13 lines):
+- Removed dead `module Q = BooleanRingStr (snd B∞×B∞-quotient)` alias
+- Removed dead `ψ-map` and `ψ-pres0` — incorrect inverse map attempt for B∞×B∞≃quotient
+  (ψ-map(1,1) = ψ-left(1) + ψ-right(1) = 1+1 = 0 ≠ 1 in char 2, so it doesn't preserve 1)
+  These were never used anywhere and not tex-referenced.
+
+Full chain (Part21) compiles successfully.
+Line decrease justified: removed dead code (incorrect/unused definitions) and inlined trivial alias.

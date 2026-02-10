@@ -1,0 +1,30 @@
+bck0057 → bck0058: Dead code removal + library dedup (7532 → 7493, -39 lines)
+
+Part01.agda (269 → 266, -3 lines):
+- Removed dead `Bool-equality-decidable` trivial alias (= _=B_), inlined in `Bool-equality-closed`
+
+Part02.agda (1579 → 1570, -9 lines):
+- Replaced private `idBoolHom-local` (7-line manual BoolHom BoolBR BoolBR definition)
+  with library's `idBoolHom BoolBR` from CountablyPresentedBooleanRings.PresentedBoole
+- Added `idBoolHom` to existing import line
+
+Part08.agda (620 → 604, -16 lines):
+- Removed dead `s-on-free-on-gen` and `t-on-free-on-gen` (both = refl, never used)
+- Removed dead `s-on-Q∘π=s-on-free` and `t-on-Q∘π=t-on-free` (both = refl),
+  inlined in `s-on-Q=t-on-Q-fst` as `cong fst (s-on-free=t-on-free allP)`
+- Simplified `s-on-Q=t-on-Q-fst` from 6 lines to 2 lines
+
+Part09.agda (283 → 277, -6 lines):
+- Removed dead `_∈Dec_` and `_∈Closed_` operator definitions (defined but never used,
+  not tex-referenced; the type aliases `DecSubsetOfStone` and `ClosedSubsetOfStone` remain)
+
+Part10.agda (154 → 152, -2 lines):
+- Removed redundant `import Cubical.Foundations.Equiv as Eq; open Eq using (compEquiv)`
+  inside Stone→ClosedInCantorProof module (already in scope from outer module's import)
+
+Part14.agda (513 → 510, -3 lines):
+- Removed dead `minus-is-plus-neg` (= refl, defined but never referenced in proof)
+
+Full chain (Part21) compiles successfully.
+Line decrease justified: removed dead definitions (trivial aliases, unused refl lemmas,
+unreferenced operators), replaced duplicated library definition. No tex results affected.

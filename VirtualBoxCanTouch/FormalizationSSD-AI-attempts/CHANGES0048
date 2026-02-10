@@ -1,0 +1,23 @@
+bck0047 → bck0048: Import narrowing round 2 (7546 → 7539, -7 lines)
+
+Part10.agda (155 → 154, -1 line):
+- Removed entire `open import Cubical.Data.Sum using (_⊎_; inl; inr)` (all three names unused)
+
+Part13.agda (78 → 76, -2 lines):
+- Removed `import Cubical.HITs.PropositionalTruncation as PT` (PT alias unused in file)
+
+Part14.agda (555 → 553, -2 lines):
+- Removed `import Cubical.HITs.PropositionalTruncation as PT` (PT alias unused in file)
+
+Part19.agda (145 → 143, -2 lines):
+- Narrowed `Cubical.Relation.Nullary` import: removed `Dec` (unused, only `yes`/`no` needed)
+- Removed entire `open import BooleanRing.FreeBooleanRing.FreeBool using (inducedBAHom; freeBA-universal-property)`
+  from local where-block (both names unused)
+
+Part11.agda (528 → 528, 0 lines):
+- Attempted to remove redundant imports from CompactHausdorffClosedModule (lines 36-37),
+  but `open import X using (a)` inside a module does NOT re-export `a` via `open M`.
+  Reverted — imports are NOT redundant, they're necessary.
+
+Full chain (Part21) compiles successfully.
+Line decrease justified: only removed unused import names, no functional changes.

@@ -1,0 +1,13 @@
+bck0041 → bck0042: Dead module + dead function + import narrowing in Part07 (7694 → 7653, -41 lines)
+
+Part07.agda (445 → 404, -41 lines):
+- Removed entire dead module ClosedDependentSumsModule (~37 lines)
+  - Module was never opened anywhere; contained only closedSigmaClosed'
+  - closedSigmaClosed' was never used outside the module
+- Removed elemFromDecPred-roundtrip (4 lines, never used)
+- Narrowed imports after removals:
+  - Removed retEq from Equiv import
+  - Removed propTruncIdempotent≃ from PT import
+  - Removed isOfHLevelΣ from HLevels import
+
+Full chain (Part21) compile check in progress.

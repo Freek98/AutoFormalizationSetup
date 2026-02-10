@@ -1,0 +1,34 @@
+bck0049 → bck0050: Prove normalizeTerm-correct postulate (7523 → 7754, +231 lines)
+
+Part05a.agda (211 → 442, +231 lines):
+- ELIMINATED postulate `normalizeTerm-correct` with a full constructive proof
+- This was a critical postulate on the proof path:
+  normalizeTerm-correct → normalFormExists-trunc → f-kernel-from-trunc → f-injective → Sp-f-surjective
+
+Helper lemmas added (all in Part05a):
+- `gen-in-finJoin`: if n ∈? ms = true, then g∞ n · finJoin∞ ms = g∞ n (absorption)
+- `gen-notin-finJoin`: if n ∈? ms = false, then g∞ n · finJoin∞ ms = 0 (orthogonality)
+- `finJoin∞-∩L`: finJoin∞ (ns ∩L ms) = finJoin∞ ns · finJoin∞ ms (intersection = meet)
+- `absorb→neg-zero`: a·b = a implies a·¬b = 0
+- `orthog→neg-absorb`: a·b = 0 implies a·¬b = a
+- `finJoin∞-∖L`: finJoin∞ (ns ∖L ms) = finJoin∞ ns · ¬(finJoin∞ ms) (set diff = meet with negation)
+- `deMorgan-finMeetNeg`: finMeetNeg∞ ns = ¬(finJoin∞ ns) (De Morgan identity)
+- `finJoin∞-++`: finJoin∞ (ns ++ ms) = finJoin∞ ns ∨ finJoin∞ ms (append = join)
+- `∖L-empty`: ms ∖L [] = ms
+- `∨·ab≡ab`: (a ∨ b) · (a·b) = a·b (via absorption: ∧AbsorbL∨)
+- `∨·¬∧≡+`: (a ∨ b) · ¬(a·b) = a + b (symmetric difference identity)
+- `finJoin∞-△L`: finJoin∞ (ns △L ms) = finJoin∞ ns + finJoin∞ ms (sym diff = XOR)
+- `meet-nf-correct`: ⟦ meet-nf nf₁ nf₂ ⟧nf = ⟦nf₁⟧ · ⟦nf₂⟧
+- `xor-nf-correct`: ⟦ xor-nf nf₁ nf₂ ⟧nf = ⟦nf₁⟧ + ⟦nf₂⟧
+- `normalizeTerm-correct`: main theorem, by induction on terms
+
+Key algebraic infrastructure from Cubical library used:
+- BooleanAlgebraStr: ∧AbsorbL∨, ∧DistR∨, ∧DistL∨, DeMorgan¬∨, ∨Assoc, characteristic2
+- BooleanRingStr: ·DistR+, ·DistL+, ·IdR, +IdR, +IdL, +Assoc, +Comm, ·Comm, ·Idem
+- Existing codebase: g∞-distinct-mult-zero, zero-join-left, 0∞-absorbs-left/right
+
+Line increase justified: eliminated a key postulate with ~230 lines of proof. All helper
+lemmas are necessary for the inductive proof and have clean mathematical meaning.
+No useful work lost — this is strictly forward progress.
+
+Full chain (Part21) compiles successfully.

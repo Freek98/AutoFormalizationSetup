@@ -5,53 +5,42 @@ module work.Part02 where
 open import work.Part01 public
 
 open import Cubical.Foundations.Prelude
-open import Cubical.Foundations.GroupoidLaws using (lUnit; rUnit; rCancel; lCancel) renaming (assoc to ∙assoc)
 open import Cubical.Foundations.Function
 open import Cubical.Foundations.Structure
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.Equiv
-open import Cubical.Foundations.Univalence
-open import Cubical.Foundations.Powerset
-open import Cubical.Foundations.Transport using (transport⁻; transportTransport⁻)
+open import Cubical.Foundations.Powerset using (_∈_)
 
 open import Cubical.Data.Nat renaming (_+_ to _+ℕ_ ; _·_ to _·ℕ_)
 open import Cubical.Data.Nat.Order
-open import Cubical.Data.Nat.Properties using (discreteℕ)
-open import Cubical.Data.Fin using (Fin)
+open import Cubical.Data.Nat.Properties using (discreteℕ; +∸)
 import Cubical.Induction.WellFounded as WF
 open import Cubical.Data.Bool hiding (_≤_ ; _≥_) renaming (_≟_ to _=B_)
 open import Cubical.Data.Empty renaming (rec to ex-falso)
 open import Cubical.Data.Sigma
 open import Cubical.Data.Sum
-open import Cubical.Data.Sum.Properties using (isEmbedding-inl; isEmbedding-inr)
-
-open import Cubical.Functions.Embedding using (isEmbedding→Inj)
 
 open import Cubical.Relation.Nullary
 
 open import Cubical.HITs.PropositionalTruncation as PT
 
 open import Cubical.Algebra.CommRing
-open import Cubical.Algebra.CommRing.DirectProd
 open import Cubical.Algebra.BooleanRing
 open import Cubical.Algebra.BooleanRing.Instances.Bool
-open import Cubical.Algebra.BooleanRing.Initial using (BoolBR→; BoolBR→IsUnique)
-
-open import Axioms.StoneDuality using (StoneDualityAxiom; Sp; Booleω; SpEmbedding)
+open import Axioms.StoneDuality using (StoneDualityAxiom; Sp; Booleω)
 
 import OmnisciencePrinciples.Markov as MarkovLib
 
-open import CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω'; _is-presented-by_/_; BooleanRingEquiv; invBooleanRingEquiv; idBoolEquiv; has-Countability-structure)
+open import CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω'; BooleanRingEquiv; invBooleanRingEquiv; idBoolHom)
 open import CountablyPresentedBooleanRings.Examples.Bool using (is-cp-2)
 open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA)
 import QuotientBool as QB
-open import BooleanRing.BoolRingUnivalence using (uaBoolRing; BoolRingPath)
+open import BooleanRing.BoolRingUnivalence using (BoolRingPath)
 open import Cubical.Data.Nat.Bijections.Sum using (ℕ⊎ℕ≅ℕ)
 import Cubical.Data.Sum as ⊎
 
 module SpectrumEmptyImpliesTrivial (SD : StoneDualityAxiom) (B : Booleω) (spEmpty : Sp B → ⊥) where
-  open import Cubical.Foundations.Equiv
   open import Axioms.StoneDuality using (evaluationMap)
 
   emptyFunContr : isContr (Sp B → Bool)
@@ -69,9 +58,6 @@ compBoolRingEquiv : (A B C : BooleanRing ℓ-zero)
                   → BooleanRingEquiv A B → BooleanRingEquiv B C → BooleanRingEquiv A C
 compBoolRingEquiv A B C f g = compCommRingEquiv {A = BooleanRing→CommRing A} {B = BooleanRing→CommRing B} {C = BooleanRing→CommRing C} f g
 
-boolRingPath→commRingPath : {A B : BooleanRing ℓ-zero} → A ≡ B → BooleanRing→CommRing A ≡ BooleanRing→CommRing B
-boolRingPath→commRingPath = cong BooleanRing→CommRing
-
 open import Cubical.Algebra.CommRing.Univalence using (CommRingPath)
 
 commRingPath→boolRingEquiv : (A B : BooleanRing ℓ-zero)
@@ -88,45 +74,8 @@ commRingPath→boolRingEquiv A B p = commRingEquivToEquiv , snd commRingEquivToE
 Bool-Booleω : Booleω
 Bool-Booleω = BoolBR , ∣ is-cp-2 ∣₁
 
-private
-  idBoolHom-local : BoolHom BoolBR BoolBR
-  fst idBoolHom-local = idfun Bool
-  snd idBoolHom-local .IsCommRingHom.pres0 = refl
-  snd idBoolHom-local .IsCommRingHom.pres1 = refl
-  snd idBoolHom-local .IsCommRingHom.pres+ _ _ = refl
-  snd idBoolHom-local .IsCommRingHom.pres· _ _ = refl
-  snd idBoolHom-local .IsCommRingHom.pres- _ = refl
-
 Sp-Bool-inhabited : ∥ Sp Bool-Booleω ∥₁
-Sp-Bool-inhabited = ∣ idBoolHom-local ∣₁
-
-Sp-Bool-isContr : isContr (Sp Bool-Booleω)
-Sp-Bool-isContr = idBoolHom-local , path-to-id
-  where
-
-  isProp-IsCommRingHom : (f : Bool → Bool) → isProp (IsCommRingHom (BooleanRing→CommRing BoolBR .snd) f (BooleanRing→CommRing BoolBR .snd))
-  isProp-IsCommRingHom f = isPropIsCommRingHom (snd (BooleanRing→CommRing BoolBR)) f (snd (BooleanRing→CommRing BoolBR))
-
-  path-to-id : (h : Sp Bool-Booleω) → idBoolHom-local ≡ h
-  path-to-id h = Σ≡Prop isProp-IsCommRingHom funEq
-    where
-    open IsCommRingHom (snd h)
-
-    h-true : fst h true ≡ true
-    h-true = pres1
-
-    h-false : fst h false ≡ false
-    h-false = IsCommRingHom.pres0 (snd h)
-
-    funEq : idfun Bool ≡ fst h
-    funEq = funExt λ { false → sym h-false ; true → sym h-true }
-
-private
-  local-isContrUnit : isContr Unit
-  local-isContrUnit = tt , λ { tt → refl }
-
-Sp-Bool≃Unit : Sp Bool-Booleω ≃ Unit
-Sp-Bool≃Unit = isContr→Equiv Sp-Bool-isContr local-isContrUnit
+Sp-Bool-inhabited = ∣ idBoolHom BoolBR ∣₁
 
 quotientPreservesBooleω : (α : binarySequence) → ∥ has-Boole-ω' (BoolBR QB./Im α) ∥₁
 quotientPreservesBooleω α = ∣ presentationWitness ∣₁
@@ -151,9 +100,6 @@ quotientPreservesBooleω α = ∣ presentationWitness ∣₁
 
   open import BooleanRing.FreeBooleanRing.FreeBool using (generator)
 
-  gen : ℕ → ⟨ freeBA ℕ ⟩
-  gen = generator
-
   encode : ℕ ⊎ ℕ → ℕ
   encode = Iso.fun ℕ⊎ℕ≅ℕ
 
@@ -167,8 +113,8 @@ quotientPreservesBooleω α = ∣ presentationWitness ∣₁
 
   h : ℕ → ⟨ freeBA ℕ ⟩
   h n with decode n
-  ... | inl m = f₀ m   -- relations from the original presentation
-  ... | inr m = g m    -- relations from α
+  ... | inl m = f₀ m
+  ... | inr m = g m
 
   presentationWitness : has-Boole-ω' (BoolBR QB./Im α)
   presentationWitness = h , equivToPresentation
@@ -340,13 +286,8 @@ quotientPreservesBooleω α = ∣ presentationWitness ∣₁
 
     backward-composite-sends-α'-to-0 : (n : ℕ) → backward-composite $cr (α' n) ≡ BooleanRingStr.𝟘 (snd source)
     backward-composite-sends-α'-to-0 n =
-      backward-composite $cr (α' n)
-        ≡⟨ refl ⟩
-      π-α $cr (equiv⁻¹-hom $cr (embBR (α n)))
-        ≡⟨ cong (π-α $cr_) (Iso.ret (equivToIso (fst equiv)) (α n)) ⟩
-      π-α $cr (α n)
-        ≡⟨ QB.zeroOnImage {f = α} n ⟩
-      BooleanRingStr.𝟘 (snd source) ∎
+      cong (π-α $cr_) (Iso.ret (equivToIso (fst equiv)) (α n)) ∙
+      QB.zeroOnImage {f = α} n
 
     backward-hom : BoolHom target source
     backward-hom = QB.inducedHom source backward-composite backward-composite-sends-α'-to-0
@@ -376,17 +317,9 @@ quotientPreservesBooleω α = ∣ presentationWitness ∣₁
 
     backward∘forward-on-π : (x : Bool) → backward-fun (forward-fun (fst π-α x)) ≡ fst π-α x
     backward∘forward-on-π x =
-      backward-fun (forward-fun (fst π-α x))
-        ≡⟨ cong backward-fun (cong (λ h → fst h x) forward-eval) ⟩
-      backward-fun (fst composite-hom x)
-        ≡⟨ refl ⟩  -- composite-hom = π-α' ∘ embBR-hom
-      backward-fun (fst π-α' (embBR x))
-        ≡⟨ cong (λ h → fst h (embBR x)) backward-eval ⟩
-      fst backward-composite (embBR x)
-        ≡⟨ refl ⟩  -- backward-composite = π-α ∘ equiv⁻¹-hom
-      fst π-α (fst equiv⁻¹-hom (embBR x))
-        ≡⟨ cong (fst π-α) (equiv⁻¹∘embBR≡id x) ⟩
-      fst π-α x ∎
+      cong backward-fun (cong (λ h → fst h x) forward-eval) ∙
+      cong (λ h → fst h (embBR x)) backward-eval ∙
+      cong (fst π-α) (equiv⁻¹∘embBR≡id x)
 
     backward∘forward-ext : (backward-fun ∘ forward-fun) ∘ fst π-α ≡ (λ x → x) ∘ fst π-α
     backward∘forward-ext = funExt backward∘forward-on-π
@@ -402,11 +335,11 @@ quotientPreservesBooleω α = ∣ presentationWitness ∣₁
       forward-fun (backward-fun (fst π-α' y))
         ≡⟨ cong forward-fun (cong (λ h → fst h y) backward-eval) ⟩
       forward-fun (fst backward-composite y)
-        ≡⟨ refl ⟩  -- backward-composite = π-α ∘ equiv⁻¹-hom
+        ≡⟨ refl ⟩
       forward-fun (fst π-α (fst equiv⁻¹-hom y))
         ≡⟨ cong (λ h → fst h (fst equiv⁻¹-hom y)) forward-eval ⟩
       fst composite-hom (fst equiv⁻¹-hom y)
-        ≡⟨ refl ⟩  -- composite-hom = π-α' ∘ embBR-hom
+        ≡⟨ refl ⟩
       fst π-α' (embBR (fst equiv⁻¹-hom y))
         ≡⟨ cong (fst π-α') (embBR∘equiv⁻¹≡id y) ⟩
       fst π-α' y ∎
@@ -445,8 +378,8 @@ quotientPreservesBooleω α = ∣ presentationWitness ∣₁
 
     α'≡π₀∘g-pointwise : (n : ℕ) → α' n ≡ π₀ (g n)
     α'≡π₀∘g-pointwise n with α n
-    ... | true  = embBR-pres1 ∙ sym π₀-pres1   -- embBR true = 𝟙 = π₀ 𝟙
-    ... | false = embBR-pres0 ∙ sym π₀-pres0   -- embBR false = 𝟘 = π₀ 𝟘
+    ... | true  = embBR-pres1 ∙ sym π₀-pres1
+    ... | false = embBR-pres0 ∙ sym π₀-pres0
 
     α'≡π₀∘g : α' ≡ π₀ ∘ g
     α'≡π₀∘g = funExt α'≡π₀∘g-pointwise
@@ -533,7 +466,6 @@ SurjectionsAreFormalSurjectionsAxiom : Type (ℓ-suc ℓ-zero)
 SurjectionsAreFormalSurjectionsAxiom = (B C : Booleω) (g : BoolHom (fst B) (fst C)) →
   isInjectiveBoolHom B C g ↔ isSurjectiveSpHom B C g
 
--- Postulate this axiom (from tex)
 postulate
   surj-formal-axiom : SurjectionsAreFormalSurjectionsAxiom
 
@@ -571,16 +503,14 @@ seqLim-proj₀ : (E : ℕ → Type ℓ-zero) (p : (n : ℕ) → E (suc n) → E 
              → SeqLimit E p → E 0
 seqLim-proj₀ E p (f , _) = f 0
 
--- Dependent Choice Axiom (from tex):
 DependentChoiceAxiom : Type (ℓ-suc ℓ-zero)
 DependentChoiceAxiom = (E : ℕ → Type ℓ-zero) (p : (n : ℕ) → E (suc n) → E n)
-  → ((n : ℕ) → (y : E n) → ∥ Σ[ x ∈ E (suc n) ] p n x ≡ y ∥₁)  -- each p_n surjective
+  → ((n : ℕ) → (y : E n) → ∥ Σ[ x ∈ E (suc n) ] p n x ≡ y ∥₁)
   → (e₀ : E 0) → ∥ Σ[ s ∈ SeqLimit E p ] seqLim-proj₀ E p s ≡ e₀ ∥₁
 
 postulate
   dependentChoice-axiom : DependentChoiceAxiom
 
--- This follows from DependentChoice (tex proves this implication).
 CountableChoiceAxiom : Type (ℓ-suc ℓ-zero)
 CountableChoiceAxiom = (A : ℕ → Type ℓ-zero)
   → ((n : ℕ) → ∥ A n ∥₁)
@@ -613,17 +543,6 @@ countableChoice A witnesses = PT.map extract seqLim-exists
 
 mp : MarkovPrinciple
 mp = mp-from-SD sd-axiom
-
-someTrueIsOpen : (α : binarySequence) → isOpenProp ((∥ Σ[ n ∈ ℕ ] α n ≡ true ∥₁) , squash₁)
-someTrueIsOpen α = α , forward , backward
-  where
-  forward : ∥ Σ[ n ∈ ℕ ] α n ≡ true ∥₁ → Σ[ n ∈ ℕ ] α n ≡ true
-  forward trunc = mp α ¬allFalse
-    where
-    ¬allFalse : ¬ ((n : ℕ) → α n ≡ false)
-    ¬allFalse all-false = PT.rec isProp⊥ (λ { (n , αn=t) → true≢false (sym αn=t ∙ all-false n) }) trunc
-  backward : Σ[ n ∈ ℕ ] α n ≡ true → ∥ Σ[ n ∈ ℕ ] α n ≡ true ∥₁
-  backward = ∣_∣₁
 
 ¬-Closed : Closed → Open
 ¬-Closed C = ¬hProp (fst C) , negClosedIsOpen mp (fst C) (snd C)
@@ -701,8 +620,8 @@ witness→ℕ∞-notInfty α (n , αn=t) α=∞ = false≢true (sym (cong (λ x 
   where
   lemma : (m : ℕ) → fst α m ≡ fst (ι n) m
   lemma m with discreteℕ m n
-  lemma m | yes m=n = cong (fst α) m=n ∙ αn=t  -- fst (ι n) m = true
-  lemma m | no m≠n = helper (fst α m) refl  -- fst (ι n) m = false here
+  lemma m | yes m=n = cong (fst α) m=n ∙ αn=t
+  lemma m | no m≠n = helper (fst α m) refl
     where
     helper : (b : Bool) → fst α m ≡ b → fst α m ≡ false
     helper false αm=f = αm=f
@@ -729,14 +648,6 @@ witness→ℕ∞-notInfty α (n , αn=t) α=∞ = false≢true (sym (cong (λ x 
     ... | yes αn=βn | _ = αn=βn
     ... | no αn≠βn | γn=f = ex-falso (true≢false γn=f)
 
--- Relationship to tex file axioms (main-monolithic.tex section 1.2)
--- The tex file has 4 axioms:
--- From these, the tex proves:
-
--- The proof of LLPO from Stone Duality (see main-monolithic.tex) goes as follows:
-
--- (AxLocalChoice, tex lines 348-353) to eliminate the internal postulate.
-
 postulate
   llpo : LLPO
 
@@ -760,15 +671,15 @@ suc m <ᵇ' zero = false
 suc m <ᵇ' suc n = m <ᵇ' n
 
 findDiagonal : ℕ → ℕ → ℕ → ℕ
-findDiagonal zero k diag = diag  -- out of fuel, return current
+findDiagonal zero k diag = diag
 findDiagonal (suc fuel) k diag =
   if k <ᵇ' triangular (suc diag)
-  then diag  -- k < triangular(diag+1), so k is on diagonal diag
-  else findDiagonal fuel k (suc diag)  -- k >= triangular(diag+1), try next
+  then diag
+  else findDiagonal fuel k (suc diag)
 
 cantorUnpair : ℕ → ℕ × ℕ
 cantorUnpair k =
-  let w = findDiagonal (suc k) k 0  -- use k+1 as fuel (sufficient)
+  let w = findDiagonal (suc k) k 0
       n = k ∸ triangular w
       m = w ∸ n
   in (m , n)
@@ -795,14 +706,6 @@ cantorUnpair k =
   a +ℕ b ∸ c           ≡⟨ +-∸-assoc a b c (pred-≤-pred sc≤sb) ⟩
   a +ℕ (b ∸ c)         ∎
 
-+∸-cancel : (a b : ℕ) → (a +ℕ b) ∸ b ≡ a
-+∸-cancel a zero = +-zero a
-+∸-cancel a (suc b) =
-  (a +ℕ suc b) ∸ suc b   ≡⟨ cong (_∸ suc b) (+-suc a b) ⟩
-  suc (a +ℕ b) ∸ suc b   ≡⟨ refl ⟩
-  (a +ℕ b) ∸ b           ≡⟨ +∸-cancel a b ⟩
-  a                      ∎
-
 ∸+-cancel : (a b : ℕ) → b ≤ a → (a ∸ b) +ℕ b ≡ a
 ∸+-cancel a zero _ = +-zero a
 ∸+-cancel zero (suc b) sb≤0 = ex-falso (¬-<-zero sb≤0)
@@ -813,16 +716,7 @@ cantorUnpair k =
   suc a ∎
 
 triangular≤cantorPair : (m n : ℕ) → triangular (m +ℕ n) ≤ cantorPair m n
-triangular≤cantorPair m n = ≤-+k-local (triangular (m +ℕ n)) n
-  where
-  ≤-+k-local : (a b : ℕ) → a ≤ a +ℕ b
-  ≤-+k-local a zero = subst (a ≤_) (sym (+-zero a)) ≤-refl
-  ≤-+k-local a (suc b) =
-    let step1 : a ≤ a +ℕ b
-        step1 = ≤-+k-local a b
-        step2 : a ≤ suc (a +ℕ b)
-        step2 = ≤-suc step1
-    in subst (a ≤_) (sym (+-suc a b)) step2
+triangular≤cantorPair m n = n , +-comm n (triangular (m +ℕ n))
 
 cantorPair<triangular-suc : (m n : ℕ) → cantorPair m n < triangular (suc (m +ℕ n))
 cantorPair<triangular-suc m n = goal
@@ -830,11 +724,7 @@ cantorPair<triangular-suc m n = goal
   w = m +ℕ n
 
   n≤w : n ≤ w
-  n≤w = n≤m+n-local m n
-    where
-    n≤m+n-local : (a b : ℕ) → b ≤ a +ℕ b
-    n≤m+n-local zero b = ≤-refl
-    n≤m+n-local (suc a) b = ≤-trans (n≤m+n-local a b) ≤-sucℕ
+  n≤w = m , refl
 
   sucn≤sucw : suc n ≤ suc w
   sucn≤sucw = suc-≤-suc n≤w
@@ -852,12 +742,9 @@ cantorPair<triangular-suc m n = goal
   eq2 : triangular w +ℕ suc w ≡ suc w +ℕ triangular w
   eq2 = +-comm (triangular w) (suc w)
 
-  eq3 : suc w +ℕ triangular w ≡ triangular (suc w)
-  eq3 = refl
-
   goal : suc (triangular w +ℕ n) ≤ triangular (suc w)
   goal = subst (_≤ triangular (suc w)) (sym eq1)
-           (subst (triangular w +ℕ suc n ≤_) (eq2 ∙ eq3) step1)
+           (subst (triangular w +ℕ suc n ≤_) eq2 step1)
 
 findDiagonal-found : (fuel k diag : ℕ) → k <ᵇ' triangular (suc diag) ≡ true
                    → findDiagonal (suc fuel) k diag ≡ diag
@@ -891,25 +778,8 @@ cantorPair-triangular-diff m n = +∸-cancel' n (triangular (m +ℕ n))
   +∸-cancel' a zero = refl
   +∸-cancel' a (suc b) = +∸-cancel' a b
 
-m+n∸n≡m : (m n : ℕ) → (m +ℕ n) ∸ n ≡ m
-m+n∸n≡m m zero = +-zero m
-m+n∸n≡m m (suc n) =
-  (m +ℕ suc n) ∸ suc n   ≡⟨ cong (_∸ suc n) (+-suc m n) ⟩
-  suc (m +ℕ n) ∸ suc n   ≡⟨ refl ⟩
-  (m +ℕ n) ∸ n           ≡⟨ m+n∸n≡m m n ⟩
-  m ∎
-
 triangular-suc : (n : ℕ) → triangular n < triangular (suc n)
-triangular-suc n = ≤-+k-mono-l 1 (suc n) (triangular n) (suc-≤-suc zero-≤)
-  where
-  ≤-+k-mono-l : (a b c : ℕ) → a ≤ b → a +ℕ c ≤ b +ℕ c
-  ≤-+k-mono-l zero b c _ = ≤-+k-r b c
-    where
-    ≤-+k-r : (x y : ℕ) → y ≤ x +ℕ y
-    ≤-+k-r zero y = ≤-refl
-    ≤-+k-r (suc x) y = ≤-trans (≤-+k-r x y) ≤-sucℕ
-  ≤-+k-mono-l (suc a) zero c sa≤0 = ex-falso (¬-<-zero sa≤0)
-  ≤-+k-mono-l (suc a) (suc b) c sa≤sb = suc-≤-suc (≤-+k-mono-l a b c (pred-≤-pred sa≤sb))
+triangular-suc n = suc-≤-suc (n , refl)
 
 triangular-mono-< : (n m : ℕ) → n < m → triangular n < triangular m
 triangular-mono-< n zero n<0 = ex-falso (¬-<-zero n<0)
@@ -976,29 +846,14 @@ findDiagonal-aux w k acc (suc fuel) w∸acc≤sf k<Tsw Tw≤k acc≤w with w ≟
       ≤-pred-∸-aux' (suc w') acc acc<sw' w∸acc≤sf' = ≤-pred-∸-aux w' acc acc<sw' w∸acc≤sf'
 
 w≤triangular : (w : ℕ) → w ≤ triangular w +ℕ w
-w≤triangular w = ≤-+k-r' w (triangular w)
-  where
-  ≤-+k-r' : (n m : ℕ) → n ≤ m +ℕ n
-  ≤-+k-r' n zero = ≤-refl
-  ≤-+k-r' n (suc m) = ≤-trans (≤-+k-r' n m) ≤-sucℕ
+w≤triangular w = triangular w , refl
 
 w≤cantorPair : (m n : ℕ) → m +ℕ n ≤ cantorPair m n
-w≤cantorPair m n = ≤-trans (m+n≤tri-m+n m n) (≤-+k-r (triangular (m +ℕ n)) n)
+w≤cantorPair m n = ≤-trans (n≤triangular-n (m +ℕ n)) (n , +-comm n (triangular (m +ℕ n)))
   where
   n≤triangular-n : (n : ℕ) → n ≤ triangular n
   n≤triangular-n zero = zero-≤
-  n≤triangular-n (suc n) = suc-≤-suc (≤-trans (n≤triangular-n n) (≤-+k-r' (triangular n) n))
-    where
-    ≤-+k-r' : (a b : ℕ) → a ≤ b +ℕ a
-    ≤-+k-r' a zero = ≤-refl
-    ≤-+k-r' a (suc b) = ≤-trans (≤-+k-r' a b) ≤-sucℕ
-
-  m+n≤tri-m+n : (m n : ℕ) → m +ℕ n ≤ triangular (m +ℕ n)
-  m+n≤tri-m+n m n = n≤triangular-n (m +ℕ n)
-
-  ≤-+k-r : (a b : ℕ) → a ≤ a +ℕ b
-  ≤-+k-r a zero = subst (a ≤_) (sym (+-zero a)) ≤-refl
-  ≤-+k-r a (suc b) = subst (a ≤_) (sym (+-suc a b)) (≤-trans (≤-+k-r a b) ≤-sucℕ)
+  n≤triangular-n (suc n) = suc-≤-suc (triangular n , +-comm (triangular n) n)
 
 findDiagonal-correct : (m n : ℕ) →
   findDiagonal (suc (cantorPair m n)) (cantorPair m n) 0 ≡ m +ℕ n
@@ -1023,105 +878,8 @@ cantorUnpair-pair m n =
        m' = w' ∸ n'
    in (m' , n'))                                          ≡⟨ cong (λ w' → ((w' ∸ (k ∸ triangular w')) , (k ∸ triangular w'))) findW ⟩
   (w ∸ (k ∸ triangular w) , k ∸ triangular w)             ≡⟨ cong (λ x → (w ∸ x , x)) (cantorPair-triangular-diff m n) ⟩
-  (w ∸ n , n)                                              ≡⟨ cong (λ x → (x , n)) (m+n∸n≡m m n) ⟩
+  (w ∸ n , n)                                              ≡⟨ cong (λ x → (x , n)) (+∸ m n) ⟩
   (m , n) ∎
-
-a+b∸a≡b : (a b : ℕ) → a ≤ b → a +ℕ (b ∸ a) ≡ b
-a+b∸a≡b zero b _ = refl
-a+b∸a≡b (suc a) zero sa≤0 = ex-falso (¬-<-zero sa≤0)
-a+b∸a≡b (suc a) (suc b) sa≤sb = cong suc (a+b∸a≡b a b (pred-≤-pred sa≤sb))
-
-w∸n+n≡w : (w n : ℕ) → n ≤ w → (w ∸ n) +ℕ n ≡ w
-w∸n+n≡w w n n≤w = ∸+-cancel w n n≤w
-
-n≤w-from-bounds : (k w : ℕ) → triangular w ≤ k → k < triangular (suc w)
-                → k ∸ triangular w ≤ w
-n≤w-from-bounds k w Tw≤k k<Tsw =
-  let step1 : k ∸ triangular w < triangular (suc w) ∸ triangular w
-      step1 = ∸-mono-< k (triangular w) (triangular (suc w)) Tw≤k k<Tsw (triangular-suc w)
-      eq : triangular (suc w) ∸ triangular w ≡ suc w
-      eq = +∸-cancel (suc w) (triangular w)
-      step2 : k ∸ triangular w < suc w
-      step2 = subst (k ∸ triangular w <_) eq step1
-  in pred-≤-pred step2
-  where
-  ∸-mono-< : (a b c : ℕ) → b ≤ a → a < c → b < c → a ∸ b < c ∸ b
-  ∸-mono-< a b zero b≤a a<0 _ = ex-falso (¬-<-zero a<0)
-  ∸-mono-< a b (suc c) b≤a sa≤sc b<sc with ≤Dec b a
-  ... | yes b≤a' = subst (suc (a ∸ b) ≤_) (sym (suc-∸ c b (pred-≤-pred b<sc))) (suc-≤-suc (∸-mono a c b (pred-≤-pred sa≤sc) b≤a'))
-    where
-    suc-∸ : (x y : ℕ) → y ≤ x → suc x ∸ y ≡ suc (x ∸ y)
-    suc-∸ x zero _ = refl
-    suc-∸ (suc x) (suc y) sy≤sx = suc-∸ x y (pred-≤-pred sy≤sx)
-    suc-∸ zero (suc y) sy≤0 = ex-falso (¬-<-zero sy≤0)
-
-    ∸-mono : (x y z : ℕ) → x ≤ y → z ≤ x → x ∸ z ≤ y ∸ z
-    ∸-mono x y zero x≤y _ = x≤y
-    ∸-mono zero zero (suc z) _ sz≤0 = ex-falso (¬-<-zero sz≤0)
-    ∸-mono zero (suc y) (suc z) _ sz≤0 = ex-falso (¬-<-zero sz≤0)
-    ∸-mono (suc x) zero (suc z) sx≤0 _ = ex-falso (¬-<-zero sx≤0)
-    ∸-mono (suc x) (suc y) (suc z) sx≤sy sz≤sx = ∸-mono x y z (pred-≤-pred sx≤sy) (pred-≤-pred sz≤sx)
-  ... | no ¬b≤a = ex-falso (¬b≤a b≤a)
-
-findDiagonal-lower-bound : (fuel k diag : ℕ) → triangular diag ≤ k
-                         → triangular (findDiagonal fuel k diag) ≤ k
-findDiagonal-lower-bound zero k diag Td≤k = Td≤k
-findDiagonal-lower-bound (suc fuel) k diag Td≤k with k <ᵇ' triangular (suc diag) | inspect (k <ᵇ'_) (triangular (suc diag))
-... | true | _ = Td≤k
-... | false | [ p ] = findDiagonal-lower-bound fuel k (suc diag) (¬<ᵇ'-reflects k (triangular (suc diag)) p)
-
-findDiagonal-upper-bound : (fuel k diag : ℕ) → suc k ≤ diag +ℕ fuel
-                         → k < triangular (suc (findDiagonal fuel k diag))
-findDiagonal-upper-bound zero k diag sk≤d0 =
-  let sk≤d : suc k ≤ diag
-      sk≤d = subst (suc k ≤_) (+-zero diag) sk≤d0
-      sk≤sd : suc k ≤ suc diag
-      sk≤sd = ≤-trans sk≤d ≤-sucℕ
-      sd≤Tsd : suc diag ≤ triangular (suc diag)
-      sd≤Tsd = n≤n+m (suc diag) (triangular diag)
-  in ≤-trans sk≤sd sd≤Tsd
-  where
-  n≤n+m : (n m : ℕ) → n ≤ n +ℕ m
-  n≤n+m n zero = subst (n ≤_) (sym (+-zero n)) ≤-refl
-  n≤n+m n (suc m) = subst (n ≤_) (sym (+-suc n m)) (≤-trans (n≤n+m n m) ≤-sucℕ)
-findDiagonal-upper-bound (suc fuel) k diag sk≤df with k <ᵇ' triangular (suc diag) | inspect (k <ᵇ'_) (triangular (suc diag))
-... | true | [ p ] = <ᵇ'-reflects k (triangular (suc diag)) p
-... | false | _ =
-  findDiagonal-upper-bound fuel k (suc diag) (subst (suc k ≤_) (+-suc diag fuel) sk≤df)
-
-findDiagonal-bounds : (k : ℕ) →
-  let w = findDiagonal (suc k) k 0
-  in (triangular w ≤ k) × (k < triangular (suc w))
-findDiagonal-bounds k =
-  let Tw≤k = findDiagonal-lower-bound (suc k) k 0 zero-≤
-      k<Tsw = findDiagonal-upper-bound (suc k) k 0 ≤-refl
-  in Tw≤k , k<Tsw
-
-cantorPair-unpair : (k : ℕ) → uncurry cantorPair (cantorUnpair k) ≡ k
-cantorPair-unpair k =
-  let w = findDiagonal (suc k) k 0
-      n' = k ∸ triangular w
-      m' = w ∸ n'
-      (Tw≤k , k<Tsw) = findDiagonal-bounds k
-      n'≤w = n≤w-from-bounds k w Tw≤k k<Tsw
-      m'+n'=w : m' +ℕ n' ≡ w
-      m'+n'=w = w∸n+n≡w w n' n'≤w
-      step1 : cantorPair m' n' ≡ triangular (m' +ℕ n') +ℕ n'
-      step1 = refl
-      step2 : triangular (m' +ℕ n') +ℕ n' ≡ triangular w +ℕ n'
-      step2 = cong (λ x → triangular x +ℕ n') m'+n'=w
-      step3 : triangular w +ℕ n' ≡ k
-      step3 = a+b∸a≡b (triangular w) k Tw≤k
-  in
-  uncurry cantorPair (cantorUnpair k)
-    ≡⟨ refl ⟩
-  cantorPair m' n'
-    ≡⟨ step1 ⟩
-  triangular (m' +ℕ n') +ℕ n'
-    ≡⟨ step2 ⟩
-  triangular w +ℕ n'
-    ≡⟨ step3 ⟩
-  k ∎
 
 openAnd : (P Q : hProp ℓ-zero) → isOpenProp P → isOpenProp Q
         → isOpenProp ((⟨ P ⟩ × ⟨ Q ⟩) , isProp× (snd P) (snd Q))
@@ -1241,7 +999,7 @@ firstTrue-false-but-original-true α (suc n) ft-sn=f α-sn=t with α zero =B tru
 closedDeMorgan : (P Q : hProp ℓ-zero) → isClosedProp P → isClosedProp Q
                → ¬ ((¬ ⟨ P ⟩) × (¬ ⟨ Q ⟩)) → ∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁
 closedDeMorgan P Q (α , P→∀α , ∀α→P) (β , Q→∀β , ∀β→Q) ¬¬P∧¬Q =
-  let -- Interleave α and β, then apply firstTrue to get an ℕ∞ element
+  let
       δ₀ : binarySequence
       δ₀ = interleave α β
 
@@ -1297,7 +1055,7 @@ closedDeMorgan P Q (α , P→∀α , ∀α→P) (β , Q→∀β , ∀β→Q) ¬�
     where
     ¬¬P : ¬ ¬ ⟨ P ⟩
     ¬¬P ¬p =
-      let -- From ¬P, get witness that α has a true
+      let
           (k , αk=t) = mp α (λ all-false → ¬p (∀α→P all-false))
           δ₀-2k=t : interleave α β (2 ·ℕ k) ≡ true
           δ₀-2k=t = interleave-2k α β k ∙ αk=t
@@ -1536,8 +1294,7 @@ isProp⊎¬ P (inr ¬p) (inr ¬p') = cong inr (isProp¬ ⟨ P ⟩ ¬p ¬p')
 
 clopenIsDecidable : (P : hProp ℓ-zero) → isOpenProp P → isClosedProp P → Dec ⟨ P ⟩
 clopenIsDecidable P Popen Pclosed =
-  let -- ¬P is open because P is closed (and we have MP)
-      ¬P : hProp ℓ-zero
+  let ¬P : hProp ℓ-zero
       ¬P = (¬ ⟨ P ⟩) , isProp¬ ⟨ P ⟩
 
       ¬Popen : isOpenProp ¬P
@@ -1602,42 +1359,6 @@ implicationOpenClosed P Q Popen Qclosed = γ , forward , backward
         ¬¬Q ¬q = ¬P∧¬Q-holds (p , ¬q)
     in closedIsStable (⟨ Q ⟩ , snd Q) Qclosed ¬¬Q
 
--- Dual of implicationOpenClosed (from tex Lemma 857):
-implicationClosedOpen : (P Q : hProp ℓ-zero) → isClosedProp P → isOpenProp Q
-                      → isOpenProp ((⟨ P ⟩ → ⟨ Q ⟩) , isPropΠ (λ _ → snd Q))
-implicationClosedOpen P Q Pclosed Qopen = α , forward , backward
-  where
-  ¬P : hProp ℓ-zero
-  ¬P = (¬ ⟨ P ⟩) , isProp¬ ⟨ P ⟩
-
-  ¬Popen : isOpenProp ¬P
-  ¬Popen = negClosedIsOpen mp P Pclosed
-
-  ¬P∨Q-prop : hProp ℓ-zero
-  ¬P∨Q-prop = (∥ ⟨ ¬P ⟩ ⊎ ⟨ Q ⟩ ∥₁) , squash₁
-
-  ¬P∨Q-open : isOpenProp ¬P∨Q-prop
-  ¬P∨Q-open = openOr ¬P Q ¬Popen Qopen
-
-  α : binarySequence
-  α = fst ¬P∨Q-open
-
-  get¬P∨Q : (⟨ P ⟩ → ⟨ Q ⟩) → ∥ (¬ ⟨ P ⟩) ⊎ ⟨ Q ⟩ ∥₁
-  get¬P∨Q p→q = openIsStable mp ¬P∨Q-prop ¬P∨Q-open ¬¬disj
-    where
-    ¬¬disj : ¬ ¬ ∥ (¬ ⟨ P ⟩) ⊎ ⟨ Q ⟩ ∥₁
-    ¬¬disj k = k ∣ inr (p→q (closedIsStable P Pclosed (λ ¬p → k ∣ inl ¬p ∣₁))) ∣₁
-
-  forward : (⟨ P ⟩ → ⟨ Q ⟩) → Σ[ k ∈ ℕ ] α k ≡ true
-  forward p→q = fst (snd ¬P∨Q-open) (get¬P∨Q p→q)
-
-  backward : Σ[ k ∈ ℕ ] α k ≡ true → ⟨ P ⟩ → ⟨ Q ⟩
-  backward (k , αk=t) p = PT.rec (snd Q) extractQ (snd (snd ¬P∨Q-open) (k , αk=t))
-    where
-    extractQ : (¬ ⟨ P ⟩) ⊎ ⟨ Q ⟩ → ⟨ Q ⟩
-    extractQ (inl ¬p) = ex-falso (¬p p)
-    extractQ (inr q) = q
-
 closedMarkovTex : (P : ℕ → hProp ℓ-zero) → ((n : ℕ) → isClosedProp (P n))
                 → (¬ ((n : ℕ) → ⟨ P n ⟩)) ↔ ∥ Σ[ n ∈ ℕ ] (¬ ⟨ P n ⟩) ∥₁
 closedMarkovTex P Pclosed = forward , backward
@@ -1664,36 +1385,6 @@ closedMarkovTex P Pclosed = forward , backward
 
   backward : ∥ Σ[ n ∈ ℕ ] (¬ ⟨ P n ⟩) ∥₁ → ¬ ((n : ℕ) → ⟨ P n ⟩)
   backward = PT.rec (isProp¬ _) (λ { (n , ¬Pn) ∀P → ¬Pn (∀P n) })
-
--- Dual of closedMarkovTex for open propositions:
--- This is simpler than closedMarkovTex because:
-openMarkovTex : (P : ℕ → hProp ℓ-zero) → ((n : ℕ) → isOpenProp (P n))
-             → (¬ ∥ Σ[ n ∈ ℕ ] ⟨ P n ⟩ ∥₁) ↔ ((n : ℕ) → ¬ ⟨ P n ⟩)
-openMarkovTex P Popen = forward , backward
-  where
-  forward : ¬ ∥ Σ[ n ∈ ℕ ] ⟨ P n ⟩ ∥₁ → (n : ℕ) → ¬ ⟨ P n ⟩
-  forward ¬∃P n pn = ¬∃P ∣ n , pn ∣₁
-
-  backward : ((n : ℕ) → ¬ ⟨ P n ⟩) → ¬ ∥ Σ[ n ∈ ℕ ] ⟨ P n ⟩ ∥₁
-  backward ∀¬P = PT.rec isProp⊥ (λ { (n , pn) → ∀¬P n pn })
-
--- Key properties of Stone spaces (from tex):
-
--- Transitivity of openness (tex Corollary 1319-1322)
-
-openAndFixed : (P : Type₀) → (isPropP : isProp P) → P
-              → (Q : hProp ℓ-zero) → isOpenProp Q
-              → isOpenProp ((P × ⟨ Q ⟩) , isProp× isPropP (snd Q))
-openAndFixed P isPropP p Q Qopen =
-  let (α , Q→∃ , ∃→Q) = Qopen
-  in α , (λ pq → Q→∃ (snd pq)) , (λ x → p , ∃→Q x)
-
-closedAndFixed : (P : Type₀) → (isPropP : isProp P) → P
-                → (Q : hProp ℓ-zero) → isClosedProp Q
-                → isClosedProp ((P × ⟨ Q ⟩) , isProp× isPropP (snd Q))
-closedAndFixed P isPropP p Q Qclosed =
-  let (α , Q→∀ , ∀→Q) = Qclosed
-  in α , (λ pq → Q→∀ (snd pq)) , (λ x → p , ∀→Q x)
 
 openSigmaDecidable : (D : hProp ℓ-zero) → Dec ⟨ D ⟩
                    → (Q : ⟨ D ⟩ → hProp ℓ-zero) → ((d : ⟨ D ⟩) → isOpenProp (Q d))
@@ -1728,25 +1419,6 @@ openSigmaDecidable D (no ¬d) Q Qopen = α , forward , backward
 
   backward : Σ[ n ∈ ℕ ] α n ≡ true → ∥ Σ[ d ∈ ⟨ D ⟩ ] ⟨ Q d ⟩ ∥₁
   backward (n , αn=t) = ex-falso (true≢false (sym αn=t))
-
-closedSigmaDecidable : (D : hProp ℓ-zero) → Dec ⟨ D ⟩
-                     → (Q : ⟨ D ⟩ → hProp ℓ-zero) → ((d : ⟨ D ⟩) → isClosedProp (Q d))
-                     → isClosedProp (∥ Σ[ d ∈ ⟨ D ⟩ ] ⟨ Q d ⟩ ∥₁ , squash₁)
-closedSigmaDecidable D (yes d) Q Qclosed =
-  let (α , Qd→∀ , ∀→Qd) = Qclosed d
-      forward : ∥ Σ[ d' ∈ ⟨ D ⟩ ] ⟨ Q d' ⟩ ∥₁ → (n : ℕ) → α n ≡ false
-      forward = PT.rec (isPropΠ (λ _ → isSetBool _ _))
-                       (λ { (d' , q) → Qd→∀ (subst (λ x → ⟨ Q x ⟩) (snd D d' d) q) })
-      backward : ((n : ℕ) → α n ≡ false) → ∥ Σ[ d' ∈ ⟨ D ⟩ ] ⟨ Q d' ⟩ ∥₁
-      backward w = ∣ d , ∀→Qd w ∣₁
-  in α , forward , backward
-closedSigmaDecidable D (no ¬d) Q Qclosed =
-  let α = ⊥-isClosed .fst  -- α n = true for all n
-      backward : ((n : ℕ) → α n ≡ false) → ∥ Σ[ d ∈ ⟨ D ⟩ ] ⟨ Q d ⟩ ∥₁
-      backward f = ex-falso (true≢false (f 0))
-  in α ,
-     (λ x → PT.rec (isPropΠ (λ _ → isSetBool _ _)) (λ { (d , _) → ex-falso (¬d d) }) x) ,
-     backward
 
 -- Open propositions are closed under Σ-types (tex Corollary OpenDependentSums 1313)
 
@@ -1804,18 +1476,6 @@ openSigmaOpen P (α , P→∃ , ∃→P) Q Qopen = result
        (λ sigPQ → union→∃ (forward-equiv sigPQ)) ,
        (λ w → backward-equiv (∃→union w))
 
-open→¬¬stable : (P : hProp ℓ-zero) → isOpenProp P → (¬ ¬ ⟨ P ⟩ → ⟨ P ⟩)
-open→¬¬stable P Popen = openIsStable mp P Popen
-
-closed→¬¬stable : (P : hProp ℓ-zero) → isClosedProp P → (¬ ¬ ⟨ P ⟩ → ⟨ P ⟩)
-closed→¬¬stable P Pclosed = closedIsStable P Pclosed
-
-closed→¬open : (P : hProp ℓ-zero) → isClosedProp P → isOpenProp (¬hProp P)
-closed→¬open P = negClosedIsOpen mp P
-
-¬open→closed : (P : hProp ℓ-zero) → isOpenProp (¬hProp P) → isClosedProp (¬¬hProp P)
-¬open→closed P ¬Popen = negOpenIsClosed (¬hProp P) ¬Popen
-
 openEquiv : (P Q : hProp ℓ-zero) → (⟨ P ⟩ → ⟨ Q ⟩) → (⟨ Q ⟩ → ⟨ P ⟩)
           → isOpenProp P → isOpenProp Q
 openEquiv P Q P→Q Q→P (α , P→∃ , ∃→P) =
@@ -1825,23 +1485,6 @@ closedEquiv : (P Q : hProp ℓ-zero) → (⟨ P ⟩ → ⟨ Q ⟩) → (⟨ Q �
             → isClosedProp P → isClosedProp Q
 closedEquiv P Q P→Q Q→P (α , P→∀ , ∀→P) =
   α , (λ q → P→∀ (Q→P q)) , (λ w → P→Q (∀→P w))
-
-openPath : {P Q : hProp ℓ-zero} → P ≡ Q → isOpenProp P → isOpenProp Q
-openPath {P} {Q} P≡Q Popen = openEquiv P Q (transport (cong fst P≡Q)) (transport (cong fst (sym P≡Q))) Popen
-
-closedPath : {P Q : hProp ℓ-zero} → P ≡ Q → isClosedProp P → isClosedProp Q
-closedPath {P} {Q} P≡Q Pclosed = closedEquiv P Q (transport (cong fst P≡Q)) (transport (cong fst (sym P≡Q))) Pclosed
-
--- Decidable ↔ both open and closed (tex Corollary ClopenDecidable + remark)
-
-decidable→open×closed : (P : hProp ℓ-zero) → Dec ⟨ P ⟩ → isOpenProp P × isClosedProp P
-decidable→open×closed P dec = decIsOpen P dec , decIsClosed P dec
-
-open×closed→decidable : (P : hProp ℓ-zero) → isOpenProp P × isClosedProp P → Dec ⟨ P ⟩
-open×closed→decidable P (Popen , Pclosed) = clopenIsDecidable P Popen Pclosed
-
-decidable↔open×closed : (P : hProp ℓ-zero) → Dec ⟨ P ⟩ ↔ (isOpenProp P × isClosedProp P)
-decidable↔open×closed P = decidable→open×closed P , open×closed→decidable P
 
 -- Definition (tex line 884-886):
 
@@ -1856,64 +1499,6 @@ preimageOpenIsOpen : {S T : Type₀} (f : S → T) (A : T → hProp ℓ-zero)
                    → isOpenSubset A → isOpenSubset (λ s → A (f s))
 preimageOpenIsOpen f A Aopen s = Aopen (f s)
 
-preimageClosedIsClosed : {S T : Type₀} (f : S → T) (A : T → hProp ℓ-zero)
-                       → isClosedSubset A → isClosedSubset (λ s → A (f s))
-preimageClosedIsClosed f A Aclosed s = Aclosed (f s)
-
-emptySubsetOpen : {T : Type₀} → isOpenSubset {T} (λ _ → ⊥-hProp)
-emptySubsetOpen _ = ⊥-isOpen
-
-emptySubsetClosed : {T : Type₀} → isClosedSubset {T} (λ _ → ⊥-hProp)
-emptySubsetClosed _ = ⊥-isClosed
-
-fullSubsetOpen : {T : Type₀} → isOpenSubset {T} (λ _ → ⊤-hProp)
-fullSubsetOpen _ = ⊤-isOpen
-
-fullSubsetClosed : {T : Type₀} → isClosedSubset {T} (λ _ → ⊤-hProp)
-fullSubsetClosed _ = ⊤-isClosed
-
-openSubsetIntersection : {T : Type₀} (A B : T → hProp ℓ-zero)
-                       → isOpenSubset A → isOpenSubset B
-                       → isOpenSubset (λ t → (⟨ A t ⟩ × ⟨ B t ⟩) , isProp× (snd (A t)) (snd (B t)))
-openSubsetIntersection A B Aopen Bopen t = openAnd (A t) (B t) (Aopen t) (Bopen t)
-
-closedSubsetIntersection : {T : Type₀} (A B : T → hProp ℓ-zero)
-                         → isClosedSubset A → isClosedSubset B
-                         → isClosedSubset (λ t → (⟨ A t ⟩ × ⟨ B t ⟩) , isProp× (snd (A t)) (snd (B t)))
-closedSubsetIntersection A B Aclosed Bclosed t = closedAnd (A t) (B t) (Aclosed t) (Bclosed t)
-
-openSubsetUnion : {T : Type₀} (A B : T → hProp ℓ-zero)
-                → isOpenSubset A → isOpenSubset B
-                → isOpenSubset (λ t → (∥ ⟨ A t ⟩ ⊎ ⟨ B t ⟩ ∥₁) , squash₁)
-openSubsetUnion A B Aopen Bopen t = openOr (A t) (B t) (Aopen t) (Bopen t)
-
-closedSubsetUnion : {T : Type₀} (A B : T → hProp ℓ-zero)
-                  → isClosedSubset A → isClosedSubset B
-                  → isClosedSubset (λ t → (∥ ⟨ A t ⟩ ⊎ ⟨ B t ⟩ ∥₁) , squash₁)
-closedSubsetUnion A B Aclosed Bclosed t = closedOr (A t) (B t) (Aclosed t) (Bclosed t)
-
-closedSubsetCountableIntersection : {T : Type₀} (A : ℕ → T → hProp ℓ-zero)
-                                  → ((n : ℕ) → isClosedSubset (A n))
-                                  → isClosedSubset (λ t → ((n : ℕ) → ⟨ A n t ⟩) , isPropΠ (λ n → snd (A n t)))
-closedSubsetCountableIntersection A Aclosed t =
-  closedCountableIntersection (λ n → A n t) (λ n → Aclosed n t)
-
-openSubsetCountableUnion : {T : Type₀} (A : ℕ → T → hProp ℓ-zero)
-                         → ((n : ℕ) → isOpenSubset (A n))
-                         → isOpenSubset (λ t → (∥ Σ[ n ∈ ℕ ] ⟨ A n t ⟩ ∥₁) , squash₁)
-openSubsetCountableUnion A Aopen t =
-  openCountableUnion (λ n → A n t) (λ n → Aopen n t)
-
-complementOpenIsClosed : {T : Type₀} (A : T → hProp ℓ-zero)
-                       → isOpenSubset A
-                       → isClosedSubset (λ t → ¬hProp (A t))
-complementOpenIsClosed A Aopen t = negOpenIsClosed (A t) (Aopen t)
-
-complementClosedIsOpen : {T : Type₀} (A : T → hProp ℓ-zero)
-                       → isClosedSubset A
-                       → isOpenSubset (λ t → ¬hProp (A t))
-complementClosedIsOpen A Aclosed t = negClosedIsOpen mp (A t) (Aclosed t)
-
 -- Transitivity of openness (tex Corollary OpenTransitive 1319)
 openSubsetTransitive : {T : Type₀}
                      → (V : T → hProp ℓ-zero) → isOpenSubset V
@@ -1927,46 +1512,3 @@ openSubsetTransitive V Vopen W Wopen t =
 
 -- Remark: Closed forms a dominance (tex Remark ClosedDominance 1794)
 
--- Section: Surjection from 2^ℕ to Closed (tex line 1753)
-
--- This is stated in tex line 1753: "We have a surjection 2^ℕ → Closed defined by
-
-allFalseProp : binarySequence → hProp ℓ-zero
-allFalseProp α = ((n : ℕ) → α n ≡ false) , isPropΠ (λ n → isSetBool (α n) false)
-
-binarySeqToClosed : binarySequence → Closed
-binarySeqToClosed α = allFalseProp α , allFalseIsClosed α
-
-binarySeqToClosed-surjective : (C : Closed) → ∥ Σ[ α ∈ binarySequence ] (⟨ fst C ⟩ ↔ ⟨ fst (binarySeqToClosed α) ⟩) ∥₁
-binarySeqToClosed-surjective (P , α , forward , backward) =
-  ∣ α , forward , backward ∣₁
-
--- (tex remark: open is dual of closed)
-
-someTrueProp : binarySequence → hProp ℓ-zero
-someTrueProp α = (∥ Σ[ n ∈ ℕ ] α n ≡ true ∥₁) , squash₁
-
-binarySeqToOpen : binarySequence → Open
-binarySeqToOpen α = someTrueProp α , someTrueIsOpen α
-
-binarySeqToOpen-surjective : (O : Open) → ∥ Σ[ α ∈ binarySequence ] (⟨ fst O ⟩ ↔ ⟨ fst (binarySeqToOpen α) ⟩) ∥₁
-binarySeqToOpen-surjective (P , α , forward , backward) =
-  ∣ α , (λ p → ∣ forward p ∣₁) , (λ trunc → backward (fwd trunc)) ∣₁
-  where
-  fwd : ∥ Σ[ n ∈ ℕ ] α n ≡ true ∥₁ → Σ[ n ∈ ℕ ] α n ≡ true
-  fwd = someTrueIsOpen α .snd .fst
-
--- - openDeMorgan : ¬(P ∧ Q) ↔ ∥¬P ⊎ ¬Q∥₁ for open P, Q (tex line 716)
--- - closedMarkovTex : ¬(∀n. Pₙ) ↔ ∃n. ¬Pₙ for closed Pₙ (from tex Lemma 807)
--- - openMarkovTex : ¬(∃n. Pₙ) ↔ ∀n. ¬Pₙ for open Pₙ (dual, trivially true)
--- - ℕ∞-Markov, ℕ∞-notInfty→witness, witness→ℕ∞-notInfty (from tex line 500)
--- - ℕ∞-equality-closed: equality in ℕ∞ is closed (tex line 1636-1643)
--- - openSigmaOpen: Σ of open over open is open (tex Cor 1313)
--- - openSubsetTransitive: transitivity of openness for subsets (tex Cor 1319)
--- Dominance structure (tex Remarks OpenDominance 1330, ClosedDominance 1794):
--- Surjections from 2^ℕ (tex line 1753):
-
---    See tex lines 541-594 for proof sketch
--- 4. closedSigmaClosed: Σ of closed over closed is closed (tex Cor 1785)
-
--- (See tex Example 231-236 and LLPO proof lines 541-594)

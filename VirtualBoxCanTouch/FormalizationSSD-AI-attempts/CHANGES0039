@@ -1,0 +1,14 @@
+bck0038 → bck0039: Comment removal + dead alias cleanup (7787 → 7779, -8 lines)
+
+Comment removal (0 line savings, cosmetic cleanup per CLAUDE.md rule 4):
+- Removed ~25 non-tex-referenced inline comments across Part02, Part08, Part09,
+  Part11, Part12, Part13, Part14 (code descriptions, implementation notes)
+- All tex-referenced comments preserved
+
+Part05.agda (1165 → 1157, -8 lines):
+- Replaced local ¬true→false' (3 lines) with library ¬true→false from Cubical.Data.Bool
+- Removed _=B'_ alias (3 lines + private block) for Bool-equality-decidable,
+  replaced 3 uses with Bool-equality-decidable directly
+- Added ¬true→false to Bool import using clause
+
+Full chain (Part21) compiles successfully.

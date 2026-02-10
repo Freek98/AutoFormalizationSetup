@@ -1,0 +1,46 @@
+bck0042 → bck0043: Dead opens/imports cleanup across Part08-14, Part10, Part10b (7653 → 7627, -26 lines)
+
+Part11.agda (528, was 548 in bck0041, -20 lines):
+- Removed unused opens from CHausFiniteIntersectionPropertyModule:
+  open InhabitedClosedSubSpaceClosedCHausModule, open StoneClosedSubsetsModule
+- Removed 4 unused opens + 2 unused imports from CompactHausdorffTopologyModule:
+  open CompactHausdorffModule, open CHausFiniteIntersectionPropertyModule,
+  open ChausMapsPreserveIntersectionOfClosedModule, open StoneClosedSubsetsModule,
+  Axioms.StoneDuality (Stone; hasStoneStr), Cubical.Functions.Surjection (isSurjection)
+- Removed unused opens + imports from CHausSeperationOfClosedByOpensModule:
+  open CompactHausdorffClosedModule, open StoneSeparatedModule,
+  Axioms.StoneDuality (Stone; hasStoneStr), Cubical.Functions.Surjection (isSurjection)
+- Removed unused opens + imports from SigmaCompactHausdorffModule:
+  open StoneAsClosedSubsetOfCantorModule,
+  Axioms.StoneDuality (Stone; hasStoneStr), Cubical.Functions.Surjection (isSurjection)
+- Removed unused open + imports from AlgebraCompactHausdorffCountablyPresentedModule:
+  open AllOpenSubspaceOpenModule,
+  Axioms.StoneDuality (Stone; hasStoneStr), Cubical.Functions.Surjection (isSurjection)
+- Removed unused opens + import from ConnectedComponentModule:
+  open CHausFiniteIntersectionPropertyModule, open AlgebraCompactHausdorffCountablyPresentedModule,
+  Axioms.StoneDuality (Stone; hasStoneStr)
+
+Part13.agda (181, was 182, -1 line):
+- Removed unused open IntervalIsCHausModule from BrouwerFixedPointTheoremModule
+
+Part14.agda (579, was 581 bck0042, -2 lines):
+- Removed dead module DiskCohomologyFromContr (never opened)
+- Narrowed CircleCohomologyFromLibrary import to only used name (Circle)
+
+Part10b.agda (29, was 30, -1 line):
+- Removed unused re-exports: inl, inr from Sum (kept _⊎_ which IS used),
+  tt from Unit, isoToPath from Isomorphism, ∙assoc from GroupoidLaws
+- Removed entire SetTruncation re-export line (∥_∥₂, ∣_∣₂, squash₂ all unused)
+
+Part08.agda (627, no line change):
+- Removed unused `as Empty` alias from Data.Empty import
+
+Part09.agda (150, no line change):
+- Removed unused `not` from Data.Bool import using clause
+
+Part10.agda (155, was 156, -1 line):
+- Removed unused `import Cubical.Data.Sum as ⊎` (module alias never used)
+- Narrowed HLevels import: removed unused isProp×, isSetΣ
+- Narrowed Empty import: removed unused isProp⊥, as Empty alias, ex-falso renaming
+
+Full chain (Part21) compiles successfully.

@@ -1,0 +1,42 @@
+bck0031 → bck0032: Unused import cleanup across 10 files (7980 → 7965, -15 lines)
+
+Decrease justified: only import lines and using-clause names removed; no code or definitions deleted.
+
+Part02.agda (1625 → 1616, -9 lines):
+- Removed unused imports: GroupoidLaws, Transport, Fin, Sum.Properties, Embedding, DirectProd, BooleanRing.Initial
+- Narrowed Powerset to using (_∈_) only
+- Narrowed StoneDuality using clause (removed SpEmbedding)
+- Narrowed PresentedBoole using clause (removed 3 unused names)
+- Narrowed BoolRingUnivalence using clause (removed uaBoolRing)
+
+Part03.agda: Narrowed PresentedBoole using clause (removed has-Countability-structure)
+Part04.agda: Narrowed FreeBool using clause (removed freeBA-universal-property)
+Part05a.agda: Narrowed PT using clause (removed elim, squash₁); narrowed HLevels (removed isSetΠ)
+Part05.agda: Narrowed PT using clause (removed elim, squash₁); narrowed HLevels (removed isPropΠ2, isSetΠ)
+
+Part07.agda (481 → 479, -2 lines):
+- Removed unused imports: Function (_∘_), Isomorphism (iso, isoToEquiv, Iso)
+- Narrowed Bool using clause (removed _⊕_)
+- Narrowed Nullary using clause (removed Discrete→isSet)
+- Narrowed FreeBool using clause (removed inducedBAHom, evalBAInduce)
+
+Part08.agda (662 → 661, -1 line):
+- Removed unused import: Data.Unit (Unit, tt)
+- Narrowed Equiv using clause (removed invEquiv)
+- Narrowed BoolRingUnivalence using clause (removed uaBoolRing)
+
+Part10.agda: Narrowed Univalence (removed hPropExt), Isomorphism (removed isoToPath), Sum (removed isProp⊎)
+
+Part12.agda (308 → 307, -1 line):
+- Removed unused import: PropositionalTruncation as PT
+
+Part19.agda (178 → 176, -2 lines):
+- Removed unused import line: StoneDuality (Stone, hasStoneStr, SpGeneralBooleanRing) in StoneILocalTC
+- Narrowed Bool import in StoneILocalTC (removed isSetBool)
+- Removed unused import line: Data.Int.Properties (isSetℤ) in BZILocalTC
+- Narrowed EMProp using clause (removed ΩEM+1→EM, EM→ΩEM+1)
+- Narrowed StoneDuality in NotWLPOTC (removed SDHomVersion)
+
+Part20.agda: Narrowed S1 using clauses (removed loop, pos, negsuc)
+
+Full chain (Part21) compiles successfully.

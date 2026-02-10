@@ -1,0 +1,16 @@
+bck0036 → bck0037: Dead code removal in Part06 and Part08, import cleanup (7824 → 7790, -34 lines)
+
+Part08.agda (661 → 627, -34 lines):
+- Removed dead infrastructure in StoneClosedSubsetsModule:
+  - ClosedBySequence record (3 lines)
+  - ClosedByCountableIntersection record (3 lines)
+  - seq→decIntersection (3 lines)
+  - decIntersection→seq (3 lines)
+  - subsetFromSeq (3 lines)
+  - subsetFromSeq-isClosed (9 lines)
+  - seqForm→closed (3 lines)
+  None used downstream, none tex-referenced.
+- Narrowed Bool import (removed not, if_then_else_)
+- Narrowed HLevels import (removed isPropΠ2)
+
+Full chain (Part21) compiles successfully.

@@ -1,0 +1,28 @@
+bck0029 → bck0030: Dead code removal across Part02, Part08, Part11, Part14 (8256 → 7993, -263 lines)
+
+Part02.agda (1830 → 1638, -192 lines):
+- Removed cantorPair-unpair and its helper chain (a+b∸a≡b, w∸n+n≡w, n≤w-from-bounds,
+  findDiagonal-lower-bound, findDiagonal-upper-bound, findDiagonal-bounds) — ~96 lines,
+  none used outside their own definitions, not tex-referenced
+- Removed Sp-Bool-isContr (20 lines) — never used, not tex-referenced
+- Removed someTrueIsOpen (10 lines) — never used, not tex-referenced
+- Removed implicationClosedOpen (36 lines) — never used, not tex-referenced
+  (distinct from implicationOpenClosed which IS tex-referenced at Lemma 857)
+- Removed closedSigmaDecidable (19 lines) — never used, not tex-referenced
+- Removed preimageClosedIsClosed (3 lines) — never used, not tex-referenced
+- Removed binarySeqToClosed-surjective (3 lines) — never used, not tex-referenced
+- Kept closedMarkovTex — tex-referenced as ClosedMarkov lemma
+
+Part08.agda (687 → 662, -25 lines):
+- Removed dead module QuotientBySeqPresentation (25 lines) — never instantiated
+
+Part11.agda (559 → 552, -7 lines):
+- Removed preimagePoint (3 lines) — never used
+- Removed imageDecSubset (3 lines) — never used
+
+Part14.agda (619 → 581, -38 lines):
+- Removed entire CechEilenbergProofInfrastructure module (38 lines) — never opened,
+  was incomplete attempt at proving cech-eilenberg-1-agree postulate
+
+All changes verified: full chain (Part21) compiles successfully.
+No tex-referenced or downstream-used code removed.

@@ -1,0 +1,29 @@
+CHANGES0024: Cleanup of Part14, Part15, Part19
+
+Line count: bck0024 = 11019, current = 10731, decrease = 288 lines.
+
+JUSTIFICATION FOR DECREASE: All removed content was dead code (unused/empty
+modules, duplicate modules, comment-only modules). No functional code was lost.
+
+DETAILED CHANGES:
+
+Part14.agda: 1344 → 1077 lines (-267)
+- Removed 13 dead/empty modules:
+  FiniteApproximationExactSequence, CohomologyPathConsistency,
+  PostulateConsistency, CohomologyEqualityProofs, FInjectiveEqualityProof,
+  ILocalityFromTex, NoRetractionFunctorialProof,
+  EilenbergStoneVanishProofOutline, EilenbergStoneVanishFullProofStructure,
+  StoneSpaceExactness, CechComplexCompatibleFamilies,
+  CechComplexVanishingStoneProof, CechComplexVanishingStoneComplete
+- Removed large comment block about I-localization (18 lines)
+- Consolidated duplicate modules: made IntervalCohomologyInline and
+  DiskCohomologyInline public; replaced DiskCohomologyFromContr with
+  thin re-export; removed duplicate IntervalCohomologyFromContr
+
+Part15.agda: 183 → 162 lines (-21)
+- Removed unused postulate connected-1-to-set-constant-postulate and
+  its wrapper function from ConnectednessForBoolILocal
+- Removed unused imports
+
+Part19.agda: 189 → 188 lines (-1)
+- Removed unused is-1-connected-I from StoneILocalTC imports
