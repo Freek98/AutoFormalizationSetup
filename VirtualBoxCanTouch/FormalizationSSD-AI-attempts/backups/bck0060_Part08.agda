@@ -207,6 +207,7 @@ module StoneClosedSubsetsModule where
       where
       zeroOnImage-applied : (n : ℕ) → fst (h ∘cr π) (d n) ≡ false
       zeroOnImage-applied n =
+        fst (h ∘cr π) (d n)     ≡⟨ refl ⟩
         fst h (fst π (d n))     ≡⟨ cong (fst h) (QB.zeroOnImage {B = B} {f = d} n) ⟩
         fst h (BooleanRingStr.𝟘 (snd B/d))  ≡⟨ IsCommRingHom.pres0 (snd h) ⟩
         false ∎
@@ -454,6 +455,8 @@ module StoneClosedSubsetsModule where
 
         backward-composite-sends-d'-to-0 : (n : ℕ) → backward-composite-1 $cr (d' n) ≡ BooleanRingStr.𝟘 (snd B/d-ring)
         backward-composite-sends-d'-to-0 n =
+          backward-composite-1 $cr (d' n)
+            ≡⟨ refl ⟩
           π-d $cr (equiv⁻¹-hom $cr (fst (fst equiv) (d n)))
             ≡⟨ cong (π-d $cr_) (Iso.ret (equivToIso (fst equiv)) (d n)) ⟩
           π-d $cr (d n)

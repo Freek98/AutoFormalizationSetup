@@ -1,0 +1,35 @@
+bck0060 → bck0061: Library dedup + refl-inline + equational reasoning (7387 → 7153, -234 lines)
+
+Part02.agda (1527 → 1314, -213 lines):
+- Replaced hand-rolled cantorPair/cantorUnpair/cantorUnpair-pair with Cubical library's
+  ℕ×ℕ≅ℕ (from Cubical.Data.Nat.Bijections.Product). Thin wrappers keep the same API.
+- Deleted ~210 lines of supporting infrastructure: triangular, _<ᵇ'_, findDiagonal,
+  cantorUnpair (old definition), <ᵇ'-reflects, ¬<ᵇ'-reflects, +-∸-assoc, ∸+-cancel,
+  triangular≤cantorPair, cantorPair<triangular-suc, findDiagonal-found/continue,
+  <ᵇ'-suc, <-reflects-<ᵇ', cantorPair<ᵇ'-triangular-suc, cantorPair-triangular-diff,
+  triangular-suc, triangular-mono-<, triangular-mono-≤, k≥triangular-suc-acc,
+  k≮ᵇ'triangular-suc-acc, findDiagonal-aux, w≤triangular, w≤cantorPair,
+  findDiagonal-correct, and old cantorUnpair-pair proof.
+
+Part03.agda (198 → 198, 0 lines):
+- Replaced local ∸+-cancel with library's ≤-∸-+-cancel from Cubical.Data.Nat.Order
+
+Part04.agda (800 → 797, -3 lines):
+- Removed dead Bool²→quotient-pres1 (= refl, never used, not tex-referenced)
+
+Part05a.agda (404 → 399, -5 lines):
+- Removed dead π∞-gen (= refl, only used in one refl step)
+- Inlined the refl step in interpretB∞-eq-composition (Tvar case), merging two chain steps
+
+Part08.agda (604 → 598, -6 lines):
+- Removed BoolHom-ext wrapper (= CommRingHom≡ ∘ funExt), inlined at all call sites
+- Simplified s-on-Q=t-on-Q to use CommRingHom≡ directly
+- Converted ∀P→s=t from let+∙ composition style to equational reasoning style (≡⟨ ⟩ chain)
+
+Part19.agda (143 → 136, -7 lines):
+- Inlined evaluate-is-Iso-inv (= refl), merged two consecutive refl steps in SD-property chain
+
+Full chain (Part21) compiles successfully.
+Line decrease justified: replaced hand-rolled Cantor pairing with library implementation
+(the major saving), removed dead definitions, inlined refl-valued helpers, converted
+let+∙ proof to equational reasoning. No tex results affected.

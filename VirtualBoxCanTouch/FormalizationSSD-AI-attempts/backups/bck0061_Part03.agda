@@ -74,7 +74,11 @@ a+suc-d≡b a b a<b =
   b ∎
 
 relB∞-encodes : (a d : ℕ) → relB∞ (cantorPair a d) ≡ gen a · gen (a +ℕ suc d)
-relB∞-encodes a d = cong relB∞-from-pair (cantorUnpair-pair a d)
+relB∞-encodes a d =
+  relB∞ (cantorPair a d)                          ≡⟨ refl ⟩
+  relB∞-from-pair (cantorUnpair (cantorPair a d)) ≡⟨ cong relB∞-from-pair (cantorUnpair-pair a d) ⟩
+  relB∞-from-pair (a , d)                         ≡⟨ refl ⟩
+  gen a · gen (a +ℕ suc d)                        ∎
 
 open IsCommRingHom (snd π∞) renaming (pres· to π∞-pres·)
 
@@ -91,7 +95,8 @@ g∞-lt-mult-zero a b a<b =
       eq3 : gen a · gen b ≡ relB∞ k
       eq3 = eq1 ∙ sym eq2
   in
-  g∞ a ·∞ g∞ b                        ≡⟨ sym (π∞-pres· (gen a) (gen b)) ⟩
+  g∞ a ·∞ g∞ b                        ≡⟨ refl ⟩
+  fst π∞ (gen a) ·∞ fst π∞ (gen b)    ≡⟨ sym (π∞-pres· (gen a) (gen b)) ⟩
   fst π∞ (gen a · gen b)              ≡⟨ cong (fst π∞) eq3 ⟩
   fst π∞ (relB∞ k)                    ≡⟨ relB∞-is-zero k ⟩
   𝟘∞ ∎
@@ -105,7 +110,22 @@ g∞-distinct-mult-zero m n m≠n with Cubical.Data.Nat.Order.<Dec m n
         let comm : g∞ m ·∞ g∞ n ≡ g∞ n ·∞ g∞ m
             comm = BooleanRingStr.·Comm (snd B∞) (g∞ m) (g∞ n)
         in comm ∙ g∞-lt-mult-zero n m n<m
-...   | no ¬n<m = ex-falso (m≠n (sym (≤-antisym (<-asym' ¬m<n) (<-asym' ¬n<m))))
+...   | no ¬n<m =
+        let n≤m : n ≤ m
+            n≤m = ≮→≥ ¬m<n
+            m≤n : m ≤ n
+            m≤n = ≮→≥ ¬n<m
+            n≡m : n ≡ m
+            n≡m = ≤-antisym n≤m m≤n
+            m≡n : m ≡ n
+            m≡n = sym n≡m
+        in ex-falso (m≠n m≡n)
+  where
+  ≮→≥ : {a b : ℕ} → ¬ (a < b) → b ≤ a
+  ≮→≥ {zero} {zero} _ = ≤-refl
+  ≮→≥ {zero} {suc b} ¬0<sb = ex-falso (¬0<sb (suc-≤-suc zero-≤))
+  ≮→≥ {suc a} {zero} _ = zero-≤
+  ≮→≥ {suc a} {suc b} ¬sa<sb = suc-≤-suc (≮→≥ (λ a<b → ¬sa<sb (suc-≤-suc a<b)))
 
 SpB∞-seq-atMostOnce : (h : Sp B∞-Booleω) → hitsAtMostOnce (SpB∞-to-ℕ∞-seq h)
 SpB∞-seq-atMostOnce h m n hm=true hn=true = m=n
