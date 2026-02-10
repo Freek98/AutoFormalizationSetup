@@ -1,0 +1,42 @@
+bck0074 → bck0075: Fix compilation errors from Cubical library update (6335 → 6349, +14 lines)
+
+The Cubical library was updated, changing the API of
+Cubical.Algebra.CommRing.Quotient.ImageQuotient. Specifically:
+- evalInduce moved out of the inner module and now takes g and gfx=0 as
+  implicit arguments (they were explicit module parameters before).
+- IQ.inducedHom became non-opaque (unfolding IQ.inducedHom is now a no-op).
+
+Axioms/StoneDuality.agda (outside work/, 1 line fix):
+- Line 229: Replaced wildcard `_` with explicit `(ε ⟦ F ⟅ y ⟆ ⟧)` in
+  a cong step that could no longer be inferred after the library update.
+
+Part05a.agda (393 → 409, +16 lines):
+- The library module freeBATerms no longer exports includeBATerms-Tvar,
+  includeBATerms-0/1/+/·/-- computation lemmas.
+- Added these 6 lemmas locally in a private opaque block with
+  `unfolding freeBA unfolding includeBATermsSurj unfolding generator`.
+  All are refl proofs.
+- Narrowed freeBATerms import to only (includeBATermsSurj ; freeBATerms).
+
+Part02.agda (1105 → 1105, 0 lines):
+- Removed now-implicit g and gfx=0 arguments from 4 QB.evalInduce calls
+  (lines 190, 193, 284, 287).
+
+Part04.agda (734 → 733, -1 line):
+- Same fix for 3 QB.evalInduce calls (lines 245, 251, 542).
+- Multi-line call collapsed to single line.
+
+Part05.agda (898 → 897, -1 line):
+- Same fix for 4 QB.evalInduce calls (lines 155, 312, 320, 462).
+- Multi-line call collapsed to single line.
+
+Part08.agda (553 → 552, -1 line):
+- Same fix for 5 QB.evalInduce calls (lines 216, 346, 349, 445, 448).
+- Multi-line call collapsed to single line.
+
+Full chain (Part21) compilation verified.
+Line increase justified: +16 lines are computation lemmas that were
+previously provided by the library module freeBATerms but are no longer
+exported after the library update. These are essential for
+interpretB∞-eq-composition and downstream proofs. The -3 lines from
+collapsing multi-line evalInduce calls partially offset this.
