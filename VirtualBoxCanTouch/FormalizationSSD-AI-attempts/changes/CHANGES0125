@@ -1,0 +1,57 @@
+CHANGES0125 — Broad sweep: convert remaining standalone 2-step ∙-chains to equational
+
+Changes since bck0124 (6081 lines → 6169 lines, +88 lines):
+
+The line increase is entirely from mandatory equational reasoning style
+conversions. No useful work was lost.
+
+1. Part03 (156→161, +5 lines):
+   - `g∞-distinct-mult-zero | yes n<m`: ·Comm+lt-mult → equational via
+     intermediate `g∞ n ·∞ g∞ m` (+5)
+
+2. Part04 (620→648, +28 lines):
+   - `g₁+g₀≡𝟙Q`: +Comm chain → equational via `fst π g₀ +Q fst π g₁` (+4)
+   - `g₁·g₀≡𝟘Q`: ·Comm chain → equational via `fst π g₀ ·Q fst π g₁` (+4)
+   - `Sp-Bool²→Bool→Sp-Bool² | ⊎.inl`: cong+sym → equational via
+     `proj₁-Bool²-hom` (+5)
+   - `Sp-Bool²→Bool→Sp-Bool² | ⊎.inr`: cong+sym → equational via
+     `proj₂-Bool²-hom` (+5)
+   - `f-pres-join`: pres++cong₂ → equational via
+     `fst f (a +∞ b) +× fst f (a ·∞ b)` (+5)
+   - `δ-seq-hamo | yes | yes`: sym+path → equational via `n` (+3)
+
+3. Part05 (1213→1258, +45 lines):
+   - `eQ'·eQ`: ·Comm+proof → equational via `eQ ·Q eQ'` (+4)
+   - `φQ-πQ-gen` (opaque): funExt⁻ chain → equational via
+     `fst prodGenMap-free (gen k)` (+4)
+   - `ψL-gen` (opaque): funExt⁻ chain → equational via
+     `fst genL-free (gen n)` (+4)
+   - `ψR-gen` (opaque): funExt⁻ chain → equational via
+     `fst genR-free (gen n)` (+4)
+   - `ψ∘φQ∘πQ-on-gen zero` (opaque): cong+apply → equational via
+     `ψ-fun (prodGenMap 0)` (+4)
+   - `g∞-has-witness`: roundtrip+delta → equational via
+     `fst (δ∞ n) n` (+4)
+   - `h-gn=f` (let block): cong+apply → equational via `h $cr 𝟘∞` (+3)
+   - `h-join=false`: cong+apply → equational via `h $cr 𝟘∞` (+4)
+   - `h₀-meet=false`: cong+apply → equational via `h₀ $cr 𝟘∞` (+4)
+
+4. Part07 (264→274, +10 lines):
+   - `h∘π≡id-pointwise false`: cong+pres → equational via
+     `fst h (BooleanRingStr.𝟘 (snd B-quotient))` (+5)
+   - `h∘π≡id-pointwise true`: cong+pres → equational via
+     `fst h (BooleanRingStr.𝟙 (snd B-quotient))` (+5)
+
+Remaining standalone 2-step ∙-chains (complex intermediates, risky):
+  Part02: lines 279, 280 (with-pattern + BooleanRingEquiv intermediates)
+  Part05: lines 1063, 1068, 1082 (let-block + with-abstracted splitByParity)
+Remaining embedded ∙-chains (inside expressions):
+  Part01: 6 (in false≢true/true≢false/ex-falso args)
+  Part02: 5 (in function args and lambdas)
+  Part03: 1 (in ex-falso arg)
+  Part04: 5 (in function args and ex-falso)
+  Part05: 7 (in true≢false args, lambda bodies, function args)
+  Part09: 1 (in quotientFiber arg)
+  Part14: 1 (in Iso.inv arg), 3 (path definitions p-uv/uw/vw)
+
+Full chain verification: SUCCESS (Part01 through Part20).

@@ -1,0 +1,34 @@
+CHANGES0130 — Micro-optimizations: single-use alias inlining
+
+Changes since bck0129 (6116 lines → 6093 lines, -23 lines):
+
+1. Part03 (161→155, -6 lines):
+   - Inlined `·Idem-prod` into `DirectProd-BooleanRing` (was single-use helper
+     proving idempotency of product ring). The `let open BooleanRingStr; open
+     CommRingStr` in its body were unused (all references already fully qualified).
+     Replaced with lambda: `λ { (a , b) → cong₂ _,_ ... }`. (-6 lines)
+
+2. Part04 (645→642, -3 lines):
+   - Inlined `2·-is-double` (was `cong (k +ℕ_) (+-zero k)`, used 2x in
+     `double-half-even` and `double-half-odd`). Replaced with direct
+     `cong (half n +ℕ_) (+-zero (half n))` at usage sites. (-3 lines)
+
+3. Part05 (1255→1250, -5 lines):
+   - Inlined `encode×∘decode×` (was `sec ℕ⊎ℕ≅ℕ`, single use in
+     `ψ∘φQ∘πQ-on-gen`). Replaced with `sec ℕ⊎ℕ≅ℕ k` at usage site. (-3 lines)
+   - Inlined `isSetQ` (was `BooleanRingStr.is-set (snd B∞×B∞-Q)`, single use
+     in `roundtrip-Q`). (-2 lines)
+
+4. Part10 (131→125, -6 lines):
+   - Inlined `equiv-inv-hom` (was `BooleanEquivToHomInv B Q equiv`, single use
+     in `forward`). (-3 lines)
+   - Inlined `SpQ≃ΣA` (was `compEquiv SQS.Sp-quotient-≃ ClosedSubsetSp≃ΣA`,
+     single use in `SpB≃ΣA`). (-3 lines)
+
+5. Part12 (207→204, -3 lines):
+   - Inlined `<I-hProp` (was `(x <I y) , <I-isProp x y`, single use in
+     postulate `<I-isOpen`). (-3 lines)
+
+None of these are tex-referenced. All are trivial aliases with ≤2 uses.
+
+Full chain verification: SUCCESS (Part01 through Part20).

@@ -1,0 +1,38 @@
+CHANGES0121 — Convert remaining 3+ step ∙-chains to equational reasoning
+
+Changes since bck0120 (5971 lines → 6018 lines, +47 lines):
+
+The line increase is entirely from mandatory equational reasoning style
+conversions. No useful work was lost.
+
+1. Part05 (1168→1194, +26 lines):
+   Six opaque-block ∙-chains converted to equational reasoning:
+   - `eQ+eQ'≡𝟙Q`: 5-step ∙-chain → 6-step equational (+8)
+   - `genL·eQ'≡𝟘`: 3-step ∙-chain → equational (inner 2-step in cong kept) (+4)
+   - `ψ-on-unit-left`: 3-step ∙-chain → equational with intermediates (+4)
+   - `ψ-on-genL`: 3-step ∙-chain → equational (+4)
+   - `ψ-on-genR`: 3-step ∙-chain → equational (+3)
+   - `ψ∘φQ∘πQ-on-gen (suc k)`: 3-step ∙-chain → equational (+3)
+
+2. Part12 (201→207, +6 lines):
+   - `IVT-contradiction`: 3-step ∙-chain → equational `where` block (+6)
+     Chain: false ≡⟨ sym at-0 ⟩ char 0I ≡⟨ Bool-I-local ⟩ char 1I ≡⟨ at-1 ⟩ true
+
+3. Part14 (402→416, +14 lines):
+   Two identical 5-step `step2` chains converted to equational reasoning:
+   - `SectionExactCechComplex.step2`: group algebra chain (+7)
+   - `CanonicalExactCechComplex.step2`: same structure (+7)
+   Both prove `a ≡ b - c` via:
+     a ≡⟨ sym +IdR ⟩ a + 0g ≡⟨ cong (a +_) (sym +InvL) ⟩
+     a + ((-b) + b) ≡⟨ +Assoc ⟩ (a - b) + b ≡⟨ cong (_+ b) step1 ⟩
+     (-c) + b ≡⟨ +Comm ⟩ b - c
+
+Remaining ∙-composition chains (all 2-step, borderline):
+  Part03: g∞-distinct-mult-zero
+  Part05: go ⊎.inl, eQ·genR≡𝟘, ψ∘φQ∘πQ-on-gen zero, various
+  Part05a: ¬∞-+∞-cancel (outer 2-step)
+  Part11: make-f-xy
+  Part14: sym-p-uw, key-rel, ψ-expand, key-eq, path-algebra-lemma, etc.
+  Part14: combined-path (3-step, NOT convertible — downstream depends on structure)
+
+Full chain verification: SUCCESS (Part01 through Part20).

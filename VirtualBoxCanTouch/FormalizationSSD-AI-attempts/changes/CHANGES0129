@@ -1,0 +1,14 @@
+CHANGES0129 — Definitional reduction exploits
+
+Changes since bck0128 (6124 lines → 6116 lines, -8 lines):
+
+1. Part05 (1263→1255, -8 lines):
+   - Removed `helper : (b : Bool) → b ⊕ true ≡ not b` and the preceding
+     ⊕-comm step in `h-pres-neg-Bool`. Since `true ⊕ b` reduces to `not b`
+     definitionally (Agda pattern matches _⊕_ on the first arg), the two
+     equational steps `≡⟨ ⊕-comm true ... ⟩` and `≡⟨ helper ... ⟩` were
+     redundant. The chain now goes directly from `cong (_⊕ ...) h-pres1`
+     to `not (h $cr x) ∎`. (-7 lines)
+   - Removed unused `⊕-comm` import from `Cubical.Data.Bool`. (-1 line)
+
+Full chain verification: SUCCESS (Part01 through Part20).

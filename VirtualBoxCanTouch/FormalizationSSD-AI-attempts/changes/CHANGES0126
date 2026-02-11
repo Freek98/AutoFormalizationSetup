@@ -1,0 +1,42 @@
+CHANGES0126 — Library replacement + remaining equational chain conversions
+
+Changes since bck0125 (6169 lines → 6182 lines, +13 lines):
+
+The line increase is from mandatory equational reasoning style conversions.
+The library replacement saves 2 lines. No useful work was lost.
+
+1. Part02 (876→874, -2 lines):
+   - Replaced hand-rolled `isProp⊎¬` (5 lines, case-split on inl/inr) with
+     library `isProp⊎` from `Cubical.Data.Sum.Properties` (1 line)
+   - Added `open import Cubical.Data.Sum.Properties using (isProp⊎)` (+1)
+   - Net: -2 lines
+   - Also attempted converting `α'≡π₀∘g-pointwise` ∙-chains (lines 280-281)
+     to equational, but CONFIRMED impossible: `with α n` abstraction prevents
+     `g n = if (α n) then 𝟙 else 𝟘` from reducing, causing type mismatch.
+
+2. Part05 (1258→1273, +15 lines):
+   Three remaining standalone ∙-chains converted to equational reasoning:
+   - `splitByParity-nonempty-aux true`: contradiction chain → equational via
+     `splitByParity-evens (n ∷ ns)` (+5)
+   - `splitByParity-nonempty-aux false`: contradiction chain → equational via
+     `splitByParity-odds (n ∷ ns)` (+5)
+   - `f-split` (let block): sym+apply → equational via
+     `fst f (finJoin∞ ns)` (+5)
+
+Remaining standalone ∙-chains (CONFIRMED unconvertible):
+  Part02: lines 280-281 (with-abstraction prevents term reduction of `g n`)
+
+Remaining embedded ∙-chains (inside expressions, acceptable per convention):
+  ~29 instances across Part01-Part14 (inside ex-falso/true≢false/function args)
+
+All remaining postulates are deep mathematical results:
+  Part07: booleω-equality-open (requires ODisc theory)
+  Part08: isPropIsClosedProp (requires axiom about synthetic topology)
+  Part09: StoneSeparated (requires quotient ring compactness argument)
+  Part11: 8 CHaus postulates (axioms about compact Hausdorff spaces)
+  Part12: 9 interval postulates (axioms about unit interval)
+  Part13: 3 Disk2 postulates (axioms about D² and S¹)
+  Part14: 3 cohomology postulates
+  Part20: 2 path-connectedness postulates
+
+Full chain verification: SUCCESS (Part01 through Part20).

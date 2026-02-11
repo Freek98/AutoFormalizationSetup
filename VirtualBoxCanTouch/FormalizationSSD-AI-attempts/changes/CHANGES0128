@@ -1,0 +1,44 @@
+CHANGES0128 — BoolRingPath roundtrip elimination, library replacement, alias cleanup
+
+Changes since bck0127 (6150 lines → 6124 lines, -26 lines):
+
+All changes are safe structural simplifications. No useful work lost.
+
+(Combined changes since bck0126: 6182 → 6124, -58 lines)
+
+1. Part02 (874→870, -4 lines):
+   - Eliminated BoolRingPath roundtrip in `step3-equiv`: replaced
+     `invEq (BoolRingPath _ _) (equivFun (BoolRingPath ...) ...)` with
+     direct `isoToEquiv step3-iso , snd step3-forward-hom`. (-1 line)
+   - Removed `C'` and `D'` aliases (were `rec-quotient` and `h-quotient`
+     under different names). Updated `equivToPresentation` and
+     `invBooleanRingEquiv` calls to use existing aliases. (-2 lines)
+   - Removed unused `BoolRingPath` import. (-1 line)
+
+2. Part04 (648→645, -3 lines):
+   - Inlined `neg≡selfQ` (was `sym (BooleanAlgebraStr.-IsId Bool²-quotient)`).
+     Since `sym (sym p) = p` definitionally in Cubical Agda, replaced
+     `sym (neg≡selfQ ...)` with `BooleanAlgebraStr.-IsId Bool²-quotient`
+     in the `pres-` field. Removed definition. (-3 lines)
+
+3. Part05 (1273→1263, -10 lines):
+   - Replaced hand-rolled `suc-decode-neq` (6-line equational chain proving
+     injectivity of decode×) with library `isoInvInjective ℕ⊎ℕ≅ℕ` from
+     `Cubical.Foundations.Isomorphism`. Merged into `suc-gen-orthog`. (-7 lines)
+   - Inlined `roundtrip` (was single-use `SpB∞-roundtrip α`, used only
+     to define `seq-eq`). Merged into `seq-eq` body. (-3 lines)
+
+4. Part08 (455→446, -9 lines):
+   - Shortened `invStep2-seq` body to use alias names (`rec-quotient`,
+     `B'-seq`) instead of expanded forms. (-2 lines)
+   - Inlined `B/d-presentation` (was trivial `h , B/d-equiv`, single-use
+     in `C` definition). (-3 lines)
+   - Inlined `Sp-equiv` (was trivial `Sp-quotient-≃`, single-use in
+     `constructFromLifts` return value). (-3 lines)
+   - Removed unused `BoolRingPath` import. (-1 line)
+
+New library function used:
+  - `isoInvInjective` from `Cubical.Foundations.Isomorphism`
+    (proves injectivity of Iso.inv, replaces hand-rolled equational chain)
+
+Full chain verification: SUCCESS (Part01 through Part20).

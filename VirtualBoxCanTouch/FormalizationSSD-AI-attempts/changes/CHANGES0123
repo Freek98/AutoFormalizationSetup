@@ -1,0 +1,18 @@
+CHANGES0123 — Remove missed unused imports in Part05a
+
+Changes since bck0122 (6044 lines → 6041 lines, -3 lines):
+
+The decrease is from removing unused import items. No useful work was lost.
+
+1. Part05a (427→424, -3 lines):
+   Removed 7 unused import items that were missed in previous sweeps:
+   - Removed entire line: `open import Cubical.Foundations.HLevels using (isPropΠ)`
+   - Removed entire line: `open import CountablyPresentedBooleanRings.PresentedBoole using (BooleanRingEquiv; has-Boole-ω')`
+   - Removed entire line: `open import Axioms.StoneDuality using (Booleω; Sp)`
+   - Narrowed FreeBool import: removed `inducedBAHom; evalBAInduce` (kept `freeBA; generator`)
+   - Narrowed SurjectiveTerms import: removed `TermsOf_[_]; includeTerm` (kept constructors `Tvar; Tconst; _+T_; -T_; _·T_`)
+
+   All removed names appeared only in their import declarations and were never
+   referenced in the file body. Verified by grep + full chain compilation.
+
+Full chain verification: SUCCESS (Part01 through Part20).

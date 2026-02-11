@@ -1,0 +1,42 @@
+CHANGES0122 — Convert standalone 2-step ∙-chains to equational reasoning
+
+Changes since bck0121 (6018 lines → 6044 lines, +26 lines):
+
+The line increase is entirely from mandatory equational reasoning style
+conversions of standalone 2-step ∙-chains. No useful work was lost.
+
+1. Part05 (1194→1213, +19 lines):
+   Five standalone 2-step chains converted:
+   - `prodRel-encodes-C`: cong chain → equational with intermediate
+     `prodRelFromPair (cantorUnpair (cantorPair i d))` (+4)
+   - `go | ⊎.inl r` (suc-gen-orthog-Q): cong+apply → equational
+     via `fst πQ (gen (suc a) ·f gen (suc (a +ℕ suc (fst r))))` (+4)
+   - `typeA-encode`: cong chain → equational with intermediate
+     `prodRelAB (decode× (encode× (⊎.inl n)))` (+4)
+   - `typeB-encode`: same pattern as typeA-encode (+4)
+   - `eQ·genR≡𝟘` (opaque): sym+apply → equational via
+     `fst πQ (gen 0 ·f gen (suc (encode× (⊎.inr n))))` (+3)
+
+2. Part05a (424→427, +3 lines):
+   - `¬∞-+∞-cancel`: outer 2-step converted to equational.
+     Inner 5-step chain inside `cong (_+∞ b)` preserved as-is (+3)
+
+3. Part11 (477→481, +4 lines):
+   - `make-f-xy`: cong chain → equational with intermediate
+     `g (transport refl y)` (+4)
+
+Remaining ∙-chains (all embedded or borderline):
+  Standalone 2-step:
+    Part14: key-rel, ψ-expand, key-eq, βv-eq, path-algebra-lemma
+      (complex cohomological algebra; risk of incorrect intermediates)
+  Embedded in expressions (ex-falso, true≢false, tuples, PT.rec, toPathP):
+    Part02: lines 543, 547, 562, 563, 577, 582
+    Part03: line 118
+    Part05: lines 1095, 1100
+    Part11: lines 465, 469
+  Inside ≡⟨ ⟩ steps (acceptable):
+    Part05: lines 137, 489, 502, 507, 548, 553, 578
+    Part05a: lines 298, 358-362
+    Part14: line 340
+
+Full chain verification: SUCCESS (Part01 through Part20).

@@ -1,0 +1,14 @@
+CHANGES0119 — Part04 cleanup: removed unnecessary cong steps and dead code
+
+Changes since bck0118 (5932 lines → 5926 lines, -6 lines):
+
+1. Part04 (630→624, -6 lines):
+   - Removed unnecessary `cong Bool²→quotient-fun (cong₂ _,_ (⊕-comm ...) ...)`
+     from three Bool²→quotient-pres+ cases. Both sides of each ⊕-comm reduce
+     to the same normal form, so the cong steps were computing refl. (-3 lines)
+   - Simplified `pres-` by removing `cong Bool²→quotient-fun (neg≡self² x) ∙`
+     prefix. Since `neg≡self² _ = refl`, the cong computes refl, and the
+     remaining `sym (neg≡selfQ ...)` suffices. (-1 line shorter)
+   - Removed now-dead `neg≡self²` definition (2 lines). (-2 lines)
+
+Full chain verification: SUCCESS (Part01 through Part20).

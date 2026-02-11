@@ -1,0 +1,47 @@
+CHANGES0124 — Convert all remaining Part14 standalone 2-step ∙-chains to equational reasoning
+
+Changes since bck0123 (6041 lines → 6081 lines, +40 lines):
+
+The line increase is entirely from mandatory equational reasoning style
+conversions. No useful work was lost.
+
+1. Part14 (416→456, +40 lines):
+   Eight standalone 2-step ∙-chains converted to equational reasoning:
+
+   In ExactCechComplexVanishingProof module:
+   - `sym-p-uw`: symDistr chain → equational via intermediate
+     `sym pw ∙ sym (sym pu)` (+5)
+   - `combined-gives-0g`: cong+apply → equational via intermediate
+     `ϕ refl` (+5)
+   - `goal`: sym+apply → equational via intermediate
+     `ϕ combined-path` (+5)
+
+   In β-adjusted-constant section:
+   - `key-rel`: sym+cong → equational via intermediate
+     `ψ (ϕ (sym βu ∙ βv))` (+5)
+   - `ψ-expand`: hom+cong → equational via intermediate
+     `ψ fv ∙ ψ (Ax.-_ fu)` (+5)
+   - `key-eq`: rel+expand → equational via intermediate
+     `ψ (AGx._-_ x fv fu)` (+5)
+   - `βv-eq`: sym+step → equational via intermediate
+     `βu ∙ (sym βu ∙ βv)` (+5)
+   - `path-algebra-lemma`: sym+sym → equational via intermediate
+     `(βu ∙ (ψ fv ∙ sym (ψ fu))) ∙ sym (ψ fv)` (+5)
+
+Remaining ∙-chains (all embedded in expressions or inside ≡⟨ ⟩ steps):
+  Embedded in expressions (ex-falso, true≢false, tuples, PT.rec, toPathP):
+    Part02: lines 543, 547, 562, 563, 577, 582
+    Part03: line 118
+    Part05: lines 1095, 1100
+    Part11: lines 465, 469
+  Inside ≡⟨ ⟩ steps (acceptable):
+    Part05: lines 137, 489, 502, 507, 548, 553, 578
+    Part05a: lines 298, 358-362
+    Part14: lines 340, 354-359
+  3-step chain (combined-is-refl, cannot convert):
+    Part14: line 203
+
+All standalone 2-step ∙-chains have now been converted to equational
+reasoning style across the entire codebase.
+
+Full chain verification: SUCCESS (Part01 through Part20).

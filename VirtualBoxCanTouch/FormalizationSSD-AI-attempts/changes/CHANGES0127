@@ -1,0 +1,32 @@
+CHANGES0127 — Alias inlining + BoolRingPath roundtrip elimination
+
+Changes since bck0126 (6182 lines → 6150 lines, -32 lines):
+
+All changes are safe structural simplifications. No useful work lost.
+
+1. Part08 (475→455, -20 lines):
+   a) Inlined `rec-of-decode` (lines 255-256, was `sym (h≡rec∘decode-pointwise n)`)
+      - Used at 2 sites: replaced `sym (rec-of-decode n)` with
+        `h≡rec∘decode-pointwise n`, and `rec-of-decode (encode x)`
+        with `sym (h≡rec∘decode-pointwise (encode x))`. Net: -3 lines.
+   b) Eliminated BoolRingPath roundtrip (step3-equiv' → step3-h-eq → step3-equiv):
+      The chain converted equiv→path→equiv via BoolRingPath needlessly.
+      Since h-quotient/rec-quotient are definitional aliases for their
+      expanded forms, `step3-equiv'` can be used directly.
+      Removed `step3-h-eq` and `step3-equiv` definitions. Net: -8 lines.
+   c) Removed `A'-seq`, `C'-seq`, `D'-seq` aliases (trivial renamings of
+      `B/d`, `rec-quotient`, `h-quotient`). Kept `B'-seq` (long expansion).
+      Updated all usage sites in invStep2-seq, invStep3-seq, step12-seq,
+      B/d-equiv types and bodies. Net: -9 lines.
+
+2. Part14 (456→444, -12 lines):
+   a) Collapsed single-use chain `d₀-cb-f-eq` → `d₀-at-x` → `d₀-rel`:
+      Removed `d₀-cb-f-eq` (was `snd coboundary-data`) and `d₀-at-x`
+      (was `funExt⁻` chain). Combined body directly into `d₀-rel`.
+      Also inlined `coboundary-data` into `cb-f`. Net: -7 lines.
+   b) Inlined `witness` (was trivially `β-adjusted`):
+      Replaced `SE.rec→Set witness` with `SE.rec→Set β-adjusted`.
+      Net: -3 lines.
+   c) Removed now-dead `witness` definition. Net: -2 lines (included above).
+
+Full chain verification: SUCCESS (Part01 through Part20).

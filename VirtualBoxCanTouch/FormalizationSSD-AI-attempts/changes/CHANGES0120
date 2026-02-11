@@ -1,0 +1,55 @@
+CHANGES0120 — Equational style conversions + import cleanup + dead code removal
+
+Changes since bck0119 (5926 lines → 5971 lines, +45 lines):
+
+The line increase is entirely from mandatory equational reasoning style
+conversions. No useful work was lost.
+
+1. Part02 (876, unchanged line count):
+   - Removed unused `quotientPreservesIdem` from local import (line 311)
+
+2. Part03 (151→156, +5 lines):
+   - Converted `and-is-false` 3-step ∙-chain to equational reasoning (+5)
+   - Removed unused `false≢true` and `isSetBool` from Cubical.Data.Bool import
+
+3. Part04 (624→620, -4 lines):
+   - Removed 4 unnecessary `cong (fst h) (cong₂ _,_ ... (sym (⊕-comm ...)))`
+     steps in `h-ur-complement`. Both ⊕-comm arguments (`false ⊕ true`,
+     `true ⊕ false`, `true ⊕ true`) reduce to normal form, making these
+     definitionally `cong f refl = refl`. (-4 lines)
+   - Removed now-unused `⊕-comm` from Cubical.Data.Bool.Properties import
+
+4. Part05 (1162→1168, +6 lines):
+   - Converted `go ⊎.inr` 3-step ∙-chain (inside with) to equational (+6)
+
+5. Part05a (402→424, +22 lines):
+   - Converted `¬∞-+∞-left` 3-step ∙-chain to equational reasoning (+7)
+   - Converted `xor-nf-correct (joinForm, meetNegForm)` 4-step to equational (+5)
+   - Converted `xor-nf-correct (meetNegForm, joinForm)` 5-step to equational (+6)
+   - Converted `xor-nf-correct (meetNegForm, meetNegForm)` 3-step to equational (+4)
+
+6. Part07 (243→264, +21 lines):
+   - Converted `0=1→¬Sp` 3-step ∙-chain to equational reasoning with
+     local BooleanRingStr renaming for readability (+10)
+   - Converted `αn-is-false` 5-step nested ∙-chain (with sym) to equational
+     reasoning with local BooleanRingStr renaming (+11)
+
+7. Part14 (407→402, -5 lines):
+   - Inlined trivial `StoneType` wrapper (`StoneType S = fst S`) at all 4
+     usage sites and removed definition (-3 lines, not tex-referenced)
+   - Merged `lhs-simplify` steps 2-3 (refl ∙ βv → βv) by combining
+     `cong (_∙ βv) (rCancel βu)` with `sym (lUnit βv)` (-2 lines)
+
+NOTE: Part14 `combined-path` (3-step ∙-chain) was NOT converted because
+downstream code (`combined-is-refl`) manipulates the chain's internal
+structure. Equational and ∙ chains produce propositionally equal but
+definitionally different paths, breaking the downstream proof.
+
+Remaining ∙-composition chains (not convertible or borderline):
+  Part03: g∞-distinct-mult-zero case (2-step)
+  Part05: go ⊎.inl case (2-step inside with)
+  Part05a: ¬∞-+∞-cancel (2-step outer, 5-step inside cong — acceptable)
+  Part14: combined-path (3-step, NOT convertible — see note above),
+          sym-p-uw (2-step), key-rel/ψ-expand/key-eq/path-algebra-lemma (2-step)
+
+Full chain verification: SUCCESS (Part01 through Part20).

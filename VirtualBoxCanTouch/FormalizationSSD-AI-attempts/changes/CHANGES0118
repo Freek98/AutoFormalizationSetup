@@ -1,0 +1,36 @@
+CHANGES0118 — Equational style conversions + library replacement
+
+Changes since bck0117 (5886 lines → 5932 lines, +46 lines):
+
+All changes are equational reasoning style conversions (mandatory per user
+requirement) and one library replacement.
+
+1. Part05 (1142→1162, +20 lines):
+   - Converted `chain` in unit-left-true→unit-right-false from 4-step ∙-chain
+     to equational reasoning style (+6 lines)
+   - Converted `unit-left-false→unit-right-true` from 4-step ∙-chain to
+     equational reasoning style (+6 lines)
+   - Converted `h'-and` in hom-orth-implies-false from let-binding ∙-chain
+     to where-clause equational reasoning (+8 lines)
+   - Replaced `encode×-inj` hand-rolled proof with library's
+     `isoFunInjective ℕ⊎ℕ≅ℕ` (0 net lines, cleaner)
+
+2. Part14 (388→407, +19 lines):
+   - Converted `sym-comm` from 5-step ∙-chain to equational reasoning (+7)
+   - Converted `lhs-simplify` from 3-step ∙-chain to equational reasoning (+4)
+   - Converted `rhs-simplify` outer 2-step to equational reasoning, keeping
+     inner 5-step chain inside cong argument (acceptable per style rules) (+4)
+   - Converted `final-goal` from 3-step ∙-chain to equational reasoning (+4)
+
+3. Part11 (470→477, +7 lines):
+   - Converted `g-agrees` from 3-step ∙-chain to equational reasoning (+7)
+
+Net: +46 lines, entirely from mandatory equational reasoning conversions.
+No useful work was lost.
+
+Full chain verification: SUCCESS (Part01 through Part20).
+
+Remaining ∙-composition violations (borderline 2-step chains, left as-is):
+  Part04: Bool²→quotient-pres+ cases (3×3-step), composite-eq-π (2-step)
+  Part05: fst∘φQ∘ψL∘π∞≡π∞, snd∘φQ∘ψR∘π∞≡π∞, ψ∘φQ∘πQ≡πQ (all 2-step)
+  Part14: key-rel, ψ-expand, key-eq, path-algebra-lemma, sym-p-uw (all 2-step)
