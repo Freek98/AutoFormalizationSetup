@@ -1,13 +1,4 @@
-# Rules for Working 
-1. I want you to clean up the agda files in the work directory. Use more library code. 
-2. If something is in monolithic.tex, it is a relevant result. The statement and possible proofs should remain there.
-3. If a function or import statement can be deleted and nothing anywhere breaks down, it should be deleted **unless** it is mentioned in monolithic.tex as a result (theorem,proposition, proof).
-4. Almost all comments are useless, as they are not written in agda. They can go. The only useful comments are those that state that a specific theorem (which is proven in agda, not in comments) can be found somewhere in the tex file. 
-5. You should check if some functions already exist in cubical library somewhere. If they do, clean them up. For example, there exist results on N x N = N in Cubical.Data.Nat.Bijections.
-6. If a file does not contain any functions, it can be deleted. 
-7. try to see if you can remove postulates, but only in parts >3. Parts 1 and 2 should keep their postulates. 
-
-
+# Rules for Working on Math_Background.mg
 
 ## STRICT PROHIBITIONS
 
@@ -17,7 +8,6 @@
 3. In particular, you have to ensure that all compiling theorems and definitions added since are kept.
 4. If you later discover such screwup, you have to immedially start working on salvaging the lost work.
 5. **SIMPLE CHECK**: after each backup, run wc on the current and previous backup. If the current backup is smaller, you have to explicitly justify (in the CHANGES file) the decrease and explain that you have not thrown out useful work.
-6. I moved your backups to a backup direct ory , and your changes comments to a changes directory. 
 
 ### Logic System (Agda)
 
@@ -37,7 +27,8 @@
 * If a proof is blocked, **don’t handwave**:
 
   * factor out the missing step as a lemma with a clear statement,
-  * or temporarily `postulate`/`{-# TERMINATING #-}` only if your project allows placeholders (label them clearly), then come back and discharge them.
+  * or temporarily leave a hole open, and come back to it later. 
+  * You have a tendency to proof things in the comments. Comments do not count, they are not trustworthy. **Only** agda-code that has been checked is trustworthy. 
 
 ### Syntax Rules (Agda)
 
@@ -96,8 +87,8 @@ While doing the above, keep the following principles in mind:
     - equality/path lemmas,
     - equivalence constructions,
     - standard HITs or truncations.
-- **You can no longer introduce new axioms.**
-  - Temporary holes are acceptable only as placeholders and must be filled.
+- **You can introduce new axioms but only those mentioned in the tex file.**
+  - Temporary `postulate`s are acceptable only as placeholders and must be eliminated.
 - Any newly introduced definitions or lemmas must:
   - respect Cubical Agda’s definitional equality and computation rules,
   - be compatible with path-based equality and univalence.

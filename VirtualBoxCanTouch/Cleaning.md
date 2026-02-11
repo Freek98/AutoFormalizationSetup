@@ -1,9 +1,11 @@
 # Rules for Working 
-1. I want you to clean up the agda files in the work directory. 
+1. I want you to clean up the agda files in the work directory. Use more library code. 
 2. If something is in monolithic.tex, it is a relevant result. The statement and possible proofs should remain there.
-3. If a function can be deleted and nothing anywhere breaks down, it should be deleted **unless** it is mentioned in monolithic.tex as a result (theorem,proposition, proof).
+3. If a function or import statement can be deleted and nothing anywhere breaks down, it should be deleted **unless** it is mentioned in monolithic.tex as a result (theorem,proposition, proof).
 4. Almost all comments are useless, as they are not written in agda. They can go. The only useful comments are those that state that a specific theorem (which is proven in agda, not in comments) can be found somewhere in the tex file. 
-5. You should check if some functions already exist in cubical library somewhere. If they do, clean them up. 
+5. You should check if some functions already exist in cubical library somewhere. If they do, clean them up. For example, there exist results on N x N = N in Cubical.Data.Nat.Bijections.
+6. If a file does not contain any functions, it can be deleted. 
+7. try to see if you can remove postulates, but only in parts >3. Parts 1 and 2 should keep their postulates. 
 
 
 
