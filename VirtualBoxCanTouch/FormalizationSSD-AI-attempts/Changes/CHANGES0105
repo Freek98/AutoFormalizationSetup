@@ -1,0 +1,18 @@
+bck0104 → bck0105: Pattern collapse in Part04 (6374 → 6371, -3 lines)
+
+Changes in Part04.agda (663 → 660, -3 lines saved):
+
+1. Collapsed `neg≡self²` from 4 case patterns to wildcard (-3 lines)
+   - All 4 cases for (Bool × Bool) returned `refl`
+   - Negation on Bool² is definitionally the identity on all inputs
+   - `neg≡self² _ = refl` compiles successfully
+
+Note: Several other wildcard collapse attempts were made and reverted:
+- Part04 `Bool→Sp-Bool²→Bool _ = refl` FAILS (computation needs Bool value)
+- Part05 `xor-and-is-or _ _ = refl` FAILS (⊕ needs first arg to compute)
+- Part05 `helper _ = refl` (b ⊕ true ≡ not b) FAILS (same reason)
+- Part02/Part08 `rec-of-decode` merge (flipping with-abstracted equality)
+  FAILS due to with-abstraction transport issues in Cubical Agda
+
+Full chain (Part21) compilation verified.
+Total: 6371 lines.

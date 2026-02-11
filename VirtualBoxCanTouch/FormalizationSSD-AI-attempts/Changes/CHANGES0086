@@ -1,0 +1,25 @@
+bck0085 → bck0086: Part05 cleanup using library code and deduplication (1306 → 1244, -62 lines)
+
+Changes in Part05.agda:
+
+1. Removed duplicate `m≠m+suc-d` (3 lines), replaced all uses with `a≠a+suc-d` from Part04.
+   Both prove: ¬ (m ≡ m + suc d). The Part04 version was already available via public export.
+
+2. Replaced hand-rolled `iscomp`/`fst-is-hom`/`snd-is-hom` infrastructure (-17 lines)
+   with proper `BoolHom` definitions for `fst-hom`/`snd-hom` composed using `_∘cr_` from
+   Cubical.Algebra.CommRing.Properties. This simplifies `fst∘φQ∘ψL∘π∞-hom` and
+   `snd∘φQ∘ψR∘π∞-hom` from multi-line iscomp chains to single `∘cr` expressions.
+
+3. Factored `kill-cross1`/`kill-cross2` (-10 lines) into shared `cross-annihil` helper.
+   Both prove (eQ·a)·(eQ'·b) ≡ 0 using eQ·eQ'=0; `kill-cross2` adds one `·CommQ` step.
+
+4. Replaced inline `h'-right-true` proof (-29 lines) with call to existing
+   `unit-left-false→unit-right-true`. The 13-line equational proof was redundant with
+   the module-level function. Removed all supporting local infrastructure (3 opens,
+   h'-pres1, unit-sum', h'-pres+, false-⊕-id) that was only needed for that proof.
+
+Line decrease justified: all removed code was either duplicate (m≠m+suc-d, h'-right-true)
+or unnecessary infrastructure (iscomp, fst-is-hom, snd-is-hom, kill-cross duplicated logic).
+No theorems, definitions, or tex-referenced results were removed.
+
+Full chain (Part21) compilation verified.

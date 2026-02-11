@@ -1,0 +1,12 @@
+bck0088 → bck0089: Part05 unused import removal (1203 → 1201, -2 lines)
+
+Changes in Part05.agda:
+
+1. Removed unused `Dec; yes; no` from Cubical.Relation.Nullary import (kept `¬_`)
+2. Removed unused standalone `isPropΠ` import from Cubical.Foundations.HLevels
+3. Consolidated `⊕-comm` into existing Cubical.Data.Bool import line (was separate import)
+
+Line decrease justified: only import statements were removed; no definitions,
+theorems, or tex-referenced results were affected.
+
+Full chain (Part21) compilation verified.

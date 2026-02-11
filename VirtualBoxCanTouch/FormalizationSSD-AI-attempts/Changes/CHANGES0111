@@ -1,0 +1,32 @@
+bck0110 → bck0111: Multi-file inlining and dead code removal (6094 → 6063, -31 lines)
+
+Changes in Part04.agda (645 → 636, -9 lines):
+1. Inlined `f-free-pres·` (single-use alias for IsCommRingHom.pres·) (-2 lines)
+2. Inlined `f-pres·'` (single-use alias for IsCommRingHom.pres·) (-2 lines)
+3. Inlined `f-on-zero` (single-use alias for IsCommRingHom.pres0) (-2 lines)
+   - All three replaced at their single usage sites with direct library calls
+
+Changes in Part05.agda (1156 → 1154, -2 lines):
+1. Inlined `gQ` alias into `ψ∘φQ∘πQ≡πQ` as let-binding (-2 lines)
+   - Was `gQ n = fst πQ (gen n)`, used twice in uniqueness proof
+
+Changes in Part07.agda (258 → 255, -3 lines):
+1. Inlined `id-hom` alias (was `idBoolHom BoolBR`) at 2 usage sites (-3 lines)
+   - Replaced in `Sp-roundtrip` call and `h-comp` type signature
+
+Changes in Part08.agda (474 → 471, -3 lines):
+1. Inlined `spClosed` (single-use, was `SpEqualityClosed B s' t'`) (-3 lines)
+   - Replaced inline in `StoneEqualityClosed` call
+
+Changes in Part14.agda (438 → 424, -14 lines):
+1. Removed dead `BZConnectivityInfra` module (-6 lines)
+   - `BZ-is-connected` was never used anywhere in work/ or tex
+   - Also removed associated imports (isConnected, isConnectedSubtr, isConnectedEM)
+2. Inlined `UnitInterval≡Unit` into `isContr-H¹-UnitInterval` (-1 line)
+   - Replaced with `ua (isContr→≃Unit isContrUnitInterval)` directly
+3. Removed dead `IntervalConnectedFromContr` module (-4 lines)
+   - `is-1-connected-I-derived` was never used anywhere in work/ or tex
+4. Blank line cleanup (-3 lines)
+
+Full chain (Part21) compilation verified.
+Total: 6063 lines.

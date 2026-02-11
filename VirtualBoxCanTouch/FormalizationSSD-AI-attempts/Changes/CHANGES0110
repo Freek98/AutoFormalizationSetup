@@ -1,0 +1,24 @@
+bck0109 → bck0110: Further Part02 let-inlining and dead code removal (6154 → 6094, -60 lines)
+
+Changes in Part02.agda (964 → 904, -60 lines):
+1. Inlined `¬Pclosed`/`¬Qclosed` in `openDeMorgan` (-5 lines)
+2. Collapsed `clopenIsDecidable` let-block (-10 lines)
+   - Removed `¬¬P∨¬P-trunc`, `P∨¬P-trunc-holds`, `P∨¬P-holds` intermediates
+   - Kept `¬P`, `¬Popen`, `P∨¬P-trunc`, `P∨¬P-trunc-open` for type inference
+3. Inlined in `implicationOpenClosed` (-10 lines)
+   - Removed `¬Q`, `¬Qopen`, `P∧¬Q` aliases
+   - Inlined `¬P∧¬Q-holds` and `¬¬Q` in backward direction
+4. Removed dead `¬∀P-open` in `closedMarkovTex` (-3 lines)
+   - Also inlined `∀P-closed` and `¬Pn-open`
+   - Simplified `forward` to single expression
+5. Inlined `openSigmaDecidable` (yes case) forward helper chain (-6 lines)
+   - Collapsed `¬allFalse`/`helper` into direct lambda
+6. Inlined `openSigmaDecidable` (no case) α alias (-2 lines)
+7. Inlined `¬P∧¬Qopen` chain in `closedOr` from bck0109 (-8 lines, already counted)
+8. Inlined `αIdeal`, `Sp-hom`, `SpTypeFamily` from bck0109 (-5 lines, already counted)
+
+Note: The -60 lines figure is relative to bck0109's Part02 (964 lines).
+Most changes are mechanical inlining of single-use where-block helpers.
+
+Full chain (Part21) compilation verified.
+Total: 6094 lines.

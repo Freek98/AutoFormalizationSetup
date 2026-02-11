@@ -1,0 +1,23 @@
+bck0113 → bck0114: Multi-file inlining cleanup (6009 → 5977, -32 lines)
+
+Changes in Part07.agda (255 → 243, -12 lines):
+1. Inlined `h-π-αn≡0`, `h-π-αn≡true`, `contradiction` in `Sp→all-false`
+   - Merged into single `αn-is-false` helper with direct expression
+2. Inlined `surj` and `step1` in `¬¬Sp→truncSp`
+   - Direct application of injective→Sp-surjective
+
+Changes in Part14.agda (424 → 410, -14 lines):
+1. Removed dead `module ATx = AbGroupStr (snd (A^T x))` in CanonicalExactCechComplex
+2. Inlined `cocycle-at-tuv` into `step1` in both section-exact and canonical-exact
+3. Removed `goal` wrapper (was just `sym step2`) in both Cech proofs
+
+Changes in Part05.agda (1145 → 1142, -3 lines):
+1. Inlined `BooleanRing-xor-eq-to-eq'` where-block into equational chain in `f-injective`
+
+Changes in Part09.agda (254 → 251, -3 lines):
+1. Inlined `is-set'` single-use alias into direct `CommRingStr.is-set (snd R')` usage
+
+Note: bck0114 also includes All.agda (23 lines) which was missing from bck0113.
+Part-file total (excluding All.agda): 5977 lines.
+
+Full chain (Part21) compilation verified.

@@ -1,0 +1,27 @@
+bck0093 → bck0094: Part02 dead code + unused import removal (1079 → 1067, -12 lines)
+
+Changes in Part02.agda:
+
+1. Removed unused import: Cubical.Foundations.Powerset using (_∈_) (-1 line)
+   `_∈_` was never used in Part02.
+
+2. Removed unused import: Cubical.Data.Nat.Properties using (discreteℕ; +∸) (-1 line)
+   Neither `discreteℕ` nor `+∸` was used in Part02.
+
+3. Removed dead code: equiv⁻¹ (-3 lines)
+   Defined at module level inside B∞-IsCountablyPresented but never referenced.
+   Part08 has its own `equiv⁻¹-hom` (different definition).
+
+4. Removed dead code: quotient-Booleω (-3 lines)
+   Exact duplicate of `2/α-Booleω` (defined at line 326). Part07 defines its
+   own `B-quotient-Booleω` locally.
+
+5. Removed dead code: Sp-surjective→injective (-4 lines)
+   The reverse direction of surj-formal-axiom (injective→Sp-surjective is the
+   used direction). Never referenced in any file. Not tex-referenced.
+
+Note: attempted to remove 12 redundant imports already provided by Part01, but
+Part01's `open import` statements are NOT marked `public`, so those names are
+NOT re-exported to Part02. The redundant import removal was reverted.
+
+Full chain (Part21) compilation verified.

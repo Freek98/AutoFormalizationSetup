@@ -1,0 +1,33 @@
+bck0095 → bck0096: Part11 + Part14 cleanup (458+441 → 449+438, -12 lines)
+
+Changes in Part11.agda (458 → 449, -9 lines):
+
+1. Removed 5 unused `open` statements (-5 lines)
+   - open TruncationStoneClosedComplete (InhabitedClosedSubSpaceClosedCHausModule)
+   - open ClosedInStoneIsStoneModule (InhabitedClosedSubSpaceClosedCHausModule)
+   - open InhabitedClosedSubSpaceClosedCHausModule (ChausMapsPreserveIntersectionOfClosedModule)
+   - open CHausSeperationOfClosedByOpensModule (ConnectedComponentConnectedModule)
+   - open AlgebraCompactHausdorffCountablyPresentedModule (StoneCompactHausdorffTotallyDisconnectedModule)
+   None of the exported names from these modules were used in their respective scopes.
+
+2. Merged two Axioms.StoneDuality imports (-1 line)
+   Combined `using (Stone; hasStoneStr)` and `using (Sp; Booleω; evaluationMap)` into one import.
+
+3. Removed orphan comment (-2 lines)
+   "CompactHausdorffTopology (tex Corollary 2019)" had no associated Agda code.
+
+4. Narrowed import: removed unused `true≢false` from Bool using clause.
+
+Changes in Part14.agda (441 → 438, -3 lines):
+
+1. Removed dead code: `loop-comm` (-3 lines)
+   Defined but never used in Part14 or downstream. Not tex-referenced.
+
+2. Narrowed 4 imports:
+   - Removed unused `pos; negsuc` from Cubical.Data.Int
+   - Removed unused `hasCHausStr` from CompactHausdorffModule
+   - Removed unused `isoToEquiv` from Isomorphism
+   - Removed unused `rUnit` from GroupoidLaws (2 occurrences)
+
+Full chain (Part21) compilation verified.
+Total: 6489 lines.

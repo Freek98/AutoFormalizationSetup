@@ -1,0 +1,28 @@
+bck0089 → bck0090: Part04 + Part08 proof deduplication and inlining (-43 lines)
+
+Changes in Part04.agda (733 → 720, -13 lines):
+
+1. Factored `h-ur` computation in `classify-Bool²-hom` (-13 lines)
+   The h≡proj₁ and h≡proj₂ proofs both computed `fst h Bool²-unit-right`
+   via identical 12-line equational chains (differing only in final Bool value).
+   Replaced with shared `h-ur-complement : (b : Bool) → fst h Bool²-unit-left ≡ b
+   → fst h Bool²-unit-right ≡ not b`. Uses the fact that `true ⊕ b` definitionally
+   reduces to `not b`, eliminating the need for the final `⊕-comm` step.
+
+Changes in Part08.agda (552 → 522, -30 lines):
+
+1. Inlined step3 intermediate definitions (-15 lines)
+   Removed step3-backward∘forward-ext, step3-backward∘forward,
+   step3-forward∘backward-ext, step3-forward∘backward, and step3-equiv-fun.
+   Inlined their bodies directly into step3-iso (Iso.sec/Iso.ret) and step3-equiv'.
+
+2. Inlined step1 intermediate definitions (-15 lines)
+   Same pattern: removed step1-backward∘forward-ext, step1-backward∘forward,
+   step1-forward∘backward-ext, step1-forward∘backward, and step1-equiv-fun.
+   Inlined into step1-iso and step1-equiv.
+
+Line decrease justified: all removed code was either duplicated proof patterns
+(h-ur computation) or single-use intermediate definitions that were inlined.
+No theorems, definitions, or tex-referenced results were removed.
+
+Full chain (Part21) compilation verified.

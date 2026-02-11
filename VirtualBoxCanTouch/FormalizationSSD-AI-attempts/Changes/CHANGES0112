@@ -1,0 +1,38 @@
+bck0111 → bck0112: Multi-file inlining, dead code removal (6063 → 6015, -48 lines)
+
+Changes in Part03.agda (160 → 151, -9 lines):
+1. Inlined `comm` let-binding in `g∞-distinct-mult-zero` (-2 lines)
+   - BooleanRingStr.·Comm directly in `∙` composition
+2. Inlined `eq1`/`eq2`/`eq3` let-bindings in `g∞-lt-mult-zero` (-5 lines)
+   - Collapsed into single `cong (fst π∞)` step
+
+Changes in Part04.agda (636 → 633, -3 lines):
+1. Inlined `Bool²→quotient-pres-` where-block helper (-3 lines)
+   - Replaced with lambda in record field
+
+Changes in Part05.agda (1154 → 1145, -9 lines):
+1. Inlined `kill-cross1` and `kill-cross2` in `pres·-expand` (-9 lines)
+   - `kill-cross1` replaced with `cross-annihil x₁ y₂`
+   - `kill-cross2` replaced with `·CommQ ... ∙ cross-annihil x₂ y₁`
+   - `cross-annihil` helper retained (now used directly)
+
+Changes in Part09.agda (268 → 254, -14 lines):
+1. Removed dead `S-isSet` and `ΣA-isSet` (-5 lines)
+   - `ΣA-isSet` was never used anywhere
+   - `S-isSet` was only used by `ΣA-isSet`
+2. Inlined `propHasStoneStrΣA` into `PT.rec` call (-2 lines)
+   - Replaced with `isPropHasStoneStr sd-axiom _`
+3. Inlined `A→allFalse` (single-use) (-2 lines)
+   - Replaced with `fst (snd (A-closed y))`
+4. Inlined `allFalse→A` (single-use) (-2 lines)
+   - Replaced with `snd (snd (A-closed ...))`
+5. Removed unused `isSetΣ` from import (-0 lines, import narrowed)
+
+Changes in Part10.agda (144 → 131, -13 lines):
+1. Inlined `Sp-freeBA-ℕ-≃`, `Cantor-Sp-roundtrip`, and `fiber-transport` (-10 lines)
+   - All were single-use, collapsed into `ClosedSubsetSp≃ΣA`
+2. Removed dead `Sp-to-Cantor` alias (-3 lines)
+   - Was `Iso.fun Sp-freeBA-ℕ-Iso`, became unused after inlining
+
+Full chain (Part21) compilation verified.
+Total: 6015 lines.

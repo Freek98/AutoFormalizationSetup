@@ -1,0 +1,43 @@
+bck0092 → bck0093: Part07 cleanup — imports, dead code, inlining (332 → 288, -44 lines)
+
+Changes in Part07.agda:
+
+1. Removed 3 entirely unused imports (-3 lines)
+   - BooleanRing.FreeBooleanRing.FreeBool (freeBA, generator)
+   - CountablyPresentedBooleanRings.PresentedBoole (has-Boole-ω')
+   - Cubical.Data.Sum (_⊎_, inl, inr)
+
+2. Narrowed 3 partially-used imports
+   - Removed equivFun from Equiv using clause
+   - Changed Data.Nat to `using (ℕ)` (removed unused _+ℕ_, _·ℕ_ renamings)
+   - Removed false≢true from Bool using clause
+
+3. Cleaned up local module imports (-3 lines)
+   - Removed unused `as IQ` alias from CommRing.Quotient.ImageQuotient
+   - Removed SpGeneralBooleanRing, isSetSp from ClosedPropIffStone import
+   - Removed SpGeneralBooleanRing from TruncationStoneClosed import
+   - Removed SpGeneralBooleanRing from TruncationStoneClosedComplete import
+
+4. Deleted dead code P→Sp, Sp→P (-5 lines)
+   Defined in closedProp→hasStoneStr but never used anywhere.
+
+5. Inlined P→all-false/all-false→P (-4 lines)
+   Single-use aliases for fst/snd (snd Pclosed). Inlined into P≃all-false.
+
+6. Inlined canonical-hom-is-injective + Sp-canonical-surjective (-9 lines)
+   Single-use intermediates. canonical-hom-is-injective was a trivial eta-wrapper
+   over canonical-hom-injective. Sp-canonical-surjective applied
+   injective→Sp-surjective with these args. Both inlined into ¬¬Sp→truncSp's
+   where block.
+
+7. Inlined LemSurjectionsFormalToCompleteness-equiv (-4 lines)
+   Single-use re-export of LemSurjectionsFormalToCompleteness-derived.
+   Inlined the qualified name directly.
+
+8. Replaced hProp-path pattern with TypeOfHLevel≡ 1 (-6 lines)
+   Two identical patterns (fst-path + Σ≡Prop isPropIsProp) in ¬Sp-isOpen
+   and truncSp-isClosed. Replaced both with `TypeOfHLevel≡ 1 (ua equiv)`,
+   using existing library function from Cubical.Foundations.HLevels.
+
+No theorems, definitions, or tex-referenced results were removed.
+Full chain (Part21) compilation verified.

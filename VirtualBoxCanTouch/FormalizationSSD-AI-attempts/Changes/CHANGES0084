@@ -1,0 +1,11 @@
+bck0083 → bck0084: Minor cleanup in Part05 (1320 → 1306, -14 lines)
+
+Removed from Part05.agda:
+- Unused import `Cubical.Data.Nat.Order` (1 line)
+- 13 lines of non-tex comments (mathematical structure explanations for
+  generator maps, relation types, forward/backward maps, left/right inverses)
+
+Per CLAUDE.md: "Almost all comments are useless. The only useful comments are
+those that state that a specific theorem can be found somewhere in the tex file."
+
+No functional changes. Full chain (Part21) compilation verified.

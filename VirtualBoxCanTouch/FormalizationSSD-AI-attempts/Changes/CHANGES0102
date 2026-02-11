@@ -1,0 +1,18 @@
+bck0101 → bck0102: Part02 micro-optimizations (6401 → 6395, -6 lines)
+
+Changes in Part02.agda (1067 → 1061, -6 lines saved):
+
+1. Simplified `and-true-left` helper in `openAnd` from 4 cases to 2 using wildcards (-2 lines)
+   - `true` case: second arg doesn't matter → wildcard
+   - `false` case: second arg doesn't matter → wildcard
+
+2. Simplified `and-true-right` helper in `openAnd` from 4 cases to 2 using wildcards (-2 lines)
+   - Same wildcard pattern as and-true-left
+
+3. Removed unnecessary `∙ refl` and inlined intermediate `eq` binding
+   in `firstTrue-false-but-original-true` (-2 lines)
+   - `eq = firstTrue-with α n false α0=f ∙ refl` → inlined directly as
+     `sym (firstTrue-with α n false α0=f) ∙ ft-sn=f`
+
+Full chain (Part21) compilation verified.
+Total: 6395 lines.

@@ -1,0 +1,44 @@
+bck0108 → bck0109: Multi-file let-inlining and alias removal (6256 → 6154, -102 lines)
+
+Changes in Part02.agda (1025 → 964, -61 lines):
+1. Collapsed `commRingPath→boolRingEquiv` where-block into one-liner with let (-4 lines)
+2. Inlined `allFalse→Pn` alias in `closedCountableIntersection.backward` (-2 lines)
+3. Inlined `Dn`, `Dn-dec` into `Rn-open` in `openSigmaOpen` (-4 lines)
+4. Inlined `forward-equiv`/`backward-equiv`/`helper`/`helper1` in `openSigmaOpen` (-12 lines)
+5. Inlined `step2-path` into `step2-equiv` in `quotientPreservesBooleω` (-3 lines)
+6. Inlined `step3-equiv'` into `step3-equiv` (-2 lines)
+7. Inlined `decode∘encode` (Iso.ret alias) (-3 lines)
+8. Inlined `embBR-hom` into `composite-hom` (-2 lines)
+9. Inlined `α'≡π₀∘g` and `step1-equiv` into `equivToPresentation` (-4 lines)
+10. Inlined `αIdeal` in `mp-from-SD` (-1 line)
+11. Removed `Sp-hom` (single-use, not tex-referenced) (-2 lines)
+12. Removed `SpTypeFamily` (single-use, inlined into LocalChoiceAxiom) (-2 lines)
+13. Inlined `¬Popen`, `¬Qopen`, `¬P∧¬Q` into `¬P∧¬Qopen` in `closedOr` (-8 lines)
+
+Changes in Part04.agda (649 → 645, -4 lines):
+1. Inlined `funEq` where-blocks in `h≡proj₁` and `h≡proj₂` (-4 lines)
+   - Moved `sym (funExt ...)` directly into `Σ≡Prop` call
+
+Changes in Part05.agda (1164 → 1156, -8 lines):
+1. Inlined `ns=[]` let-binding in `f-kernel-normalForm` (-2 lines)
+2. Inlined `k`/`n=2k`/`n=2k+1` let-bindings in `h'-on-f-neg-gen-aux` (-4 lines)
+   - `sym n=2k` simplified to `isEven→even n even-n` (double sym cancellation)
+3. Inlined `h-sum`/`h-one` in `unit-left-false→unit-right-true` (-2 lines)
+   [carried over from pre-bck0108 extended check]
+
+Changes in Part08.agda (477 → 474, -3 lines):
+1. Inlined `π-f` alias for `fst QB.quotientImageHom` (-3 lines)
+   - Replaced 2 usage sites with direct expression
+2. Inlined `B/d-ring` alias and `d'-has-preimage`/`lifts-exist` (-5 lines)
+   [carried over from pre-bck0108]
+
+Changes in Part13.agda (61 → 59, -2 lines):
+1. Collapsed `BFP-contradiction` to one-line let (-2 lines)
+2. Inlined `no-fix` lambda in `BrouwerFixedPointTheorem` (-2 lines)
+
+Changes in Part19.agda (120 → 116, -4 lines):
+1. Collapsed `Stone-Sp-I-local` where-block into one-liner (-4 lines)
+   - Inlined `B-is-set`, `g`, `g-const`, `goal`
+
+Full chain (Part21) compilation verified.
+Total: 6154 lines.

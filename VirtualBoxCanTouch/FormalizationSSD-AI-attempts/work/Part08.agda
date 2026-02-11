@@ -9,21 +9,19 @@ open import Cubical.Foundations.HLevels using (isPropΠ; hProp)
 open import Cubical.Foundations.Structure
 open import Cubical.Foundations.Function using (_∘_)
 open import Cubical.Foundations.Transport using (transport⁻; transportTransport⁻)
-open import Cubical.Foundations.Isomorphism using (iso; isoToEquiv; Iso)
+open import Cubical.Foundations.Isomorphism using (isoToEquiv; Iso)
 open import Cubical.Foundations.Equiv using (_≃_; equivFun; invEq; equivToIso)
 open import Cubical.Data.Sigma
-open import Cubical.Data.Nat renaming (_+_ to _+ℕ_ ; _·_ to _·ℕ_)
-open import Cubical.Data.Bool using (Bool; true; false; _⊕_; isSetBool; true≢false; false≢true)
-open import Cubical.Data.Empty using (⊥)
+open import Cubical.Data.Nat
+open import Cubical.Data.Bool using (Bool; true; false; isSetBool)
 import Cubical.Data.Sum as ⊎
 open import Cubical.Data.Sum using (_⊎_; inl; inr)
 open import Cubical.Data.Nat.Bijections.Sum using (ℕ⊎ℕ≅ℕ)
 open import BooleanRing.BoolRingUnivalence using (BoolRingPath)
-open import Cubical.Relation.Nullary using (¬_; Dec; yes; no)
-open import Cubical.HITs.PropositionalTruncation as PT using (∣_∣₁; ∥_∥₁; rec; elim; squash₁)
-open import Cubical.Algebra.BooleanRing using (BooleanRing; BooleanRingStr; BoolHom; BooleanRing→CommRing)
+open import Cubical.HITs.PropositionalTruncation as PT using (∣_∣₁; ∥_∥₁; rec; squash₁)
+open import Cubical.Algebra.BooleanRing using (BooleanRing; BooleanRingStr; BoolHom)
 open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
-open import Cubical.Algebra.CommRing using (CommRing; CommRingHom; IsCommRingHom; _$cr_; CommRingHom≡; _∘cr_)
+open import Cubical.Algebra.CommRing using (CommRingHom; IsCommRingHom; _$cr_; CommRingHom≡; _∘cr_)
 open import Axioms.StoneDuality using (Booleω; Sp)
 open import CountablyPresentedBooleanRings.PresentedBoole using (BooleanRingEquiv; has-Boole-ω'; BooleanEquivToHomInv; BooleanEquivLeftInv; idBoolHom; invBooleanRingEquiv)
 open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator; freeBA-universal-property)
@@ -86,29 +84,15 @@ module StoneEqualityClosedModule where
     t-on-free : BoolHom (freeBA ℕ) BoolBR
     t-on-free = t ∘cr presEquiv⁻¹-hom ∘cr π
 
-    agree-on-free-gen : ((n : ℕ) → fst (P n))
-      → (fst s-on-free ∘ generator ≡ fst t-on-free ∘ generator)
-    agree-on-free-gen allP = funExt (λ n → allP n)
-
     s-on-free=t-on-free : ((n : ℕ) → fst (P n)) → s-on-free ≡ t-on-free
-    s-on-free=t-on-free allP =
-      let s-restr : ℕ → Bool
-          s-restr = fst s-on-free ∘ generator
-          t-restr : ℕ → Bool
-          t-restr = fst t-on-free ∘ generator
-          induced-s : BoolHom (freeBA ℕ) BoolBR
-          induced-s = Iso.fun (freeBA-universal-property ℕ BoolBR) s-restr
-          induced-t : BoolHom (freeBA ℕ) BoolBR
-          induced-t = Iso.fun (freeBA-universal-property ℕ BoolBR) t-restr
-          s-on-free=induced : induced-s ≡ s-on-free
-          s-on-free=induced = Iso.sec (freeBA-universal-property ℕ BoolBR) s-on-free
-          t-on-free=induced : induced-t ≡ t-on-free
-          t-on-free=induced = Iso.sec (freeBA-universal-property ℕ BoolBR) t-on-free
-          s-restr=t-restr : s-restr ≡ t-restr
-          s-restr=t-restr = agree-on-free-gen allP
-          induced-s=induced-t : induced-s ≡ induced-t
-          induced-s=induced-t = cong (Iso.fun (freeBA-universal-property ℕ BoolBR)) s-restr=t-restr
-      in sym s-on-free=induced ∙ induced-s=induced-t ∙ t-on-free=induced
+    s-on-free=t-on-free allP = let FUP = freeBA-universal-property ℕ BoolBR in
+      s-on-free
+        ≡⟨ sym (Iso.sec FUP s-on-free) ⟩
+      Iso.fun FUP (Iso.inv FUP s-on-free)
+        ≡⟨ cong (Iso.fun FUP) (funExt allP) ⟩
+      Iso.fun FUP (Iso.inv FUP t-on-free)
+        ≡⟨ Iso.sec FUP t-on-free ⟩
+      t-on-free ∎
 
     s-on-Q : BoolHom Q BoolBR
     s-on-Q = s ∘cr presEquiv⁻¹-hom
@@ -116,12 +100,9 @@ module StoneEqualityClosedModule where
     t-on-Q : BoolHom Q BoolBR
     t-on-Q = t ∘cr presEquiv⁻¹-hom
 
-    s-on-Q=t-on-Q-fst : ((n : ℕ) → fst (P n)) → fst s-on-Q ≡ fst t-on-Q
-    s-on-Q=t-on-Q-fst allP =
-      QB.quotientImageHomEpi (Bool , isSetBool) (cong fst (s-on-free=t-on-free allP))
-
     s-on-Q=t-on-Q : ((n : ℕ) → fst (P n)) → s-on-Q ≡ t-on-Q
-    s-on-Q=t-on-Q allP = CommRingHom≡ (s-on-Q=t-on-Q-fst allP)
+    s-on-Q=t-on-Q allP = CommRingHom≡
+      (QB.quotientImageHomEpi (Bool , isSetBool) (cong fst (s-on-free=t-on-free allP)))
 
     leftInv : presEquiv⁻¹-hom ∘cr presEquiv-hom ≡ idBoolHom B
     leftInv = BooleanEquivLeftInv B Q equiv
@@ -164,16 +145,13 @@ module StoneEqualityClosedModule where
   StoneEqualityClosed (X , B , path) s t = closedEquiv
     ((s' ≡ t') , isSetBoolHom (fst B) BoolBR s' t')
     ((s ≡ t) , hasStoneStr→isSet (X , B , path) s t)
-    forward backward spClosed
+    forward backward (SpEqualityClosed B s' t')
     where
     s' : Sp B
     s' = transport⁻ path s
 
     t' : Sp B
     t' = transport⁻ path t
-
-    spClosed : isClosedProp ((s' ≡ t') , isSetBoolHom (fst B) BoolBR s' t')
-    spClosed = SpEqualityClosed B s' t'
 
     forward : (s' ≡ t') → (s ≡ t)
     forward s'=t' =
@@ -188,9 +166,6 @@ module StoneEqualityClosedModule where
 -- StoneClosedSubsets (tex Theorem 1648)
 
 module StoneClosedSubsetsModule where
-  open import Axioms.StoneDuality using (Stone; hasStoneStr; isSetBoolHom)
-  open SDDecToElemModule
-  open StoneEqualityClosedModule
 
   module SpOfQuotientBySeq (B : BooleanRing ℓ-zero) (d : ℕ → ⟨ B ⟩) where
     B/d : BooleanRing ℓ-zero
@@ -231,32 +206,18 @@ module StoneClosedSubsetsModule where
     → ∥ Σ[ C ∈ Booleω ] (Sp C ≃ (Σ[ x ∈ Sp B ] ((n : ℕ) → fst x (d n) ≡ false))) ∥₁
   quotientBySeqPreservesBooleω B d = PT.rec squash₁ construct (snd B)
     where
-    B/d : BooleanRing ℓ-zero
-    B/d = fst B QB./Im d
-
     construct : has-Boole-ω' (fst B) →
                 ∥ Σ[ C ∈ Booleω ] (Sp C ≃ (Σ[ x ∈ Sp B ] ((n : ℕ) → fst x (d n) ≡ false))) ∥₁
-    construct (f , equiv) = PT.rec squash₁ (λ lifts → ∣ constructFromLifts lifts ∣₁) lifts-exist
+    construct (f , equiv) = PT.rec squash₁ (λ lifts → ∣ constructFromLifts lifts ∣₁)
+        (countableChoice LiftType (λ n → QB.quotientImageHomSurjective (d' n)))
       where
       open SpOfQuotientBySeq (fst B) d
-
-      B/d-ring : BooleanRing ℓ-zero
-      B/d-ring = fst B QB./Im d
 
       d' : ℕ → ⟨ freeBA ℕ QB./Im f ⟩
       d' n = fst (fst equiv) (d n)
 
-      π-f : ⟨ freeBA ℕ ⟩ → ⟨ freeBA ℕ QB./Im f ⟩
-      π-f = fst QB.quotientImageHom
-
-      d'-has-preimage : (n : ℕ) → ∥ Σ[ x ∈ ⟨ freeBA ℕ ⟩ ] π-f x ≡ d' n ∥₁
-      d'-has-preimage n = QB.quotientImageHomSurjective (d' n)
-
       LiftType : ℕ → Type ℓ-zero
-      LiftType n = Σ[ x ∈ ⟨ freeBA ℕ ⟩ ] π-f x ≡ d' n
-
-      lifts-exist : ∥ ((n : ℕ) → LiftType n) ∥₁
-      lifts-exist = countableChoice LiftType d'-has-preimage
+      LiftType n = Σ[ x ∈ ⟨ freeBA ℕ ⟩ ] fst QB.quotientImageHom x ≡ d' n
 
       constructFromLifts : ((n : ℕ) → LiftType n) →
                            Σ[ C ∈ Booleω ] (Sp C ≃ (Σ[ x ∈ Sp B ] ((n : ℕ) → fst x (d n) ≡ false)))
@@ -265,7 +226,7 @@ module StoneClosedSubsetsModule where
         g : ℕ → ⟨ freeBA ℕ ⟩
         g n = fst (lifts n)
 
-        g-is-section : (n : ℕ) → π-f (g n) ≡ d' n
+        g-is-section : (n : ℕ) → fst QB.quotientImageHom (g n) ≡ d' n
         g-is-section n = snd (lifts n)
 
         encode : ℕ ⊎ ℕ → ℕ
@@ -356,13 +317,6 @@ module StoneClosedSubsetsModule where
             ≡⟨ cong (λ hom → fst hom x) step3-backward-eval ⟩
           fst π-h x ∎
 
-        step3-backward∘forward-ext : (step3-backward ∘ step3-forward) ∘ fst π-h ≡ (λ x → x) ∘ fst π-h
-        step3-backward∘forward-ext = funExt step3-backward∘forward-on-π
-
-        step3-backward∘forward : (x : ⟨ h-quotient ⟩) → step3-backward (step3-forward x) ≡ x
-        step3-backward∘forward = funExt⁻ (QB.quotientImageHomEpi {B = freeBA ℕ} {f = h}
-                                           (⟨ h-quotient ⟩ , BooleanRingStr.is-set (snd h-quotient)) step3-backward∘forward-ext)
-
         step3-forward∘backward-on-π : (y : ⟨ freeBA ℕ ⟩) → step3-forward (step3-backward (fst π-rec y)) ≡ fst π-rec y
         step3-forward∘backward-on-π y =
           step3-forward (step3-backward (fst π-rec y))
@@ -371,24 +325,16 @@ module StoneClosedSubsetsModule where
             ≡⟨ cong (λ hom → fst hom y) step3-forward-eval ⟩
           fst π-rec y ∎
 
-        step3-forward∘backward-ext : (step3-forward ∘ step3-backward) ∘ fst π-rec ≡ (λ y → y) ∘ fst π-rec
-        step3-forward∘backward-ext = funExt step3-forward∘backward-on-π
-
-        step3-forward∘backward : (y : ⟨ rec-quotient ⟩) → step3-forward (step3-backward y) ≡ y
-        step3-forward∘backward = funExt⁻ (QB.quotientImageHomEpi {B = freeBA ℕ} {f = ⊎.rec f g}
-                                           (⟨ rec-quotient ⟩ , BooleanRingStr.is-set (snd rec-quotient)) step3-forward∘backward-ext)
-
         step3-iso : Iso ⟨ h-quotient ⟩ ⟨ rec-quotient ⟩
         Iso.fun step3-iso = step3-forward
         Iso.inv step3-iso = step3-backward
-        Iso.sec step3-iso = step3-forward∘backward
-        Iso.ret step3-iso = step3-backward∘forward
-
-        step3-equiv-fun : ⟨ h-quotient ⟩ ≃ ⟨ rec-quotient ⟩
-        step3-equiv-fun = isoToEquiv step3-iso
+        Iso.sec step3-iso = funExt⁻ (QB.quotientImageHomEpi {B = freeBA ℕ} {f = ⊎.rec f g}
+          (⟨ rec-quotient ⟩ , BooleanRingStr.is-set (snd rec-quotient)) (funExt step3-forward∘backward-on-π))
+        Iso.ret step3-iso = funExt⁻ (QB.quotientImageHomEpi {B = freeBA ℕ} {f = h}
+          (⟨ h-quotient ⟩ , BooleanRingStr.is-set (snd h-quotient)) (funExt step3-backward∘forward-on-π))
 
         step3-equiv' : BooleanRingEquiv h-quotient rec-quotient
-        step3-equiv' = step3-equiv-fun , snd step3-forward-hom
+        step3-equiv' = isoToEquiv step3-iso , snd step3-forward-hom
 
         step3-h-eq : freeBA ℕ QB./Im h ≡ freeBA ℕ QB./Im (⊎.rec f g)
         step3-h-eq = equivFun (BoolRingPath h-quotient rec-quotient) step3-equiv'
@@ -411,41 +357,41 @@ module StoneClosedSubsetsModule where
         composite-sends-d-to-0 : (n : ℕ) → composite-hom-1 $cr (d n) ≡ BooleanRingStr.𝟘 (snd target-ring)
         composite-sends-d-to-0 n = QB.zeroOnImage {f = d'} n
 
-        step1-forward-hom : BoolHom B/d-ring target-ring
+        step1-forward-hom : BoolHom B/d target-ring
         step1-forward-hom = QB.inducedHom target-ring composite-hom-1 composite-sends-d-to-0
 
-        π-d : BoolHom (fst B) B/d-ring
+        π-d : BoolHom (fst B) B/d
         π-d = QB.quotientImageHom
 
         equiv⁻¹-hom : BoolHom (freeBA ℕ QB./Im f) (fst B)
         equiv⁻¹-hom = fst (fst (invBooleanRingEquiv (fst B) (freeBA ℕ QB./Im f) equiv)) ,
                       snd (invBooleanRingEquiv (fst B) (freeBA ℕ QB./Im f) equiv)
 
-        backward-composite-1 : BoolHom (freeBA ℕ QB./Im f) B/d-ring
+        backward-composite-1 : BoolHom (freeBA ℕ QB./Im f) B/d
         backward-composite-1 = π-d ∘cr equiv⁻¹-hom
 
-        backward-composite-sends-d'-to-0 : (n : ℕ) → backward-composite-1 $cr (d' n) ≡ BooleanRingStr.𝟘 (snd B/d-ring)
+        backward-composite-sends-d'-to-0 : (n : ℕ) → backward-composite-1 $cr (d' n) ≡ BooleanRingStr.𝟘 (snd B/d)
         backward-composite-sends-d'-to-0 n =
           π-d $cr (equiv⁻¹-hom $cr (fst (fst equiv) (d n)))
             ≡⟨ cong (π-d $cr_) (Iso.ret (equivToIso (fst equiv)) (d n)) ⟩
           π-d $cr (d n)
             ≡⟨ QB.zeroOnImage {f = d} n ⟩
-          BooleanRingStr.𝟘 (snd B/d-ring) ∎
+          BooleanRingStr.𝟘 (snd B/d) ∎
 
-        step1-backward-hom : BoolHom target-ring B/d-ring
-        step1-backward-hom = QB.inducedHom B/d-ring backward-composite-1 backward-composite-sends-d'-to-0
+        step1-backward-hom : BoolHom target-ring B/d
+        step1-backward-hom = QB.inducedHom B/d backward-composite-1 backward-composite-sends-d'-to-0
 
-        step1-forward-fun : ⟨ B/d-ring ⟩ → ⟨ target-ring ⟩
+        step1-forward-fun : ⟨ B/d ⟩ → ⟨ target-ring ⟩
         step1-forward-fun = fst step1-forward-hom
 
-        step1-backward-fun : ⟨ target-ring ⟩ → ⟨ B/d-ring ⟩
+        step1-backward-fun : ⟨ target-ring ⟩ → ⟨ B/d ⟩
         step1-backward-fun = fst step1-backward-hom
 
         step1-forward-eval : step1-forward-hom ∘cr π-d ≡ composite-hom-1
         step1-forward-eval = QB.evalInduce {B = fst B} {f = d} target-ring
 
         step1-backward-eval : step1-backward-hom ∘cr π-d' ≡ backward-composite-1
-        step1-backward-eval = QB.evalInduce {B = freeBA ℕ QB./Im f} {f = d'} B/d-ring
+        step1-backward-eval = QB.evalInduce {B = freeBA ℕ QB./Im f} {f = d'} B/d
 
         equiv⁻¹∘equiv≡id : (x : ⟨ fst B ⟩) → fst equiv⁻¹-hom (fst (fst equiv) x) ≡ x
         equiv⁻¹∘equiv≡id = Iso.ret (equivToIso (fst equiv))
@@ -463,13 +409,6 @@ module StoneClosedSubsetsModule where
             ≡⟨ cong (fst π-d) (equiv⁻¹∘equiv≡id x) ⟩
           fst π-d x ∎
 
-        step1-backward∘forward-ext : (step1-backward-fun ∘ step1-forward-fun) ∘ fst π-d ≡ (λ x → x) ∘ fst π-d
-        step1-backward∘forward-ext = funExt step1-backward∘forward-on-π
-
-        step1-backward∘forward : (x : ⟨ B/d-ring ⟩) → step1-backward-fun (step1-forward-fun x) ≡ x
-        step1-backward∘forward = funExt⁻ (QB.quotientImageHomEpi {B = fst B} {f = d}
-                                           (⟨ B/d-ring ⟩ , BooleanRingStr.is-set (snd B/d-ring)) step1-backward∘forward-ext)
-
         step1-forward∘backward-on-π : (y : ⟨ freeBA ℕ QB./Im f ⟩) →
                                        step1-forward-fun (step1-backward-fun (fst π-d' y)) ≡ fst π-d' y
         step1-forward∘backward-on-π y =
@@ -481,39 +420,23 @@ module StoneClosedSubsetsModule where
             ≡⟨ cong (fst π-d') (equiv∘equiv⁻¹≡id y) ⟩
           fst π-d' y ∎
 
-        step1-forward∘backward-ext : (step1-forward-fun ∘ step1-backward-fun) ∘ fst π-d' ≡ (λ y → y) ∘ fst π-d'
-        step1-forward∘backward-ext = funExt step1-forward∘backward-on-π
-
-        step1-forward∘backward : (y : ⟨ target-ring ⟩) → step1-forward-fun (step1-backward-fun y) ≡ y
-        step1-forward∘backward = funExt⁻ (QB.quotientImageHomEpi {B = freeBA ℕ QB./Im f} {f = d'}
-                                           (⟨ target-ring ⟩ , BooleanRingStr.is-set (snd target-ring)) step1-forward∘backward-ext)
-
-        step1-iso : Iso ⟨ B/d-ring ⟩ ⟨ target-ring ⟩
+        step1-iso : Iso ⟨ B/d ⟩ ⟨ target-ring ⟩
         Iso.fun step1-iso = step1-forward-fun
         Iso.inv step1-iso = step1-backward-fun
-        Iso.sec step1-iso = step1-forward∘backward
-        Iso.ret step1-iso = step1-backward∘forward
+        Iso.sec step1-iso = funExt⁻ (QB.quotientImageHomEpi {B = freeBA ℕ QB./Im f} {f = d'}
+          (⟨ target-ring ⟩ , BooleanRingStr.is-set (snd target-ring)) (funExt step1-forward∘backward-on-π))
+        Iso.ret step1-iso = funExt⁻ (QB.quotientImageHomEpi {B = fst B} {f = d}
+          (⟨ B/d ⟩ , BooleanRingStr.is-set (snd B/d)) (funExt step1-backward∘forward-on-π))
 
-        step1-equiv-fun : ⟨ B/d-ring ⟩ ≃ ⟨ target-ring ⟩
-        step1-equiv-fun = isoToEquiv step1-iso
+        step1-equiv : BooleanRingEquiv B/d target-ring
+        step1-equiv = isoToEquiv step1-iso , snd step1-forward-hom
 
-        step1-equiv : BooleanRingEquiv B/d-ring target-ring
-        step1-equiv = step1-equiv-fun , snd step1-forward-hom
-
-        open IsCommRingHom
-
-        d'≡π-f∘g-pointwise : (n : ℕ) → d' n ≡ fst QB.quotientImageHom (g n)
-        d'≡π-f∘g-pointwise n = sym (g-is-section n)
-
-        d'≡π-f∘g : d' ≡ fst QB.quotientImageHom ∘ g
-        d'≡π-f∘g = funExt d'≡π-f∘g-pointwise
-
-        step1-equiv' : BooleanRingEquiv B/d-ring ((freeBA ℕ QB./Im f) QB./Im (fst QB.quotientImageHom ∘ g))
-        step1-equiv' = subst (λ seq → BooleanRingEquiv B/d-ring ((freeBA ℕ QB./Im f) QB./Im seq))
-                         d'≡π-f∘g step1-equiv
+        step1-equiv' : BooleanRingEquiv B/d ((freeBA ℕ QB./Im f) QB./Im (fst QB.quotientImageHom ∘ g))
+        step1-equiv' = subst (λ seq → BooleanRingEquiv B/d ((freeBA ℕ QB./Im f) QB./Im seq))
+                         (funExt (λ n → sym (g-is-section n))) step1-equiv
 
         A'-seq : BooleanRing ℓ-zero
-        A'-seq = B/d-ring
+        A'-seq = B/d
 
         B'-seq : BooleanRing ℓ-zero
         B'-seq = (freeBA ℕ QB./Im f) QB./Im (fst QB.quotientImageHom ∘ g)
@@ -537,14 +460,14 @@ module StoneClosedSubsetsModule where
         step12-seq : BooleanRingEquiv A'-seq C'-seq
         step12-seq = compBoolRingEquiv A'-seq B'-seq C'-seq step1-equiv' invStep2-seq
 
-        B/d-equiv : BooleanRingEquiv B/d-ring (freeBA ℕ QB./Im h)
+        B/d-equiv : BooleanRingEquiv B/d (freeBA ℕ QB./Im h)
         B/d-equiv = compBoolRingEquiv A'-seq C'-seq D'-seq step12-seq invStep3-seq
 
-        B/d-presentation : has-Boole-ω' B/d-ring
+        B/d-presentation : has-Boole-ω' B/d
         B/d-presentation = h , B/d-equiv
 
         C : Booleω
-        C = B/d-ring , ∣ B/d-presentation ∣₁
+        C = B/d , ∣ B/d-presentation ∣₁
 
         Sp-equiv : Sp C ≃ (Σ[ x ∈ Sp B ] ((n : ℕ) → fst x (d n) ≡ false))
         Sp-equiv = Sp-quotient-≃

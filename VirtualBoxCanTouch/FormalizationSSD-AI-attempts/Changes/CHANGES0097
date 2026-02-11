@@ -1,0 +1,36 @@
+bck0096 → bck0097: Part08 + Part04 cleanup (522+720 → 497+716, -29 lines)
+
+Changes in Part08.agda (522 → 497, -25 lines):
+
+1. Removed 2 entirely unused imports (-2 lines)
+   - Cubical.Data.Empty using (⊥)
+   - Cubical.Relation.Nullary using (¬_; Dec; yes; no)
+
+2. Narrowed 3 imports
+   - Removed unused `iso` from Isomorphism
+   - Removed unused `_⊕_; true≢false; false≢true` from Bool
+   - Removed unused `BooleanRing→CommRing` from BooleanRing
+
+3. Removed 3 dead opens/import in StoneClosedSubsetsModule (-3 lines)
+   - open import Axioms.StoneDuality
+   - open SDDecToElemModule
+   - open StoneEqualityClosedModule
+
+4. Inlined `agree-on-free-gen` (-3 lines)
+   Replaced usage with `funExt allP` directly.
+
+5. Inlined `s-on-Q=t-on-Q-fst` into `s-on-Q=t-on-Q` (-5 lines)
+
+6. Removed dead outer `B/d` (-1 line)
+   Was shadowed by `open SpOfQuotientBySeq`.
+
+7. Inlined `d'≡π-f∘g-pointwise` + `d'≡π-f∘g` + removed dead `open IsCommRingHom` (-9 lines)
+
+Changes in Part04.agda (720 → 716, -4 lines):
+
+1. Removed dead `char2²` + `char2²-raw` open (-4 lines)
+   `char2²` was defined but never used anywhere. Also removed the
+   `open BooleanAlgebraStr Bool²` that provided `char2²-raw`.
+
+Full chain (Part21) compilation verified.
+Total: 6460 lines.

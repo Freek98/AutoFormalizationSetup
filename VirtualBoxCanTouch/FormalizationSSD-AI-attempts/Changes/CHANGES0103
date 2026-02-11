@@ -1,0 +1,20 @@
+bck0102 → bck0103: Delete Part15, inline is-1-connected removal (6395 → 6381, -14 lines)
+
+1. Deleted Part15.agda entirely (-10 lines)
+   - Only content was `ConnectednessForBoolILocal` module defining
+     `is-1-connected A = isContr ∥ A ∥₁` (a trivial alias)
+   - `is-1-connected` not referenced in monolithic.tex
+   - Only used in Part19 for `is-1-connected-I` which was also dead code
+     (not in tex, not used downstream)
+
+2. Part19.agda (130 → 126, -4 lines)
+   - Changed import from Part15 to Part14 (Part15 was just a pass-through)
+   - Removed `open ConnectednessForBoolILocal` (no longer exists)
+   - Removed dead `is-1-connected-I` definition and type signature
+
+3. All.agda: removed `import work.Part15`
+
+Import chain now: ...Part14→Part19→Part20→Part21 (Part15 eliminated)
+
+Full chain (Part21) compilation verified.
+Total: 6381 lines.

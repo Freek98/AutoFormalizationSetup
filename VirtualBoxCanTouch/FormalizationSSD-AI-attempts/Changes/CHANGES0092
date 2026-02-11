@@ -1,0 +1,8 @@
+bck0091 → bck0092: Part06 unused import removal (69 → 68, -1 line)
+
+Changes in Part06.agda:
+
+1. Removed unused `open import Cubical.Foundations.Function using (_∘_)` (-1 line)
+   Only `∘cr` (CommRing composition) was used in Part06, not `_∘_`.
+
+Full chain (Part21) compilation verified in previous session.

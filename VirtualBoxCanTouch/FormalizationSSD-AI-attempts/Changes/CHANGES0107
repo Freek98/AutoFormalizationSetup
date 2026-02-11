@@ -1,0 +1,52 @@
+bck0106 → bck0107: Multi-file let-inlining, import consolidation, module unwrapping (6355 → 6285, -70 lines)
+
+Changes in Part02.agda (1061 → 1036, -25 lines):
+1. Removed dead `generator` import (-1 line)
+2. Inlined let-bindings in `find-first-true-odd-step` (-8 lines)
+   - n-even case: inlined `k`, `2k=n` into ex-falso
+   - n-odd case: inlined `j`, `βj=t` type annotations, kept `odd-eq`
+   - no ft-n=t case: inlined `ft-n=f`
+3. Inlined let-bindings in `find-first-true-even-step` (-8 lines, symmetric)
+4. Inlined let-bindings in `allEvensF-implies-P` ¬¬P proof (-5 lines)
+   - Inlined `δ₀-2k=t`, `j`, `¬q`
+5. Inlined let-bindings in `allOddsF-implies-Q` ¬¬Q proof (-3 lines)
+   - Inlined `δ₀-odd-k=t`, `j`, `¬p`
+
+Changes in Part04.agda (660 → 649, -11 lines):
+1. Removed `proj₁-Bool²`/`proj₂-Bool²` aliases for `fst`/`snd` (-5 lines)
+   - Replaced uses with `fst`/`snd` directly
+2. Inlined `a≠a+suc-d` let-bindings into one-liner (-5 lines)
+   - `znots (inj-m+ (+-zero a ∙ eq))` replaces 7-line let block
+
+Changes in Part05.agda (1171 → 1166, -5 lines):
+1. Replaced all remaining `𝟙B∞` with `𝟙∞` in B∞×B∞-Units and B∞×B∞-Presentation (-3 lines)
+   - Removed 2 open statements (lines 34-35 and 48 of bck0106)
+   - 𝟙∞ publicly available from Part03 chain
+
+Changes in Part06.agda (68 → 58, -10 lines):
+1. Unwrapped `ℕ∞IsStoneModule` and `BoolIsStoneModule` modules (-10 lines)
+   - Moved `hasStoneStr` and `Bool` imports to top level
+   - Definitions now at module scope, no module wrappers needed
+   - Module names were not used downstream
+
+Changes in Part07.agda (288 → 276, -12 lines):
+1. Moved `idBoolHom` import to top level (+1 line)
+2. Inlined `all-false→Sp` where-block entirely (-8 lines)
+   - `id-hom` and `α-to-0` both trivial (identity hom + definitional equality)
+3. Inlined `α-to-0` and removed duplicate import in `Sp-roundtrip` (-5 lines)
+
+Changes in Part09.agda (268 → 268, 0 lines):
+1. Narrowed Nat import from `renaming (_+_ to _+ℕ_ ; _·_ to _·ℕ_)` to `using (ℕ)`
+
+Changes in Part10.agda (144 → 144, 0 lines):
+1. Narrowed Nat import from `renaming (_+_ to _+ℕ_ ; _·_ to _·ℕ_)` to `using (ℕ)`
+
+Changes in Part12.agda (204 → 200, -4 lines):
+1. Inlined `at0`, `at1`, `constant` let-bindings in `IVT-contradiction` (-4 lines)
+
+Changes in Part20.agda (65 → 62, -3 lines):
+1. Removed 2 dead imports in `NoRetractionTC` module (-3 lines)
+   - `Cubical.Data.Int` and `Cubical.HITs.S1` were unused
+
+Full chain (Part21) compilation verified.
+Total: 6285 lines.

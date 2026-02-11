@@ -1,0 +1,42 @@
+bck0115 → bck0116: Proof style + dead code cleanup (5924 → 5875, -49 lines)
+
+Changes in Part04.agda (633 → 630, -3 lines):
+1. Converted g₀+g₁≡𝟙Q from ∙-composition style to equational reasoning
+   - Was: step6 ∙ step7 ∙ step8 ∙ step9 with 9 named intermediate steps
+   - Now: proper ≡⟨ ⟩ chain with one named helper (combined)
+
+Changes in Part05a.agda (409 → 402, -7 lines):
+1. Inlined private helper ∨·ab≡ab into ∨·¬∧≡+ equational chain
+   - Split cong₂ step into two cong steps with the helper proof inline
+   - Removed the private block
+
+Changes in Part02.agda (898 → 890, -8 lines):
+1. Removed dead `_∧-Open_` operator (never used, not tex-referenced)
+2. Removed dead `_∧-Closed_` operator (never used, not tex-referenced)
+
+Changes in Part14.agda (410 → 388, -22 lines):
+1. Removed dead `BZ∙` (pointed BZ, never used)
+2. Removed dead `bz₀` (basepoint of BZ, never used)
+3. Removed dead `IntervalCohomologyInline` module
+   - Had `isContr-H¹-UnitInterval` definition
+   - Was only used by `interval-cohomology-vanishes`
+4. Removed dead `interval-cohomology-vanishes`
+   - Was previously used by Part20.IntervalCohomologyTC (removed in bck0115)
+5. Cleaned unused imports: removed EM∙, Pointed
+
+Deleted Part21.agda (-9 lines):
+- Per CLAUDE.md rule 6: "If a file does not contain any functions, it can be deleted"
+- Part21 only had `open import work.Part20 public` and 3 comment lines
+- Updated All.agda to remove Part21 import (-1 line)
+
+Comprehensive dead code and proof shortening analysis performed:
+- Launched 4 explore agents to scan Part02, Part04, Part05, Part05a, Part08, Part11
+- Found Part04 g₀+g₁≡𝟙Q violated user equational reasoning style preference
+- Found Part05a ∨·ab≡ab was single-use private helper
+- Found Part02 _∧-Open_/_∧-Closed_ dead operators
+- Found Part14 had 4 dead definitions from previous IntervalCohomologyTC removal
+- Remaining postulates are all deep mathematical results with no tractable proof paths
+- Import chain now ends at Part20 (Part21 removed)
+
+Full chain (Part20) compilation verified.
+Part-file total: 5875 lines.

@@ -1,0 +1,33 @@
+bck0077 → bck0078: Add infrastructure for B∞×B∞≃Q proof (748 → 857, +109 lines)
+
+Added foundational infrastructure needed to prove the B∞×B∞≃Q postulate:
+
+1. Refactored prodRel from with-based to helper-function-based:
+   - prodRelAB, prodRelFromPair, prodRelOuter as named helpers
+   - Enables prodRel-encodes-C lemma via cong on helpers
+
+2. Added private helpers:
+   - 𝟘Q, _·Q_, _+Q_, isSetQ (quotient ring operations)
+   - encode×-inj (injectivity of encode× via decode×∘encode× roundtrip)
+   - ≠-diff (a≠b implies a<b or b<a with explicit difference)
+
+3. Key quotient lemmas:
+   - prodRel-encodes-C: prodRel maps to type-C relation expressions
+   - πQ-kills-type-C: type-C relations are zero in Q
+   - πQ-suc-gens-zero: distinct suc-generators orthogonal in Q
+
+4. Embedding maps ψL, ψR : BoolHom B∞ Q:
+   - genL/genR: generator maps for left/right B∞ embeddings
+   - genL-free/genR-free: induced free BA homs
+   - genL-respects-relB∞/genR-respects-relB∞: B∞ relations preserved
+   - ψL/ψR via QB.inducedHom
+
+5. Opaque evaluation lemmas:
+   - ψL-eval, ψR-eval, φQ-eval
+
+6. eQ = fst πQ (gen 0) — the idempotent element
+
+B∞×B∞≃Q still postulated. Next: define ψ-fun, prove ring hom, prove roundtrips.
+
+Line increase justified: +109 lines of proof infrastructure, no dead code.
+Total lines: 6200 → 6309 (+109). Part05 compiles, full chain pending.

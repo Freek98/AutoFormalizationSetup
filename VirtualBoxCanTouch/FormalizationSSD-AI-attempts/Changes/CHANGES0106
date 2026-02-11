@@ -1,0 +1,15 @@
+bck0105 → bck0106: Part08 let-inlining + Part05 where-block removal (6371 → 6355, -16 lines)
+
+Changes in Part08.agda (497 → 485, -12 lines):
+1. Inlined 7 let-bindings in `s-on-free=t-on-free` (-12 lines)
+   - `s-restr`, `t-restr`, `induced-s`, `induced-t`, `s-on-free=induced`,
+     `t-on-free=induced`, `induced-s=induced-t` all inlined into the ∙-chain
+   - Proof body went from 16 lines to 4 lines
+
+Changes in Part05.agda (1175 → 1171, -4 lines):
+1. Replaced `𝟙B∞` with `𝟙∞` in `unit-left-right-orth` and `unit-right-left-orth` (-4 lines)
+   - `𝟙∞` is already publicly re-exported from Part03
+   - Removed 2 where-blocks that were only opening BooleanRingStr to rename 𝟙
+
+Full chain (Part21) compilation verified.
+Total: 6355 lines.

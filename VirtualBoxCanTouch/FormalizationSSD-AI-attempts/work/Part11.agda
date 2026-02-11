@@ -2,7 +2,7 @@
 
 module work.Part11 where
 
-open import work.Part10a public
+open import work.Part10b public
 
 import Cubical.HITs.PropositionalTruncation as PT
 
@@ -57,9 +57,7 @@ module InhabitedClosedSubSpaceClosedCHausModule where
   open import Axioms.StoneDuality using (Stone; hasStoneStr)
   open import Cubical.Functions.Surjection using (isSurjection)
   open CompactHausdorffModule
-  open TruncationStoneClosedComplete
   open InhabitedClosedSubSpaceClosedModule
-  open ClosedInStoneIsStoneModule
   open StoneEqualityClosedModule using (isPropIsClosedProp)
 
   InhabitedClosedSubSpaceClosedCHaus : (X : CHaus)
@@ -167,7 +165,6 @@ module CHausFiniteIntersectionPropertyModule where
 module ChausMapsPreserveIntersectionOfClosedModule where
   open CompactHausdorffModule
   open CHausFiniteIntersectionPropertyModule
-  open InhabitedClosedSubSpaceClosedCHausModule
 
   imageSubset : {X Y : Type₀} → (f : X → Y)
     → (A : X → hProp ℓ-zero) → Y → hProp ℓ-zero
@@ -186,8 +183,6 @@ module ChausMapsPreserveIntersectionOfClosedModule where
       → (y : fst Y)
       → fst (imageSubset f (countableIntersectionClosed G) y)
         ≡ fst (countableIntersectionClosed (λ n → imageSubset f (G n)) y)
-
--- CompactHausdorffTopology (tex Corollary 2019)
 
 -- CHausSeperationOfClosedByOpens (tex Lemma 2058)
 
@@ -271,7 +266,6 @@ module ConnectedComponentModule where
 module ConnectedComponentConnectedModule where
   open CompactHausdorffModule
   open ConnectedComponentModule
-  open CHausSeperationOfClosedByOpensModule
 
   postulate
     ConnectedComponentConnected : (X : CHaus) (x : fst X)
@@ -284,18 +278,15 @@ module ConnectedComponentConnectedModule where
 module StoneCompactHausdorffTotallyDisconnectedModule where
   open CompactHausdorffModule
   open ConnectedComponentModule
-  open AlgebraCompactHausdorffCountablyPresentedModule
-  open import Axioms.StoneDuality using (Stone; hasStoneStr)
+  open import Axioms.StoneDuality using (Stone; hasStoneStr; Sp; Booleω; evaluationMap)
 
   isTotallyDisconnected : CHaus → Type₀
   isTotallyDisconnected X =
     (x : fst X) → (y : fst X) → fst (ConnectedComponent X x y) → x ≡ y
-
-  open import Axioms.StoneDuality using (Sp; Booleω; evaluationMap)
   open import Cubical.Algebra.CommRing using (_$cr_; CommRingStr; IsCommRingHom; CommRingHom≡)
   open import Cubical.Algebra.BooleanRing using (BooleanRingStr; BooleanRing→CommRing)
   open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
-  open import Cubical.Data.Bool using (true; false; true≢false; false≢true)
+  open import Cubical.Data.Bool using (true; false; false≢true)
   open import Cubical.Data.Empty as ⊥ using (⊥)
 
   StoneCompactHausdorffTotallyDisconnected-forward : (S : Stone)
@@ -337,29 +328,50 @@ module StoneCompactHausdorffTotallyDisconnectedModule where
       ¬b : ⟨ fst B ⟩
       ¬b = 1B -B b
 
+      neg-eval : ∀ h → h $cr ¬b ≡ true +Bool (negBool (h $cr b))
+      neg-eval h =
+        h $cr ¬b
+          ≡⟨ pres+ (snd h) 1B (negB b) ⟩
+        (h $cr 1B) +Bool (h $cr (negB b))
+          ≡⟨ cong₂ _+Bool_ (pres1 (snd h)) (pres- (snd h) b) ⟩
+        true +Bool (negBool (h $cr b)) ∎
+
       x'-¬b-true : x' $cr ¬b ≡ true
       x'-¬b-true =
-        pres+ (snd x') 1B (negB b) ∙
-        cong₂ _+Bool_ (pres1 (snd x')) (pres- (snd x') b) ∙
-        cong (λ z → true +Bool (negBool z)) eq
-
-      y'-¬b-true : y' $cr ¬b ≡ true
-      y'-¬b-true = agree-on-true ¬b x'-¬b-true
+        x' $cr ¬b
+          ≡⟨ neg-eval x' ⟩
+        true +Bool (negBool (x' $cr b))
+          ≡⟨ cong (λ z → true +Bool (negBool z)) eq ⟩
+        true ∎
 
       y'-¬b-false : y' $cr ¬b ≡ false
       y'-¬b-false =
-        pres+ (snd y') 1B (negB b) ∙
-        cong₂ _+Bool_ (pres1 (snd y')) (pres- (snd y') b) ∙
-        cong (λ z → true +Bool (negBool z)) eq'
+        y' $cr ¬b
+          ≡⟨ neg-eval y' ⟩
+        true +Bool (negBool (y' $cr b))
+          ≡⟨ cong (λ z → true +Bool (negBool z)) eq' ⟩
+        false ∎
 
       contra : false ≡ true
-      contra = sym y'-¬b-false ∙ y'-¬b-true
+      contra =
+        false
+          ≡⟨ sym y'-¬b-false ⟩
+        y' $cr ¬b
+          ≡⟨ agree-on-true ¬b x'-¬b-true ⟩
+        true ∎
 
     x'≡y' : x' ≡ y'
     x'≡y' = CommRingHom≡ (funExt agree-on-all)
 
     goal : x ≡ y
-    goal = sym (transportTransport⁻ p x) ∙ cong (transport p) x'≡y' ∙ transportTransport⁻ p y
+    goal =
+      x
+        ≡⟨ sym (transportTransport⁻ p x) ⟩
+      transport p (transport (sym p) x)
+        ≡⟨ cong (transport p) x'≡y' ⟩
+      transport p (transport (sym p) y)
+        ≡⟨ transportTransport⁻ p y ⟩
+      y ∎
 
   -- tex Lemma 2186 backward direction, depends on tex Lemma 2112
   postulate

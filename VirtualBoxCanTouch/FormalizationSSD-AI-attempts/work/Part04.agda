@@ -13,12 +13,12 @@ open import Cubical.Foundations.Function using (_∘_)
 open import Cubical.Foundations.Isomorphism using (iso; isoToEquiv; isoToIsEquiv; Iso)
 open import Cubical.Data.Nat renaming (_+_ to _+ℕ_ ; _·_ to _·ℕ_)
 open import Cubical.Data.Sigma
-open import Cubical.Data.Bool using (Bool; true; false; _⊕_)
+open import Cubical.Data.Bool using (Bool; true; false; _⊕_; not)
 open import Cubical.Data.Bool.Properties using (⊕-comm; true≢false; false≢true)
 open import Cubical.Relation.Nullary using (¬_; Dec; yes; no)
 import QuotientBool as QB
 open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator; inducedBAHom; evalBAInduce; inducedBAHomUnique)
-open import CountablyPresentedBooleanRings.PresentedBoole using (BooleanRingEquiv; idBoolEquiv; has-Boole-ω')
+open import CountablyPresentedBooleanRings.PresentedBoole using (BooleanRingEquiv; has-Boole-ω')
 open import Axioms.StoneDuality using (Booleω; Sp)
 open import Cubical.HITs.PropositionalTruncation using (∣_∣₁)
 open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
@@ -88,44 +88,37 @@ module Bool²-presentation where
   private
     open BooleanRingStr (snd Bool²-quotient) using () renaming (_+_ to _+Q_ ; _·_ to _·Q_ ; 𝟘 to 𝟘Q ; 𝟙 to 𝟙Q)
     open BooleanAlgebraStr Bool²-quotient using () renaming (characteristic2 to char2Q-raw ; ∧AnnihilL to annihilLQ ; ∧AnnihilR to annihilRQ)
-    open BooleanAlgebraStr Bool² using () renaming (characteristic2 to char2²-raw)
     open import Cubical.Tactics.CommRingSolver
     open import Cubical.HITs.SetQuotients as SQ
 
     char2Q : (x : ⟨ Bool²-quotient ⟩) → x +Q x ≡ 𝟘Q
     char2Q x = char2Q-raw {x}
 
-    char2² : (x : ⟨ Bool² ⟩) → x +² x ≡ 𝟘²
-    char2² x = char2²-raw {x}
-
     g₀+g₁≡𝟙Q : fst π g₀ +Q fst π g₁ ≡ 𝟙Q
-    g₀+g₁≡𝟙Q = step6 ∙ step7 ∙ step8 ∙ step9
+    g₀+g₁≡𝟙Q =
+      fst π g₀ +Q fst π g₁
+        ≡⟨ cong (_+Q fst π g₁) (sym (BooleanRingStr.+IdL (snd Bool²-quotient) (fst π g₀))) ⟩
+      𝟘Q +Q fst π g₀ +Q fst π g₁
+        ≡⟨ cong (λ z → z +Q fst π g₀ +Q fst π g₁) (sym (char2Q 𝟙Q)) ⟩
+      (𝟙Q +Q 𝟙Q) +Q fst π g₀ +Q fst π g₁
+        ≡⟨ solve! (BooleanRing→CommRing Bool²-quotient) ⟩
+      𝟙Q +Q (𝟙Q +Q fst π g₀ +Q fst π g₁)
+        ≡⟨ cong (𝟙Q +Q_) combined ⟩
+      𝟙Q +Q 𝟘Q
+        ≡⟨ BooleanRingStr.+IdR (snd Bool²-quotient) 𝟙Q ⟩
+      𝟙Q ∎
       where
-        rel1-eq : fst π (𝟙 +free g₀ +free g₁) ≡ 𝟘Q
-        rel1-eq = QB.zeroOnImage {B = freeBA ℕ} {f = relBool²} 1
-        step2 : fst π (𝟙 +free g₀) ≡ fst π 𝟙 +Q fst π g₀
-        step2 = IsCommRingHom.pres+ (snd π) 𝟙 g₀
-        step3 : fst π 𝟙 ≡ 𝟙Q
-        step3 = IsCommRingHom.pres1 (snd π)
-        pathAB : 𝟙Q +Q fst π g₀ +Q fst π g₁ ≡ fst π (𝟙 +free g₀) +Q fst π g₁
-        pathAB = cong (λ z → z +Q fst π g₀ +Q fst π g₁) (sym step3) ∙
-                 cong (_+Q fst π g₁) (sym step2)
-        pathC : fst π (𝟙 +free g₀) +Q fst π g₁ ≡ fst π (𝟙 +free g₀ +free g₁)
-        pathC = sym (IsCommRingHom.pres+ (snd π) (𝟙 +free g₀) g₁)
         combined : 𝟙Q +Q fst π g₀ +Q fst π g₁ ≡ 𝟘Q
-        combined = pathAB ∙ pathC ∙ rel1-eq
-        step4 : 𝟙Q +Q (𝟙Q +Q fst π g₀ +Q fst π g₁) ≡ 𝟙Q +Q 𝟘Q
-        step4 = cong (𝟙Q +Q_) combined
-        step5 : 𝟙Q +Q 𝟘Q ≡ 𝟙Q
-        step5 = BooleanRingStr.+IdR (snd Bool²-quotient) 𝟙Q
-        step6 : fst π g₀ +Q fst π g₁ ≡ 𝟘Q +Q fst π g₀ +Q fst π g₁
-        step6 = cong (_+Q fst π g₁) (sym (BooleanRingStr.+IdL (snd Bool²-quotient) (fst π g₀)))
-        step7 : 𝟘Q +Q fst π g₀ +Q fst π g₁ ≡ (𝟙Q +Q 𝟙Q) +Q fst π g₀ +Q fst π g₁
-        step7 = cong (λ z → z +Q fst π g₀ +Q fst π g₁) (sym (char2Q 𝟙Q))
-        step8 : (𝟙Q +Q 𝟙Q) +Q fst π g₀ +Q fst π g₁ ≡ 𝟙Q +Q (𝟙Q +Q fst π g₀ +Q fst π g₁)
-        step8 = solve! (BooleanRing→CommRing Bool²-quotient)
-        step9 : 𝟙Q +Q (𝟙Q +Q fst π g₀ +Q fst π g₁) ≡ 𝟙Q
-        step9 = step4 ∙ step5
+        combined =
+          𝟙Q +Q fst π g₀ +Q fst π g₁
+            ≡⟨ cong (λ z → z +Q fst π g₀ +Q fst π g₁) (sym (IsCommRingHom.pres1 (snd π))) ⟩
+          fst π 𝟙 +Q fst π g₀ +Q fst π g₁
+            ≡⟨ cong (_+Q fst π g₁) (sym (IsCommRingHom.pres+ (snd π) 𝟙 g₀)) ⟩
+          fst π (𝟙 +free g₀) +Q fst π g₁
+            ≡⟨ sym (IsCommRingHom.pres+ (snd π) (𝟙 +free g₀) g₁) ⟩
+          fst π (𝟙 +free g₀ +free g₁)
+            ≡⟨ QB.zeroOnImage {B = freeBA ℕ} {f = relBool²} 1 ⟩
+          𝟘Q ∎
 
     g₁+g₀≡𝟙Q : fst π g₁ +Q fst π g₀ ≡ 𝟙Q
     g₁+g₀≡𝟙Q = BooleanRingStr.+Comm (snd Bool²-quotient) (fst π g₁) (fst π g₀) ∙ g₀+g₁≡𝟙Q
@@ -166,10 +159,7 @@ module Bool²-presentation where
     g₁·g₀≡𝟘Q = BooleanRingStr.·Comm (snd Bool²-quotient) (fst π g₁) (fst π g₀) ∙ g₀·g₁≡𝟘Q
 
     neg≡self² : (x : ⟨ Bool² ⟩) → BooleanRingStr.-_ (snd Bool²) x ≡ x
-    neg≡self² (false , false) = refl
-    neg≡self² (false , true) = refl
-    neg≡self² (true , false) = refl
-    neg≡self² (true , true) = refl
+    neg≡self² _ = refl
 
     neg≡selfQ : (y : ⟨ Bool²-quotient ⟩) → BooleanRingStr.-_ (snd Bool²-quotient) y ≡ y
     neg≡selfQ y = sym (BooleanAlgebraStr.-IsId Bool²-quotient)
@@ -232,11 +222,8 @@ module Bool²-presentation where
     ; pres1 = refl
     ; pres+ = Bool²→quotient-pres+
     ; pres· = Bool²→quotient-pres·
-    ; pres- = Bool²→quotient-pres-
+    ; pres- = λ x → cong Bool²→quotient-fun (neg≡self² x) ∙ sym (neg≡selfQ (Bool²→quotient-fun x))
     }
-    where
-      Bool²→quotient-pres- : (x : ⟨ Bool² ⟩) → Bool²→quotient-fun (BooleanRingStr.-_ (snd Bool²) x) ≡ BooleanRingStr.-_ (snd Bool²-quotient) (Bool²→quotient-fun x)
-      Bool²→quotient-pres- x = cong Bool²→quotient-fun (neg≡self² x) ∙ sym (neg≡selfQ (Bool²→quotient-fun x))
 
   roundtrip-Bool² : (x : ⟨ Bool² ⟩) → fst quotient→Bool² (Bool²→quotient-fun x) ≡ x
   roundtrip-Bool² (false , false) = IsCommRingHom.pres0 (snd quotient→Bool²)
@@ -299,14 +286,8 @@ Bool²-has-Boole-ω' = relBool² , Bool²≃quotient
 Bool²-Booleω : Booleω
 Bool²-Booleω = Bool² , ∣ Bool²-has-Boole-ω' ∣₁
 
-proj₁-Bool² : ⟨ Bool² ⟩ → Bool
-proj₁-Bool² = fst
-
-proj₂-Bool² : ⟨ Bool² ⟩ → Bool
-proj₂-Bool² = snd
-
 proj₁-Bool²-hom : BoolHom Bool² BoolBR
-fst proj₁-Bool²-hom = proj₁-Bool²
+fst proj₁-Bool²-hom = fst
 snd proj₁-Bool²-hom .IsCommRingHom.pres0 = refl
 snd proj₁-Bool²-hom .IsCommRingHom.pres1 = refl
 snd proj₁-Bool²-hom .IsCommRingHom.pres+ _ _ = refl
@@ -314,7 +295,7 @@ snd proj₁-Bool²-hom .IsCommRingHom.pres· _ _ = refl
 snd proj₁-Bool²-hom .IsCommRingHom.pres- _ = refl
 
 proj₂-Bool²-hom : BoolHom Bool² BoolBR
-fst proj₂-Bool²-hom = proj₂-Bool²
+fst proj₂-Bool²-hom = snd
 snd proj₂-Bool²-hom .IsCommRingHom.pres0 = refl
 snd proj₂-Bool²-hom .IsCommRingHom.pres1 = refl
 snd proj₂-Bool²-hom .IsCommRingHom.pres+ _ _ = refl
@@ -324,49 +305,32 @@ snd proj₂-Bool²-hom .IsCommRingHom.pres- _ = refl
 classify-Bool²-hom : (h : Sp Bool²-Booleω) → (h ≡ proj₁-Bool²-hom) ⊎.⊎ (h ≡ proj₂-Bool²-hom)
 classify-Bool²-hom h = helper (fst h Bool²-unit-left) refl
   where
+  h-ur-complement : (b : Bool) → fst h Bool²-unit-left ≡ b
+                   → fst h Bool²-unit-right ≡ not b
+  h-ur-complement b h-ul-b =
+    fst h (false , true)
+      ≡⟨ cong (fst h) (cong₂ _,_ refl (sym (⊕-comm false true))) ⟩
+    fst h (false , true ⊕ false)
+      ≡⟨ cong (fst h) (cong₂ _,_ (sym (⊕-comm true true)) refl) ⟩
+    fst h ((true ⊕ true) , (true ⊕ false))
+      ≡⟨ IsCommRingHom.pres+ (snd h) (true , true) (true , false) ⟩
+    (fst h (true , true)) ⊕ (fst h (true , false))
+      ≡⟨ cong₂ _⊕_ (IsCommRingHom.pres1 (snd h)) h-ul-b ⟩
+    not b ∎
+
   h≡proj₁ : fst h Bool²-unit-left ≡ true → h ≡ proj₁-Bool²-hom
-  h≡proj₁ h-ul-true = Σ≡Prop (λ f → isPropIsCommRingHom (snd (BooleanRing→CommRing Bool²)) f (snd (BooleanRing→CommRing BoolBR))) (sym funEq)
-    where
-    h-ur : fst h Bool²-unit-right ≡ false
-    h-ur =
-      fst h (false , true)
-        ≡⟨ cong (fst h) (cong₂ _,_ refl (sym (⊕-comm false true))) ⟩
-      fst h (false , true ⊕ false)
-        ≡⟨ cong (fst h) (cong₂ _,_ (sym (⊕-comm true true)) refl) ⟩
-      fst h ((true ⊕ true) , (true ⊕ false))
-        ≡⟨ IsCommRingHom.pres+ (snd h) (true , true) (true , false) ⟩
-      (fst h (true , true)) ⊕ (fst h (true , false))
-        ≡⟨ cong₂ _⊕_ (IsCommRingHom.pres1 (snd h)) h-ul-true ⟩
-      true ⊕ true
-        ≡⟨ ⊕-comm true true ⟩
-      false ∎
-    funEq : proj₁-Bool² ≡ fst h
-    funEq = funExt λ { (false , false) → sym (IsCommRingHom.pres0 (snd h))
-                     ; (false , true) → sym h-ur
-                     ; (true , false) → sym h-ul-true
-                     ; (true , true) → sym (IsCommRingHom.pres1 (snd h)) }
+  h≡proj₁ h-ul-true = Σ≡Prop (λ f → isPropIsCommRingHom (snd (BooleanRing→CommRing Bool²)) f (snd (BooleanRing→CommRing BoolBR)))
+    (sym (funExt λ { (false , false) → sym (IsCommRingHom.pres0 (snd h))
+                   ; (false , true) → sym (h-ur-complement true h-ul-true)
+                   ; (true , false) → sym h-ul-true
+                   ; (true , true) → sym (IsCommRingHom.pres1 (snd h)) }))
 
   h≡proj₂ : fst h Bool²-unit-left ≡ false → h ≡ proj₂-Bool²-hom
-  h≡proj₂ h-ul-false = Σ≡Prop (λ f → isPropIsCommRingHom (snd (BooleanRing→CommRing Bool²)) f (snd (BooleanRing→CommRing BoolBR))) (sym funEq)
-    where
-    h-ur : fst h Bool²-unit-right ≡ true
-    h-ur =
-      fst h (false , true)
-        ≡⟨ cong (fst h) (cong₂ _,_ refl (sym (⊕-comm false true))) ⟩
-      fst h (false , true ⊕ false)
-        ≡⟨ cong (fst h) (cong₂ _,_ (sym (⊕-comm true true)) refl) ⟩
-      fst h ((true ⊕ true) , (true ⊕ false))
-        ≡⟨ IsCommRingHom.pres+ (snd h) (true , true) (true , false) ⟩
-      (fst h (true , true)) ⊕ (fst h (true , false))
-        ≡⟨ cong₂ _⊕_ (IsCommRingHom.pres1 (snd h)) h-ul-false ⟩
-      true ⊕ false
-        ≡⟨ ⊕-comm true false ⟩
-      true ∎
-    funEq : proj₂-Bool² ≡ fst h
-    funEq = funExt λ { (false , false) → sym (IsCommRingHom.pres0 (snd h))
-                     ; (false , true) → sym h-ur
-                     ; (true , false) → sym h-ul-false
-                     ; (true , true) → sym (IsCommRingHom.pres1 (snd h)) }
+  h≡proj₂ h-ul-false = Σ≡Prop (λ f → isPropIsCommRingHom (snd (BooleanRing→CommRing Bool²)) f (snd (BooleanRing→CommRing BoolBR)))
+    (sym (funExt λ { (false , false) → sym (IsCommRingHom.pres0 (snd h))
+                   ; (false , true) → sym (h-ur-complement false h-ul-false)
+                   ; (true , false) → sym h-ul-false
+                   ; (true , true) → sym (IsCommRingHom.pres1 (snd h)) }))
 
   helper : (b : Bool) → fst h Bool²-unit-left ≡ b → (h ≡ proj₁-Bool²-hom) ⊎.⊎ (h ≡ proj₂-Bool²-hom)
   helper true = λ eq → ⊎.inl (h≡proj₁ eq)
@@ -391,21 +355,12 @@ Bool→Sp-Bool²→Bool false = refl
 Sp-Bool²≃Bool : Sp Bool²-Booleω ≃ Bool
 Sp-Bool²≃Bool = isoToEquiv (iso Sp-Bool²→Bool Bool→Sp-Bool² Bool→Sp-Bool²→Bool Sp-Bool²→Bool→Sp-Bool²)
 
--- tex definition (line 554-559):
-div2 : ℕ → ℕ
-div2 zero = zero
-div2 (suc zero) = zero
-div2 (suc (suc n)) = suc (div2 n)
-
-parity : ℕ → Bool
-parity zero = true
-parity (suc zero) = false
-parity (suc (suc n)) = parity n
+-- tex definition (line 554-559): div2 ≡ half, parity ≡ isEvenB (from Part01)
 
 f-on-gen : ℕ → ⟨ B∞×B∞ ⟩
-f-on-gen n with parity n
-... | true  = g∞ (div2 n) , 𝟘∞
-... | false = 𝟘∞ , g∞ (div2 n)
+f-on-gen n with isEvenB n
+... | true  = g∞ (half n) , 𝟘∞
+... | false = 𝟘∞ , g∞ (half n)
 
 open BooleanRingStr (snd B∞×B∞) using () renaming (_·_ to _·×_ ; 𝟘 to 𝟘×) public
 
@@ -431,74 +386,45 @@ inr-inl-mult-zero x y =
   (𝟘∞ ·∞ y , x ·∞ 𝟘∞)  ≡⟨ cong₂ _,_ (0∞-absorbs-left y) (0∞-absorbs-right x) ⟩
   (𝟘∞ , 𝟘∞) ∎
 
-parity-double : (k : ℕ) → parity (k +ℕ k) ≡ true
-parity-double zero = refl
-parity-double (suc k) =
-  parity (suc (k +ℕ suc k))  ≡⟨ cong (parity ∘ suc) (+-suc k k) ⟩
-  parity (suc (suc (k +ℕ k))) ≡⟨ parity-double k ⟩
-  true ∎
+2·-is-double : (k : ℕ) → 2 ·ℕ k ≡ k +ℕ k
+2·-is-double k = cong (k +ℕ_) (+-zero k)
 
-parity-double-suc : (k : ℕ) → parity (suc (k +ℕ k)) ≡ false
-parity-double-suc zero = refl
-parity-double-suc (suc k) =
-  parity (suc (suc (k +ℕ suc k)))  ≡⟨ cong (parity ∘ suc ∘ suc) (+-suc k k) ⟩
-  parity (suc (suc (suc (k +ℕ k)))) ≡⟨ parity-double-suc k ⟩
-  false ∎
+double-half-even : (n : ℕ) → isEvenB n ≡ true → n ≡ half n +ℕ half n
+double-half-even n p =
+  n                ≡⟨ sym (2·half-even n p) ⟩
+  2 ·ℕ (half n)    ≡⟨ 2·-is-double (half n) ⟩
+  half n +ℕ half n ∎
 
-div2-double : (k : ℕ) → div2 (k +ℕ k) ≡ k
-div2-double zero = refl
-div2-double (suc k) =
-  div2 (suc (k +ℕ suc k))       ≡⟨ cong (div2 ∘ suc) (+-suc k k) ⟩
-  div2 (suc (suc (k +ℕ k)))     ≡⟨ cong suc (div2-double k) ⟩
-  suc k ∎
-
-div2-double-suc : (k : ℕ) → div2 (suc (k +ℕ k)) ≡ k
-div2-double-suc zero = refl
-div2-double-suc (suc k) =
-  div2 (suc (suc (k +ℕ suc k)))     ≡⟨ cong (div2 ∘ suc ∘ suc) (+-suc k k) ⟩
-  div2 (suc (suc (suc (k +ℕ k))))   ≡⟨ cong suc (div2-double-suc k) ⟩
-  suc k ∎
-
-double-div2-even : (n : ℕ) → parity n ≡ true → n ≡ div2 n +ℕ div2 n
-double-div2-even zero _ = refl
-double-div2-even (suc zero) p = ex-falso (true≢false (sym p))
-double-div2-even (suc (suc n)) p =
-  suc (suc n) ≡⟨ cong (suc ∘ suc) (double-div2-even n p) ⟩
-  suc (suc (div2 n +ℕ div2 n)) ≡⟨ cong suc (sym (+-suc (div2 n) (div2 n))) ⟩
-  suc (div2 n +ℕ suc (div2 n)) ∎
-
-double-div2-odd : (n : ℕ) → parity n ≡ false → n ≡ suc (div2 n +ℕ div2 n)
-double-div2-odd zero p = ex-falso (true≢false p)
-double-div2-odd (suc zero) _ = refl
-double-div2-odd (suc (suc n)) p =
-  suc (suc n) ≡⟨ cong (suc ∘ suc) (double-div2-odd n p) ⟩
-  suc (suc (suc (div2 n +ℕ div2 n))) ≡⟨ cong (suc ∘ suc) (sym (+-suc (div2 n) (div2 n))) ⟩
-  suc (suc (div2 n +ℕ suc (div2 n))) ∎
+double-half-odd : (n : ℕ) → isEvenB n ≡ false → n ≡ suc (half n +ℕ half n)
+double-half-odd n p =
+  n                        ≡⟨ sym (suc-2·half-odd n p) ⟩
+  suc (2 ·ℕ (half n))      ≡⟨ cong suc (2·-is-double (half n)) ⟩
+  suc (half n +ℕ half n)   ∎
 
 import Agda.Builtin.Equality as BEq
 builtin→Path-Bool : {a b : Bool} → a BEq.≡ b → a ≡ b
 builtin→Path-Bool BEq.refl = refl
 
-div2-injective-even : (m n : ℕ) → parity m BEq.≡ true → parity n BEq.≡ true →
-  div2 m ≡ div2 n → m ≡ n
-div2-injective-even m n pm pn = λ eq →
-  double-div2-even m (builtin→Path-Bool pm) ∙ cong₂ _+ℕ_ eq eq ∙ sym (double-div2-even n (builtin→Path-Bool pn))
+half-injective-even : (m n : ℕ) → isEvenB m BEq.≡ true → isEvenB n BEq.≡ true →
+  half m ≡ half n → m ≡ n
+half-injective-even m n pm pn = λ eq →
+  double-half-even m (builtin→Path-Bool pm) ∙ cong₂ _+ℕ_ eq eq ∙ sym (double-half-even n (builtin→Path-Bool pn))
 
-div2-injective-odd : (m n : ℕ) → parity m BEq.≡ false → parity n BEq.≡ false →
-  div2 m ≡ div2 n → m ≡ n
-div2-injective-odd m n pm pn = λ eq →
-  double-div2-odd m (builtin→Path-Bool pm) ∙ cong₂ (λ a b → suc (a +ℕ b)) eq eq ∙ sym (double-div2-odd n (builtin→Path-Bool pn))
+half-injective-odd : (m n : ℕ) → isEvenB m BEq.≡ false → isEvenB n BEq.≡ false →
+  half m ≡ half n → m ≡ n
+half-injective-odd m n pm pn = λ eq →
+  double-half-odd m (builtin→Path-Bool pm) ∙ cong₂ (λ a b → suc (a +ℕ b)) eq eq ∙ sym (double-half-odd n (builtin→Path-Bool pn))
 
 f-respects-relations : (m n : ℕ) → ¬ (m ≡ n) →
   (f-on-gen m) ·× (f-on-gen n) ≡ (𝟘∞ , 𝟘∞)
-f-respects-relations m n m≠n with parity m in pm | parity n in pn
+f-respects-relations m n m≠n with isEvenB m in pm | isEvenB n in pn
 ... | true | true = cong₂ _,_
-  (g∞-distinct-mult-zero (div2 m) (div2 n) λ eq → m≠n (div2-injective-even m n pm pn eq))
+  (g∞-distinct-mult-zero (half m) (half n) λ eq → m≠n (half-injective-even m n pm pn eq))
   (0∞-absorbs-left 𝟘∞)
 ... | false | false = cong₂ _,_ (0∞-absorbs-left 𝟘∞)
-  (g∞-distinct-mult-zero (div2 m) (div2 n) λ eq → m≠n (div2-injective-odd m n pm pn eq))
-... | true | false = inl-inr-mult-zero (g∞ (div2 m)) (g∞ (div2 n))
-... | false | true = inr-inl-mult-zero (g∞ (div2 m)) (g∞ (div2 n))
+  (g∞-distinct-mult-zero (half m) (half n) λ eq → m≠n (half-injective-odd m n pm pn eq))
+... | true | false = inl-inr-mult-zero (g∞ (half m)) (g∞ (half n))
+... | false | true = inr-inl-mult-zero (g∞ (half m)) (g∞ (half n))
 
 f-free : BoolHom (freeBA ℕ) B∞×B∞
 f-free = inducedBAHom ℕ B∞×B∞ f-on-gen
@@ -508,24 +434,16 @@ f-free-on-gen = evalBAInduce ℕ B∞×B∞ f-on-gen
 
 open BooleanRingStr (snd (freeBA ℕ)) using () renaming (_·_ to _·free_)
 
-f-free-pres· : (x y : ⟨ freeBA ℕ ⟩) → fst f-free (x ·free y) ≡ (fst f-free x) ·× (fst f-free y)
-f-free-pres· x y = IsCommRingHom.pres· (snd f-free) x y
-
 f-free-distinct-zero : (m n : ℕ) → ¬ (m ≡ n) →
   fst f-free (gen m ·free gen n) ≡ (𝟘∞ , 𝟘∞)
 f-free-distinct-zero m n m≠n =
-  fst f-free (gen m ·free gen n)             ≡⟨ f-free-pres· (gen m) (gen n) ⟩
+  fst f-free (gen m ·free gen n)             ≡⟨ IsCommRingHom.pres· (snd f-free) (gen m) (gen n) ⟩
   (fst f-free (gen m)) ·× (fst f-free (gen n)) ≡⟨ cong₂ _·×_ (funExt⁻ f-free-on-gen m) (funExt⁻ f-free-on-gen n) ⟩
   f-on-gen m ·× f-on-gen n                    ≡⟨ f-respects-relations m n m≠n ⟩
   (𝟘∞ , 𝟘∞) ∎
 
 a≠a+suc-d : (a d : ℕ) → ¬ (a ≡ a +ℕ suc d)
-a≠a+suc-d a d = λ eq →
-  let step1 : a +ℕ zero ≡ a +ℕ suc d
-      step1 = +-zero a ∙ eq
-      step2 : zero ≡ suc d
-      step2 = inj-m+ step1
-  in znots step2
+a≠a+suc-d a d eq = znots (inj-m+ (+-zero a ∙ eq))
 
 f-free-on-relB∞ : (k : ℕ) → fst f-free (relB∞ k) ≡ (𝟘∞ , 𝟘∞)
 f-free-on-relB∞ k =
@@ -547,9 +465,6 @@ f-on-gen-eq n =
   fst f-free (gen n)                  ≡⟨ funExt⁻ f-free-on-gen n ⟩
   f-on-gen n ∎
 
-2·-is-double : (k : ℕ) → 2 ·ℕ k ≡ k +ℕ k
-2·-is-double k = cong (k +ℕ_) (+-zero k)
-
 f-odd-gen : (k : ℕ) → fst f (g∞ (suc (2 ·ℕ k))) ≡ (𝟘∞ , g∞ k)
 f-odd-gen k =
   fst f (g∞ (suc (2 ·ℕ k)))
@@ -559,15 +474,9 @@ f-odd-gen k =
   (𝟘∞ , g∞ k) ∎
   where
   f-on-gen-odd : (k : ℕ) → f-on-gen (suc (2 ·ℕ k)) ≡ (𝟘∞ , g∞ k)
-  f-on-gen-odd k with parity (suc (2 ·ℕ k)) in par-eq
-  ... | false = cong (𝟘∞ ,_) (cong g∞ div2-eq)
-    where
-    div2-eq : div2 (suc (2 ·ℕ k)) ≡ k
-    div2-eq = subst (λ m → div2 (suc m) ≡ k) (sym (2·-is-double k)) (div2-double-suc k)
-  ... | true = ex-falso (false≢true (sym parity-eq ∙ builtin→Path-Bool par-eq))
-    where
-    parity-eq : parity (suc (2 ·ℕ k)) ≡ false
-    parity-eq = subst (λ m → parity (suc m) ≡ false) (sym (2·-is-double k)) (parity-double-suc k)
+  f-on-gen-odd k with isEvenB (suc (2 ·ℕ k)) in par-eq
+  ... | false = cong (𝟘∞ ,_) (cong g∞ (half-2k+1 k))
+  ... | true = ex-falso (false≢true (sym (isEvenB-2k+1 k) ∙ builtin→Path-Bool par-eq))
 
 f-even-gen : (k : ℕ) → fst f (g∞ (2 ·ℕ k)) ≡ (g∞ k , 𝟘∞)
 f-even-gen k =
@@ -578,15 +487,9 @@ f-even-gen k =
   (g∞ k , 𝟘∞) ∎
   where
   f-on-gen-even : (k : ℕ) → f-on-gen (2 ·ℕ k) ≡ (g∞ k , 𝟘∞)
-  f-on-gen-even k with parity (2 ·ℕ k) in par-eq
-  ... | true = cong (_, 𝟘∞) (cong g∞ div2-eq)
-    where
-    div2-eq : div2 (2 ·ℕ k) ≡ k
-    div2-eq = subst (λ m → div2 m ≡ k) (sym (2·-is-double k)) (div2-double k)
-  ... | false = ex-falso (true≢false (sym parity-eq ∙ builtin→Path-Bool par-eq))
-    where
-    parity-eq : parity (2 ·ℕ k) ≡ true
-    parity-eq = subst (λ m → parity m ≡ true) (sym (2·-is-double k)) (parity-double k)
+  f-on-gen-even k with isEvenB (2 ·ℕ k) in par-eq
+  ... | true = cong (_, 𝟘∞) (cong g∞ (half-2k k))
+  ... | false = ex-falso (true≢false (sym (isEvenB-2k k) ∙ builtin→Path-Bool par-eq))
 
 -- tex Injectivity of f (tex line 567-583)
 
@@ -633,14 +536,8 @@ _∨×_ : ⟨ B∞×B∞ ⟩ → ⟨ B∞×B∞ ⟩ → ⟨ B∞×B∞ ⟩
 f-pres+ : (a b : ⟨ B∞ ⟩) → fst f (a +∞ b) ≡ (fst f a) +× (fst f b)
 f-pres+ a b = IsCommRingHom.pres+ (snd f) a b
 
-f-pres·' : (a b : ⟨ B∞ ⟩) → fst f (a ·∞ b) ≡ (fst f a) ·×' (fst f b)
-f-pres·' a b = IsCommRingHom.pres· (snd f) a b
-
 f-pres-join : (a b : ⟨ B∞ ⟩) → fst f (a ∨∞ b) ≡ ((fst f a) ∨× (fst f b))
-f-pres-join a b = f-pres+ (a +∞ b) (a ·∞ b) ∙ cong₂ _+×_ (f-pres+ a b) (f-pres·' a b)
-
-f-on-zero : fst f 𝟘∞ ≡ (𝟘∞ , 𝟘∞)
-f-on-zero = IsCommRingHom.pres0 (snd f)
+f-pres-join a b = f-pres+ (a +∞ b) (a ·∞ b) ∙ cong₂ _+×_ (f-pres+ a b) (IsCommRingHom.pres· (snd f) a b)
 
 zero-join-left : (x : ⟨ B∞ ⟩) → 𝟘∞ ∨∞ x ≡ x
 zero-join-left x =
@@ -682,13 +579,13 @@ f-on-gen-odd n odd-prf =
 f-on-finJoin : (ns : List ℕ) →
   let (evens , odds) = splitByParity ns
   in fst f (finJoin∞ ns) ≡ (finJoin∞ evens , finJoin∞ odds)
-f-on-finJoin [] = f-on-zero
-f-on-finJoin (n ∷ ns) with isEven n in parity-eq | splitByParity ns | f-on-finJoin ns
+f-on-finJoin [] = IsCommRingHom.pres0 (snd f)
+f-on-finJoin (n ∷ ns) with isEven n in isEvenB-eq | splitByParity ns | f-on-finJoin ns
 ... | true  | (evens , odds) | ih =
   fst f (g∞ n ∨∞ finJoin∞ ns)
     ≡⟨ f-pres-join (g∞ n) (finJoin∞ ns) ⟩
   (fst f (g∞ n)) ∨× (fst f (finJoin∞ ns))
-    ≡⟨ cong₂ _∨×_ (f-on-gen-even n (builtin→Path-Bool parity-eq)) ih ⟩
+    ≡⟨ cong₂ _∨×_ (f-on-gen-even n (builtin→Path-Bool isEvenB-eq)) ih ⟩
   (g∞ (half n) ∨∞ finJoin∞ evens , 𝟘∞ ∨∞ finJoin∞ odds)
     ≡⟨ cong (g∞ (half n) ∨∞ finJoin∞ evens ,_) (zero-join-left (finJoin∞ odds)) ⟩
   (finJoin∞ (half n ∷ evens) , finJoin∞ odds) ∎
@@ -696,7 +593,7 @@ f-on-finJoin (n ∷ ns) with isEven n in parity-eq | splitByParity ns | f-on-fin
   fst f (g∞ n ∨∞ finJoin∞ ns)
     ≡⟨ f-pres-join (g∞ n) (finJoin∞ ns) ⟩
   (fst f (g∞ n)) ∨× (fst f (finJoin∞ ns))
-    ≡⟨ cong₂ _∨×_ (f-on-gen-odd n (builtin→Path-Bool parity-eq)) ih ⟩
+    ≡⟨ cong₂ _∨×_ (f-on-gen-odd n (builtin→Path-Bool isEvenB-eq)) ih ⟩
   (𝟘∞ ∨∞ finJoin∞ evens , g∞ (half n) ∨∞ finJoin∞ odds)
     ≡⟨ cong (_, g∞ (half n) ∨∞ finJoin∞ odds) (zero-join-left (finJoin∞ evens)) ⟩
   (finJoin∞ evens , finJoin∞ (half n ∷ odds)) ∎

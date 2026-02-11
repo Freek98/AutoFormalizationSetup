@@ -1,0 +1,21 @@
+bck0087 → bck0088: Part05 deduplication and factoring (1222 → 1203, -19 lines)
+
+Changes in Part05.agda:
+
+1. Replaced duplicate `ℕ∞-∞` with `∞` from Part02 (-8 lines)
+   Part05 defined `∞-seq`, `∞-hamo`, and `ℕ∞-∞` (lines 912-919) which were
+   identical to `∞` already available from Part02 via the public import chain.
+   Replaced both uses (h₀ and h₀-on-gen) with `∞`.
+
+2. Factored `eQ-absorbs-genL` and `eQ'-absorbs-genR` (-11 lines)
+   into shared `absorb-by-complement` helper.
+   Both prove: given complementary idempotents e+e'=1, if x·e'=0 then e·x=x.
+   The helper captures the common equational chain:
+   x = x·1 = x·(e+e') = x·e + x·e' = x·e + 0 = x·e = e·x.
+   Each original was a 14-line sym'd equational proof; now each is a 1-line call.
+
+Line decrease justified: removed code was either duplicate (ℕ∞-∞ = ∞) or
+repeated proof patterns (absorb-by-complement captures shared algebra).
+No theorems, definitions, or tex-referenced results were removed.
+
+Full chain (Part21) compilation verified.

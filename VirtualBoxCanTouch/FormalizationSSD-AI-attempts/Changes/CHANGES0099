@@ -1,0 +1,37 @@
+bck0098 → bck0099: Part04 div2/parity deduplication (716 → 663, -53 lines)
+
+Changes in Part04.agda (716 → 663, -53 lines):
+
+1. Removed duplicate definitions of div2 and parity (-9 lines)
+   div2 and parity were identical to half and isEvenB from Part01,
+   already in scope via the public import chain Part01→Part02→Part03→Part04.
+   Replaced with a comment noting the tex reference.
+
+2. Renamed all uses of div2 → half and parity → isEvenB throughout Part04.
+   This affected function calls, lemma names, and variable names:
+   - f-on-gen now uses isEvenB/half
+   - f-respects-relations now uses isEvenB/half
+   - Lemma names renamed: div2-injective-even/odd → half-injective-even/odd,
+     double-div2-even/odd → double-half-even/odd
+
+3. Deleted 4 helper lemmas that became unnecessary (-28 lines):
+   - isEvenB-double (was parity-double): proved isEvenB (k+k) ≡ true
+   - isEvenB-double-suc (was parity-double-suc): proved isEvenB (suc(k+k)) ≡ false
+   - half-double (was div2-double): proved half (k+k) ≡ k
+   - half-double-suc (was div2-double-suc): proved half (suc(k+k)) ≡ k
+   These used k+k notation; Part01 has equivalent lemmas using 2·k notation
+   (isEvenB-2k, isEvenB-2k+1, half-2k, half-2k+1).
+
+4. Simplified double-half-even and double-half-odd (-6 lines)
+   7-line inductive proofs replaced with 4-line equational chains using
+   Part01's 2·half-even/suc-2·half-odd and 2·-is-double bridge.
+
+5. Simplified f-on-gen-odd and f-on-gen-even where blocks (-12 lines)
+   10-line where blocks with subst through 2·-is-double replaced with
+   direct use of Part01 lemmas (half-2k+1, isEvenB-2k+1, half-2k, isEvenB-2k).
+
+6. Moved 2·-is-double earlier in file (before double-half-even) to fix
+   forward reference. Still used by double-half-even and double-half-odd.
+
+Full chain (Part21) compilation verified.
+Total: 6401 lines.

@@ -1,0 +1,14 @@
+bck0103 → bck0104: Delete Part10a (6381 → 6374, -7 lines)
+
+1. Deleted Part10a.agda entirely (-7 lines)
+   - Only content was comment "-- BooleEpiMono (tex Remark 1475)" with no Agda code
+   - BooleEpiMono is not proven in Agda, so the comment is not useful per rules
+   - File had no functions (rule 6: empty files can be deleted)
+
+2. Part11.agda: Changed import from Part10a to Part10b
+3. All.agda: Removed import work.Part10a
+
+Import chain now: ...Part10→Part10b→Part11→... (Part10a eliminated)
+
+Full chain (Part21) compilation verified.
+Total: 6374 lines.

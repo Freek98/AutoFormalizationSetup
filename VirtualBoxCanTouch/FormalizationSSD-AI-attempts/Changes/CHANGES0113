@@ -1,0 +1,11 @@
+bck0112 → bck0113: Part02 cleanup (6015 → 6009, -6 lines)
+
+Changes in Part02.agda (904 → 898, -6 lines):
+1. Removed dead `¬-Closed` (-2 lines)
+   - Never used in code, not tex-referenced
+2. Inlined `composite-sends-α-to-0` (single-use wrapper) (-2 lines)
+   - Replaced with `λ n → QB.zeroOnImage {f = α'} n`
+3. Minor formatting consolidation (-2 lines)
+
+Full chain (Part21) compilation verified.
+Total: 6009 lines.

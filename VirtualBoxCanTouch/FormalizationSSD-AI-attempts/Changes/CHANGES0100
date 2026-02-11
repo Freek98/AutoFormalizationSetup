@@ -1,0 +1,16 @@
+bck0099 → bck0100: Part08 import narrowing (497 → 497, 0 lines)
+
+Changes in Part08.agda (497 → 497, 0 lines saved):
+
+1. Removed unused `elim` from PropositionalTruncation import
+   `using (∣_∣₁; ∥_∥₁; rec; elim; squash₁)` → `using (∣_∣₁; ∥_∥₁; rec; squash₁)`
+
+2. Removed unused `CommRing` from Cubical.Algebra.CommRing import
+   CommRing type was never used in Part08 code (only CommRingHom etc. used).
+
+3. Removed unnecessary renaming from Cubical.Data.Nat import
+   `renaming (_+_ to _+ℕ_ ; _·_ to _·ℕ_)` removed — neither _+ℕ_ nor _·ℕ_
+   were used in Part08.
+
+Full chain (Part21) compilation verified.
+Total: 6401 lines.

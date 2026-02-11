@@ -1,0 +1,29 @@
+bck0107 → bck0108: Further let-inlining in Part02, Part07 (6285 → 6256, -29 lines)
+
+Changes in Part02.agda (1036 → 1025, -11 lines):
+1. Inlined `countableChoice` where-block helpers (-11 lines)
+   - Removed `e₀`, `seqLim-exists`, `extractAt`, `extract`
+   - Inlined lambda directly into PT.map
+   - `dependentChoice-axiom E p p-surj tt` replaces seqLim-exists
+
+Changes in Part07.agda (276 → 258, -18 lines):
+1. Inlined `¬Sp-isOpen` where-block (-9 lines)
+   - Removed `fwd`, `bwd`, and merged `equiv`/`hProp-path`
+   - `0=1-Prop` simplified to use `_ , is-set _ _`
+2. Inlined `Booleω-P` and `Sp-eq` into return of `closedProp→hasStoneStr` (-5 lines)
+   - Both were single-use aliases
+3. Inlined `0≢1` into `surj` in `¬¬Sp→truncSp` (-2 lines)
+4. Inlined `canonical-hom` alias for `BoolBR→` (-2 lines)
+
+Wait, canonical-hom was NOT inlined (it's used 3 times). Correction:
+
+Changes in Part07.agda (276 → 258, -18 lines):
+1. Inlined `¬Sp-isOpen` where-block (-9 lines)
+   - Removed `fwd`, `bwd`, merged `equiv`/`hProp-path`
+   - `0=1-Prop` simplified with _ wildcard for carrier type
+2. Inlined `Booleω-P` and `Sp-eq` into `closedProp→hasStoneStr` return (-5 lines)
+3. Inlined `0≢1` into `surj` in `¬¬Sp→truncSp` (-2 lines)
+4. Total from bck0106: 288 → 258 = -30 lines across both bck0107 and bck0108
+
+Full chain (Part21) compilation verified.
+Total: 6256 lines.

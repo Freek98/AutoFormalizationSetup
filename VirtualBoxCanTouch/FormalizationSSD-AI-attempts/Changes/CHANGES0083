@@ -1,0 +1,27 @@
+bck0082 → bck0083: Eliminate false evens-odds-disjoint postulate (1337 → 1320, -17 lines)
+
+The evens-odds-disjoint postulate was FALSE: for h₀ (all-false map), both
+even and odd generators map to false, so both sides of the ⊎ hold
+simultaneously, making isProp⊎ impossible.
+
+Fix: Change LLPO to use propositional truncation ∥ A ⊎ B ∥₁ (matching
+the tex file which uses ∨, i.e., propositional disjunction).
+
+Changes across three files:
+
+1. Part01.agda: LLPO definition changed from raw ⊎ to ∥ ⊎ ∥₁
+   LLPO = (α : ℕ∞) → ∥ ((k : ℕ) → fst α (2·k) ≡ false) ⊎ (...) ∥₁
+
+2. Part02.agda: closedDeMorgan updated to use PT.rec squash₁ helper
+   on the now-truncated LLPO result
+
+3. Part05.agda (-17 lines):
+   - Removed evens-odds-disjoint postulate (was FALSE)
+   - Removed isProp⊎/evens-is-prop/odds-is-prop infrastructure (no longer needed)
+   - llpo-from-SD-aux now returns ∥ ⊎ ∥₁, wrapping go' result in ∣ ... ∣₁
+   - llpo-from-SD uses PT.map transport-llpo instead of direct application
+
+Line decrease justified: removed 16 lines of FALSE postulate + infrastructure.
+No useful work lost. Part05.agda now has ZERO postulates.
+
+Full chain (Part21) compilation verified.

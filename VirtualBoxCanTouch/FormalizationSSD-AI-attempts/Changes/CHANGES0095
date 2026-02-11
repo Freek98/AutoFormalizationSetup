@@ -1,0 +1,24 @@
+bck0094 → bck0095: Part05 dead code removal + inlining (1201 → 1175, -26 lines)
+
+Changes in Part05.agda:
+
+1. Removed dead `unit-sum` (-3 lines)
+   Defined in B∞×B∞-Units but never used anywhere. Not tex-referenced.
+
+2. Removed 6 dead definitions in private opaque block (-13 lines)
+   φQ∘ψL-on-gen, φQ∘ψR-on-gen (inside opaque block) and their only consumers
+   fst∘φQ∘ψL-on-gen, snd∘φQ∘ψR-on-gen (in private block). None used anywhere
+   in Part05 or downstream. The similar names fst∘φQ∘ψL∘π∞-on-gen etc. are
+   different definitions that ARE used.
+
+3. Inlined h-pres-meet-Bool + h-meet-preserves-true into h₀-on-finMeetNeg (-10 lines)
+   h-pres-meet-Bool was a trivial wrapper for IsCommRingHom.pres·.
+   h-meet-preserves-true was used only once in h₀-on-finMeetNeg.
+   Inlined both into an equational reasoning chain in h₀-on-finMeetNeg.
+
+4. Removed unused `isSetBool` from Data.Bool using clause
+   (0 lines saved, but cleaner import)
+
+No theorems, definitions, or tex-referenced results were removed.
+Full chain (Part21) compilation verified.
+Total: 6501 lines (down from 6583 at bck0092).

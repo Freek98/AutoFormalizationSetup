@@ -1,0 +1,10 @@
+bck0100 → bck0101: Part05a import narrowing (409 → 409, 0 lines)
+
+Changes in Part05a.agda (409 → 409, 0 lines saved):
+
+1. Removed unused `_⊕_` from Cubical.Data.Bool import
+2. Removed unnecessary renaming from Cubical.Data.Nat import
+   `renaming (_+_ to _+ℕ_ ; _·_ to _·ℕ_)` removed — neither used in Part05a.
+
+Full chain (Part21) compilation verified.
+Total: 6401 lines.

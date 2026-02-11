@@ -1,0 +1,21 @@
+bck0090 → bck0091: Part02 round-trip proof inlining (1105 → 1079, -26 lines)
+
+Changes in Part02.agda:
+
+1. Inlined step3 intermediate definitions (-10 lines)
+   Removed h-quotient-isSet, rec-quotient-isSet, step3-backward∘forward,
+   step3-forward∘backward. Inlined their bodies directly into step3-iso
+   (Iso.sec/Iso.ret) and used BooleanRingStr.is-set inline.
+
+2. Inlined step1 intermediate definitions (-16 lines)
+   Removed forward-fun, backward-fun, equiv⁻¹∘embBR≡id, embBR∘equiv⁻¹≡id,
+   backward∘forward, forward∘backward. Replaced forward-fun/backward-fun
+   with fst forward-hom/fst backward-hom in the on-π proofs. Inlined
+   Iso.ret/Iso.sec of equivToIso directly in on-π proofs. Inlined
+   backward∘forward/forward∘backward into step1-iso.
+
+Same optimization pattern as Part08 bck0090. All removed code was single-use
+intermediate definitions. No theorems, definitions, or tex-referenced results
+were removed.
+
+Full chain (Part21) compilation verified.

@@ -1,0 +1,50 @@
+bck0080 → bck0082: Prove B∞×B∞≃Q postulate (1186 → 1337, +151 lines)
+
+MAJOR MILESTONE: The B∞×B∞≃Q postulate is now FULLY PROVED.
+
+Previously, three postulates blocked the right inverse (roundtrip-Q):
+  - eQ-absorbs-genL : eQ · genL(m) = genL(m)
+  - eQ'-absorbs-genR : eQ' · genR(n) = genR(n)
+  - ψ∘φQ∘πQ-on-gen : ψ(φQ(πQ(gen n))) = πQ(gen n)
+
+All three are now proved. The key technical challenge was PERFORMANCE:
+the original ψ∘φQ∘πQ-on-gen proof caused OOM (exit code 137) / 15min timeout.
+
+Root cause: `with decode× k` in Cubical Agda causes massive term duplication
+when abstracting over the goal type containing quotient ring operations.
+
+Solution: Avoid `with` entirely. Split into many small opaque lemmas:
+
+1. Encoding paths (typeA-encode, typeB-encode): connect prodRel encoding
+   to the actual Type A/B relation expressions in freeBA ℕ
+
+2. Zero-on-image (typeA-in-Q, typeB-in-Q): via subst + QB.zeroOnImage,
+   show the Type A/B relations are zero in the quotient Q
+
+3. Quotient algebra (eQ·genR≡𝟘, genL·eQ'≡𝟘): use sym(pres·/pres+/pres1)
+   of πQ to push quotient operations back into freeBA, then apply typeA/B
+
+4. Idempotent sum (eQ+eQ'≡𝟙Q): eQ + eQ' = 1 in Q (5 ring law steps)
+
+5. Absorption lemmas (eQ-absorbs-genL, eQ'-absorbs-genR): from x·(1+e)=0,
+   derive x = x·e via: x = x·1 = x·(e+e') = x·e + x·e' = x·e + 0 = x·e
+
+6. ψ-fun cases (ψ-on-unit-left, ψ-on-genL, ψ-on-genR): compute ψ-fun
+   on each generator shape using pres0/pres1 of ψL/ψR + absorption
+
+7. Pattern dispatch (ψ-on-genProd): direct ⊎-pattern match (no with!)
+
+8. Generator agreement (ψ∘φQ∘πQ-on-gen): composes φQ-πQ-gen + ψ-on-genProd
+   + encode×∘decode× fixup. Each case is just 2-3 path compositions.
+
+Each opaque block is individually small, preventing Agda's term normalizer
+from exploding. The with-free approach avoids Cubical Agda's known issue
+with with-abstraction over complex goal types.
+
+Line increase justified: +151 lines of actual proof code replacing 3 postulates.
+No dead code added. B∞×B∞≃Q is now a fully verified BooleanRingEquiv.
+
+Remaining postulate in Part05: evens-odds-disjoint (known to be unprovable
+in current form, see MEMORY.md).
+
+Total lines: 6663 → 6814 (+151). Full chain (Part21) compilation verified.

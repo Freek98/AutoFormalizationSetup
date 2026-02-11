@@ -1,0 +1,32 @@
+bck0097 → bck0098: Part03 + Part09 + Part10 import cleanup (162+270+146 → 160+268+144, -6 lines)
+
+Changes in Part03.agda (162 → 160, -2 lines):
+
+1. Removed unused `free-·Comm` open (-2 lines)
+   `open BooleanRingStr (snd (freeBA ℕ)) using () renaming (·Comm to free-·Comm)`
+   was never used anywhere in Part03 or downstream.
+
+Changes in Part09.agda (270 → 268, -2 lines):
+
+1. Removed unused `¬_` import (-1 line)
+   `Cubical.Relation.Nullary using (¬_)` - not used in Part09.
+
+2. Removed unused `Cubical.Functions.Surjection` import (-1 line)
+   Open import with no using clause, but no exported names were used.
+
+3. Narrowed nested import: removed unused `generator` from FreeBool.
+
+Changes in Part10.agda (146 → 144, -2 lines):
+
+1. Removed 2 unused imports (-2 lines)
+   - `Cubical.Data.Empty using (⊥)` - not used in Part10
+   - `Cubical.Relation.Nullary using (¬_)` - not used in Part10
+
+2. Narrowed 4 imports:
+   - Removed unused `iso` from Isomorphism (provided by nested import)
+   - Removed unused `Booleω` from StoneDuality
+   - Removed unused `BooleanRingEquiv` from PresentedBoole (nested)
+   - Removed unused `generator` from FreeBool (nested)
+
+Full chain (Part21) compilation verified.
+Total: 6454 lines.

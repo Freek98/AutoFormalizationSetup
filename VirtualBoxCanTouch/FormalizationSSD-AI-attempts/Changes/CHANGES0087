@@ -1,0 +1,19 @@
+bck0086 → bck0087: Part05 comment removal + hom-orth factoring (1244 → 1222, -22 lines)
+
+Changes in Part05.agda:
+
+1. Removed 7 non-tex standalone comments (-7 lines)
+   Lines with mathematical structure explanations for generator maps, ring elements,
+   and proof strategies. Per CLAUDE.md: comments not referencing tex theorems are useless.
+
+2. Factored `h'-left-true→right-false` and `h'-right-true→left-false` (-15 lines)
+   into shared `hom-orth-implies-false` helper.
+   Both prove: if h' maps one unit to true and units are orthogonal, then h' maps
+   the other unit's components to false. The shared helper captures the common
+   pattern: h'(u)=true ∧ u·v=0 → h'(v)=false, using ring hom preservation of · and 0.
+
+Line decrease justified: removed code was either non-tex comments (rule 4) or
+duplicated proof patterns (factored into shared helper). No theorems, definitions,
+or tex-referenced results were removed.
+
+Full chain (Part21) compilation verified.

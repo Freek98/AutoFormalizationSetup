@@ -1,0 +1,35 @@
+bck0076 → bck0077: Fix FALSE postulate B∞×B∞≃quotient (897 → 748, -149 lines)
+
+CRITICAL FIX: The old B∞×B∞≃quotient postulate was mathematically FALSE.
+
+The old module defined relB∞×B∞(k) = gen(i) · gen(j) for distinct i,j (using
+Cantor pairing), giving quotient freeBA ℕ / (gen i · gen j = 0 for i≠j).
+This quotient is isomorphic to B∞ itself (same relations!), NOT to B∞×B∞.
+The element unit-left = (1,0) ∈ B∞×B∞ cannot be expressed as a finite ring
+expression in the interleaved generators because the constant part couples
+both components.
+
+The new module uses the correct presentation with:
+- gen 0 → unit-left = (1,0), the idempotent for product decomposition
+- Three types of relations:
+  Type A: gen 0 · gen(suc(encode(inr n))) = 0  [eL kills right generators]
+  Type B: gen(suc(encode(inl m))) · (1 + gen 0) = 0  [left gens in left ideal]
+  Type C: gen(suc i) · gen(suc(i+suc d)) = 0  [distinct suc-gens orthogonal]
+
+Changes in Part05.agda:
+- Replaced entire B∞×B∞-Presentation module (old ~290 lines → new ~134 lines)
+- New definitions: prodGenMap (with idempotent gen 0), prodRel (3 relation types),
+  prodGenMap-respects-rel (full equational proof for all 3 cases), φQ forward map
+- Removed dead code: old ψ-left, ψ-right, g×-orthog, and other helpers for the
+  incorrect quotient that were never used downstream
+- Replaced FALSE postulate B∞×B∞≃quotient with CORRECT postulate B∞×B∞≃Q
+  (same type BooleanRingEquiv B∞×B∞ (freeBA ℕ /Im prodRel), now true)
+- Updated B∞×B∞-has-Boole-ω' to use prodRel and B∞×B∞≃Q
+
+Line decrease justified: -149 lines are dead helper lemmas (ψ-left, ψ-right,
+g×-orthog, restrict-to-left/right, inject-left/right, etc.) that supported the
+FALSE postulate. These were not useful work — they were infrastructure for a
+provably incorrect formulation. No downstream code depended on them; only the
+final B∞×B∞-has-Boole-ω' and B∞×B∞-Booleω are used, and those are preserved.
+
+Total lines: 6349 → 6200 (-149). Full chain (Part21) compilation verified.
