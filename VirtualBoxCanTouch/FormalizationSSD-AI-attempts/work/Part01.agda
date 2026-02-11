@@ -42,7 +42,7 @@ isOpenProp : hProp ℓ-zero → Type₀
 isOpenProp P = Σ[ α ∈ binarySequence ] (⟨ P ⟩ → Σ[ n ∈ ℕ ] α n ≡ true) × (Σ[ n ∈ ℕ ] α n ≡ true → ⟨ P ⟩)
 
 isClosedProp : hProp ℓ-zero → Type₀
-isClosedProp P = Σ[ α ∈ binarySequence ] (⟨ P ⟩ → ((n : ℕ) → α n ≡ false)) × (((n : ℕ) → α n ≡ false) → ⟨ P ⟩)
+isClosedProp P = ∃[ α ∈ binarySequence ] (⟨ P ⟩ → ((n : ℕ) → α n ≡ false)) × (((n : ℕ) → α n ≡ false) → ⟨ P ⟩)
 
 Open : Type₁
 Open = Σ[ P ∈ hProp ℓ-zero ] isOpenProp P
