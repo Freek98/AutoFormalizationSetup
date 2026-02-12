@@ -2,10 +2,6 @@
 
 ## STRICT PROHIBITIONS
 
-### ⛔ **ONLY edit in the directory work
-- Everything in that file is by default in the work section and can be edited (even very high line numbers).
-- **NEVER edit any other files**
-
 ## Never throw away useful work
 1. You should almost never revert to previous backups (you can use temporary admits when something is hard).
 2. If there is a really major reason for reverting, you have to salvage all the useful work done in between.
@@ -21,7 +17,6 @@
   You can always do **refutation/negation proofs** constructively
 * **Use the library as your first move:** search existing definitions/lemmas before reinventing them.
   Grep/ripgrep the codebase frequently (especially the relevant folders/modules) to find reusable lemmas.
-  You can find the cubical library, but you cannot write to it. 
 * Prefer reusing established infrastructure (relations, equality reasoning, algebraic structures, etc.) rather than rolling your own.
 * You should **avoid duplicating lemmas** that already exist in the library unless there’s a clear payoff (local specialization, clearer naming, performance, or pedagogy).
 
@@ -32,7 +27,8 @@
 * If a proof is blocked, **don’t handwave**:
 
   * factor out the missing step as a lemma with a clear statement,
-  * or temporarily `postulate`/`{-# TERMINATING #-}` only if your project allows placeholders (label them clearly), then come back and discharge them.
+  * or temporarily leave a hole open, and come back to it later. 
+  * You have a tendency to proof things in the comments. Comments do not count, they are not trustworthy. **Only** agda-code that has been checked is trustworthy. 
 
 ### Syntax Rules (Agda)
 
@@ -91,6 +87,12 @@ While doing the above, keep the following principles in mind:
     - equality/path lemmas,
     - equivalence constructions,
     - standard HITs or truncations.
+- **You can introduce new axioms but only those mentioned in the tex file.**
+  - Temporary `postulate`s are acceptable only as placeholders and must be eliminated.
+- Any newly introduced definitions or lemmas must:
+  - respect Cubical Agda’s definitional equality and computation rules,
+  - be compatible with path-based equality and univalence.
+
 ### Formalization Goal
 
 - The current formalization target is the file **main-monolithic.tex** 

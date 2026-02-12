@@ -30,3 +30,6 @@
   exists* a sequence alpha such that P is equivalent to alpha being constantly  
   0. I have fixed this mistake in part01, but of course, it has propogated. I   
   want you to fix the rest of your work.       
+
+❯ nvim see your CLAUDE.md File for construnctions, keep cleaning again.         
+
