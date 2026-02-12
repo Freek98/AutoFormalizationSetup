@@ -75,10 +75,8 @@ module ClosedPropIffStone where
   closedProp→hasStoneStr : (P : hProp ℓ-zero) → isClosedProp P → hasStoneStr (fst P)
   closedProp→hasStoneStr P Pclosed = B-quotient-Booleω , sym (ua P≃Sp)
     where
-    Pclosed-bare = extractClosedProp {P} Pclosed
-
     α : binarySequence
-    α = fst Pclosed-bare
+    α = fst Pclosed
 
     B-quotient : BooleanRing ℓ-zero
     B-quotient = BoolBR-quotient α
@@ -99,7 +97,7 @@ module ClosedPropIffStone where
     isProp-all-false = isPropΠ (λ n → isSetBool (α n) false)
 
     P≃all-false : fst P ≃ all-false-type
-    P≃all-false = propBiimpl→Equiv (snd P) isProp-all-false (fst (snd Pclosed-bare)) (snd (snd Pclosed-bare))
+    P≃all-false = propBiimpl→Equiv (snd P) isProp-all-false (fst (snd Pclosed)) (snd (snd Pclosed))
 
     Sp-roundtrip : (h : Sp-quotient) → fst all-false↔Sp (snd all-false↔Sp h) ≡ h
     Sp-roundtrip h = QB.inducedHomUnique {B = BoolBR} {f = α} BoolBR (idBoolHom BoolBR) (snd all-false↔Sp h) h h-comp

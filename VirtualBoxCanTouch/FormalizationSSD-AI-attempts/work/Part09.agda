@@ -43,8 +43,11 @@ module ClosedInStoneIsStoneModule where
     |S| : Type ℓ-zero
     |S| = fst S
 
+    A-closed-bare : (x : |S|) → _
+    A-closed-bare x = extractClosedProp {A x} (A-closed x)
+
     α : |S| → ℕ → Bool
-    α x = fst (A-closed x)
+    α x = fst (A-closed-bare x)
 
     construct : has-Boole-ω' (fst (fst (snd S))) → hasStoneStr (Σ |S| (λ x → fst (A x)))
     construct (f₀ , equiv₀) = PT.rec (isPropHasStoneStr sd-axiom _) extractC (quotientBySeqPreservesBooleω B d)
@@ -73,7 +76,7 @@ module ClosedInStoneIsStoneModule where
         ClosedSubsetB = Σ[ x ∈ Sp B ] ((n : ℕ) → fst x (d n) ≡ false)
 
         ClosedSubsetB→ΣA : ClosedSubsetB → Σ |S| (λ y → fst (A y))
-        ClosedSubsetB→ΣA (x , all-zero) = transport SpB≡S x , snd (snd (A-closed (transport SpB≡S x))) (λ n →
+        ClosedSubsetB→ΣA (x , all-zero) = transport SpB≡S x , snd (snd (A-closed-bare (transport SpB≡S x))) (λ n →
             α (transport SpB≡S x) n   ≡⟨ sym (d-property n x) ⟩
             fst x (d n)               ≡⟨ all-zero n ⟩
             false ∎)
@@ -88,7 +91,7 @@ module ClosedInStoneIsStoneModule where
           all-zero n =
             fst x (d n)             ≡⟨ d-property n x ⟩
             α (transport SpB≡S x) n ≡⟨ cong (λ z → α z n) (transportTransport⁻ SpB≡S y) ⟩
-            α y n                   ≡⟨ fst (snd (A-closed y)) Ay n ⟩
+            α y n                   ≡⟨ fst (snd (A-closed-bare y)) Ay n ⟩
             false ∎
 
         ClosedSubsetB→ΣA→ClosedSubsetB : (xa : ClosedSubsetB) → ΣA→ClosedSubsetB (ClosedSubsetB→ΣA xa) ≡ xa

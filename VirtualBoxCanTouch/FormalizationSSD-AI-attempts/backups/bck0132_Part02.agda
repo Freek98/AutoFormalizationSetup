@@ -504,7 +504,7 @@ firstTrue-false-but-original-true α (suc n) ft-sn=f α-sn=t with α zero | insp
 
 closedDeMorgan : (P Q : hProp ℓ-zero) → isClosedProp P → isClosedProp Q
                → ¬ ((¬ ⟨ P ⟩) × (¬ ⟨ Q ⟩)) → ∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁
-closedDeMorgan P Q Pclosed Qclosed ¬¬P∧¬Q =
+closedDeMorgan P Q (α , P→∀α , ∀α→P) (β , Q→∀β , ∀β→Q) ¬¬P∧¬Q =
   let
       δ₀ : binarySequence
       δ₀ = interleave α β
@@ -523,14 +523,6 @@ closedDeMorgan P Q Pclosed Qclosed ¬¬P∧¬Q =
 
   in PT.rec squash₁ helper llpo-result
   where
-  Pclosed-bare = extractClosedProp {P} Pclosed
-  α = fst Pclosed-bare
-  P→∀α = fst (snd Pclosed-bare)
-  ∀α→P = snd (snd Pclosed-bare)
-  Qclosed-bare = extractClosedProp {Q} Qclosed
-  β = fst Qclosed-bare
-  Q→∀β = fst (snd Qclosed-bare)
-  ∀β→Q = snd (snd Qclosed-bare)
 
   module _ where
     open WF.WFI (<-wellfounded)
@@ -559,7 +551,7 @@ closedDeMorgan P Q Pclosed Qclosed ¬¬P∧¬Q =
     find-first-true-odd = induction find-first-true-odd-step
 
   allEvensF-implies-P : ((k : ℕ) → firstTrue (interleave α β) (2 ·ℕ k) ≡ false) → ⟨ P ⟩
-  allEvensF-implies-P allEvensF = closedIsStable P Pclosed ¬¬P
+  allEvensF-implies-P allEvensF = closedIsStable P (α , P→∀α , ∀α→P) ¬¬P
     where
     ¬¬P : ¬ ¬ ⟨ P ⟩
     ¬¬P ¬p =
@@ -594,7 +586,7 @@ closedDeMorgan P Q Pclosed Qclosed ¬¬P∧¬Q =
     find-first-true-even = induction find-first-true-even-step
 
   allOddsF-implies-Q : ((k : ℕ) → firstTrue (interleave α β) (suc (2 ·ℕ k)) ≡ false) → ⟨ Q ⟩
-  allOddsF-implies-Q allOddsF = closedIsStable Q Qclosed ¬¬Q
+  allOddsF-implies-Q allOddsF = closedIsStable Q (β , Q→∀β , ∀β→Q) ¬¬Q
     where
     ¬¬Q : ¬ ¬ ⟨ Q ⟩
     ¬¬Q ¬q =
@@ -610,7 +602,7 @@ closedDeMorgan P Q Pclosed Qclosed ¬¬P∧¬Q =
 
 closedOr : (P Q : hProp ℓ-zero) → isClosedProp P → isClosedProp Q
          → isClosedProp (∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁ , squash₁)
-closedOr P Q Pclosed Qclosed = ∣ γ , forward , backward ∣₁
+closedOr P Q Pclosed Qclosed = γ , forward , backward
   where
   ¬P : hProp ℓ-zero
   ¬P = (¬ ⟨ P ⟩) , isProp¬ ⟨ P ⟩
@@ -671,13 +663,10 @@ flatten αs k = let (m , n) = cantorUnpair k in αs m n
 closedCountableIntersection : (P : ℕ → hProp ℓ-zero)
                             → ((n : ℕ) → isClosedProp (P n))
                             → isClosedProp (((n : ℕ) → ⟨ P n ⟩) , isPropΠ (λ n → snd (P n)))
-closedCountableIntersection P αs = ∣ β , forward , backward ∣₁
+closedCountableIntersection P αs = β , forward , backward
   where
-  αs-bare : (n : ℕ) → _
-  αs-bare n = extractClosedProp {P n} (αs n)
-
   αP : ℕ → binarySequence
-  αP n = fst (αs-bare n)
+  αP n = fst (αs n)
 
   β : binarySequence
   β = flatten αP
@@ -685,11 +674,11 @@ closedCountableIntersection P αs = ∣ β , forward , backward ∣₁
   forward : ((n : ℕ) → ⟨ P n ⟩) → (k : ℕ) → β k ≡ false
   forward allP k =
     let (m , n) = cantorUnpair k
-        Pm→allFalse = fst (snd (αs-bare m))
+        Pm→allFalse = fst (snd (αs m))
     in Pm→allFalse (allP m) n
 
   backward : ((k : ℕ) → β k ≡ false) → (n : ℕ) → ⟨ P n ⟩
-  backward allβFalse n = snd (snd (αs-bare n)) allαnFalse
+  backward allβFalse n = snd (snd (αs n)) allαnFalse
     where
     allαnFalse : (k : ℕ) → αP n k ≡ false
     allαnFalse k =
@@ -760,23 +749,22 @@ clopenIsDecidable P Popen Pclosed =
 
 implicationOpenClosed : (P Q : hProp ℓ-zero) → isOpenProp P → isClosedProp Q
                       → isClosedProp ((⟨ P ⟩ → ⟨ Q ⟩) , isPropΠ (λ _ → snd Q))
-implicationOpenClosed P Q Popen Qclosed = ∣ γ , forward , backward ∣₁
+implicationOpenClosed P Q Popen Qclosed = γ , forward , backward
   where
   P∧¬Qopen : isOpenProp ((⟨ P ⟩ × (¬ ⟨ Q ⟩)) , isProp× (snd P) (isProp¬ ⟨ Q ⟩))
   P∧¬Qopen = openAnd P ((¬ ⟨ Q ⟩) , isProp¬ ⟨ Q ⟩) Popen (negClosedIsOpen mp Q Qclosed)
 
-  ¬P∧¬Q-hProp = ¬hProp ((⟨ P ⟩ × (¬ ⟨ Q ⟩)) , isProp× (snd P) (isProp¬ ⟨ Q ⟩))
-  ¬P∧¬Qclosed-bare = extractClosedProp {¬P∧¬Q-hProp}
-    (negOpenIsClosed ((⟨ P ⟩ × (¬ ⟨ Q ⟩)) , isProp× (snd P) (isProp¬ ⟨ Q ⟩)) P∧¬Qopen)
+  ¬P∧¬Qclosed : isClosedProp (¬hProp ((⟨ P ⟩ × (¬ ⟨ Q ⟩)) , isProp× (snd P) (isProp¬ ⟨ Q ⟩)))
+  ¬P∧¬Qclosed = negOpenIsClosed ((⟨ P ⟩ × (¬ ⟨ Q ⟩)) , isProp× (snd P) (isProp¬ ⟨ Q ⟩)) P∧¬Qopen
 
-  γ = fst ¬P∧¬Qclosed-bare
+  γ = fst ¬P∧¬Qclosed
 
   forward : (⟨ P ⟩ → ⟨ Q ⟩) → (n : ℕ) → γ n ≡ false
-  forward p→q = fst (snd ¬P∧¬Qclosed-bare) (λ (p , ¬q) → ¬q (p→q p))
+  forward p→q = fst (snd ¬P∧¬Qclosed) (λ (p , ¬q) → ¬q (p→q p))
 
   backward : ((n : ℕ) → γ n ≡ false) → ⟨ P ⟩ → ⟨ Q ⟩
   backward all-false p =
-    closedIsStable (⟨ Q ⟩ , snd Q) Qclosed (λ ¬q → snd (snd ¬P∧¬Qclosed-bare) all-false (p , ¬q))
+    closedIsStable (⟨ Q ⟩ , snd Q) Qclosed (λ ¬q → snd (snd ¬P∧¬Qclosed) all-false (p , ¬q))
 
 closedMarkovTex : (P : ℕ → hProp ℓ-zero) → ((n : ℕ) → isClosedProp (P n))
                 → (¬ ((n : ℕ) → ⟨ P n ⟩)) ↔ ∥ Σ[ n ∈ ℕ ] (¬ ⟨ P n ⟩) ∥₁
@@ -851,12 +839,8 @@ openEquiv P Q P→Q Q→P (α , P→∃ , ∃→P) =
 
 closedEquiv : (P Q : hProp ℓ-zero) → (⟨ P ⟩ → ⟨ Q ⟩) → (⟨ Q ⟩ → ⟨ P ⟩)
             → isClosedProp P → isClosedProp Q
-closedEquiv P Q P→Q Q→P Pclosed =
-  let Pclosed-bare = extractClosedProp {P} Pclosed
-      α = fst Pclosed-bare
-      P→∀ = fst (snd Pclosed-bare)
-      ∀→P = snd (snd Pclosed-bare)
-  in ∣ α , (λ q → P→∀ (Q→P q)) , (λ w → P→Q (∀→P w)) ∣₁
+closedEquiv P Q P→Q Q→P (α , P→∀ , ∀→P) =
+  α , (λ q → P→∀ (Q→P q)) , (λ w → P→Q (∀→P w))
 
 -- Definition (tex line 884-886):
 

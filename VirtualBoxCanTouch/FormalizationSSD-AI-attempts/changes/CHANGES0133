@@ -1,0 +1,57 @@
+CHANGES0133 — Propagate isClosedProp truncation (Σ → ∃)
+
+Changes since bck0132 (6093 lines → 6143 lines, +50 lines):
+
+The definition of `isClosedProp` in Part01 was changed from a bare `Σ` type
+to a propositionally truncated `∃` (= `∥ Σ ∥₁`). This is mathematically
+correct: "there merely exists a sequence α such that P ↔ ∀n. α n ≡ false".
+All downstream consumers were updated to propagate this change.
+
+Key design: A new postulate `isPropIsClosedPropBare` (Part01) asserts the bare
+Σ witness type is a prop. `extractClosedProp` uses `PT.rec` to unwrap the
+truncation. This makes the change mechanical: producers wrap in `∣ ∣₁`,
+consumers extract with `extractClosedProp {P}`.
+
+Major win: `isPropIsClosedProp` in Part08 was a POSTULATE — now it's PROVEN
+as `squash₁` (since `isClosedProp P = ∥ Σ ∥₁` and `∥_∥₁` is always a prop).
+This eliminates one postulate.
+
+1. Part01 (+12 lines):
+   - Added `isPropIsClosedPropBare` postulate and `extractClosedProp` helper
+   - `negOpenIsClosed`: wrapped return in `∣ ∣₁`
+   - `decIsClosed`: wrapped both cases in `∣ ∣₁`
+   - `negClosedIsOpen`: extract with `extractClosedProp {P}` in where block
+   - `closedIsStable`: extract with `extractClosedProp {P}` in where block
+   - `closedAnd`: extract both P, Q; wrap return in `∣ ∣₁`
+
+2. Part02 (+29 lines):
+   - `closedDeMorgan`: extract both Pclosed, Qclosed in where block
+   - `allEvensF-implies-P`, `allOddsF-implies-Q`: pass `Pclosed`/`Qclosed`
+     directly to `closedIsStable` (not bare tuples)
+   - `closedOr`: wrap return in `∣ ∣₁`
+   - `closedCountableIntersection`: extract pointwise + wrap return
+   - `closedEquiv`: extract + wrap return
+   - `implicationOpenClosed`: extract from `negOpenIsClosed` result + wrap
+
+3. Part07 (+2 lines):
+   - `closedProp→hasStoneStr`: extract `Pclosed-bare` before accessing fields
+
+4. Part08 (+3 lines):
+   - `isPropIsClosedProp`: POSTULATE ELIMINATED → now `squash₁` (proven!)
+   - `SpEqualityClosed-from-presentation`: extract `∀P-closed-bare`, wrap proof
+
+5. Part09 (+4 lines):
+   - `ClosedInStoneIsStone`: added `A-closed-bare` extraction helper,
+     updated all field accesses
+
+No other files needed changes (Part03-06, Part10-14, Part19-20 don't
+directly pattern-match on isClosedProp results).
+
+Postulate status change:
+  - ELIMINATED: isPropIsClosedProp (Part08) — now proven as squash₁
+  - ADDED: isPropIsClosedPropBare (Part01) — mathematical content preserved
+
+Net: same number of postulates, but isPropIsClosedPropBare is a cleaner
+statement (bare Σ is a prop) while isPropIsClosedProp is now proven.
+
+Full chain verification: SUCCESS (Part01 through Part20).
