@@ -35,4 +35,8 @@
 
 > See CLAUDE.md. I added point 6 about fixing the definition of closed propositions, please proceed to fix it. Keep working, and don't ask for permissions. 
 > While you're at it, if you can refactor the definitions of open and closed to use \leftrightarrow, that would be great. 
-> most of the time, I think you should be able to use PT.rec if you're using a proposition. 
+> most of the time, I think you should be able to use PT.rec if you're using a proposition❯ There is a mistake in isOpenProp, this should be a proposition, not a         
+  sigma-type. Please fix all the resulting effects. You are not allowed to      
+  postulate anything, but you are allowed to re-introduce the sigma-type under  
+  a different name (maybe explicitly open, idk). Keep working and formalizing   
+  when you're done. Then go back to cleaning.             

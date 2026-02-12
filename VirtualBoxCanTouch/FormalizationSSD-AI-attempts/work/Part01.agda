@@ -39,7 +39,7 @@ A ↔ B = (A → B) × (B → A)
 infixr 3 _↔_
 
 isOpenProp : hProp ℓ-zero → Type₀
-isOpenProp P = Σ[ α ∈ binarySequence ] ⟨ P ⟩ ↔ (Σ[ n ∈ ℕ ] α n ≡ true)
+isOpenProp P = ∃[ α ∈ binarySequence ] ⟨ P ⟩ ↔ (Σ[ n ∈ ℕ ] α n ≡ true)
 
 isClosedProp : hProp ℓ-zero → Type₀
 isClosedProp P = ∃[ α ∈ binarySequence ] ⟨ P ⟩ ↔ ((n : ℕ) → α n ≡ false)
