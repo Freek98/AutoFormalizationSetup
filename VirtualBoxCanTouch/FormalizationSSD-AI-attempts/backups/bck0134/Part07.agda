@@ -69,81 +69,83 @@ module ClosedPropAsSpectrum where
 -- PropositionsClosedIffStone (tex Corollary 1628)
 
 module ClosedPropIffStone where
-  open import Axioms.StoneDuality using (hasStoneStr; Stone; isPropHasStoneStr)
+  open import Axioms.StoneDuality using (hasStoneStr; Stone)
   open ClosedPropAsSpectrum
 
   closedProp→hasStoneStr : (P : hProp ℓ-zero) → isClosedProp P → hasStoneStr (fst P)
-  closedProp→hasStoneStr P Pclosed = PT.rec (isPropHasStoneStr sd-axiom _) go Pclosed
+  closedProp→hasStoneStr P Pclosed = B-quotient-Booleω , sym (ua P≃Sp)
     where
-    go : Σ[ α ∈ binarySequence ] ⟨ P ⟩ ↔ ((n : ℕ) → α n ≡ false) → hasStoneStr (fst P)
-    go (α , P→∀ , ∀→P) = B-quotient-Booleω , sym (ua P≃Sp)
+    Pclosed-bare = extractClosedProp {P} Pclosed
+
+    α : binarySequence
+    α = fst Pclosed-bare
+
+    B-quotient : BooleanRing ℓ-zero
+    B-quotient = BoolBR-quotient α
+
+    Sp-quotient : Type ℓ-zero
+    Sp-quotient = BoolHom B-quotient BoolBR
+
+    all-false↔Sp : ((n : ℕ) → α n ≡ false) ↔ Sp-quotient
+    all-false↔Sp = closedPropAsSpectrum α
+
+    B-quotient-Booleω : Booleω
+    B-quotient-Booleω = B-quotient , quotientPreservesBooleω α
+
+    all-false-type : Type ℓ-zero
+    all-false-type = (n : ℕ) → α n ≡ false
+
+    isProp-all-false : isProp all-false-type
+    isProp-all-false = isPropΠ (λ n → isSetBool (α n) false)
+
+    P≃all-false : fst P ≃ all-false-type
+    P≃all-false = propBiimpl→Equiv (snd P) isProp-all-false (fst (snd Pclosed-bare)) (snd (snd Pclosed-bare))
+
+    Sp-roundtrip : (h : Sp-quotient) → fst all-false↔Sp (snd all-false↔Sp h) ≡ h
+    Sp-roundtrip h = QB.inducedHomUnique {B = BoolBR} {f = α} BoolBR (idBoolHom BoolBR) (snd all-false↔Sp h) h h-comp
       where
-      B-quotient : BooleanRing ℓ-zero
-      B-quotient = BoolBR-quotient α
+      π : ⟨ BoolBR ⟩ → ⟨ B-quotient ⟩
+      π = fst QB.quotientImageHom
 
-      Sp-quotient : Type ℓ-zero
-      Sp-quotient = BoolHom B-quotient BoolBR
+      open IsCommRingHom (snd h) renaming (pres0 to h-pres0 ; pres1 to h-pres1)
+      open IsCommRingHom (snd QB.quotientImageHom) renaming (pres0 to π-pres0 ; pres1 to π-pres1)
 
-      all-false↔Sp : ((n : ℕ) → α n ≡ false) ↔ Sp-quotient
-      all-false↔Sp = closedPropAsSpectrum α
+      h∘π≡id-pointwise : (b : Bool) → fst h (π b) ≡ b
+      h∘π≡id-pointwise false =
+        fst h (π false)
+          ≡⟨ cong (fst h) π-pres0 ⟩
+        fst h (BooleanRingStr.𝟘 (snd B-quotient))
+          ≡⟨ h-pres0 ⟩
+        false ∎
+      h∘π≡id-pointwise true =
+        fst h (π true)
+          ≡⟨ cong (fst h) π-pres1 ⟩
+        fst h (BooleanRingStr.𝟙 (snd B-quotient))
+          ≡⟨ h-pres1 ⟩
+        true ∎
 
-      B-quotient-Booleω : Booleω
-      B-quotient-Booleω = B-quotient , quotientPreservesBooleω α
+      h-comp : idBoolHom BoolBR ≡ (h ∘cr QB.quotientImageHom)
+      h-comp = Σ≡Prop (λ f → isPropIsCommRingHom (snd (BooleanRing→CommRing BoolBR)) f
+                                                  (snd (BooleanRing→CommRing BoolBR)))
+                      (sym (funExt h∘π≡id-pointwise))
 
-      all-false-type : Type ℓ-zero
-      all-false-type = (n : ℕ) → α n ≡ false
+    isProp-Sp-quotient : isProp Sp-quotient
+    isProp-Sp-quotient h₁ h₂ =
+      let all-f₁ = snd all-false↔Sp h₁
+          all-f₂ = snd all-false↔Sp h₂
+          all-f-eq : all-f₁ ≡ all-f₂
+          all-f-eq = isProp-all-false all-f₁ all-f₂
+      in h₁                                    ≡⟨ sym (Sp-roundtrip h₁) ⟩
+         fst all-false↔Sp all-f₁               ≡⟨ cong (fst all-false↔Sp) all-f-eq ⟩
+         fst all-false↔Sp all-f₂               ≡⟨ Sp-roundtrip h₂ ⟩
+         h₂                                    ∎
 
-      isProp-all-false : isProp all-false-type
-      isProp-all-false = isPropΠ (λ n → isSetBool (α n) false)
+    all-false≃Sp : all-false-type ≃ Sp-quotient
+    all-false≃Sp = propBiimpl→Equiv isProp-all-false isProp-Sp-quotient
+                    (fst all-false↔Sp) (snd all-false↔Sp)
 
-      P≃all-false : fst P ≃ all-false-type
-      P≃all-false = propBiimpl→Equiv (snd P) isProp-all-false P→∀ ∀→P
-
-      Sp-roundtrip : (h : Sp-quotient) → fst all-false↔Sp (snd all-false↔Sp h) ≡ h
-      Sp-roundtrip h = QB.inducedHomUnique {B = BoolBR} {f = α} BoolBR (idBoolHom BoolBR) (snd all-false↔Sp h) h h-comp
-        where
-        π : ⟨ BoolBR ⟩ → ⟨ B-quotient ⟩
-        π = fst QB.quotientImageHom
-
-        open IsCommRingHom (snd h) renaming (pres0 to h-pres0 ; pres1 to h-pres1)
-        open IsCommRingHom (snd QB.quotientImageHom) renaming (pres0 to π-pres0 ; pres1 to π-pres1)
-
-        h∘π≡id-pointwise : (b : Bool) → fst h (π b) ≡ b
-        h∘π≡id-pointwise false =
-          fst h (π false)
-            ≡⟨ cong (fst h) π-pres0 ⟩
-          fst h (BooleanRingStr.𝟘 (snd B-quotient))
-            ≡⟨ h-pres0 ⟩
-          false ∎
-        h∘π≡id-pointwise true =
-          fst h (π true)
-            ≡⟨ cong (fst h) π-pres1 ⟩
-          fst h (BooleanRingStr.𝟙 (snd B-quotient))
-            ≡⟨ h-pres1 ⟩
-          true ∎
-
-        h-comp : idBoolHom BoolBR ≡ (h ∘cr QB.quotientImageHom)
-        h-comp = Σ≡Prop (λ f → isPropIsCommRingHom (snd (BooleanRing→CommRing BoolBR)) f
-                                                    (snd (BooleanRing→CommRing BoolBR)))
-                        (sym (funExt h∘π≡id-pointwise))
-
-      isProp-Sp-quotient : isProp Sp-quotient
-      isProp-Sp-quotient h₁ h₂ =
-        let all-f₁ = snd all-false↔Sp h₁
-            all-f₂ = snd all-false↔Sp h₂
-            all-f-eq : all-f₁ ≡ all-f₂
-            all-f-eq = isProp-all-false all-f₁ all-f₂
-        in h₁                                    ≡⟨ sym (Sp-roundtrip h₁) ⟩
-           fst all-false↔Sp all-f₁               ≡⟨ cong (fst all-false↔Sp) all-f-eq ⟩
-           fst all-false↔Sp all-f₂               ≡⟨ Sp-roundtrip h₂ ⟩
-           h₂                                    ∎
-
-      all-false≃Sp : all-false-type ≃ Sp-quotient
-      all-false≃Sp = propBiimpl→Equiv isProp-all-false isProp-Sp-quotient
-                      (fst all-false↔Sp) (snd all-false↔Sp)
-
-      P≃Sp : fst P ≃ Sp-quotient
-      P≃Sp = compEquiv P≃all-false all-false≃Sp
+    P≃Sp : fst P ≃ Sp-quotient
+    P≃Sp = compEquiv P≃all-false all-false≃Sp
 
 -- TruncationStoneClosed (tex Corollary 1613)
 
@@ -208,6 +210,12 @@ module ODiscInfrastructure where
     booleω-equality-open : (B : Booleω) → (a b : ⟨ fst B ⟩)
       → isOpenProp ((a ≡ b) , BooleanRingStr.is-set (snd (fst B)) a b)
 
+  0=1-isOpen : (B : Booleω)
+    → isOpenProp ((BooleanRingStr.𝟘 (snd (fst B)) ≡ BooleanRingStr.𝟙 (snd (fst B)))
+                 , BooleanRingStr.is-set (snd (fst B)) _ _)
+  0=1-isOpen B = booleω-equality-open B (BooleanRingStr.𝟘 (snd (fst B)))
+                                        (BooleanRingStr.𝟙 (snd (fst B)))
+
 -- TruncationStoneClosed completion (tex Corollary 1613)
 
 module TruncationStoneClosedComplete where
@@ -218,8 +226,7 @@ module TruncationStoneClosedComplete where
   ¬Sp-hProp B = (¬ Sp B) , isProp¬ (Sp B)
 
   ¬Sp-isOpen : (B : Booleω) → isOpenProp (¬Sp-hProp B)
-  ¬Sp-isOpen B = transport (cong isOpenProp hProp-path)
-    (booleω-equality-open B (BooleanRingStr.𝟘 (snd (fst B))) (BooleanRingStr.𝟙 (snd (fst B))))
+  ¬Sp-isOpen B = transport (cong isOpenProp hProp-path) (0=1-isOpen B)
     where
     0=1-Prop : hProp ℓ-zero
     0=1-Prop = _ , BooleanRingStr.is-set (snd (fst B)) _ _

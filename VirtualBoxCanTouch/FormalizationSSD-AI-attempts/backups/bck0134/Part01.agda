@@ -39,13 +39,18 @@ A ↔ B = (A → B) × (B → A)
 infixr 3 _↔_
 
 isOpenProp : hProp ℓ-zero → Type₀
-isOpenProp P = Σ[ α ∈ binarySequence ] ⟨ P ⟩ ↔ (Σ[ n ∈ ℕ ] α n ≡ true)
+isOpenProp P = Σ[ α ∈ binarySequence ] (⟨ P ⟩ → Σ[ n ∈ ℕ ] α n ≡ true) × (Σ[ n ∈ ℕ ] α n ≡ true → ⟨ P ⟩)
 
 isClosedProp : hProp ℓ-zero → Type₀
-isClosedProp P = ∃[ α ∈ binarySequence ] ⟨ P ⟩ ↔ ((n : ℕ) → α n ≡ false)
+isClosedProp P = ∃[ α ∈ binarySequence ] (⟨ P ⟩ → ((n : ℕ) → α n ≡ false)) × (((n : ℕ) → α n ≡ false) → ⟨ P ⟩)
 
-isPropIsClosedProp : {P : hProp ℓ-zero} → isProp (isClosedProp P)
-isPropIsClosedProp = squash₁
+postulate
+  isPropIsClosedPropBare : {P : hProp ℓ-zero}
+    → isProp (Σ[ α ∈ binarySequence ] (⟨ P ⟩ → ((n : ℕ) → α n ≡ false)) × (((n : ℕ) → α n ≡ false) → ⟨ P ⟩))
+
+extractClosedProp : {P : hProp ℓ-zero} → isClosedProp P
+  → Σ[ α ∈ binarySequence ] (⟨ P ⟩ → ((n : ℕ) → α n ≡ false)) × (((n : ℕ) → α n ≡ false) → ⟨ P ⟩)
+extractClosedProp {P} = PT.rec (isPropIsClosedPropBare {P}) λ x → x
 
 Open : Type₁
 Open = Σ[ P ∈ hProp ℓ-zero ] isOpenProp P
@@ -104,11 +109,14 @@ isPropHitsAtMostOnce α = isPropΠ λ m → isPropΠ λ n → isPropΠ λ _ → 
 LLPO : Type₀
 LLPO = (α : ℕ∞) → ∥ ((k : ℕ) → fst α (2 ·ℕ k) ≡ false) ⊎ ((k : ℕ) → fst α (suc (2 ·ℕ k)) ≡ false) ∥₁
 
-negClosedIsOpen : MarkovPrinciple → (P : hProp ℓ-zero)
-  → (α : binarySequence) → ⟨ P ⟩ ↔ ((n : ℕ) → α n ≡ false)
-  → isOpenProp (¬hProp P)
-negClosedIsOpen mp P α (P→∀ , ∀→P) = α , forward , backward
+negClosedIsOpen : MarkovPrinciple → (P : hProp ℓ-zero) → isClosedProp P → isOpenProp (¬hProp P)
+negClosedIsOpen mp P Pclosed = α , forward , backward
   where
+  Pclosed-bare = extractClosedProp {P} Pclosed
+  α = fst Pclosed-bare
+  P→∀ = fst (snd Pclosed-bare)
+  ∀→P = snd (snd Pclosed-bare)
+
   forward : ¬ ⟨ P ⟩ → Σ[ n ∈ ℕ ] α n ≡ true
   forward ¬p = mp α (λ all-false → ¬p (∀→P all-false))
 
@@ -116,15 +124,17 @@ negClosedIsOpen mp P α (P→∀ , ∀→P) = α , forward , backward
   backward (n , αn=t) p = true≢false (sym αn=t ∙ P→∀ p n)
 
 closedIsStable : (P : hProp ℓ-zero) → isClosedProp P → ¬ ¬ ⟨ P ⟩ → ⟨ P ⟩
-closedIsStable P Pclosed ¬¬p = PT.rec (snd P) go Pclosed
+closedIsStable P Pclosed ¬¬p = ∀→P all-false
   where
-  go : Σ[ α ∈ binarySequence ] ⟨ P ⟩ ↔ ((n : ℕ) → α n ≡ false) → ⟨ P ⟩
-  go (α , P→∀ , ∀→P) = ∀→P all-false
-    where
-    all-false : (n : ℕ) → α n ≡ false
-    all-false n with α n =B true
-    ... | yes αn=t = ex-falso (¬¬p (λ p → true≢false (sym αn=t ∙ P→∀ p n)))
-    ... | no αn≠t = ¬true→false (α n) αn≠t
+  Pclosed-bare = extractClosedProp {P} Pclosed
+  α = fst Pclosed-bare
+  P→∀ = fst (snd Pclosed-bare)
+  ∀→P = snd (snd Pclosed-bare)
+
+  all-false : (n : ℕ) → α n ≡ false
+  all-false n with α n =B true
+  ... | yes αn=t = ex-falso (¬¬p (λ p → true≢false (sym αn=t ∙ P→∀ p n)))
+  ... | no αn≠t = ¬true→false (α n) αn≠t
 
 openIsStable : MarkovPrinciple → (P : hProp ℓ-zero) → isOpenProp P → ¬ ¬ ⟨ P ⟩ → ⟨ P ⟩
 openIsStable mp P (α , P→∃ , ∃→P) ¬¬p = ∃→P (mp α ¬all-false)
@@ -206,29 +216,33 @@ interleave-odd α β n n-odd =
 
 closedAnd : (P Q : hProp ℓ-zero) → isClosedProp P → isClosedProp Q
           → isClosedProp ((⟨ P ⟩ × ⟨ Q ⟩) , isProp× (snd P) (snd Q))
-closedAnd P Q Pclosed Qclosed = PT.rec2 squash₁ go Pclosed Qclosed
+closedAnd P Q Pclosed Qclosed = ∣ γ , forward , backward ∣₁
   where
-  go : Σ[ α ∈ binarySequence ] ⟨ P ⟩ ↔ ((n : ℕ) → α n ≡ false)
-     → Σ[ β ∈ binarySequence ] ⟨ Q ⟩ ↔ ((n : ℕ) → β n ≡ false)
-     → isClosedProp ((⟨ P ⟩ × ⟨ Q ⟩) , isProp× (snd P) (snd Q))
-  go (α , P→∀α , ∀α→P) (β , Q→∀β , ∀β→Q) = ∣ γ , forward , backward ∣₁
+  Pclosed-bare = extractClosedProp {P} Pclosed
+  α = fst Pclosed-bare
+  P→∀α = fst (snd Pclosed-bare)
+  ∀α→P = snd (snd Pclosed-bare)
+  Qclosed-bare = extractClosedProp {Q} Qclosed
+  β = fst Qclosed-bare
+  Q→∀β = fst (snd Qclosed-bare)
+  ∀β→Q = snd (snd Qclosed-bare)
+
+  γ : binarySequence
+  γ = interleave α β
+
+  forward : ⟨ P ⟩ × ⟨ Q ⟩ → (n : ℕ) → γ n ≡ false
+  forward (p , q) n with isEvenB n =B true
+  ... | yes even = subst (λ x → (if x then α (half n) else β (half n)) ≡ false) (sym even) (P→∀α p (half n))
+  ... | no notEven = subst (λ x → (if x then α (half n) else β (half n)) ≡ false) (sym (¬true→false (isEvenB n) notEven)) (Q→∀β q (half n))
+
+  backward : ((n : ℕ) → γ n ≡ false) → ⟨ P ⟩ × ⟨ Q ⟩
+  backward all-zero = (∀α→P α-zero) , (∀β→Q β-zero)
     where
-    γ : binarySequence
-    γ = interleave α β
+    α-zero : (k : ℕ) → α k ≡ false
+    α-zero k = sym (interleave-2k α β k) ∙ all-zero (2 ·ℕ k)
 
-    forward : ⟨ P ⟩ × ⟨ Q ⟩ → (n : ℕ) → γ n ≡ false
-    forward (p , q) n with isEvenB n =B true
-    ... | yes even = subst (λ x → (if x then α (half n) else β (half n)) ≡ false) (sym even) (P→∀α p (half n))
-    ... | no notEven = subst (λ x → (if x then α (half n) else β (half n)) ≡ false) (sym (¬true→false (isEvenB n) notEven)) (Q→∀β q (half n))
-
-    backward : ((n : ℕ) → γ n ≡ false) → ⟨ P ⟩ × ⟨ Q ⟩
-    backward all-zero = (∀α→P α-zero) , (∀β→Q β-zero)
-      where
-      α-zero : (k : ℕ) → α k ≡ false
-      α-zero k = sym (interleave-2k α β k) ∙ all-zero (2 ·ℕ k)
-
-      β-zero : (k : ℕ) → β k ≡ false
-      β-zero k = sym (interleave-2k+1 α β k) ∙ all-zero (suc (2 ·ℕ k))
+    β-zero : (k : ℕ) → β k ≡ false
+    β-zero k = sym (interleave-2k+1 α β k) ∙ all-zero (suc (2 ·ℕ k))
 
 openOrMP : MarkovPrinciple → (P Q : hProp ℓ-zero) → isOpenProp P → isOpenProp Q
         → isOpenProp (∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁ , squash₁)

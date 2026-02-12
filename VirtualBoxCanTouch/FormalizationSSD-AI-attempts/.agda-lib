@@ -1,2 +1,3 @@
+name: FormalizationSSD
 include: .
-depend: cubical
+depend: cubical-0.9

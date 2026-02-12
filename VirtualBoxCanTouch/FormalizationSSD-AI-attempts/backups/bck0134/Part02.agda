@@ -386,6 +386,10 @@ countableChoice A witnesses = PT.map (λ { ((f , _) , _) n → snd (f (suc n)) }
 mp : MarkovPrinciple
 mp = mp-from-SD sd-axiom
 
+openOr : (P Q : hProp ℓ-zero) → isOpenProp P → isOpenProp Q
+       → isOpenProp (∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁ , squash₁)
+openOr = openOrMP mp
+
 ∞ : ℕ∞
 ∞ = (λ _ → false) , (λ m n αm=t _ → ex-falso (false≢true αm=t))
 
@@ -500,144 +504,151 @@ firstTrue-false-but-original-true α (suc n) ft-sn=f α-sn=t with α zero | insp
 
 closedDeMorgan : (P Q : hProp ℓ-zero) → isClosedProp P → isClosedProp Q
                → ¬ ((¬ ⟨ P ⟩) × (¬ ⟨ Q ⟩)) → ∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁
-closedDeMorgan P Q Pclosed Qclosed ¬¬P∧¬Q = PT.rec2 squash₁ go Pclosed Qclosed
+closedDeMorgan P Q Pclosed Qclosed ¬¬P∧¬Q =
+  let
+      δ₀ : binarySequence
+      δ₀ = interleave α β
+
+      δ : binarySequence
+      δ = firstTrue δ₀
+
+      δ-hamo : hitsAtMostOnce δ
+      δ-hamo = firstTrue-hitsAtMostOnce δ₀
+
+      δ∞ : ℕ∞
+      δ∞ = δ , δ-hamo
+
+      llpo-result : ∥ ((k : ℕ) → δ (2 ·ℕ k) ≡ false) ⊎ ((k : ℕ) → δ (suc (2 ·ℕ k)) ≡ false) ∥₁
+      llpo-result = llpo δ∞
+
+  in PT.rec squash₁ helper llpo-result
   where
-  go : Σ[ α ∈ binarySequence ] ⟨ P ⟩ ↔ ((n : ℕ) → α n ≡ false)
-     → Σ[ β ∈ binarySequence ] ⟨ Q ⟩ ↔ ((n : ℕ) → β n ≡ false)
-     → ∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁
-  go (α , P→∀α , ∀α→P) (β , Q→∀β , ∀β→Q) =
-    let
-        δ₀ : binarySequence
-        δ₀ = interleave α β
+  Pclosed-bare = extractClosedProp {P} Pclosed
+  α = fst Pclosed-bare
+  P→∀α = fst (snd Pclosed-bare)
+  ∀α→P = snd (snd Pclosed-bare)
+  Qclosed-bare = extractClosedProp {Q} Qclosed
+  β = fst Qclosed-bare
+  Q→∀β = fst (snd Qclosed-bare)
+  ∀β→Q = snd (snd Qclosed-bare)
 
-        δ : binarySequence
-        δ = firstTrue δ₀
+  module _ where
+    open WF.WFI (<-wellfounded)
 
-        δ-hamo : hitsAtMostOnce δ
-        δ-hamo = firstTrue-hitsAtMostOnce δ₀
+    ResultOdd : ℕ → Type₀
+    ResultOdd n = interleave α β n ≡ true
+                → ((k : ℕ) → firstTrue (interleave α β) (2 ·ℕ k) ≡ false)
+                → Σ[ m ∈ ℕ ] (isEvenB m ≡ false) × (β (half m) ≡ true)
 
-        δ∞ : ℕ∞
-        δ∞ = δ , δ-hamo
+    find-first-true-odd-step : (n : ℕ) → ((m : ℕ) → m < n → ResultOdd m) → ResultOdd n
+    find-first-true-odd-step n rec δ₀-n=t allEvensF with firstTrue (interleave α β) n =B true
+    ... | yes ft-n=t with isEvenB n =B true
+    ...   | yes n-even =
+            ex-falso (true≢false (sym (subst (λ x → firstTrue (interleave α β) x ≡ true)
+                                        (sym (2·half-even n n-even)) ft-n=t)
+                                  ∙ allEvensF (half n)))
+    ...   | no n-odd =
+            let odd-eq = ¬true→false (isEvenB n) n-odd
+            in n , odd-eq , sym (interleave-odd α β n odd-eq) ∙ δ₀-n=t
+    find-first-true-odd-step n rec δ₀-n=t allEvensF | no ft-n≠t =
+      let (m , m<n , δ₀-m=t) = firstTrue-false-but-original-true (interleave α β) n
+                                  (¬true→false (firstTrue (interleave α β) n) ft-n≠t) δ₀-n=t
+      in rec m m<n δ₀-m=t allEvensF
 
-        llpo-result : ∥ ((k : ℕ) → δ (2 ·ℕ k) ≡ false) ⊎ ((k : ℕ) → δ (suc (2 ·ℕ k)) ≡ false) ∥₁
-        llpo-result = llpo δ∞
+    find-first-true-odd : (n : ℕ) → ResultOdd n
+    find-first-true-odd = induction find-first-true-odd-step
 
-    in PT.rec squash₁ helper llpo-result
+  allEvensF-implies-P : ((k : ℕ) → firstTrue (interleave α β) (2 ·ℕ k) ≡ false) → ⟨ P ⟩
+  allEvensF-implies-P allEvensF = closedIsStable P Pclosed ¬¬P
     where
-    module _ where
-      open WF.WFI (<-wellfounded)
+    ¬¬P : ¬ ¬ ⟨ P ⟩
+    ¬¬P ¬p =
+      let (k , αk=t) = mp α (λ all-false → ¬p (∀α→P all-false))
+          (m , m-odd , βj=t) = find-first-true-odd (2 ·ℕ k) (interleave-2k α β k ∙ αk=t) allEvensF
+      in ¬¬P∧¬Q (¬p , λ q → false≢true (sym (Q→∀β q (half m)) ∙ βj=t))
 
-      ResultOdd : ℕ → Type₀
-      ResultOdd n = interleave α β n ≡ true
-                  → ((k : ℕ) → firstTrue (interleave α β) (2 ·ℕ k) ≡ false)
-                  → Σ[ m ∈ ℕ ] (isEvenB m ≡ false) × (β (half m) ≡ true)
+  module _ where
+    open WF.WFI (<-wellfounded)
 
-      find-first-true-odd-step : (n : ℕ) → ((m : ℕ) → m < n → ResultOdd m) → ResultOdd n
-      find-first-true-odd-step n rec δ₀-n=t allEvensF with firstTrue (interleave α β) n =B true
-      ... | yes ft-n=t with isEvenB n =B true
-      ...   | yes n-even =
-              ex-falso (true≢false (sym (subst (λ x → firstTrue (interleave α β) x ≡ true)
-                                          (sym (2·half-even n n-even)) ft-n=t)
-                                    ∙ allEvensF (half n)))
-      ...   | no n-odd =
-              let odd-eq = ¬true→false (isEvenB n) n-odd
-              in n , odd-eq , sym (interleave-odd α β n odd-eq) ∙ δ₀-n=t
-      find-first-true-odd-step n rec δ₀-n=t allEvensF | no ft-n≠t =
-        let (m , m<n , δ₀-m=t) = firstTrue-false-but-original-true (interleave α β) n
-                                    (¬true→false (firstTrue (interleave α β) n) ft-n≠t) δ₀-n=t
-        in rec m m<n δ₀-m=t allEvensF
+    ResultEven : ℕ → Type₀
+    ResultEven n = interleave α β n ≡ true
+                 → ((k : ℕ) → firstTrue (interleave α β) (suc (2 ·ℕ k)) ≡ false)
+                 → Σ[ m ∈ ℕ ] (isEvenB m ≡ true) × (α (half m) ≡ true)
 
-      find-first-true-odd : (n : ℕ) → ResultOdd n
-      find-first-true-odd = induction find-first-true-odd-step
+    find-first-true-even-step : (n : ℕ) → ((m : ℕ) → m < n → ResultEven m) → ResultEven n
+    find-first-true-even-step n rec δ₀-n=t allOddsF with firstTrue (interleave α β) n =B true
+    ... | yes ft-n=t with isEvenB n =B true
+    ...   | yes n-even =
+            n , n-even , sym (interleave-even α β n n-even) ∙ δ₀-n=t
+    ...   | no n-odd =
+            let odd-eq = ¬true→false (isEvenB n) n-odd
+            in ex-falso (true≢false (sym (subst (λ x → firstTrue (interleave α β) x ≡ true)
+                                           (sym (suc-2·half-odd n odd-eq)) ft-n=t)
+                                     ∙ allOddsF (half n)))
+    find-first-true-even-step n rec δ₀-n=t allOddsF | no ft-n≠t =
+      let (m , m<n , δ₀-m=t) = firstTrue-false-but-original-true (interleave α β) n
+                                  (¬true→false (firstTrue (interleave α β) n) ft-n≠t) δ₀-n=t
+      in rec m m<n δ₀-m=t allOddsF
 
-    allEvensF-implies-P : ((k : ℕ) → firstTrue (interleave α β) (2 ·ℕ k) ≡ false) → ⟨ P ⟩
-    allEvensF-implies-P allEvensF = closedIsStable P Pclosed ¬¬P
-      where
-      ¬¬P : ¬ ¬ ⟨ P ⟩
-      ¬¬P ¬p =
-        let (k , αk=t) = mp α (λ all-false → ¬p (∀α→P all-false))
-            (m , m-odd , βj=t) = find-first-true-odd (2 ·ℕ k) (interleave-2k α β k ∙ αk=t) allEvensF
-        in ¬¬P∧¬Q (¬p , λ q → false≢true (sym (Q→∀β q (half m)) ∙ βj=t))
+    find-first-true-even : (n : ℕ) → ResultEven n
+    find-first-true-even = induction find-first-true-even-step
 
-    module _ where
-      open WF.WFI (<-wellfounded)
+  allOddsF-implies-Q : ((k : ℕ) → firstTrue (interleave α β) (suc (2 ·ℕ k)) ≡ false) → ⟨ Q ⟩
+  allOddsF-implies-Q allOddsF = closedIsStable Q Qclosed ¬¬Q
+    where
+    ¬¬Q : ¬ ¬ ⟨ Q ⟩
+    ¬¬Q ¬q =
+      let (k , βk=t) = mp β (λ all-false → ¬q (∀β→Q all-false))
+          (m , m-even , αj=t) = find-first-true-even (suc (2 ·ℕ k)) (interleave-2k+1 α β k ∙ βk=t) allOddsF
+      in ¬¬P∧¬Q ((λ p → false≢true (sym (P→∀α p (half m)) ∙ αj=t)) , ¬q)
 
-      ResultEven : ℕ → Type₀
-      ResultEven n = interleave α β n ≡ true
-                   → ((k : ℕ) → firstTrue (interleave α β) (suc (2 ·ℕ k)) ≡ false)
-                   → Σ[ m ∈ ℕ ] (isEvenB m ≡ true) × (α (half m) ≡ true)
-
-      find-first-true-even-step : (n : ℕ) → ((m : ℕ) → m < n → ResultEven m) → ResultEven n
-      find-first-true-even-step n rec δ₀-n=t allOddsF with firstTrue (interleave α β) n =B true
-      ... | yes ft-n=t with isEvenB n =B true
-      ...   | yes n-even =
-              n , n-even , sym (interleave-even α β n n-even) ∙ δ₀-n=t
-      ...   | no n-odd =
-              let odd-eq = ¬true→false (isEvenB n) n-odd
-              in ex-falso (true≢false (sym (subst (λ x → firstTrue (interleave α β) x ≡ true)
-                                             (sym (suc-2·half-odd n odd-eq)) ft-n=t)
-                                       ∙ allOddsF (half n)))
-      find-first-true-even-step n rec δ₀-n=t allOddsF | no ft-n≠t =
-        let (m , m<n , δ₀-m=t) = firstTrue-false-but-original-true (interleave α β) n
-                                    (¬true→false (firstTrue (interleave α β) n) ft-n≠t) δ₀-n=t
-        in rec m m<n δ₀-m=t allOddsF
-
-      find-first-true-even : (n : ℕ) → ResultEven n
-      find-first-true-even = induction find-first-true-even-step
-
-    allOddsF-implies-Q : ((k : ℕ) → firstTrue (interleave α β) (suc (2 ·ℕ k)) ≡ false) → ⟨ Q ⟩
-    allOddsF-implies-Q allOddsF = closedIsStable Q Qclosed ¬¬Q
-      where
-      ¬¬Q : ¬ ¬ ⟨ Q ⟩
-      ¬¬Q ¬q =
-        let (k , βk=t) = mp β (λ all-false → ¬q (∀β→Q all-false))
-            (m , m-even , αj=t) = find-first-true-even (suc (2 ·ℕ k)) (interleave-2k+1 α β k ∙ βk=t) allOddsF
-        in ¬¬P∧¬Q ((λ p → false≢true (sym (P→∀α p (half m)) ∙ αj=t)) , ¬q)
-
-    helper : ((k : ℕ) → firstTrue (interleave α β) (2 ·ℕ k) ≡ false)
-           ⊎ ((k : ℕ) → firstTrue (interleave α β) (suc (2 ·ℕ k)) ≡ false)
-           → ∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁
-    helper (inl allEvensF) = ∣ inl (allEvensF-implies-P allEvensF) ∣₁
-    helper (inr allOddsF) = ∣ inr (allOddsF-implies-Q allOddsF) ∣₁
+  helper : ((k : ℕ) → firstTrue (interleave α β) (2 ·ℕ k) ≡ false)
+         ⊎ ((k : ℕ) → firstTrue (interleave α β) (suc (2 ·ℕ k)) ≡ false)
+         → ∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁
+  helper (inl allEvensF) = ∣ inl (allEvensF-implies-P allEvensF) ∣₁
+  helper (inr allOddsF) = ∣ inr (allOddsF-implies-Q allOddsF) ∣₁
 
 closedOr : (P Q : hProp ℓ-zero) → isClosedProp P → isClosedProp Q
          → isClosedProp (∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁ , squash₁)
-closedOr P Q Pclosed Qclosed = PT.rec2 squash₁ go Pclosed Qclosed
+closedOr P Q Pclosed Qclosed = ∣ γ , forward , backward ∣₁
   where
-  go : Σ[ αP ∈ binarySequence ] ⟨ P ⟩ ↔ ((n : ℕ) → αP n ≡ false)
-     → Σ[ αQ ∈ binarySequence ] ⟨ Q ⟩ ↔ ((n : ℕ) → αQ n ≡ false)
-     → isClosedProp (∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁ , squash₁)
-  go (αP , P→∀ , ∀→P) (αQ , Q→∀ , ∀→Q) = ∣ γ , forward , backward ∣₁
+  ¬P : hProp ℓ-zero
+  ¬P = (¬ ⟨ P ⟩) , isProp¬ ⟨ P ⟩
+
+  ¬Q : hProp ℓ-zero
+  ¬Q = (¬ ⟨ Q ⟩) , isProp¬ ⟨ Q ⟩
+
+  ¬P∧¬Qopen : isOpenProp (((¬ ⟨ P ⟩) × (¬ ⟨ Q ⟩)) , isProp× (isProp¬ ⟨ P ⟩) (isProp¬ ⟨ Q ⟩))
+  ¬P∧¬Qopen = openAnd ¬P ¬Q (negClosedIsOpen mp P Pclosed) (negClosedIsOpen mp Q Qclosed)
+
+  γ : binarySequence
+  γ = fst ¬P∧¬Qopen
+
+  forward : ∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁ → (n : ℕ) → γ n ≡ false
+  forward P∨Q n with γ n =B true
+  ... | yes γn=t = ex-falso (PT.rec isProp⊥ (helper γn=t) P∨Q)
     where
-    ¬P : hProp ℓ-zero
-    ¬P = (¬ ⟨ P ⟩) , isProp¬ ⟨ P ⟩
+    helper : γ n ≡ true → ⟨ P ⟩ ⊎ ⟨ Q ⟩ → ⊥
+    helper γn=t (inl p) = fst (snd (snd ¬P∧¬Qopen) (n , γn=t)) p
+    helper γn=t (inr q) = snd (snd (snd ¬P∧¬Qopen) (n , γn=t)) q
+  ... | no γn≠t = ¬true→false (γ n) γn≠t
 
-    ¬Q : hProp ℓ-zero
-    ¬Q = (¬ ⟨ Q ⟩) , isProp¬ ⟨ Q ⟩
+  backward : ((n : ℕ) → γ n ≡ false) → ∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁
+  backward all-false =
+    closedDeMorgan P Q Pclosed Qclosed ¬¬P∧¬Q
+    where
+    ¬¬P∧¬Q : ¬ ((¬ ⟨ P ⟩) × (¬ ⟨ Q ⟩))
+    ¬¬P∧¬Q (¬p , ¬q) =
+      let (n , γn=t) = fst (snd ¬P∧¬Qopen) (¬p , ¬q)
+      in false≢true (sym (all-false n) ∙ γn=t)
 
-    ¬P∧¬Qopen : isOpenProp (((¬ ⟨ P ⟩) × (¬ ⟨ Q ⟩)) , isProp× (isProp¬ ⟨ P ⟩) (isProp¬ ⟨ Q ⟩))
-    ¬P∧¬Qopen = openAnd ¬P ¬Q (negClosedIsOpen mp P αP (P→∀ , ∀→P)) (negClosedIsOpen mp Q αQ (Q→∀ , ∀→Q))
+_∨-Open_ : Open → Open → Open
+O₁ ∨-Open O₂ = ((∥ ⟨ fst O₁ ⟩ ⊎ ⟨ fst O₂ ⟩ ∥₁) , squash₁) ,
+               openOr (fst O₁) (fst O₂) (snd O₁) (snd O₂)
 
-    γ : binarySequence
-    γ = fst ¬P∧¬Qopen
-
-    forward : ∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁ → (n : ℕ) → γ n ≡ false
-    forward P∨Q n with γ n =B true
-    ... | yes γn=t = ex-falso (PT.rec isProp⊥ (helper γn=t) P∨Q)
-      where
-      helper : γ n ≡ true → ⟨ P ⟩ ⊎ ⟨ Q ⟩ → ⊥
-      helper γn=t (inl p) = fst (snd (snd ¬P∧¬Qopen) (n , γn=t)) p
-      helper γn=t (inr q) = snd (snd (snd ¬P∧¬Qopen) (n , γn=t)) q
-    ... | no γn≠t = ¬true→false (γ n) γn≠t
-
-    backward : ((n : ℕ) → γ n ≡ false) → ∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁
-    backward all-false =
-      closedDeMorgan P Q Pclosed Qclosed ¬¬P∧¬Q
-      where
-      ¬¬P∧¬Q : ¬ ((¬ ⟨ P ⟩) × (¬ ⟨ Q ⟩))
-      ¬¬P∧¬Q (¬p , ¬q) =
-        let (n , γn=t) = fst (snd ¬P∧¬Qopen) (¬p , ¬q)
-        in false≢true (sym (all-false n) ∙ γn=t)
+_∨-Closed_ : Closed → Closed → Closed
+C₁ ∨-Closed C₂ = ((∥ ⟨ fst C₁ ⟩ ⊎ ⟨ fst C₂ ⟩ ∥₁) , squash₁) ,
+                 closedOr (fst C₁) (fst C₂) (snd C₁) (snd C₂)
 
 -- (tex line 716)
 openDeMorgan : (P Q : hProp ℓ-zero) → isOpenProp P → isOpenProp Q
@@ -654,38 +665,39 @@ openDeMorgan P Q Popen Qopen = forward , backward
     ; (inr ¬q) (_ , q) → ¬q q
     }
 
+flatten : (ℕ → binarySequence) → binarySequence
+flatten αs k = let (m , n) = cantorUnpair k in αs m n
+
 closedCountableIntersection : (P : ℕ → hProp ℓ-zero)
                             → ((n : ℕ) → isClosedProp (P n))
                             → isClosedProp (((n : ℕ) → ⟨ P n ⟩) , isPropΠ (λ n → snd (P n)))
-closedCountableIntersection P αs =
-  PT.rec squash₁ go (countableChoice _ αs)
+closedCountableIntersection P αs = ∣ β , forward , backward ∣₁
   where
-  go : ((n : ℕ) → Σ[ α ∈ binarySequence ] ⟨ P n ⟩ ↔ ((k : ℕ) → α k ≡ false))
-     → isClosedProp (((n : ℕ) → ⟨ P n ⟩) , isPropΠ (λ n → snd (P n)))
-  go αs-bare = ∣ β , forward , backward ∣₁
+  αs-bare : (n : ℕ) → _
+  αs-bare n = extractClosedProp {P n} (αs n)
+
+  αP : ℕ → binarySequence
+  αP n = fst (αs-bare n)
+
+  β : binarySequence
+  β = flatten αP
+
+  forward : ((n : ℕ) → ⟨ P n ⟩) → (k : ℕ) → β k ≡ false
+  forward allP k =
+    let (m , n) = cantorUnpair k
+        Pm→allFalse = fst (snd (αs-bare m))
+    in Pm→allFalse (allP m) n
+
+  backward : ((k : ℕ) → β k ≡ false) → (n : ℕ) → ⟨ P n ⟩
+  backward allβFalse n = snd (snd (αs-bare n)) allαnFalse
     where
-    αP : ℕ → binarySequence
-    αP n = fst (αs-bare n)
-
-    β : binarySequence
-    β k = let (m , n) = cantorUnpair k in αP m n
-
-    forward : ((n : ℕ) → ⟨ P n ⟩) → (k : ℕ) → β k ≡ false
-    forward allP k =
-      let (m , n) = cantorUnpair k
-          Pm→allFalse = fst (snd (αs-bare m))
-      in Pm→allFalse (allP m) n
-
-    backward : ((k : ℕ) → β k ≡ false) → (n : ℕ) → ⟨ P n ⟩
-    backward allβFalse n = snd (snd (αs-bare n)) allαnFalse
-      where
-      allαnFalse : (k : ℕ) → αP n k ≡ false
-      allαnFalse k =
-        αP n k
-          ≡⟨ cong (λ p → αP (fst p) (snd p)) (sym (cantorUnpair-pair n k)) ⟩
-        αP (fst (cantorUnpair (cantorPair n k))) (snd (cantorUnpair (cantorPair n k)))
-          ≡⟨ allβFalse (cantorPair n k) ⟩
-        false ∎
+    allαnFalse : (k : ℕ) → αP n k ≡ false
+    allαnFalse k =
+      αP n k
+        ≡⟨ cong (λ p → αP (fst p) (snd p)) (sym (cantorUnpair-pair n k)) ⟩
+      αP (fst (cantorUnpair (cantorPair n k))) (snd (cantorUnpair (cantorPair n k)))
+        ≡⟨ allβFalse (cantorPair n k) ⟩
+      false ∎
 
 openCountableUnion : (P : ℕ → hProp ℓ-zero)
                    → ((n : ℕ) → isOpenProp (P n))
@@ -696,7 +708,7 @@ openCountableUnion P αs = β , forward , backward
   αP n = fst (αs n)
 
   β : binarySequence
-  β k = let (m , n) = cantorUnpair k in αP m n
+  β = flatten αP
 
   backward : Σ[ k ∈ ℕ ] β k ≡ true → ∥ Σ[ n ∈ ℕ ] ⟨ P n ⟩ ∥₁
   backward (k , βk=t) = let (n , m) = cantorUnpair k in ∣ n , snd (snd (αs n)) (m , βk=t) ∣₁
@@ -721,69 +733,64 @@ openCountableUnion P αs = β , forward , backward
               true ∎
         in false≢true (sym (allFalse k) ∙ βk=t)
 
+⋀-Closed : (ℕ → Closed) → Closed
+⋀-Closed Cs = (((n : ℕ) → ⟨ fst (Cs n) ⟩) , isPropΠ (λ n → snd (fst (Cs n)))) ,
+              closedCountableIntersection (λ n → fst (Cs n)) (λ n → snd (Cs n))
+
+⋁-Open : (ℕ → Open) → Open
+⋁-Open Os = ((∥ Σ[ n ∈ ℕ ] ⟨ fst (Os n) ⟩ ∥₁) , squash₁) ,
+            openCountableUnion (λ n → fst (Os n)) (λ n → snd (Os n))
+
 -- (ClopenDecidable from tex Corollary 774)
 
+isProp⊎¬ : (P : hProp ℓ-zero) → isProp (⟨ P ⟩ ⊎ (¬ ⟨ P ⟩))
+isProp⊎¬ P = isProp⊎ (snd P) (isProp¬ ⟨ P ⟩) (λ p ¬p → ¬p p)
+
 clopenIsDecidable : (P : hProp ℓ-zero) → isOpenProp P → isClosedProp P → Dec ⟨ P ⟩
-clopenIsDecidable P Popen Pclosed = PT.rec (isPropDec (snd P)) go Pclosed
-  where
-  go : Σ[ α ∈ binarySequence ] ⟨ P ⟩ ↔ ((n : ℕ) → α n ≡ false) → Dec ⟨ P ⟩
-  go (α , P→∀ , ∀→P) =
-    let ¬P = (¬ ⟨ P ⟩) , isProp¬ ⟨ P ⟩
-        ¬Popen = negClosedIsOpen mp P α (P→∀ , ∀→P)
-        P∨¬P-trunc = (∥ ⟨ P ⟩ ⊎ (¬ ⟨ P ⟩) ∥₁) , squash₁
-        P∨¬P-trunc-open = openOrMP mp P ¬P Popen ¬Popen
-    in ⊎.rec yes no (PT.rec (isProp⊎ (snd P) (isProp¬ ⟨ P ⟩) (λ p ¬p → ¬p p)) (λ x → x)
-         (openIsStable mp P∨¬P-trunc P∨¬P-trunc-open
-           (λ k → k ∣ inr (λ p → k ∣ inl p ∣₁) ∣₁)))
+clopenIsDecidable P Popen Pclosed =
+  let ¬P = (¬ ⟨ P ⟩) , isProp¬ ⟨ P ⟩
+      ¬Popen = negClosedIsOpen mp P Pclosed
+      P∨¬P-trunc = (∥ ⟨ P ⟩ ⊎ (¬ ⟨ P ⟩) ∥₁) , squash₁
+      P∨¬P-trunc-open = openOr P ¬P Popen ¬Popen
+  in ⊎.rec yes no (PT.rec (isProp⊎¬ P) (λ x → x)
+       (openIsStable mp P∨¬P-trunc P∨¬P-trunc-open
+         (λ k → k ∣ inr (λ p → k ∣ inl p ∣₁) ∣₁)))
 
 -- (ImplicationOpenClosed from tex Lemma 857)
 
 implicationOpenClosed : (P Q : hProp ℓ-zero) → isOpenProp P → isClosedProp Q
                       → isClosedProp ((⟨ P ⟩ → ⟨ Q ⟩) , isPropΠ (λ _ → snd Q))
-implicationOpenClosed P Q Popen Qclosed = PT.rec squash₁ go Qclosed
+implicationOpenClosed P Q Popen Qclosed = ∣ γ , forward , backward ∣₁
   where
-  go : Σ[ αQ ∈ binarySequence ] ⟨ Q ⟩ ↔ ((n : ℕ) → αQ n ≡ false)
-     → isClosedProp ((⟨ P ⟩ → ⟨ Q ⟩) , isPropΠ (λ _ → snd Q))
-  go (αQ , Q→∀ , ∀→Q) = PT.rec squash₁ go2 ¬P∧¬Qclosed
-    where
-    P∧¬Qopen : isOpenProp ((⟨ P ⟩ × (¬ ⟨ Q ⟩)) , isProp× (snd P) (isProp¬ ⟨ Q ⟩))
-    P∧¬Qopen = openAnd P ((¬ ⟨ Q ⟩) , isProp¬ ⟨ Q ⟩) Popen (negClosedIsOpen mp Q αQ (Q→∀ , ∀→Q))
+  P∧¬Qopen : isOpenProp ((⟨ P ⟩ × (¬ ⟨ Q ⟩)) , isProp× (snd P) (isProp¬ ⟨ Q ⟩))
+  P∧¬Qopen = openAnd P ((¬ ⟨ Q ⟩) , isProp¬ ⟨ Q ⟩) Popen (negClosedIsOpen mp Q Qclosed)
 
-    ¬P∧¬Qclosed : isClosedProp (¬hProp ((⟨ P ⟩ × (¬ ⟨ Q ⟩)) , isProp× (snd P) (isProp¬ ⟨ Q ⟩)))
-    ¬P∧¬Qclosed = negOpenIsClosed ((⟨ P ⟩ × (¬ ⟨ Q ⟩)) , isProp× (snd P) (isProp¬ ⟨ Q ⟩)) P∧¬Qopen
+  ¬P∧¬Q-hProp = ¬hProp ((⟨ P ⟩ × (¬ ⟨ Q ⟩)) , isProp× (snd P) (isProp¬ ⟨ Q ⟩))
+  ¬P∧¬Qclosed-bare = extractClosedProp {¬P∧¬Q-hProp}
+    (negOpenIsClosed ((⟨ P ⟩ × (¬ ⟨ Q ⟩)) , isProp× (snd P) (isProp¬ ⟨ Q ⟩)) P∧¬Qopen)
 
-    go2 : Σ[ γ ∈ binarySequence ] (¬ (⟨ P ⟩ × (¬ ⟨ Q ⟩))) ↔ ((n : ℕ) → γ n ≡ false)
-        → isClosedProp ((⟨ P ⟩ → ⟨ Q ⟩) , isPropΠ (λ _ → snd Q))
-    go2 (γ , ¬P∧¬Q→∀ , ∀→¬P∧¬Q) = ∣ γ , forward , backward ∣₁
-      where
-      forward : (⟨ P ⟩ → ⟨ Q ⟩) → (n : ℕ) → γ n ≡ false
-      forward p→q = ¬P∧¬Q→∀ (λ (p , ¬q) → ¬q (p→q p))
+  γ = fst ¬P∧¬Qclosed-bare
 
-      backward : ((n : ℕ) → γ n ≡ false) → ⟨ P ⟩ → ⟨ Q ⟩
-      backward all-false p =
-        closedIsStable (⟨ Q ⟩ , snd Q) Qclosed (λ ¬q → ∀→¬P∧¬Q all-false (p , ¬q))
+  forward : (⟨ P ⟩ → ⟨ Q ⟩) → (n : ℕ) → γ n ≡ false
+  forward p→q = fst (snd ¬P∧¬Qclosed-bare) (λ (p , ¬q) → ¬q (p→q p))
+
+  backward : ((n : ℕ) → γ n ≡ false) → ⟨ P ⟩ → ⟨ Q ⟩
+  backward all-false p =
+    closedIsStable (⟨ Q ⟩ , snd Q) Qclosed (λ ¬q → snd (snd ¬P∧¬Qclosed-bare) all-false (p , ¬q))
 
 closedMarkovTex : (P : ℕ → hProp ℓ-zero) → ((n : ℕ) → isClosedProp (P n))
                 → (¬ ((n : ℕ) → ⟨ P n ⟩)) ↔ ∥ Σ[ n ∈ ℕ ] (¬ ⟨ P n ⟩) ∥₁
-closedMarkovTex P Pclosed = PT.rec isPropResult go (countableChoice _ Pclosed)
+closedMarkovTex P Pclosed = forward , backward
   where
-  isPropResult : isProp ((¬ ((n : ℕ) → ⟨ P n ⟩)) ↔ ∥ Σ[ n ∈ ℕ ] (¬ ⟨ P n ⟩) ∥₁)
-  isPropResult = isProp× (isPropΠ (λ _ → squash₁)) (isPropΠ (λ _ → isProp¬ _))
+  ∃¬P-open : isOpenProp (∥ Σ[ n ∈ ℕ ] (¬ ⟨ P n ⟩) ∥₁ , squash₁)
+  ∃¬P-open = openCountableUnion (λ n → (¬ ⟨ P n ⟩) , isProp¬ _) (λ n → negClosedIsOpen mp (P n) (Pclosed n))
 
-  go : ((n : ℕ) → Σ[ α ∈ binarySequence ] ⟨ P n ⟩ ↔ ((k : ℕ) → α k ≡ false))
-     → (¬ ((n : ℕ) → ⟨ P n ⟩)) ↔ ∥ Σ[ n ∈ ℕ ] (¬ ⟨ P n ⟩) ∥₁
-  go bareWitnesses = forward , backward
-    where
-    ∃¬P-open : isOpenProp (∥ Σ[ n ∈ ℕ ] (¬ ⟨ P n ⟩) ∥₁ , squash₁)
-    ∃¬P-open = openCountableUnion (λ n → (¬ ⟨ P n ⟩) , isProp¬ _)
-      (λ n → let (αn , iff) = bareWitnesses n in negClosedIsOpen mp (P n) αn iff)
+  forward : ¬ ((n : ℕ) → ⟨ P n ⟩) → ∥ Σ[ n ∈ ℕ ] (¬ ⟨ P n ⟩) ∥₁
+  forward ¬∀P = openIsStable mp (∥ Σ[ n ∈ ℕ ] (¬ ⟨ P n ⟩) ∥₁ , squash₁) ∃¬P-open
+    (λ k → ¬∀P (λ n → closedIsStable (P n) (Pclosed n) (λ ¬Pn → k ∣ n , ¬Pn ∣₁)))
 
-    forward : ¬ ((n : ℕ) → ⟨ P n ⟩) → ∥ Σ[ n ∈ ℕ ] (¬ ⟨ P n ⟩) ∥₁
-    forward ¬∀P = openIsStable mp (∥ Σ[ n ∈ ℕ ] (¬ ⟨ P n ⟩) ∥₁ , squash₁) ∃¬P-open
-      (λ k → ¬∀P (λ n → closedIsStable (P n) (Pclosed n) (λ ¬Pn → k ∣ n , ¬Pn ∣₁)))
-
-    backward : ∥ Σ[ n ∈ ℕ ] (¬ ⟨ P n ⟩) ∥₁ → ¬ ((n : ℕ) → ⟨ P n ⟩)
-    backward = PT.rec (isProp¬ _) (λ { (n , ¬Pn) ∀P → ¬Pn (∀P n) })
+  backward : ∥ Σ[ n ∈ ℕ ] (¬ ⟨ P n ⟩) ∥₁ → ¬ ((n : ℕ) → ⟨ P n ⟩)
+  backward = PT.rec (isProp¬ _) (λ { (n , ¬Pn) ∀P → ¬Pn (∀P n) })
 
 openSigmaDecidable : (D : hProp ℓ-zero) → Dec ⟨ D ⟩
                    → (Q : ⟨ D ⟩ → hProp ℓ-zero) → ((d : ⟨ D ⟩) → isOpenProp (Q d))
@@ -845,12 +852,19 @@ openEquiv P Q P→Q Q→P (α , P→∃ , ∃→P) =
 closedEquiv : (P Q : hProp ℓ-zero) → (⟨ P ⟩ → ⟨ Q ⟩) → (⟨ Q ⟩ → ⟨ P ⟩)
             → isClosedProp P → isClosedProp Q
 closedEquiv P Q P→Q Q→P Pclosed =
-  PT.map (λ (α , P→∀ , ∀→P) → α , (λ q → P→∀ (Q→P q)) , (λ w → P→Q (∀→P w))) Pclosed
+  let Pclosed-bare = extractClosedProp {P} Pclosed
+      α = fst Pclosed-bare
+      P→∀ = fst (snd Pclosed-bare)
+      ∀→P = snd (snd Pclosed-bare)
+  in ∣ α , (λ q → P→∀ (Q→P q)) , (λ w → P→Q (∀→P w)) ∣₁
 
 -- Definition (tex line 884-886):
 
 isOpenSubset : {T : Type₀} → (A : T → hProp ℓ-zero) → Type₀
 isOpenSubset {T} A = (t : T) → isOpenProp (A t)
+
+isClosedSubset : {T : Type₀} → (A : T → hProp ℓ-zero) → Type₀
+isClosedSubset {T} A = (t : T) → isClosedProp (A t)
 
 -- The pre-image of an open subset under any map is open (tex remark 889)
 preimageOpenIsOpen : {S T : Type₀} (f : S → T) (A : T → hProp ℓ-zero)

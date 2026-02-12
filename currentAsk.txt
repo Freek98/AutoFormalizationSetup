@@ -33,3 +33,6 @@
 
 ❯ nvim see your CLAUDE.md File for construnctions, keep cleaning again.         
 
+> See CLAUDE.md. I added point 6 about fixing the definition of closed propositions, please proceed to fix it. Keep working, and don't ask for permissions. 
+> While you're at it, if you can refactor the definitions of open and closed to use \leftrightarrow, that would be great. 
+> most of the time, I think you should be able to use PT.rec if you're using a proposition. 

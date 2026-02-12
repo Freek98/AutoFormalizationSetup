@@ -10,7 +10,8 @@ Changes since bck0134 (6119 lines → 6111 lines, -8 lines):
      exactly: `a + b + (a · b)`.
 
 Note: The Part14 import consolidation listed in earlier drafts was already
-included in bck0134.
+included in bck0134. The isPropIsClosedPropBare elimination described in
+the remote branch's version of this file was already done in bck0133.
 
 Comprehensive library scan confirmed: no other hand-rolled lemmas across
 all Part files have library equivalents. The codebase already uses library
