@@ -4,6 +4,7 @@
 3. If a function can be deleted and nothing anywhere breaks down, it should be deleted **unless** it is mentioned in monolithic.tex as a result (theorem,proposition, proof).
 4. Almost all comments are useless, as they are not written in agda. They can go. The only useful comments are those that state that a specific theorem (which is proven in agda, not in comments) can be found somewhere in the tex file. 
 5. You should check if some functions already exist in cubical library somewhere. If they do, clean them up. 
+6. I also want you to repair a problem with your original Part01. You had a wrong definition of isClosedProp, using Sigma insteads of Mere existence. I need you to remove all mistakes that come from this. You have postulated that the Sigma is a proposition. This is False, and it propogates. This needs to be fixed. 
 
 
 
