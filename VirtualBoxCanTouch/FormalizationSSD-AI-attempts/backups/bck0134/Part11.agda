@@ -58,7 +58,7 @@ module InhabitedClosedSubSpaceClosedCHausModule where
   open import Cubical.Functions.Surjection using (isSurjection)
   open CompactHausdorffModule
   open InhabitedClosedSubSpaceClosedModule
-  open StoneEqualityClosedModule
+  open StoneEqualityClosedModule using (isPropIsClosedProp)
 
   InhabitedClosedSubSpaceClosedCHaus : (X : CHaus)
     → (A : fst X → hProp ℓ-zero) → ((x : fst X) → isClosedProp (A x))
@@ -102,8 +102,8 @@ module AllOpenSubspaceOpenModule where
 
   AllOpenSubspaceOpen : (X : CHaus)
     → (U : fst X → hProp ℓ-zero) → ((x : fst X) → isOpenProp (U x))
-    → ∥ isOpenProp (((x : fst X) → fst (U x)) , isPropΠ (λ x → snd (U x))) ∥₁
-  AllOpenSubspaceOpen X U Uopen = PT.map go exists-¬U-closed
+    → isOpenProp (((x : fst X) → fst (U x)) , isPropΠ (λ x → snd (U x)))
+  AllOpenSubspaceOpen X U Uopen = proof
     where
     ¬U : fst X → hProp ℓ-zero
     ¬U x = ¬hProp (U x)
@@ -120,16 +120,18 @@ module AllOpenSubspaceOpenModule where
     ¬exists-¬U : hProp ℓ-zero
     ¬exists-¬U = ¬hProp exists-¬U
 
+    ¬exists-¬U-open : isOpenProp ¬exists-¬U
+    ¬exists-¬U-open = negClosedIsOpen mp exists-¬U exists-¬U-closed
+
     forward : ((x : fst X) → fst (U x)) → fst ¬exists-¬U
     forward all-U exists-¬U' = PT.rec isProp⊥ (λ { (x , ¬Ux) → ¬Ux (all-U x) }) exists-¬U'
 
     backward : fst ¬exists-¬U → (x : fst X) → fst (U x)
     backward ¬∃¬U x = openIsStable mp (U x) (Uopen x) (λ ¬Ux → ¬∃¬U ∣ x , ¬Ux ∣₁)
 
-    go : Σ[ β ∈ binarySequence ] ⟨ exists-¬U ⟩ ↔ ((n : ℕ) → β n ≡ false)
-       → isOpenProp (((x : fst X) → fst (U x)) , isPropΠ (λ x → snd (U x)))
-    go (β , β-fwd , β-bwd) = openEquiv ¬exists-¬U (((x : fst X) → fst (U x)) , isPropΠ (λ x → snd (U x)))
-              backward forward (negClosedIsOpen mp exists-¬U β (β-fwd , β-bwd))
+    proof : isOpenProp (((x : fst X) → fst (U x)) , isPropΠ (λ x → snd (U x)))
+    proof = openEquiv ¬exists-¬U (((x : fst X) → fst (U x)) , isPropΠ (λ x → snd (U x)))
+              backward forward ¬exists-¬U-open
 
 -- CHausFiniteIntersectionProperty (tex Lemma 1981)
 

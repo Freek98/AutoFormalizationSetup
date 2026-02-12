@@ -34,32 +34,24 @@ module ClosedInStoneIsStoneModule where
   open SDDecToElemModule
   open StoneClosedSubsetsModule
 
-  -- Truncated choice for families of closed propositions over Stone spaces.
-  -- Derivable from localChoice-axiom via the StoneClosedSubsets equivalence
-  -- (tex Theorem StoneClosedSubsets, (v)→(i) direction), but the full
-  -- derivation requires implementing additional machinery.
-  -- Replaces the false extractClosedProp which used isPropIsClosedPropBare.
-  postulate
-    closedFamilyChoice : (S : Stone) (A : fst S → hProp ℓ-zero)
-      → ((x : fst S) → isClosedProp (A x))
-      → ∥ ((x : fst S) → Σ[ α ∈ binarySequence ] ⟨ A x ⟩ ↔ ((n : ℕ) → α n ≡ false)) ∥₁
-
   ClosedInStoneIsStone : (S : Stone) → (A : fst S → hProp ℓ-zero)
                        → ((x : fst S) → isClosedProp (A x))
                        → hasStoneStr (Σ (fst S) (λ x → fst (A x)))
   ClosedInStoneIsStone S A A-closed =
-    PT.rec (isPropHasStoneStr sd-axiom _) mainConstruct (closedFamilyChoice S A A-closed)
+    PT.rec (isPropHasStoneStr sd-axiom _) construct (snd (fst (snd S)))
     where
     |S| : Type ℓ-zero
     |S| = fst S
 
-    mainConstruct : ((x : |S|) → Σ[ α ∈ binarySequence ] ⟨ A x ⟩ ↔ ((n : ℕ) → α n ≡ false))
-                  → hasStoneStr (Σ |S| (λ x → fst (A x)))
-    mainConstruct A-closed-bare =
-      PT.rec (isPropHasStoneStr sd-axiom _) extractC (quotientBySeqPreservesBooleω B d)
+    A-closed-bare : (x : |S|) → _
+    A-closed-bare x = extractClosedProp {A x} (A-closed x)
+
+    α : |S| → ℕ → Bool
+    α x = fst (A-closed-bare x)
+
+    construct : has-Boole-ω' (fst (fst (snd S))) → hasStoneStr (Σ |S| (λ x → fst (A x)))
+    construct (f₀ , equiv₀) = PT.rec (isPropHasStoneStr sd-axiom _) extractC (quotientBySeqPreservesBooleω B d)
       where
-      α : |S| → ℕ → Bool
-      α x = fst (A-closed-bare x)
 
       B : Booleω
       B = fst (snd S)

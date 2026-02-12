@@ -1,0 +1,64 @@
+CHANGES0135 — Eliminate false isPropIsClosedPropBare postulate; use PT.rec throughout
+
+Changes since bck0134 (6165 lines → 6163 lines, -2 lines):
+
+The false postulate `isPropIsClosedPropBare` (claiming the bare Σ witness type
+for closed propositions is a prop — FALSE when P is false since multiple α work)
+and the `extractClosedProp` helper that used it have been removed. All downstream
+code now uses `PT.rec` / `PT.rec2` / `PT.map` to eliminate from the truncated
+`isClosedProp` directly, proving into propositions.
+
+A new postulate `closedFamilyChoice` was added in Part09, which is a correct
+statement derivable from localChoice + StoneClosedSubsets equivalence.
+
+Line count decrease (-2) justified: removed `isPropIsClosedPropBare` postulate
+(2 lines), `extractClosedProp` (3 lines), duplicate `isPropIsClosedProp` in
+Part08 (2 lines). Added `closedFamilyChoice` postulate (5 lines) in Part09.
+Net change small; no useful work was lost.
+
+1. Part01 (-14 lines):
+   - REMOVED: `isPropIsClosedPropBare` postulate (FALSE — eliminated)
+   - REMOVED: `extractClosedProp` helper (used the false postulate)
+   - `negClosedIsOpen`: now takes bare args (α, P→∀, ∀→P) instead of
+     extracting from truncation; callers must PT.rec/PT.map before calling
+   - `closedIsStable`: uses PT.rec with bare witness pattern
+   - `closedAnd`: uses PT.rec2 to handle two truncated closedness witnesses
+
+2. Part02 (+15 lines):
+   - `closedDeMorgan`: PT.rec2 on Pclosed/Qclosed
+   - `closedOr`: PT.rec2 on Pclosed/Qclosed
+   - `closedCountableIntersection`: PT.rec (via countableChoice + PT.map)
+   - `closedMarkovTex` (closedEquiv): PT.rec on closed witness
+   - `clopenIsDecidable`: fixed isProp⊎¬ → isPropDec (Dec ≠ ⊎)
+   - `implicationOpenClosed`: nested PT.rec
+
+3. Part07 (-2 lines):
+   - Added `isPropHasStoneStr` import from Axioms.StoneDuality
+   - `closedProp→hasStoneStr`: wrapped in PT.rec (isPropHasStoneStr sd-axiom _)
+     with `go` taking bare (α, P→∀, ∀→P)
+
+4. Part08 (-7 lines):
+   - `SpEqualityClosed-from-presentation`: PT.rec squash₁ go ∀P-closed
+   - `go` takes bare (β, allP→βFalse, βFalse→allP)
+   - REMOVED: duplicate `isPropIsClosedProp` definition (Part01's in scope)
+
+5. Part09 (+8 lines):
+   - ADDED: `closedFamilyChoice` postulate — correct statement:
+     for Stone S, closed family A, ∥ ((x : |S|) → Σ[α] ⟨A x⟩ ↔ ∀n.αn≡false) ∥₁
+     Derivable from localChoice + StoneClosedSubsets equivalence.
+   - `ClosedInStoneIsStone`: outer PT.rec uses closedFamilyChoice,
+     inner PT.rec uses quotientBySeqPreservesBooleω directly
+
+6. Part11 (-2 lines):
+   - Fixed import: open StoneEqualityClosedModule (no selective import)
+   - `AllOpenSubspaceOpen`: return type changed to ∥ isOpenProp (...) ∥₁
+     since negClosedIsOpen now takes bare args; uses PT.map
+   - Safe: AllOpenSubspaceOpen unused downstream
+
+Postulate status change:
+  - ELIMINATED: `isPropIsClosedPropBare` (Part01) — was FALSE
+  - ELIMINATED: `extractClosedProp` (Part01) — used the false postulate
+  - ADDED: `closedFamilyChoice` (Part09) — correct, derivable from axioms
+
+Net: one fewer false postulate, one new correct postulate.
+Full chain verification: SUCCESS (Part01 through Part20).

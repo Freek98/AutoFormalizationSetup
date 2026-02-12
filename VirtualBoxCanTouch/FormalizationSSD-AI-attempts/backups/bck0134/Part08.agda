@@ -36,7 +36,7 @@ module StoneEqualityClosedModule where
     → (pres : has-Boole-ω' B)
     → (s t : Sp (B , ∣ pres ∣₁))
     → isClosedProp ((s ≡ t) , isSetBoolHom B BoolBR s t)
-  SpEqualityClosed-from-presentation B (f , equiv) s t = PT.rec squash₁ go ∀P-closed
+  SpEqualityClosed-from-presentation B (f , equiv) s t = proof
     where
     Q : BooleanRing ℓ-zero
     Q = freeBA ℕ QB./Im f
@@ -67,6 +67,14 @@ module StoneEqualityClosedModule where
 
     agree-forward : s ≡ t → (n : ℕ) → fst (P n)
     agree-forward s=t n = cong (λ h → h $cr (gen-in-B n)) s=t
+
+    ∀P-closed-bare = extractClosedProp {((n : ℕ) → fst (P n)) , isPropΠ (λ n → snd (P n))} ∀P-closed
+
+    β : binarySequence
+    β = fst ∀P-closed-bare
+
+    s=t→βFalse : s ≡ t → (k : ℕ) → β k ≡ false
+    s=t→βFalse s=t = fst (snd ∀P-closed-bare) (agree-forward s=t)
 
     presEquiv⁻¹-hom : BoolHom Q B
     presEquiv⁻¹-hom = BooleanEquivToHomInv B Q equiv
@@ -118,15 +126,14 @@ module StoneEqualityClosedModule where
         ≡⟨ sym (CommRingHom≡ (funExt (λ _ → refl))) ⟩
       t ∎
 
-    go : Σ[ β ∈ binarySequence ] ((n : ℕ) → fst (P n)) ↔ ((k : ℕ) → β k ≡ false)
-       → isClosedProp ((s ≡ t) , isSetBoolHom B BoolBR s t)
-    go (β , allP→βFalse , βFalse→allP) = ∣ β , s=t→βFalse , βFalse→s=t ∣₁
-      where
-      s=t→βFalse : s ≡ t → (k : ℕ) → β k ≡ false
-      s=t→βFalse s=t = allP→βFalse (agree-forward s=t)
+    βFalse→s=t : ((k : ℕ) → β k ≡ false) → s ≡ t
+    βFalse→s=t = λ h → ∀P→s=t (snd (snd ∀P-closed-bare) h)
 
-      βFalse→s=t : ((k : ℕ) → β k ≡ false) → s ≡ t
-      βFalse→s=t h = ∀P→s=t (βFalse→allP h)
+    proof : isClosedProp ((s ≡ t) , isSetBoolHom B BoolBR s t)
+    proof = ∣ β , s=t→βFalse , βFalse→s=t ∣₁
+
+  isPropIsClosedProp : {P : hProp ℓ-zero} → isProp (isClosedProp P)
+  isPropIsClosedProp = squash₁
 
   SpEqualityClosed : (B : Booleω) → (s t : Sp B)
     → isClosedProp ((s ≡ t) , isSetBoolHom (fst B) BoolBR s t)
