@@ -1,0 +1,20 @@
+CHANGES0137 — Inline single-use wrappers in Part05
+
+Changes since bck0136 (6097 lines → 6085 lines, -12 lines):
+
+All removed items are NOT in tex and NOT used elsewhere in the project.
+
+1. Part05 (1250→1238, -12 lines):
+   - Inlined `unit-left-right-orth` at its single use site in
+     `h'-left-true→right-false`: replaced call with
+     `cong₂ _,_ (0∞-absorbs-right 𝟙∞) (0∞-absorbs-left y)` (-3 lines)
+   - Inlined `unit-right-left-orth` at its single use site in
+     `h'-right-true→left-false`: replaced call with
+     `cong₂ _,_ (0∞-absorbs-left x) (0∞-absorbs-right 𝟙∞)` (-3 lines)
+   - Inlined `h₀-on-gen` at its single use site in `h₀-on-neg-gen`:
+     replaced `h₀-on-gen n` with `SpB∞-roundtrip-seq ∞ n` (-3 lines)
+   - Inlined `Sp-f-surjective` at its single use site in `llpo-from-SD-aux`:
+     replaced call with direct
+     `injective→Sp-surjective B∞-Booleω B∞×B∞-Booleω f f-injective h` (-3 lines)
+
+Full chain verification: SUCCESS (Part01 through Part20).

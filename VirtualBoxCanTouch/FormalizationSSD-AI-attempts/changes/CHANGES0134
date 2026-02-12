@@ -1,0 +1,30 @@
+CHANGES0134 — Dead code removal and import consolidation
+
+Changes since bck0133 (6143 lines → 6119 lines, -24 lines):
+
+All removed items are NOT in tex and NOT used anywhere in the project.
+
+1. Part02 (886→864, -22 lines):
+   - Removed `_∨-Open_` (dead, never used) (-3 lines)
+   - Removed `_∨-Closed_` (dead, never used) (-3 lines)
+   - Removed `⋀-Closed` (dead, never used) (-3 lines)
+   - Removed `⋁-Open` (dead, never used) (-3 lines)
+   - Removed `isClosedSubset` (dead, only defined never used) (-2 lines)
+     Note: `isOpenSubset` is kept — used by `preimageOpenIsOpen` and
+     `openSubsetTransitive`
+   - Inlined `isProp⊎¬` into its single use site `clopenIsDecidable` (-2 lines)
+     Uses `isProp⊎` from `Cubical.Data.Sum.Properties` directly.
+   - Note: `Open` and `Closed` type aliases in Part01 are kept — they are
+     tex-referenced (line 673: "We denote by $\Open$ and $\Closed$...")
+
+2. Part14 (444→442, -2 lines):
+   - Consolidated `GroupoidLaws` imports: moved `rCancel`, `lCancel`, `lUnit`
+     from inner scope (line 197) to outer import (line 152)
+   - Narrowed second inner import (line 335) to only `assoc` (the un-renamed
+     version needed alongside outer `assoc-path`)
+
+Comprehensive scan of all files (Part01-Part20) found no other dead code,
+unused imports, non-tex comments, or library replacement opportunities.
+All remaining postulates are deep mathematical results.
+
+Full chain verification: SUCCESS (Part01 through Part20).

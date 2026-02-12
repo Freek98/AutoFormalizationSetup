@@ -1,0 +1,17 @@
+CHANGES0140 — Inline single-use bindings in Part06, combine equational steps in Part14
+
+Changes since bck0138 (6073 lines → 6066 lines, -7 lines):
+
+All removed items are NOT in tex and NOT used elsewhere in the project.
+
+1. Part14 (440→436, -4 lines):
+   - Combined two pairs of adjacent rCancel + lUnit equational steps
+     in `combined-is-refl`:
+     a) `cong ... (rCancel pu)` + `cong ... (sym (lUnit pv))` → single step (-2)
+     b) `cong ... (rCancel pw)` + `cong ... (sym (lUnit pv))` → single step (-2)
+
+2. Part06 (56→53, -3 lines):
+   - Inlined `seq-eq-pointwise` at its single use in `free-hom-eq`:
+     replaced `seq-eq-pointwise` with `funExt⁻ (cong fst seq-eq)` (-3 lines)
+
+Full chain verification: SUCCESS (Part01 through Part20).

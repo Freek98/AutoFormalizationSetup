@@ -1,0 +1,19 @@
+CHANGES0135 — Library replacement
+
+Changes since bck0134 (6119 lines → 6111 lines, -8 lines):
+
+1. Part04 (642→634, -8 lines):
+   - Replaced hand-rolled `zero-join-left` and `zero-join-right` (5-line
+     equational proofs each) with library `BooleanAlgebraStr.∨IdL B∞` and
+     `BooleanAlgebraStr.∨IdR B∞`. The library proves these with `solve!`
+     (CommRingSolver). The `_∨∞_` definition matches the library's `_∨_`
+     exactly: `a + b + (a · b)`.
+
+Note: The Part14 import consolidation listed in earlier drafts was already
+included in bck0134.
+
+Comprehensive library scan confirmed: no other hand-rolled lemmas across
+all Part files have library equivalents. The codebase already uses library
+functions optimally.
+
+Full chain verification: SUCCESS (Part01 through Part20).

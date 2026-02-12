@@ -1,0 +1,21 @@
+CHANGES0138 — Inline single-use wrappers in Part03, Part10, Part19
+
+Changes since bck0137 (6085 lines → 6073 lines, -12 lines):
+
+All removed items are NOT in tex and NOT used elsewhere in the project.
+
+1. Part03 (155→152, -3 lines):
+   - Inlined `relB∞-encodes` at its single use in `g∞-lt-mult-zero`:
+     replaced `relB∞-encodes a d` with
+     `cong relB∞-from-pair (cantorUnpair-pair a d)` (-3 lines incl. blank)
+
+2. Part10 (125→122, -3 lines):
+   - Inlined `CantorStone` at its single use in `ClosedInCantor→Stone`:
+     replaced `CantorStone` with `(CantorSpace , CantorIsStone)` (-3 lines incl. blank)
+
+3. Part19 (104→98, -6 lines):
+   - Inlined `fun-to-Bool-I-local` at its single use in `Stone-Sp-I-local`:
+     replaced `fun-to-Bool-I-local setX` with
+     `funspace-I-local setX Bool-I-local` (-6 lines incl. blank)
+
+Full chain verification: SUCCESS (Part01 through Part20).
