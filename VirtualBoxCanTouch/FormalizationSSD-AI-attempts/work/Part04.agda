@@ -549,18 +549,10 @@ f-pres-join a b =
   (fst f a) ∨× (fst f b) ∎
 
 zero-join-left : (x : ⟨ B∞ ⟩) → 𝟘∞ ∨∞ x ≡ x
-zero-join-left x =
-  𝟘∞ +∞ x +∞ (𝟘∞ ·∞ x)        ≡⟨ cong (𝟘∞ +∞ x +∞_) (0∞-absorbs-left x) ⟩
-  𝟘∞ +∞ x +∞ 𝟘∞              ≡⟨ BooleanRingStr.+IdR (snd B∞) (𝟘∞ +∞ x) ⟩
-  𝟘∞ +∞ x                     ≡⟨ BooleanRingStr.+IdL (snd B∞) x ⟩
-  x ∎
+zero-join-left _ = BooleanAlgebraStr.∨IdL B∞
 
 zero-join-right : (x : ⟨ B∞ ⟩) → x ∨∞ 𝟘∞ ≡ x
-zero-join-right x =
-  x +∞ 𝟘∞ +∞ (x ·∞ 𝟘∞)        ≡⟨ cong (x +∞ 𝟘∞ +∞_) (0∞-absorbs-right x) ⟩
-  x +∞ 𝟘∞ +∞ 𝟘∞              ≡⟨ BooleanRingStr.+IdR (snd B∞) (x +∞ 𝟘∞) ⟩
-  x +∞ 𝟘∞                     ≡⟨ BooleanRingStr.+IdR (snd B∞) x ⟩
-  x ∎
+zero-join-right _ = BooleanAlgebraStr.∨IdR B∞
 
 isEven≡isEvenB : (n : ℕ) → isEven n ≡ isEvenB n
 isEven≡isEvenB zero = refl

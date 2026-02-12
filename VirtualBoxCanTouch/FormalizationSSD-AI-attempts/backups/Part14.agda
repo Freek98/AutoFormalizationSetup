@@ -149,7 +149,7 @@ module CohomologyModule where
 
     open import Cubical.HITs.PropositionalTruncation.Properties as PT-Props
     open import Cubical.Foundations.Isomorphism using (Iso)
-    open import Cubical.Foundations.GroupoidLaws using (symDistr; symInvo) renaming (assoc to assoc-path)
+    open import Cubical.Foundations.GroupoidLaws using (symDistr; symInvo; rCancel; lCancel; lUnit) renaming (assoc to assoc-path)
 
     EM-iso : (x : S) → Iso (EM (A x) 0) (0ₖ {G = A x} 1 ≡ 0ₖ {G = A x} 1)
     EM-iso x = EMProp.Iso-EM-ΩEM+1 {G = A x} 0
@@ -193,8 +193,6 @@ module CohomologyModule where
 
         combined-path : 0ₖ {G = A x} 1 ≡ 0ₖ {G = A x} 1
         combined-path = p-vw ∙ sym p-uw ∙ p-uv
-
-        open import Cubical.Foundations.GroupoidLaws using (rCancel; lCancel; lUnit)
 
         sym-p-uw : sym p-uw ≡ sym pw ∙ pu
         sym-p-uw =
@@ -334,7 +332,7 @@ module CohomologyModule where
                 ≡⟨ ψ-expand ⟩
               ψ fv ∙ sym (ψ fu) ∎
 
-            open import Cubical.Foundations.GroupoidLaws using (lCancel; rCancel; lUnit; assoc)
+            open import Cubical.Foundations.GroupoidLaws using (assoc)
 
             sym-comm : (a b : EM (A x) 0) → sym (ψ a) ∙ sym (ψ b) ≡ sym (ψ b) ∙ sym (ψ a)
             sym-comm a b =

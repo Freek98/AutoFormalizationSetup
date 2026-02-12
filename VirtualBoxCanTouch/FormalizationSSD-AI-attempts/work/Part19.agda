@@ -18,16 +18,10 @@ module StoneILocalTC where
     → (x y : UnitInterval) → g x ≡ g y
   funspace-I-local {A} {B} setA B-local g x y = funExt (λ a → B-local (λ i → g i a) x y)
 
-  fun-to-Bool-I-local : {X : Type ℓ-zero}
-    → isSet X
-    → (g : UnitInterval → (X → Bool))
-    → (x y : UnitInterval) → g x ≡ g y
-  fun-to-Bool-I-local setX = funspace-I-local setX Bool-I-local
-
   Stone-Sp-I-local : (B : Booleω) → (f : UnitInterval → Sp B)
     → (x y : UnitInterval) → f x ≡ f y
   Stone-Sp-I-local B f x y =
-    CommRingHom≡ (fun-to-Bool-I-local (BooleanRingStr.is-set (snd (fst B)))
+    CommRingHom≡ (funspace-I-local (BooleanRingStr.is-set (snd (fst B))) Bool-I-local
                    (λ i → fst (f i)) x y)
 
 -- tex Lemma 3027: BZ is I-local

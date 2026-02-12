@@ -25,15 +25,12 @@ SpB∞-to-ℕ∞-injective : (h₁ h₂ : Sp B∞-Booleω) →
   SpB∞-to-ℕ∞ h₁ ≡ SpB∞-to-ℕ∞ h₂ → h₁ ≡ h₂
 SpB∞-to-ℕ∞-injective h₁ h₂ seq-eq = B∞-hom-eq
   where
-  seq-eq-pointwise : (n : ℕ) → h₁ $cr (g∞ n) ≡ h₂ $cr (g∞ n)
-  seq-eq-pointwise n = funExt⁻ (cong fst seq-eq) n
-
   h₁-free h₂-free : BoolHom (freeBA ℕ) BoolBR
   h₁-free = h₁ ∘cr π∞
   h₂-free = h₂ ∘cr π∞
 
   free-hom-eq : h₁-free ≡ h₂-free
-  free-hom-eq = equalityFromEqualityOnGenerators BoolBR h₁-free h₂-free seq-eq-pointwise
+  free-hom-eq = equalityFromEqualityOnGenerators BoolBR h₁-free h₂-free (funExt⁻ (cong fst seq-eq))
 
   B∞-hom-eq : h₁ ≡ h₂
   B∞-hom-eq = CommRingHom≡ (QB.quotientImageHomEpi {B = freeBA ℕ} {f = relB∞}

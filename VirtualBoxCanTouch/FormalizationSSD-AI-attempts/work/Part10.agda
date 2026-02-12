@@ -26,9 +26,6 @@ module StoneAsClosedSubsetOfCantorModule where
   open StoneClosedSubsetsModule
   open CantorIsStoneModule
 
-  CantorStone : Stone
-  CantorStone = CantorSpace , CantorIsStone
-
   ClosedSubsetOfCantor : Type₁
   ClosedSubsetOfCantor = Σ[ A ∈ (CantorSpace → hProp ℓ-zero) ] ((x : CantorSpace) → isClosedProp (A x))
 
@@ -122,4 +119,4 @@ module StoneAsClosedSubsetOfCantorModule where
 
   ClosedInCantor→Stone : (A : ClosedSubsetOfCantor)
     → hasStoneStr (Σ[ x ∈ CantorSpace ] (fst (fst A x)))
-  ClosedInCantor→Stone (A , Aclosed) = ClosedInStoneIsStone CantorStone A Aclosed
+  ClosedInCantor→Stone (A , Aclosed) = ClosedInStoneIsStone (CantorSpace , CantorIsStone) A Aclosed

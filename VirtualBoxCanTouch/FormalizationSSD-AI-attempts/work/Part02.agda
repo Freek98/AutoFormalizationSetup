@@ -386,10 +386,6 @@ countableChoice A witnesses = PT.map (λ { ((f , _) , _) n → snd (f (suc n)) }
 mp : MarkovPrinciple
 mp = mp-from-SD sd-axiom
 
-openOr : (P Q : hProp ℓ-zero) → isOpenProp P → isOpenProp Q
-       → isOpenProp (∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁ , squash₁)
-openOr = openOrMP mp
-
 ∞ : ℕ∞
 ∞ = (λ _ → false) , (λ m n αm=t _ → ex-falso (false≢true αm=t))
 
@@ -642,14 +638,6 @@ closedOr P Q Pclosed Qclosed = ∣ γ , forward , backward ∣₁
       let (n , γn=t) = fst (snd ¬P∧¬Qopen) (¬p , ¬q)
       in false≢true (sym (all-false n) ∙ γn=t)
 
-_∨-Open_ : Open → Open → Open
-O₁ ∨-Open O₂ = ((∥ ⟨ fst O₁ ⟩ ⊎ ⟨ fst O₂ ⟩ ∥₁) , squash₁) ,
-               openOr (fst O₁) (fst O₂) (snd O₁) (snd O₂)
-
-_∨-Closed_ : Closed → Closed → Closed
-C₁ ∨-Closed C₂ = ((∥ ⟨ fst C₁ ⟩ ⊎ ⟨ fst C₂ ⟩ ∥₁) , squash₁) ,
-                 closedOr (fst C₁) (fst C₂) (snd C₁) (snd C₂)
-
 -- (tex line 716)
 openDeMorgan : (P Q : hProp ℓ-zero) → isOpenProp P → isOpenProp Q
              → (¬ (⟨ P ⟩ × ⟨ Q ⟩)) ↔ ∥ (¬ ⟨ P ⟩) ⊎ (¬ ⟨ Q ⟩) ∥₁
@@ -665,9 +653,6 @@ openDeMorgan P Q Popen Qopen = forward , backward
     ; (inr ¬q) (_ , q) → ¬q q
     }
 
-flatten : (ℕ → binarySequence) → binarySequence
-flatten αs k = let (m , n) = cantorUnpair k in αs m n
-
 closedCountableIntersection : (P : ℕ → hProp ℓ-zero)
                             → ((n : ℕ) → isClosedProp (P n))
                             → isClosedProp (((n : ℕ) → ⟨ P n ⟩) , isPropΠ (λ n → snd (P n)))
@@ -680,7 +665,7 @@ closedCountableIntersection P αs = ∣ β , forward , backward ∣₁
   αP n = fst (αs-bare n)
 
   β : binarySequence
-  β = flatten αP
+  β k = let (m , n) = cantorUnpair k in αP m n
 
   forward : ((n : ℕ) → ⟨ P n ⟩) → (k : ℕ) → β k ≡ false
   forward allP k =
@@ -708,7 +693,7 @@ openCountableUnion P αs = β , forward , backward
   αP n = fst (αs n)
 
   β : binarySequence
-  β = flatten αP
+  β k = let (m , n) = cantorUnpair k in αP m n
 
   backward : Σ[ k ∈ ℕ ] β k ≡ true → ∥ Σ[ n ∈ ℕ ] ⟨ P n ⟩ ∥₁
   backward (k , βk=t) = let (n , m) = cantorUnpair k in ∣ n , snd (snd (αs n)) (m , βk=t) ∣₁
@@ -733,26 +718,15 @@ openCountableUnion P αs = β , forward , backward
               true ∎
         in false≢true (sym (allFalse k) ∙ βk=t)
 
-⋀-Closed : (ℕ → Closed) → Closed
-⋀-Closed Cs = (((n : ℕ) → ⟨ fst (Cs n) ⟩) , isPropΠ (λ n → snd (fst (Cs n)))) ,
-              closedCountableIntersection (λ n → fst (Cs n)) (λ n → snd (Cs n))
-
-⋁-Open : (ℕ → Open) → Open
-⋁-Open Os = ((∥ Σ[ n ∈ ℕ ] ⟨ fst (Os n) ⟩ ∥₁) , squash₁) ,
-            openCountableUnion (λ n → fst (Os n)) (λ n → snd (Os n))
-
 -- (ClopenDecidable from tex Corollary 774)
-
-isProp⊎¬ : (P : hProp ℓ-zero) → isProp (⟨ P ⟩ ⊎ (¬ ⟨ P ⟩))
-isProp⊎¬ P = isProp⊎ (snd P) (isProp¬ ⟨ P ⟩) (λ p ¬p → ¬p p)
 
 clopenIsDecidable : (P : hProp ℓ-zero) → isOpenProp P → isClosedProp P → Dec ⟨ P ⟩
 clopenIsDecidable P Popen Pclosed =
   let ¬P = (¬ ⟨ P ⟩) , isProp¬ ⟨ P ⟩
       ¬Popen = negClosedIsOpen mp P Pclosed
       P∨¬P-trunc = (∥ ⟨ P ⟩ ⊎ (¬ ⟨ P ⟩) ∥₁) , squash₁
-      P∨¬P-trunc-open = openOr P ¬P Popen ¬Popen
-  in ⊎.rec yes no (PT.rec (isProp⊎¬ P) (λ x → x)
+      P∨¬P-trunc-open = openOrMP mp P ¬P Popen ¬Popen
+  in ⊎.rec yes no (PT.rec (isProp⊎ (snd P) (isProp¬ ⟨ P ⟩) (λ p ¬p → ¬p p)) (λ x → x)
        (openIsStable mp P∨¬P-trunc P∨¬P-trunc-open
          (λ k → k ∣ inr (λ p → k ∣ inl p ∣₁) ∣₁)))
 
@@ -862,9 +836,6 @@ closedEquiv P Q P→Q Q→P Pclosed =
 
 isOpenSubset : {T : Type₀} → (A : T → hProp ℓ-zero) → Type₀
 isOpenSubset {T} A = (t : T) → isOpenProp (A t)
-
-isClosedSubset : {T : Type₀} → (A : T → hProp ℓ-zero) → Type₀
-isClosedSubset {T} A = (t : T) → isClosedProp (A t)
 
 -- The pre-image of an open subset under any map is open (tex remark 889)
 preimageOpenIsOpen : {S T : Type₀} (f : S → T) (A : T → hProp ℓ-zero)

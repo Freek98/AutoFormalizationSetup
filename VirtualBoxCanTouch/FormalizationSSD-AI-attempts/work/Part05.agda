@@ -792,12 +792,6 @@ private
 Sp-f : Sp B∞×B∞-Booleω → Sp B∞-Booleω
 Sp-f h = h ∘cr f
 
-unit-left-right-orth : (y : ⟨ B∞ ⟩) → unit-left ·× (𝟘∞ , y) ≡ (𝟘∞ , 𝟘∞)
-unit-left-right-orth y = cong₂ _,_ (0∞-absorbs-right 𝟙∞) (0∞-absorbs-left y)
-
-unit-right-left-orth : (x : ⟨ B∞ ⟩) → unit-right ·× (x , 𝟘∞) ≡ (𝟘∞ , 𝟘∞)
-unit-right-left-orth x = cong₂ _,_ (0∞-absorbs-left x) (0∞-absorbs-right 𝟙∞)
-
 private
   hom-orth-implies-false : (h' : Sp B∞×B∞-Booleω) (u v : ⟨ B∞×B∞ ⟩)
     → h' $cr u ≡ true → u ·× v ≡ (𝟘∞ , 𝟘∞) → h' $cr v ≡ false
@@ -817,12 +811,12 @@ private
 h'-left-true→right-false : (h' : Sp B∞×B∞-Booleω) → h' $cr unit-left ≡ true →
   (y : ⟨ B∞ ⟩) → h' $cr (𝟘∞ , y) ≡ false
 h'-left-true→right-false h' h'-left-true y =
-  hom-orth-implies-false h' unit-left (𝟘∞ , y) h'-left-true (unit-left-right-orth y)
+  hom-orth-implies-false h' unit-left (𝟘∞ , y) h'-left-true (cong₂ _,_ (0∞-absorbs-right 𝟙∞) (0∞-absorbs-left y))
 
 h'-right-true→left-false : (h' : Sp B∞×B∞-Booleω) → h' $cr unit-right ≡ true →
   (x : ⟨ B∞ ⟩) → h' $cr (x , 𝟘∞) ≡ false
 h'-right-true→left-false h' h'-right-true x =
-  hom-orth-implies-false h' unit-right (x , 𝟘∞) h'-right-true (unit-right-left-orth x)
+  hom-orth-implies-false h' unit-right (x , 𝟘∞) h'-right-true (cong₂ _,_ (0∞-absorbs-left x) (0∞-absorbs-right 𝟙∞))
 
 ℕ∞-on-gen : ℕ∞ → ℕ → Bool
 ℕ∞-on-gen α n = fst α n
@@ -962,9 +956,6 @@ finJoin∞-zero→empty (n ∷ rest) join=0 = ex-falso contradiction
 h₀ : Sp B∞-Booleω
 h₀ = ℕ∞-to-SpB∞ ∞
 
-h₀-on-gen : (n : ℕ) → h₀ $cr (g∞ n) ≡ false
-h₀-on-gen n = SpB∞-roundtrip-seq ∞ n
-
 h-pres-neg-Bool : (h : Sp B∞-Booleω) (x : ⟨ B∞ ⟩) →
   h $cr (¬∞ x) ≡ not (h $cr x)
 h-pres-neg-Bool h x =
@@ -980,7 +971,7 @@ h₀-on-neg-gen n =
   h₀ $cr (¬∞ (g∞ n))
     ≡⟨ h-pres-neg-Bool h₀ (g∞ n) ⟩
   not (h₀ $cr (g∞ n))
-    ≡⟨ cong not (h₀-on-gen n) ⟩
+    ≡⟨ cong not (SpB∞-roundtrip-seq ∞ n) ⟩
   true ∎
 
 h₀-on-finMeetNeg : (ns : List ℕ) → h₀ $cr (finMeetNeg∞ ns) ≡ true
@@ -1193,12 +1184,9 @@ f-injective x y fx=fy =
 
   in x=y
 
-Sp-f-surjective : (h : Sp B∞-Booleω) → ∥ Σ[ h' ∈ Sp B∞×B∞-Booleω ] Sp-f h' ≡ h ∥₁
-Sp-f-surjective = injective→Sp-surjective B∞-Booleω B∞×B∞-Booleω f f-injective
-
 llpo-from-SD-aux : (h : Sp B∞-Booleω) →
   ∥ ((k : ℕ) → h $cr (g∞ (2 ·ℕ k)) ≡ false) ⊎ ((k : ℕ) → h $cr (g∞ (suc (2 ·ℕ k))) ≡ false) ∥₁
-llpo-from-SD-aux h = PT.rec PT.squash₁ go (Sp-f-surjective h)
+llpo-from-SD-aux h = PT.rec PT.squash₁ go (injective→Sp-surjective B∞-Booleω B∞×B∞-Booleω f f-injective h)
   where
   go : Σ[ h' ∈ Sp B∞×B∞-Booleω ] Sp-f h' ≡ h →
        ∥ ((k : ℕ) → h $cr (g∞ (2 ·ℕ k)) ≡ false) ⊎ ((k : ℕ) → h $cr (g∞ (suc (2 ·ℕ k))) ≡ false) ∥₁

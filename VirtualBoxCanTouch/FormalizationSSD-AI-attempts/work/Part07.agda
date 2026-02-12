@@ -210,12 +210,6 @@ module ODiscInfrastructure where
     booleω-equality-open : (B : Booleω) → (a b : ⟨ fst B ⟩)
       → isOpenProp ((a ≡ b) , BooleanRingStr.is-set (snd (fst B)) a b)
 
-  0=1-isOpen : (B : Booleω)
-    → isOpenProp ((BooleanRingStr.𝟘 (snd (fst B)) ≡ BooleanRingStr.𝟙 (snd (fst B)))
-                 , BooleanRingStr.is-set (snd (fst B)) _ _)
-  0=1-isOpen B = booleω-equality-open B (BooleanRingStr.𝟘 (snd (fst B)))
-                                        (BooleanRingStr.𝟙 (snd (fst B)))
-
 -- TruncationStoneClosed completion (tex Corollary 1613)
 
 module TruncationStoneClosedComplete where
@@ -226,7 +220,8 @@ module TruncationStoneClosedComplete where
   ¬Sp-hProp B = (¬ Sp B) , isProp¬ (Sp B)
 
   ¬Sp-isOpen : (B : Booleω) → isOpenProp (¬Sp-hProp B)
-  ¬Sp-isOpen B = transport (cong isOpenProp hProp-path) (0=1-isOpen B)
+  ¬Sp-isOpen B = transport (cong isOpenProp hProp-path)
+    (booleω-equality-open B (BooleanRingStr.𝟘 (snd (fst B))) (BooleanRingStr.𝟙 (snd (fst B))))
     where
     0=1-Prop : hProp ℓ-zero
     0=1-Prop = _ , BooleanRingStr.is-set (snd (fst B)) _ _

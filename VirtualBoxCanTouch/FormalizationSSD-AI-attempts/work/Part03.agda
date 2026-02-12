@@ -73,9 +73,6 @@ a+suc-d≡b a b a<b =
   d +ℕ suc a             ≡⟨ ≤-∸-+-cancel a<b ⟩
   b ∎
 
-relB∞-encodes : (a d : ℕ) → relB∞ (cantorPair a d) ≡ gen a · gen (a +ℕ suc d)
-relB∞-encodes a d = cong relB∞-from-pair (cantorUnpair-pair a d)
-
 open IsCommRingHom (snd π∞) renaming (pres· to π∞-pres·)
 
 g∞-lt-mult-zero : (a b : ℕ) → a < b → g∞ a ·∞ g∞ b ≡ 𝟘∞
@@ -84,7 +81,7 @@ g∞-lt-mult-zero a b a<b =
       k = cantorPair a d
   in
   g∞ a ·∞ g∞ b                        ≡⟨ sym (π∞-pres· (gen a) (gen b)) ⟩
-  fst π∞ (gen a · gen b)              ≡⟨ cong (fst π∞) (cong (λ x → gen a · gen x) (sym (a+suc-d≡b a b a<b)) ∙ sym (relB∞-encodes a d)) ⟩
+  fst π∞ (gen a · gen b)              ≡⟨ cong (fst π∞) (cong (λ x → gen a · gen x) (sym (a+suc-d≡b a b a<b)) ∙ sym (cong relB∞-from-pair (cantorUnpair-pair a d))) ⟩
   fst π∞ (relB∞ k)                    ≡⟨ relB∞-is-zero k ⟩
   𝟘∞ ∎
 
