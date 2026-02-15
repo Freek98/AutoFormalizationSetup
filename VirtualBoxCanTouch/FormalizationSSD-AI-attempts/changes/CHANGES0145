@@ -1,0 +1,45 @@
+CHANGES0145 — Prove StoneSeparated from closedFamilyChoice (eliminate postulate)
+
+Changes since bck0144 (6086 lines → 6433 lines, +347 lines):
+
+The increase is from proving the StoneSeparated postulate (tex Lemma 1824), which
+asserts that disjoint closed subsets of Stone spaces can be separated by decidable
+subsets. This eliminates one postulate and replaces it with a ~344-line proof.
+
+1. Part08 (441→444, +3 lines):
+   - Refactored quotientBySeqPreservesBooleω to expose quotientBySeqHasBooleω
+   - quotientBySeqHasBooleω returns ∥ has-Boole-ω' (fst B QB./Im d) ∥₁
+     (the underlying ring is concrete, only the presentation is truncated)
+   - This allows forming a concrete Booleω for the quotient, needed by Part09
+   - constructFromLifts now returns has-Boole-ω' directly instead of wrapping in Σ
+   - quotientBySeqPreservesBooleω defined as PT.map wrapper around the above
+
+2. Part09 (262→606, +344 lines):
+   - PROVED StoneSeparated (was a postulate, now a theorem)
+   - Proof structure:
+     a) Use closedFamilyChoice to get bare witnesses for F and G closedness
+     b) Construct interleaved sequence d : ℕ → ⟨ fst B ⟩ via ℕ⊎ℕ≅ℕ bijection
+     c) Show Sp(B/d) is empty (any BoolHom must land in F∩G = ∅)
+     d) Get 0≡1 in B/d via SpectrumEmptyImpliesTrivial
+     e) Bridge via opaque unfolding to get 1 ∈ ideal(d) in CommRing
+     f) Extract isInIdeal from HIT via idealDecomp
+     g) idealBound: induction on isInIdeal to extract N with fJ d N = 1
+     h) Split fJ d N into f-part and g-part: fJ d n = fPartOfD n ∨ gPartOfD n
+     i) BoolHom preserves ∨ (via pres+ and pres·)
+     j) Separator element = gPartOfD N (join of g-contributions up to N)
+     k) For x ∈ G: x(gPartOfD N) = false (all g-elements false → join false)
+     l) For x ∈ F: x(gPartOfD N) = true (x(fPartOfD N) = false, and
+        fPartOfD N ∨ gPartOfD N = fJ d N = 1, so gPartOfD N must be true)
+
+   Key new definitions and lemmas:
+   - 0≡1-quotient→1∈ideal: opaque bridge from BooleanRing quotient to CommRing ideal
+   - finJoinBR: finite join in Boolean ring (d(0) ∨ d(1) ∨ ... ∨ d(N-1))
+   - idealBound: extract bound N from isInIdeal (4 cases: isImage, iszero, isSum, isMul)
+   - leq-suc, leq-extend, leq-max-left, leq-max-right: monotonicity helpers for finJoin
+   - gPartOfD, fPartOfD: filter d sequence to g/f contributions via ⊎.rec
+   - fJ-split: split lemma using ∨Assoc and ∨Comm
+   - boolhom-∨: BoolHom preserves ∨ (2-step proof using pres+ and pres·)
+   - gPartOfD-false, fPartOfD-false: inductive proofs by with-pattern on decode n
+   - fromIdeal: assembles separator D and proves D-sep-F and D-sep-G
+
+Full chain verification: SUCCESS (Part01 through Part20).

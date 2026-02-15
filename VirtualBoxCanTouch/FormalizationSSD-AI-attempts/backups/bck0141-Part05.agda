@@ -1029,19 +1029,21 @@ splitByParity-nonempty (n ∷ ns) evens=[] odds=[] = splitByParity-nonempty-aux 
   where
   splitByParity-nonempty-aux : (b : Bool) → isEven n ≡ b → (n ∷ ns) ≡ []
   splitByParity-nonempty-aux true parity =
-    let contradiction : half n ∷ splitByParity-evens ns ≡ []
+    let evens-eq = splitByParity-cons-even n ns parity
+        contradiction : half n ∷ splitByParity-evens ns ≡ []
         contradiction =
           half n ∷ splitByParity-evens ns
-            ≡⟨ sym (splitByParity-cons-even n ns parity) ⟩
+            ≡⟨ sym evens-eq ⟩
           splitByParity-evens (n ∷ ns)
             ≡⟨ evens=[] ⟩
           [] ∎
     in ex-falso (¬cons≡nil contradiction)
   splitByParity-nonempty-aux false parity =
-    let contradiction : half n ∷ splitByParity-odds ns ≡ []
+    let odds-eq = splitByParity-cons-odd n ns parity
+        contradiction : half n ∷ splitByParity-odds ns ≡ []
         contradiction =
           half n ∷ splitByParity-odds ns
-            ≡⟨ sym (splitByParity-cons-odd n ns parity) ⟩
+            ≡⟨ sym odds-eq ⟩
           splitByParity-odds (n ∷ ns)
             ≡⟨ odds=[] ⟩
           [] ∎

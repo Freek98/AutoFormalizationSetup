@@ -196,11 +196,12 @@ module StoneClosedSubsetsModule where
     Sp-quotient-≃ : BoolHom B/d BoolBR ≃ ClosedSubset
     Sp-quotient-≃ = isoToEquiv Sp-quotient-Iso
 
-  quotientBySeqHasBooleω : (B : Booleω) (d : ℕ → ⟨ fst B ⟩)
-    → ∥ has-Boole-ω' (fst B QB./Im d) ∥₁
-  quotientBySeqHasBooleω B d = PT.rec squash₁ construct (snd B)
+  quotientBySeqPreservesBooleω : (B : Booleω) (d : ℕ → ⟨ fst B ⟩)
+    → ∥ Σ[ C ∈ Booleω ] (Sp C ≃ (Σ[ x ∈ Sp B ] ((n : ℕ) → fst x (d n) ≡ false))) ∥₁
+  quotientBySeqPreservesBooleω B d = PT.rec squash₁ construct (snd B)
     where
-    construct : has-Boole-ω' (fst B) → ∥ has-Boole-ω' (fst B QB./Im d) ∥₁
+    construct : has-Boole-ω' (fst B) →
+                ∥ Σ[ C ∈ Booleω ] (Sp C ≃ (Σ[ x ∈ Sp B ] ((n : ℕ) → fst x (d n) ≡ false))) ∥₁
     construct (f , equiv) = PT.rec squash₁ (λ lifts → ∣ constructFromLifts lifts ∣₁)
         (countableChoice LiftType (λ n → QB.quotientImageHomSurjective (d' n)))
       where
@@ -212,8 +213,9 @@ module StoneClosedSubsetsModule where
       LiftType : ℕ → Type ℓ-zero
       LiftType n = Σ[ x ∈ ⟨ freeBA ℕ ⟩ ] fst QB.quotientImageHom x ≡ d' n
 
-      constructFromLifts : ((n : ℕ) → LiftType n) → has-Boole-ω' B/d
-      constructFromLifts lifts = h , B/d-equiv
+      constructFromLifts : ((n : ℕ) → LiftType n) →
+                           Σ[ C ∈ Booleω ] (Sp C ≃ (Σ[ x ∈ Sp B ] ((n : ℕ) → fst x (d n) ≡ false)))
+      constructFromLifts lifts = C , Sp-quotient-≃
         where
         g : ℕ → ⟨ freeBA ℕ ⟩
         g n = fst (lifts n)
@@ -433,12 +435,7 @@ module StoneClosedSubsetsModule where
         B/d-equiv : BooleanRingEquiv B/d (freeBA ℕ QB./Im h)
         B/d-equiv = compBoolRingEquiv B/d rec-quotient h-quotient step12-seq invStep3-seq
 
-  quotientBySeqPreservesBooleω : (B : Booleω) (d : ℕ → ⟨ fst B ⟩)
-    → ∥ Σ[ C ∈ Booleω ] (Sp C ≃ (Σ[ x ∈ Sp B ] ((n : ℕ) → fst x (d n) ≡ false))) ∥₁
-  quotientBySeqPreservesBooleω B d = PT.map wrap (quotientBySeqHasBooleω B d)
-    where
-    wrap : has-Boole-ω' (fst B QB./Im d)
-         → Σ[ C ∈ Booleω ] (Sp C ≃ (Σ[ x ∈ Sp B ] ((n : ℕ) → fst x (d n) ≡ false)))
-    wrap pres = (fst B QB./Im d , ∣ pres ∣₁) , SpOfQuotientBySeq.Sp-quotient-≃ (fst B) d
+        C : Booleω
+        C = B/d , ∣ h , B/d-equiv ∣₁
 
 -- StoneSeparated (tex Lemma 1824)

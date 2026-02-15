@@ -143,7 +143,8 @@ module IntermediateValueTheoremModule where
   IVT-char-fun-at-0 f y no-sol f0≤y with cover-when-no-solution f y no-sol 0I
   ... | ⊎.inl _ = refl
   ... | ⊎.inr y<f0 =
-    let f0<y = <I-from-≤-≢ (f 0I) y f0≤y (no-sol 0I)
+    let f0≠y = no-sol 0I
+        f0<y = <I-from-≤-≢ (f 0I) y f0≤y f0≠y
     in ex-falso (<I-asymmetric (f 0I) y f0<y y<f0)
 
   IVT-char-fun-at-1 : (f : UnitInterval → UnitInterval) → (y : UnitInterval)
@@ -153,7 +154,8 @@ module IntermediateValueTheoremModule where
   IVT-char-fun-at-1 f y no-sol y≤f1 with cover-when-no-solution f y no-sol 1I
   ... | ⊎.inr _ = refl
   ... | ⊎.inl f1<y =
-    let y<f1 = <I-from-≤-≢ y (f 1I) y≤f1 (λ eq → no-sol 1I (sym eq))
+    let f1≠y = no-sol 1I
+        y<f1 = <I-from-≤-≢ y (f 1I) y≤f1 (λ eq → f1≠y (sym eq))
     in ex-falso (<I-asymmetric y (f 1I) y<f1 f1<y)
 
   IVT-contradiction : (f : UnitInterval → UnitInterval) → (y : UnitInterval)

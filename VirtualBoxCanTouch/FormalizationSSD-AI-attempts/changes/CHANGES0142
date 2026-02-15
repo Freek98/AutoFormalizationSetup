@@ -1,0 +1,18 @@
+CHANGES0142 — Deduplicate group theory lemma in Part14
+
+Changes since bck0141 (6093 lines → 6090 lines, -3 lines):
+
+The decrease is from deduplicating an identical 12-line equational proof that
+appeared in both SectionExactCechComplex and CanonicalExactCechComplex modules.
+
+1. Part14 (436→433, -3 lines):
+   - Extracted private helper `grp-sub-rearrange`: given a - b ≡ -c, proves a ≡ b - c
+     (standard abelian group rearrangement via +IdR, +InvL, +Assoc, +Comm)
+   - Replaced identical 12-line `step2` proof in SectionExactCechComplex (tex Lemma 2807)
+     with single call to `grp-sub-rearrange (A x) a b c step1`
+   - Replaced identical 12-line `step2` proof in CanonicalExactCechComplex (tex Lemma 2815)
+     with single call to `grp-sub-rearrange (A x) a b c step1`
+   - No library equivalent found (checked Cubical.Algebra.Group.Properties,
+     ZAction cancel-lem is ℤ-specific)
+
+Full chain verification: SUCCESS (Part01 through Part20).

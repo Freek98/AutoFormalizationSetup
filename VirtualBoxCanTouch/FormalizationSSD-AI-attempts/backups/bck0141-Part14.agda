@@ -59,25 +59,6 @@ module CohomologyModule where
     Ȟ¹-vanishes : Type ℓ
     Ȟ¹-vanishes = (β : C¹) → is1Cocycle β → is1Coboundary β
 
-  -- Group lemma: if a - b ≡ -c then a ≡ b - c
-  private
-    grp-sub-rearrange : {ℓ : Level} (G : AbGroup ℓ) (a b c : fst G)
-      → let module Ax = AbGroupStr (snd G)
-        in Ax._-_ a b ≡ Ax.-_ c → a ≡ Ax._-_ b c
-    grp-sub-rearrange G a b c step1 =
-      a
-        ≡⟨ sym (Ax.+IdR a) ⟩
-      Ax._+_ a Ax.0g
-        ≡⟨ cong (Ax._+_ a) (sym (Ax.+InvL b)) ⟩
-      Ax._+_ a (Ax._+_ (Ax.-_ b) b)
-        ≡⟨ Ax.+Assoc a (Ax.-_ b) b ⟩
-      Ax._+_ (Ax._-_ a b) b
-        ≡⟨ cong (λ z → Ax._+_ z b) step1 ⟩
-      Ax._+_ (Ax.-_ c) b
-        ≡⟨ Ax.+Comm (Ax.-_ c) b ⟩
-      Ax._-_ b c ∎
-      where module Ax = AbGroupStr (snd G)
-
   -- Lemma: section-exact-cech-complex (tex Lemma 2807)
 
   module SectionExactCechComplex {ℓ : Level} (S : Type ℓ) (T : S → Type ℓ) (A : S → AbGroup ℓ) where
@@ -103,7 +84,18 @@ module CohomologyModule where
             step1 = Gx.invUniqueL (cocycle-cond x (t x) u v)
 
             step2 : a ≡ Ax._-_ b c
-            step2 = grp-sub-rearrange (A x) a b c step1
+            step2 =
+              a
+                ≡⟨ sym (Ax.+IdR a) ⟩
+              Ax._+_ a Ax.0g
+                ≡⟨ cong (Ax._+_ a) (sym (Ax.+InvL b)) ⟩
+              Ax._+_ a (Ax._+_ (Ax.-_ b) b)
+                ≡⟨ Ax.+Assoc a (Ax.-_ b) b ⟩
+              Ax._+_ (Ax._-_ a b) b
+                ≡⟨ cong (λ z → Ax._+_ z b) step1 ⟩
+              Ax._+_ (Ax.-_ c) b
+                ≡⟨ Ax.+Comm (Ax.-_ c) b ⟩
+              Ax._-_ b c ∎
 
   -- Lemma: canonical-exact-cech-complex (tex Lemma 2815)
 
@@ -134,7 +126,18 @@ module CohomologyModule where
             step1 = Gx.invUniqueL (cong (λ f → f t) (cocycle-cond x t u v))
 
             step2 : a ≡ Ax._-_ b c
-            step2 = grp-sub-rearrange (A x) a b c step1
+            step2 =
+              a
+                ≡⟨ sym (Ax.+IdR a) ⟩
+              Ax._+_ a Ax.0g
+                ≡⟨ cong (Ax._+_ a) (sym (Ax.+InvL b)) ⟩
+              Ax._+_ a (Ax._+_ (Ax.-_ b) b)
+                ≡⟨ Ax.+Assoc a (Ax.-_ b) b ⟩
+              Ax._+_ (Ax._-_ a b) b
+                ≡⟨ cong (λ z → Ax._+_ z b) step1 ⟩
+              Ax._+_ (Ax.-_ c) b
+                ≡⟨ Ax.+Comm (Ax.-_ c) b ⟩
+              Ax._-_ b c ∎
 
   -- tex Lemma 2823
   module ExactCechComplexVanishingProof {ℓ : Level} (S : Type ℓ) (T : S → Type ℓ)

@@ -1,0 +1,50 @@
+CHANGES0141 — Make isOpenProp a proposition (Σ → ∥ Σ ∥₁)
+
+Changes since bck0141 pre-state (6064 lines → 6093 lines, +29 lines):
+
+The line increase is expected and necessary: wrapping bare pattern matches
+in PT.rec/PT.rec2/PT.map requires adding type-annotated `go` helper functions.
+
+Motivation: isOpenProp was a bare Σ-type, not a proposition. The user requested
+it be made propositional (∥ Σ ∥₁), matching the earlier isClosedProp change
+(bck0133). No postulates introduced.
+
+Design: Two-level API
+  - isOpenWitness P = Σ[ α ∈ binarySequence ] ⟨ P ⟩ ↔ (Σ[ n ∈ ℕ ] α n ≡ true)
+  - isOpenProp P = ∥ isOpenWitness P ∥₁
+  - isPropIsOpenProp = squash₁
+  Producers wrap in ∣ ... ∣₁. Consumers use PT.rec/PT.rec2 to extract.
+
+1. Part01 (263→278, +15 lines):
+   - Added isOpenWitness (bare Σ type) and isPropIsOpenProp (= squash₁)
+   - isOpenProp now defined as ∥ isOpenWitness P ∥₁
+   - negOpenIsClosed: restructured with PT.rec squash₁ go Popen
+   - decIsOpen: wrapped both cases in ∣ ... ∣₁
+   - negClosedIsOpen: wrapped return in ∣ ... ∣₁
+   - openIsStable: restructured with PT.rec (snd P) go Popen
+   - openOrMP: restructured with PT.rec2 squash₁ go Popen Qopen
+
+2. Part02 (872→885, +13 lines):
+   - openAnd: restructured with PT.rec2 squash₁ go Popen Qopen
+   - closedOr: added PT.rec squash₁ go2 layer to extract bare open witness
+   - openCountableUnion: restructured with countableChoice + PT.rec
+   - openSigmaDecidable: yes-case uses PT.rec on Qopen d;
+     no-case inlined (λ _ → false) directly instead of referencing ⊥-isOpen
+   - openSigmaOpen: two nested PT.rec (outer for P, inner for union result)
+   - openEquiv: replaced bare destructuring with PT.map
+
+3. Part02 (additional): Added tex reference comment for closedMarkovTex
+   (ClosedMarkov from tex Lemma 807) (+1 line)
+
+4. Part11 (481→479, -2 lines):
+   - AllOpenSubspaceOpen: simplified return type from ∥ isOpenProp ∥₁
+     (double truncation after isOpenProp change) to just isOpenProp.
+     Changed PT.map to PT.rec squash₁.
+
+No changes needed in:
+  - openDeMorgan, closedDeMorgan, closedCountableIntersection,
+    clopenIsDecidable, implicationOpenClosed, closedMarkovTex
+    (all adapted automatically — their function calls take/return truncated)
+  - Part03-Part10, Part12-Part20 (postulates/signatures only, no destructuring)
+
+Full chain verification: SUCCESS (Part01 through Part20).

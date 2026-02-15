@@ -1,0 +1,16 @@
+CHANGES0143 — Inline single-use let-bindings in Part05 and Part12
+
+Changes since bck0142 (6090 lines → 6086 lines, -4 lines):
+
+The decrease is from inlining trivial single-use let-bindings into their
+only use site.
+
+1. Part05 (1238→1236, -2 lines):
+   - splitByParity-nonempty-aux true: inlined `evens-eq` into `sym (...)` step
+   - splitByParity-nonempty-aux false: inlined `odds-eq` into `sym (...)` step
+
+2. Part12 (204→202, -2 lines):
+   - IVT-char-fun-at-0: inlined `f0≠y = no-sol 0I` into `<I-from-≤-≢` call
+   - IVT-char-fun-at-1: inlined `f1≠y = no-sol 1I` into lambda and `<I-from-≤-≢` call
+
+Full chain verification: SUCCESS (Part01 through Part20).
