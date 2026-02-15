@@ -1,0 +1,21 @@
+CHANGES0015 - face-shift-aux base case proved
+
+Major changes:
+1. Added adj-punchIn-ℕ helper (Fin infrastructure):
+   For positions a and suc a, punchIn-ℕ either gives the same value
+   at both or swaps a ↔ suc a. Uses ⊎.rec (not pattern matching on ≡).
+
+2. Added adj-face-eq: when fst j = suc(fst i) and σ i = σ j,
+   σ ∘ punchIn i and σ ∘ punchIn j agree pointwise.
+   Uses adj-punchIn-ℕ + Σ≡Prop + punchIn-fst.
+
+3. Proved face-shift-aux base case (d=0):
+   suc(fst i) + 0 = fst j means adjacent faces agree pointwise.
+   Uses adj-face-eq + funExt.
+
+4. Step case (d=suc d') postulated as face-shift-aux-step.
+
+Remaining postulates: face-shift-aux-step, d-antisym-swap, d² (general),
+  cπ-homotopic-to-id, contractible-with-section
+
+1152 lines (up from 1094). No useful work lost.

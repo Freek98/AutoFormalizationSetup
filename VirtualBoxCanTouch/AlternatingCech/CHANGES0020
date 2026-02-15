@@ -1,0 +1,27 @@
+CHANGES0020 - face-shift-aux step case FULLY proved (no more inner postulates)
+
+Major changes:
+1. Added punchIn-ℕ-inj: injectivity of punchIn-ℕ at the ℕ level.
+   Uses injSuc, snotz, znots for the base cases.
+
+2. Proved swap-punchIn-comm: swap(i,i₊₁) ∘ punchIn j = punchIn j ∘ swap(i',i₊₁')
+   Three cases via Trichotomyᵗ on fst c vs fst i' and fst i₊₁':
+   - eqᵗ/_ : c = i' (by Σ≡Prop), both sides reduce to i₊₁ via swapFin-ij
+   - _/eqᵗ : c = i₊₁', both sides reduce to i via swapFin-ji
+   - lt/gt combos: go-fix helper — both swaps fix using swapFin-fix
+     Key: punchIn injectivity (pj-inj) converts fst-equality of punchIn outputs
+     to fst-equality of inputs, giving the ≠ conditions for swapFin-fix
+
+3. fact5 is now fully proved:
+   - fact5-eq via swap-punchIn-comm (function extensionality)
+   - fact5 via cong (s x) fact5-eq ∙ snd alt (antisymmetry)
+
+4. This means face-shift-aux step case has NO remaining postulates.
+   Combined with the base case (proved in bck0015), face-shift-aux
+   and face-shift are now fully proved.
+
+Remaining postulates: d-antisym-swap, d² (general),
+  cπ-homotopic-to-id, contractible-with-section
+
+1382 lines (up from 1327 in bck0019). No useful work lost.
+Major milestone: face-shift-aux is complete!

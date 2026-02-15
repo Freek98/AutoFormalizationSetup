@@ -1,0 +1,24 @@
+CHANGES0002 - Key proofs: d-pres+, π∘c₁, Tri< refactor
+
+Major changes:
+1. PROVED d-pres+ (linearity of coboundary d):
+   - Added interchange lemma for abelian groups: (a+b)+(c+d) = (a+c)+(b+d)
+   - Added sumFinGen-+ distributing finite sums over addition
+   - d-pres+ follows from negPow-add and sumFinGen-+
+
+2. PROVED π∘c₁ (π ∘ c₁ = id, Lemma 20.23.4):
+   - Added isPropIsOrdered helper
+   - Proof uses Σ≡Prop for the lt case, contradiction for eq/gt cases
+
+3. Refactored DecStrictTotalOrder:
+   - Replaced ⊎-based trichotomy with custom data type Tri<
+   - Constructors: is-lt, is-eq (¬a<b ∧ ¬b<a), is-gt
+   - Reason: cubical Agda can't pattern-match on ⊎ when a branch contains path types
+   - Updated sortPair, c₁-fun, π∘c₁ to use new constructors
+
+4. Fixed all unsolved metas (explicit {n} args to sumFinGen, swapFin, etc.)
+
+Remaining holes: d², c₁-alternating, d-preserves-alt, section-exact
+Remaining postulates: cπ-homotopic-to-id, contractible-with-section
+
+420 lines (up from 374). Growth due to new proofs. No useful work lost.

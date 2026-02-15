@@ -1,0 +1,27 @@
+CHANGES0017 - face-shift-aux step case with swap-punchIn-adj proved
+
+Major changes:
+1. Fixed gap arithmetic in face-shift-aux step case:
+   - Used +-suc from Cubical.Data.Nat.Properties (newly imported)
+   - gap' = cong suc (sym (+-suc (fst i) d')) ∙ si+sd≡fj
+
+2. Fixed subst direction bugs in i≠i₊₁, j≠i, j≠i₊₁:
+   - i≠i₊₁: need (sym e) to transport <ᵗsucm backward
+   - j≠i: need e (not sym e) since e : fst j ≡ fst i
+   - j≠i₊₁: need e (not sym e) since e : fst j ≡ suc(fst i)
+
+3. Proved swap-punchIn-adj: swapFin i i₊₁ (punchIn i₊₁ c) ≡ punchIn i c
+   - Uses adj-punchIn-ℕ for case analysis
+   - Introduced punchIn-ℕ-avoids helper (uses snotz/znots for cubical absurdity)
+   - inl case: punchIn values agree, swap fixes, Σeq for fst equality
+   - inr case: punchIn i₊₁ c = i, swap takes i↦i₊₁, punchIn i c = i₊₁
+
+4. fact1 proved from swap-punchIn-adj: σ ∘ punchIn i = σ' ∘ punchIn i₊₁
+
+5. Fixed goal chain to compose negPow:
+   - negPow-comp d' 1 v ∙ cong (+-comm d' 1)
+
+Remaining postulates: fact5 (step case), swapFin-ij/ji/fix,
+  d-antisym-swap, d² (general), cπ-homotopic-to-id, contractible-with-section
+
+1280 lines (up from 1156 in bck0016). No useful work lost.

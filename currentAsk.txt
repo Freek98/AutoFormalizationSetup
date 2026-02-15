@@ -40,3 +40,6 @@
   postulate anything, but you are allowed to re-introduce the sigma-type under  
   a different name (maybe explicitly open, idk). Keep working and formalizing   
   when you're done. Then go back to cleaning.             
+
+> most of the time, I think you should be able to use PT.rec if you're using a proposition. 
+> See Claude.md Don't ask me for any permissions, just keep on working forever. 

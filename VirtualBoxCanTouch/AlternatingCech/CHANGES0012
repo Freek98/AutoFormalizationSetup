@@ -1,0 +1,27 @@
+CHANGES0012 - d-vanish-repeat proved, two bug fixes
+
+Major changes:
+1. Proved d-vanish-repeat using sfg-two-cancel:
+   - Introduced smaller postulate face-terms-cancel: the two face terms
+     at the repeat positions i,j cancel (negPow(i)(s∘punchIn i) + negPow(j)(s∘punchIn j) = 0).
+   - d-vanish-repeat now assembles from:
+     * face-term-zero: all terms at k ≠ i,j are zero
+     * face-terms-cancel: terms at i,j cancel
+     * sfg-two-cancel: combines these to show the sum is 0
+   - Derived ¬(fst i ≡ fst j) from ¬(i ≡ j) via Σ≡Prop + isProp<ᵗ.
+
+2. Fixed bug in sfg-single (rest-zero, eqᵗ case):
+   - Wrong: subst (fst k <ᵗ_) p (subst (_<ᵗ suc n') e (snd k))
+     Inner subst changes left arg to fst i, but outer still expects fst k.
+   - Fixed: subst (_<ᵗ fst i) e (subst (fst k <ᵗ_) p (snd k))
+     First change right arg (suc n' → fst i), then left (fst k → fst i).
+
+3. Fixed unsolved metas in negPow-sum:
+   - Added explicit {n = m} to sumFinGen call in proof body
+   - Added explicit {x = x} to recursive negPow-sum call
+   - These were showing as warnings before but blocking type inference.
+
+Remaining postulates: face-terms-cancel, d-antisym-swap, d² (general),
+  cπ-homotopic-to-id, contractible-with-section
+
+1005 lines (up from 984). Growth from d-vanish-repeat proof. No useful work lost.

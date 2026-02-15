@@ -1,0 +1,21 @@
+CHANGES0013 - face-terms-cancel proved from face-shift
+
+Major changes:
+1. Proved face-terms-cancel from a new, smaller postulate face-shift:
+   - face-shift: when σ has repeat at (i,j) with fst i < fst j,
+     s(σ∘punchIn i) = negPow(fst j ∸ suc(fst i))(s(σ∘punchIn j))
+   - face-terms-cancel proof: WLOG fst i < fst j (using ℕ trichotomy),
+     then negPow(fst i)(negPow(d)(v)) = negPow(predℕ(fst j))(v) by
+     negPow-comp + arithmetic, and negPow(predℕ b)(v) + negPow(b)(v) = 0
+     by negPow-suc-cancel. Reversed case uses +Comm.
+
+2. Added arithmetic helper +∸≡predℕ:
+   a + (b ∸ suc a) ≡ predℕ b when a <ᵗ b. Proved by induction.
+
+3. Added imports: _∸_, predℕ from Cubical.Data.Nat;
+   +-comm, suc-predℕ from Cubical.Data.Nat.Properties.
+
+Remaining postulates: face-shift, d-antisym-swap, d² (general),
+  cπ-homotopic-to-id, contractible-with-section
+
+1070 lines (up from 1005). Growth from face-terms-cancel proof. No useful work lost.

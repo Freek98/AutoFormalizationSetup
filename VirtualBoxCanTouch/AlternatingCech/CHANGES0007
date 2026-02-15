@@ -1,0 +1,30 @@
+CHANGES0007 - Recursive punchIn + simplicial identity
+
+Major changes:
+1. Changed punchIn from <ᵇ-based with-clause to recursive definition:
+   - punchIn (zero , _) j = fsuc j
+   - punchIn (suc a , p) (zero , _) = fzero
+   - punchIn (suc a , p) (suc c , q) = fsuc (punchIn (a , p) (c , q))
+   - Key property: punchIn (suc a) (suc c) = suc (punchIn a c) definitionally
+   - All existing proofs still compile with new definition
+
+2. Added punchIn-ℕ (ℕ → ℕ → ℕ) mirroring Fin punchIn
+
+3. PROVED simplicial-ℕ: punchIn-ℕ a (punchIn-ℕ b c) ≡ punchIn-ℕ (suc b) (punchIn-ℕ a c)
+   when a ≤ b. 4-line proof by pattern matching:
+   - zero case: refl (definitional!)
+   - suc/zero case: ⊥ from hypothesis
+   - suc/suc/zero case: refl
+   - suc/suc/suc case: cong suc (IH)
+
+4. PROVED punchIn-fst: fst (punchIn i j) ≡ punchIn-ℕ (fst i) (fst j)
+
+5. PROVED simplicial (Fin level): punchIn i (punchIn j k) ≡ punchIn (fsuc j) (punchIn i' k)
+   when fst i ≡ fst i' and fst i ≤ fst j. By pattern matching + cong fsuc + IH.
+
+6. Added imports: snotz, znots, injSuc from Cubical.Data.Nat
+
+Remaining holes: d-preserves-alt (2 holes)
+Remaining postulates: d² (general), cπ-homotopic-to-id, contractible-with-section
+
+757 lines (up from 702). Growth from simplicial identity infrastructure. No useful work lost.

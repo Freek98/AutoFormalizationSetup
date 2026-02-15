@@ -1,0 +1,20 @@
+CHANGES0006 - PROVED d²-0 (d²=0 for degree 0)
+
+Major changes:
+1. Added algebraic helper: telescope
+   - telescope p q r : (-p + q) + (-q + r) ≡ -p + r
+   - 4-step proof using +Assoc, +InvR, +IdL
+
+2. Added algebraic helper: cancel3
+   - cancel3 a b c : (-c + b) + ((-a + c) + (-b + a)) ≡ 0g
+   - Uses +Comm to rearrange, then two telescope applications, then +InvL
+
+3. PROVED d²-0: d(d s) x σ ≡ 0g for s : Cⁿ 0
+   - step1: face-comp substitutions (T₂₁→T₁₁, T₂₀→T₀₁, T₁₀→T₀₀) via cong₂
+   - step2: simplification using invInv, +IdR, invDistr to cancel3 form
+   - Applies cancel3 T₀₀ T₀₁ T₁₁
+
+Remaining holes: d-preserves-alt (2 holes)
+Remaining postulates: d² (general), cπ-homotopic-to-id, contractible-with-section
+
+702 lines (up from 628). Growth from telescope, cancel3, and d²-0 proof. No useful work lost.

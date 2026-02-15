@@ -1,0 +1,20 @@
+CHANGES0016 - swapFin properties postulated, base case proven
+
+Major changes:
+1. Attempted to prove swapFin properties (swapFin-ij, swapFin-ji, swapFin-fix)
+   by mirroring the with-clause pattern. Failed because discreteFin uses _≡ᵇ_
+   (boolean reflection) which Agda's with-abstraction can't handle for abstract n
+   (InversionDepthReached at any depth). Also tried _≟ᵗ_ based swapFin - same issue.
+
+2. Solution: postulate swapFin-ij, swapFin-ji, swapFin-fix with explicit
+   _≡_ {A = Fin n} type annotations (needed because swapFin return type is
+   opaque to Agda's inference). Original discreteFin-based swapFin preserved
+   for concrete cases (sw01, c₁ code).
+
+3. adj-punchIn-ℕ and adj-face-eq from bck0015 still present and proven.
+   face-shift-aux base case (d=0) proven.
+
+Remaining postulates: face-shift-aux step case, swapFin-ij/ji/fix,
+  d-antisym-swap, d² (general), cπ-homotopic-to-id, contractible-with-section
+
+1156 lines (up from 1094 in bck0014). No useful work lost.
