@@ -1,0 +1,20 @@
+CHANGES0011 - Sum extraction lemmas for d-preserves-alt
+
+Major changes:
+1. Added sfg-single: if f has exactly one nonzero term at position i,
+   then sumFinGen f = f(i). Proved by induction on n with ℕ trichotomy.
+
+2. Added sfg-two-cancel: if f has exactly two nonzero terms at positions
+   i and j, and f(i) + f(j) = 0, then sumFinGen f = 0.
+   Proved by induction on n, reducing to sfg-single in cases where
+   flast is one of the two special positions, and recursing otherwise.
+
+3. These lemmas are key infrastructure for d-vanish-repeat:
+   d s x σ = Σ_k (-1)^k s(σ ∘ punchIn k). When σ has repeat at (i,j),
+   all terms with k ≠ i,j vanish (by face-term-zero), and the terms
+   at i and j cancel. sfg-two-cancel captures this cancellation pattern.
+
+Remaining postulates: d-vanish-repeat, d-antisym-swap, d² (general),
+  cπ-homotopic-to-id, contractible-with-section
+
+984 lines (up from 876). Growth from sum extraction lemmas. No useful work lost.

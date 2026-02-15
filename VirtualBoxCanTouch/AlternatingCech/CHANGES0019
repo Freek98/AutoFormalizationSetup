@@ -1,0 +1,20 @@
+CHANGES0019 - fact5 decomposed, swap-punchIn-comm is last step case postulate
+
+Major changes:
+1. Decomposed fact5 into fact5-eq + antisymmetry application:
+   - Defined i' = punchOut j i j≠i and i₊₁' = punchOut j i₊₁ j≠i₊₁
+   - Proved i'≠i₊₁' from i≠i₊₁ using punchIn-punchOut roundtrip
+   - fact5-eq: σ' ∘ punchIn j ≡ (σ ∘ punchIn j) ∘ swap(i',i₊₁') (via swap-punchIn-comm)
+   - fact5: cong (s x) fact5-eq ∙ snd alt (antisymmetry)
+
+2. New postulate: swap-punchIn-comm (pointwise commutation identity)
+   swap(i,i₊₁)(punchIn j c) ≡ punchIn j (swap(i',i₊₁') c)
+   This is the only remaining postulate in the face-shift-aux step case.
+
+3. j≠i and j≠i₊₁ (already existed) serve as ¬(fst j ≡ fst i) and
+   ¬(fst j ≡ suc(fst i)) needed by punchOut.
+
+Remaining postulates: swap-punchIn-comm (step case),
+  d-antisym-swap, d² (general), cπ-homotopic-to-id, contractible-with-section
+
+1327 lines (up from 1307 in bck0018). No useful work lost.

@@ -1,0 +1,24 @@
+CHANGES0005 - PROVED section-exact (exactness at degree 0→1)
+
+Major changes:
+1. Added mk2Tuple helper (Fin 2 → T x from two values)
+
+2. PROVED face map equalities (funExt proofs):
+   - face0≡: faceMap fzero (mk3Tuple u v w) ≡ mk2Tuple v w
+   - face1≡: faceMap fone (mk3Tuple u v w) ≡ mk2Tuple u w
+   - face2≡: faceMap (2,tt) (mk3Tuple u v w) ≡ mk2Tuple u v
+   - mk2≡σ: mk2Tuple (σ fzero) (σ fone) ≡ σ
+
+3. PROVED section-exact:
+   - Refactored α to use mk2Tuple: α x σ = β x (mk2Tuple (t x) (σ fzero))
+   - Converted cocycle using face≡ + invInv to simplified form:
+     c + (-b + (β x σ + 0g)) ≡ 0g
+   - Used invUniqueR to derive: -b + β x σ ≡ -c
+   - Algebraic chain: -c + (b + 0) = -c + b = b + (-c) = b + (-b + a)
+     = (b + (-b)) + a = 0 + a = a = β x σ
+   - Uses: +IdR, +Comm, +Assoc, +InvR, +IdL, invUniqueR, invInv, cong₂
+
+Remaining holes: d-preserves-alt (2 holes)
+Remaining postulates: d², cπ-homotopic-to-id, contractible-with-section
+
+628 lines (up from 555). Growth from face-eq lemmas and section-exact proof. No useful work lost.

@@ -1,0 +1,24 @@
+CHANGES0004 - PROVED c₁-alternating (both vanishing and antisymmetry)
+
+Major changes:
+1. PROVED c₁-alternating antisymmetry (snd component):
+   - Added swap involution: sw01² proves swapFin {2} fzero fone is involutive on Fin 2
+   - sw01-comp: function extensionality version (σ ∘ sw01 ∘ sw01 ≡ σ)
+   - c₁-antisym-core: 9-case analysis on (Tri< (σ fzero) (σ fone)) × (Tri< (σ fone) (σ fzero))
+     - 6 contradiction cases (transitivity/irreflexivity)
+     - (lt,gt): uses swap involution + isPropIsOrdered
+     - (eq,eq): uses inv1g (0g ≡ -(0g))
+     - (gt,lt): uses invInv + isPropIsOrdered
+   - c₁-antisym01: assembles proof for swap(fzero,fone)
+   - sw10≡sw01: swap(fone,fzero) ≡ swap(fzero,fone) pointwise
+   - c₁-antisym10: assembles proof for swap(fone,fzero) via sw10≡sw01
+   - c₁-alt-antisym: full Fin 2 case split delegating to antisym01/antisym10
+
+2. Moved isPropIsOrdered before swap infrastructure (needed by antisym proofs)
+
+c₁-alternating is now FULLY PROVED (no holes).
+
+Remaining holes: d-preserves-alt (2 holes), section-exact
+Remaining postulates: d², cπ-homotopic-to-id, contractible-with-section
+
+555 lines (up from 474). Growth from antisymmetry proof infrastructure. No useful work lost.

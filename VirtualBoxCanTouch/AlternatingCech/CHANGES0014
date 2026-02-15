@@ -1,0 +1,23 @@
+CHANGES0014 - face-shift structure with face-shift-aux postulate
+
+Major changes:
+1. Proved face-shift from face-shift-aux:
+   - face-shift-aux is the core induction on gap d with suc(fst i) + d = fst j
+   - face-shift converts from fst j ∸ suc(fst i) formulation using suc+∸≡
+   - face-terms-cancel is now fully proved from face-shift + arithmetic
+
+2. Added arithmetic helpers: suc+∸≡, +1≡suc
+
+3. Documented the face-shift-aux proof strategy in comments:
+   Base (d=0): adjacent faces agree pointwise since σ(i)=σ(j) bridges gap
+   Step (d=suc d'): define σ' = σ∘swap(i,i+1), then:
+     - face i of σ = face (i+1) of σ' [punchIn-swap identity]
+     - face j of σ' = (face j of σ) ∘ swap [swap-punchIn commutation]
+     - IH gives negPow d' relation for σ'
+     - Antisymmetry gives the extra -1 sign
+     - negPow-comp combines: negPow d' (negPow 1 v) = negPow(d'+1) v = negPow(suc d') v
+
+Remaining postulates: face-shift-aux, d-antisym-swap, d² (general),
+  cπ-homotopic-to-id, contractible-with-section
+
+1094 lines (up from 1070). No useful work lost.

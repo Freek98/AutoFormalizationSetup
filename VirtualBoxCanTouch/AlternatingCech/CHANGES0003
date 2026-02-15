@@ -1,0 +1,24 @@
+CHANGES0003 - Fixed cubical path splitting issue in c₁-vanish and c₁-alternating
+
+Major changes:
+1. FIXED c₁-vanish (path type splitting error):
+   - Cubical Agda cannot bind path-typed variables (eq : σ fzero ≡ σ fone)
+     on the LHS of function clauses that also do pattern matching on data types
+   - Solution: use `λ eq →` on the RHS instead of binding `eq` on the LHS
+   - Uses Tri<-elim (dependent eliminator) to case-split on Tri< without
+     having path variables in the pattern matching context
+
+2. REFACTORED c₁-alternating vanishing part:
+   - Extracted c₁-alt-vanish helper that case-splits on Fin 2 indices
+   - All clauses return a FUNCTION (λ eq → ...) rather than binding eq on LHS
+   - For (i=fzero, j=fone): delegates to c₁-vanish
+   - For (i=fone, j=fzero): delegates to c₁-vanish ∘ sym
+   - Same-index cases: contradiction via Σ≡Prop
+   - Absurd cases: ⊥.rec on proof component
+
+3. Fixed unsolved metas: explicit {n = k} {m = 2} for isProp<ᵗ in Σ≡Prop calls
+
+Remaining holes: snd(c₁-alternating) [antisymmetry], d-preserves-alt, section-exact
+Remaining postulates: d², cπ-homotopic-to-id, contractible-with-section
+
+474 lines (up from 420). Growth from c₁-alt-vanish helper. No useful work lost.

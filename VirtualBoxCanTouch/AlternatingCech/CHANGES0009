@@ -1,0 +1,22 @@
+CHANGES0009 - Infrastructure for d² and d-preserves-alt
+
+Major changes:
+1. Added negPow-suc-cancel: negPow n a + negPow (suc n) a ≡ 0g
+   - Simple consequence of +InvR
+
+2. Added face-comp: general face map composition via simplicial identity
+   - faceMap j (faceMap i σ) ≡ faceMap i' (faceMap (fsuc j) σ) when fst i ≤ fst j
+   - Direct from simplicial via funExt
+
+3. Added sfg-0: sumFinGen of all-zero function is zero
+   - By induction on n, using cong₂ and +IdR
+
+4. Added sumFinGen-swap (Fubini): interchange of nested sumFinGen
+   - Σᵢ Σⱼ g(i,j) ≡ Σⱼ Σᵢ g(i,j)
+   - By induction on n, using IH + sym(sumFinGen-+)
+   - Key infrastructure for general d² = 0 proof
+
+Remaining holes: d-preserves-alt (2 holes)
+Remaining postulates: d² (general), cπ-homotopic-to-id, contractible-with-section
+
+~795 lines (up from 773). Growth from new infrastructure lemmas. No useful work lost.

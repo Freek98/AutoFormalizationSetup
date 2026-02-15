@@ -1,0 +1,812 @@
+{-# OPTIONS --cubical --guardedness #-}
+
+module work where
+
+open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.Function
+open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Isomorphism
+
+open import Cubical.Data.Nat using (ℕ; zero; suc; _+_; isSetℕ; _<ᵇ_; snotz; znots; injSuc)
+open import Cubical.Data.Nat.Order
+open import Cubical.Data.Nat.Order.Inductive
+  using (_<ᵗ_; _≤ᵗ_; <ᵗ-trans; <ᵗ-trans-suc; isProp<ᵗ; <ᵗsucm;
+         ¬m<ᵗm; Trichotomyᵗ; _≟ᵗ_; Trichotomyᵗ-suc)
+  renaming (lt to ltᵗ; eq to eqᵗ; gt to gtᵗ)
+
+open import Cubical.Data.Fin.Base
+open import Cubical.Data.Fin.Properties using (discreteFin; isSetFin)
+open import Cubical.Data.Sigma
+open import Cubical.Data.Sum as ⊎ using (_⊎_; inl; inr)
+open import Cubical.Data.Bool using (Bool; true; false; if_then_else_)
+open import Cubical.Data.Empty as ⊥ using (⊥)
+open import Cubical.Data.Unit using (Unit; tt)
+open import Cubical.Relation.Nullary
+
+open import Cubical.Algebra.AbGroup.Base
+open import Cubical.Algebra.AbGroup.Properties
+  using (addGroupHom; subtrGroupHom; negGroupHom)
+open import Cubical.Algebra.AbGroup.Instances.Pi using (ΠAbGroup)
+open import Cubical.Algebra.Group.Base
+open import Cubical.Algebra.Group.MorphismProperties
+  using (compGroupHom; trivGroupHom; idGroupHom; makeIsGroupHom;
+         isPropIsGroupHom; isSetGroupHom)
+open import Cubical.Algebra.Group.Morphisms using (IsGroupHom; GroupHom)
+import Cubical.Algebra.Group.Properties as GroupProps
+
+open import Cubical.Algebra.ChainComplex.Base
+  using (CoChainComplex)
+
+private
+  variable
+    ℓ ℓ' : Level
+
+-- ================================================================
+-- Section 1: Fin Infrastructure
+-- ================================================================
+
+-- Boolean comparison helpers
+private
+  ¬<ᵗ0 : {n : ℕ} → n <ᵗ zero → ⊥
+  ¬<ᵗ0 {zero} h = h
+  ¬<ᵗ0 {suc _} h = h
+
+  <ᵗ-≤ᵗ-trans : {a b c : ℕ} → a <ᵗ b → b ≤ᵗ c → a <ᵗ c
+  <ᵗ-≤ᵗ-trans {zero} {zero} h _ = ⊥.rec h
+  <ᵗ-≤ᵗ-trans {zero} {suc b} {zero} _ h = ⊥.rec (¬<ᵗ0 {b} h)
+  <ᵗ-≤ᵗ-trans {zero} {suc _} {suc _} _ _ = tt
+  <ᵗ-≤ᵗ-trans {suc _} {zero} h _ = ⊥.rec h
+  <ᵗ-≤ᵗ-trans {suc _} {suc b} {zero} _ h = ⊥.rec (¬<ᵗ0 {b} h)
+  <ᵗ-≤ᵗ-trans {suc a} {suc b} {suc c} = <ᵗ-≤ᵗ-trans {a} {b} {c}
+
+-- punchIn: insert a gap at position i
+-- Maps Fin n → Fin (suc n), skipping position i
+-- Recursive definition: punchIn (suc a) (suc c) = fsuc (punchIn a c)
+-- This gives definitional reduction for the simplicial identity proof
+punchIn : {n : ℕ} → Fin (suc n) → Fin n → Fin (suc n)
+punchIn (zero , _) j = fsuc j
+punchIn {suc _} (suc a , p) (zero , _) = fzero
+punchIn {suc _} (suc a , p) (suc c , q) = fsuc (punchIn (a , p) (c , q))
+
+-- ℕ-level punchIn (mirrors Fin version, for proving simplicial identity)
+punchIn-ℕ : ℕ → ℕ → ℕ
+punchIn-ℕ zero c = suc c
+punchIn-ℕ (suc a) zero = zero
+punchIn-ℕ (suc a) (suc c) = suc (punchIn-ℕ a c)
+
+-- Simplicial identity at ℕ level: for a ≤ b,
+--   punchIn a (punchIn b c) = punchIn (suc b) (punchIn a c)
+simplicial-ℕ : (a b c : ℕ) → a ≤ᵗ b
+  → punchIn-ℕ a (punchIn-ℕ b c) ≡ punchIn-ℕ (suc b) (punchIn-ℕ a c)
+simplicial-ℕ zero b c _ = refl
+simplicial-ℕ (suc a) zero c h = ⊥.rec (¬<ᵗ0 {a} h)
+simplicial-ℕ (suc a) (suc b) zero h = refl
+simplicial-ℕ (suc a) (suc b) (suc c) h = cong suc (simplicial-ℕ a b c h)
+
+-- fst of punchIn agrees with punchIn-ℕ (definitional)
+punchIn-fst : {n : ℕ} (i : Fin (suc n)) (j : Fin n)
+  → fst (punchIn i j) ≡ punchIn-ℕ (fst i) (fst j)
+punchIn-fst (zero , _) j = refl
+punchIn-fst {suc _} (suc a , p) (zero , _) = refl
+punchIn-fst {suc _} (suc a , p) (suc c , q) = cong suc (punchIn-fst (a , p) (c , q))
+
+-- Simplicial identity at Fin level (direct pattern matching)
+simplicial : {n : ℕ} (i : Fin (suc (suc n))) (j : Fin (suc n)) (k : Fin n)
+  (i' : Fin (suc n)) → fst i ≡ fst i' → fst i ≤ᵗ fst j
+  → punchIn i (punchIn j k) ≡ punchIn (fsuc j) (punchIn i' k)
+simplicial (zero , pi) j k (zero , pi') e h = refl
+simplicial (zero , pi) j k (suc a' , pi') e h =
+  ⊥.rec (znots e)
+simplicial {suc n} (suc a , pi) (zero , pj) k i' e h =
+  ⊥.rec (¬<ᵗ0 {a} h)
+simplicial {suc n} (suc a , pi) (suc b , pj) (zero , pk) (zero , pi') e h =
+  ⊥.rec (snotz e)
+simplicial {suc n} (suc a , pi) (suc b , pj) (zero , pk) (suc a' , pi') e h =
+  refl
+simplicial {suc n} (suc a , pi) (suc b , pj) (suc c , pk) (zero , pi') e h =
+  ⊥.rec (snotz e)
+simplicial {suc n} (suc a , pi) (suc b , pj) (suc c , pk) (suc a' , pi') e h =
+  cong fsuc (simplicial (a , pi) (b , pj) (c , pk) (a' , pi') (injSuc e) h)
+
+-- Face map: delete position i from a (suc n)-tuple to get an n-tuple
+faceMap : {n : ℕ} {A : Type ℓ} → Fin (suc n) → (Fin (suc n) → A) → (Fin n → A)
+faceMap i σ = σ ∘ punchIn i
+
+-- Swap two positions
+swapFin : {n : ℕ} → Fin n → Fin n → Fin n → Fin n
+swapFin {n} i j k with discreteFin {n} k i
+... | yes _ = j
+... | no _ with discreteFin {n} k j
+...   | yes _ = i
+...   | no _ = k
+
+-- ================================================================
+-- Section 2: Strict Total Order with Trichotomy
+-- ================================================================
+
+-- Trichotomy type avoiding path types (cubical Agda can't pattern-match
+-- on ⊎ when one branch contains a path type)
+data Tri< {ℓ : Level} {A : Type ℓ} (_<_ : A → A → Type ℓ) (a b : A) : Type ℓ where
+  is-lt : a < b → Tri< _<_ a b
+  is-eq : ¬ (a < b) → ¬ (b < a) → Tri< _<_ a b
+  is-gt : b < a → Tri< _<_ a b
+
+Tri<-elim : ∀ {ℓ ℓ'} {A : Type ℓ} {_<_ : A → A → Type ℓ} {a b : A}
+  {P : Tri< _<_ a b → Type ℓ'}
+  → ((x : a < b) → P (is-lt x))
+  → ((x : ¬ (a < b)) (y : ¬ (b < a)) → P (is-eq x y))
+  → ((x : b < a) → P (is-gt x))
+  → (r : Tri< _<_ a b) → P r
+Tri<-elim f g h (is-lt x) = f x
+Tri<-elim f g h (is-eq x y) = g x y
+Tri<-elim f g h (is-gt x) = h x
+
+record DecStrictTotalOrder {ℓ : Level} (A : Type ℓ) : Type (ℓ-suc ℓ) where
+  field
+    _<sto_ : A → A → Type ℓ
+    <sto-prop : (a b : A) → isProp (a <sto b)
+    <sto-irrefl : (a : A) → ¬ (a <sto a)
+    <sto-trans : {a b c : A} → a <sto b → b <sto c → a <sto c
+    <sto-tricho : (a b : A) → Tri< _<sto_ a b
+    isSetA : isSet A
+
+-- ================================================================
+-- Section 3: General Čech Complex
+-- ================================================================
+
+module GeneralCech {ℓ : Level}
+  (S : Type ℓ) (T : S → Type ℓ) (A : S → AbGroup ℓ) where
+
+  |A|_ : S → Type ℓ
+  |A| x = fst (A x)
+
+  module Ax (x : S) = AbGroupStr (snd (A x))
+  module Gx (x : S) = GroupProps.GroupTheory (AbGroup→Group (A x))
+
+  Cⁿ : ℕ → Type ℓ
+  Cⁿ p = (x : S) → (Fin (suc p) → T x) → |A| x
+
+  0C : {p : ℕ} → Cⁿ p
+  0C x _ = Ax.0g x
+
+  negC : {p : ℕ} → Cⁿ p → Cⁿ p
+  negC s x σ = Ax.-_ x (s x σ)
+
+  addC : {p : ℕ} → Cⁿ p → Cⁿ p → Cⁿ p
+  addC s t x σ = Ax._+_ x (s x σ) (t x σ)
+
+  negPow : {x : S} → ℕ → |A| x → |A| x
+  negPow {x} zero a = a
+  negPow {x} (suc n) a = Ax.-_ x (negPow n a)
+
+  altFinSum : {x : S} → {n : ℕ} → (Fin n → |A| x) → |A| x
+  altFinSum {x} {n} f = sumFinGen {n = n} (Ax._+_ x) (Ax.0g x)
+    (λ j → negPow (fst j) (f j))
+
+  d : {p : ℕ} → Cⁿ p → Cⁿ (suc p)
+  d {p} s x σ = altFinSum {x} {suc (suc p)}
+    (λ j → s x (faceMap j σ))
+
+  CⁿAbGroup : (p : ℕ) → AbGroup ℓ
+  CⁿAbGroup p = ΠAbGroup {X = S} (λ x →
+    ΠAbGroup {X = Fin (suc p) → T x} (λ _ → A x))
+
+  -- ================================================================
+  -- Properties of negPow
+  -- ================================================================
+
+  negPow-two : {x : S} (a : |A| x) → negPow {x} 2 a ≡ a
+  negPow-two {x} a = Gx.invInv x a
+
+  negPow-add : {x : S} (n : ℕ) (a b : |A| x)
+    → negPow n (Ax._+_ x a b) ≡ Ax._+_ x (negPow n a) (negPow n b)
+  negPow-add zero a b = refl
+  negPow-add {x} (suc n) a b =
+    Ax.-_ x (negPow n (Ax._+_ x a b))
+      ≡⟨ cong (Ax.-_ x) (negPow-add n a b) ⟩
+    Ax.-_ x (Ax._+_ x (negPow n a) (negPow n b))
+      ≡⟨ Gx.invDistr x (negPow n a) (negPow n b) ⟩
+    Ax._+_ x (Ax.-_ x (negPow n b)) (Ax.-_ x (negPow n a))
+      ≡⟨ Ax.+Comm x _ _ ⟩
+    Ax._+_ x (Ax.-_ x (negPow n a)) (Ax.-_ x (negPow n b)) ∎
+
+  negPow-0g : {x : S} (n : ℕ) → negPow {x} n (Ax.0g x) ≡ Ax.0g x
+  negPow-0g zero = refl
+  negPow-0g {x} (suc n) =
+    Ax.-_ x (negPow n (Ax.0g x))
+      ≡⟨ cong (Ax.-_ x) (negPow-0g n) ⟩
+    Ax.-_ x (Ax.0g x)
+      ≡⟨ GroupProps.GroupTheory.inv1g (AbGroup→Group (A x)) ⟩
+    Ax.0g x ∎
+
+  -- negPow composes: negPow i (negPow j a) ≡ negPow (i + j) a
+  negPow-comp : {x : S} (i j : ℕ) (a : |A| x)
+    → negPow i (negPow j a) ≡ negPow (i + j) a
+  negPow-comp zero j a = refl
+  negPow-comp {x} (suc i) j a = cong (Ax.-_ x) (negPow-comp i j a)
+
+  -- negPow distributes over sumFinGen
+  negPow-sum : {x : S} {m : ℕ} (n : ℕ) (f : Fin m → |A| x)
+    → negPow n (sumFinGen {n = m} (Ax._+_ x) (Ax.0g x) f)
+    ≡ sumFinGen {n = m} (Ax._+_ x) (Ax.0g x) (λ j → negPow n (f j))
+  negPow-sum {m = zero} n f = negPow-0g n
+  negPow-sum {x} {m = suc m} n f =
+    negPow-add n (f flast) (sumFinGen (Ax._+_ x) (Ax.0g x) (f ∘ injectSuc))
+    ∙ cong (Ax._+_ x (negPow n (f flast)))
+           (negPow-sum {m = m} n (f ∘ injectSuc))
+
+  -- ================================================================
+  -- Linearity of d and d² = 0
+  -- ================================================================
+
+  private
+    -- Abelian group interchange: (a+b)+(c+d) = (a+c)+(b+d)
+    interchange : {x : S} (a b c d' : |A| x)
+      → Ax._+_ x (Ax._+_ x a b) (Ax._+_ x c d')
+      ≡ Ax._+_ x (Ax._+_ x a c) (Ax._+_ x b d')
+    interchange {x} a b c d' =
+      sym (Ax.+Assoc x a b _)
+      ∙ cong (Ax._+_ x a) (Ax.+Assoc x b c d')
+      ∙ cong (λ z → Ax._+_ x a (Ax._+_ x z d')) (Ax.+Comm x b c)
+      ∙ cong (Ax._+_ x a) (sym (Ax.+Assoc x c b d'))
+      ∙ Ax.+Assoc x a c _
+
+  -- sumFinGen distributes over +
+  sumFinGen-+ : {x : S} {n : ℕ} (f g : Fin n → |A| x)
+    → sumFinGen {n = n} (Ax._+_ x) (Ax.0g x) (λ j → Ax._+_ x (f j) (g j))
+    ≡ Ax._+_ x (sumFinGen {n = n} (Ax._+_ x) (Ax.0g x) f)
+                (sumFinGen {n = n} (Ax._+_ x) (Ax.0g x) g)
+  sumFinGen-+ {x} {zero} f g = sym (Ax.+IdR x _)
+  sumFinGen-+ {x} {suc n} f g =
+    cong (Ax._+_ x (Ax._+_ x (f flast) (g flast)))
+         (sumFinGen-+ {x} {n} (f ∘ injectSuc) (g ∘ injectSuc))
+    ∙ interchange (f flast) (g flast) _ _
+
+  d-pres+ : {p : ℕ} (s t : Cⁿ p) (x : S) (σ : Fin (suc (suc p)) → T x)
+    → d (addC s t) x σ ≡ Ax._+_ x (d s x σ) (d t x σ)
+  d-pres+ {p} s t x σ =
+    cong (sumFinGen {n = suc (suc p)} (Ax._+_ x) (Ax.0g x))
+         (funExt (λ j → negPow-add (fst j) (s x (faceMap j σ)) (t x (faceMap j σ))))
+    ∙ sumFinGen-+ {n = suc (suc p)}
+                  (λ j → negPow (fst j) (s x (faceMap j σ)))
+                  (λ j → negPow (fst j) (t x (faceMap j σ)))
+
+  -- For p=0: face map compositions agree on Fin 1 (direct computation)
+  -- Cancelling pairs: (0,0)↔(1,0), (0,1)↔(2,0), (1,1)↔(2,1)
+  private
+    face-comp-00≡10 : {B : Type ℓ} (σ : Fin 3 → B)
+      → σ ∘ punchIn {2} fzero ∘ punchIn {1} fzero
+      ≡ σ ∘ punchIn {2} fone ∘ punchIn {1} fzero
+    face-comp-00≡10 σ = funExt λ { (zero , _) → refl ; (suc _ , q) → ⊥.rec q }
+
+    face-comp-01≡20 : {B : Type ℓ} (σ : Fin 3 → B)
+      → σ ∘ punchIn {2} fzero ∘ punchIn {1} fone
+      ≡ σ ∘ punchIn {2} (2 , tt) ∘ punchIn {1} fzero
+    face-comp-01≡20 σ = funExt λ { (zero , _) → refl ; (suc _ , q) → ⊥.rec q }
+
+    face-comp-11≡21 : {B : Type ℓ} (σ : Fin 3 → B)
+      → σ ∘ punchIn {2} fone ∘ punchIn {1} fone
+      ≡ σ ∘ punchIn {2} (2 , tt) ∘ punchIn {1} fone
+    face-comp-11≡21 σ = funExt λ { (zero , _) → refl ; (suc _ , q) → ⊥.rec q }
+
+  -- Algebraic helpers for d²
+  private
+    -- Telescoping: (-p + q) + (-q + r) ≡ -p + r
+    telescope : {x : S} (p q r : |A| x)
+      → Ax._+_ x (Ax._+_ x (Ax.-_ x p) q)
+                  (Ax._+_ x (Ax.-_ x q) r)
+      ≡ Ax._+_ x (Ax.-_ x p) r
+    telescope {x} p q r =
+      sym (Ax.+Assoc x (Ax.-_ x p) q _)
+      ∙ cong (Ax._+_ x (Ax.-_ x p)) (Ax.+Assoc x q (Ax.-_ x q) r)
+      ∙ cong (λ z → Ax._+_ x (Ax.-_ x p) (Ax._+_ x z r)) (Ax.+InvR x q)
+      ∙ cong (Ax._+_ x (Ax.-_ x p)) (Ax.+IdL x r)
+
+    -- Cancellation: (-c + b) + ((-a + c) + (-b + a)) ≡ 0g
+    cancel3 : {x : S} (a b c : |A| x)
+      → Ax._+_ x (Ax._+_ x (Ax.-_ x c) b)
+                  (Ax._+_ x (Ax._+_ x (Ax.-_ x a) c)
+                            (Ax._+_ x (Ax.-_ x b) a))
+      ≡ Ax.0g x
+    cancel3 {x} a b c =
+      cong (Ax._+_ x (Ax._+_ x (Ax.-_ x c) b))
+           (Ax.+Comm x _ _)
+      ∙ Ax.+Assoc x _ _ _
+      ∙ cong (λ z → Ax._+_ x z (Ax._+_ x (Ax.-_ x a) c))
+             (telescope c b a)
+      ∙ telescope c a c
+      ∙ Ax.+InvL x c
+
+  -- d² = 0 for degree 0 (direct computation)
+  d²-0 : (s : Cⁿ 0) (x : S) (σ : Fin 3 → T x)
+    → d (d s) x σ ≡ Ax.0g x
+  d²-0 s x σ = step1 ∙ step2 ∙ cancel3 T₀₀ T₀₁ T₁₁
+    where
+      T₀₀ = s x (σ ∘ punchIn {2} fzero ∘ punchIn {1} fzero)
+      T₀₁ = s x (σ ∘ punchIn {2} fzero ∘ punchIn {1} fone)
+      T₁₁ = s x (σ ∘ punchIn {2} fone ∘ punchIn {1} fone)
+      eq₁ = cong (s x) (face-comp-00≡10 σ)
+      eq₂ = cong (s x) (face-comp-01≡20 σ)
+      eq₃ = cong (s x) (face-comp-11≡21 σ)
+      -- Step 1: substitute face-comp equalities (6 vars → 3 vars)
+      step1 = cong₂ (Ax._+_ x)
+        (cong (λ w → Ax.-_ x (Ax.-_ x w))
+          (cong₂ (Ax._+_ x) (cong (Ax.-_ x) (sym eq₃))
+                             (cong (λ z → Ax._+_ x z (Ax.0g x)) (sym eq₂))))
+        (cong (λ z → Ax._+_ x
+          (Ax.-_ x (Ax._+_ x (Ax.-_ x T₁₁) (Ax._+_ x z (Ax.0g x))))
+          (Ax._+_ x (Ax._+_ x (Ax.-_ x T₀₁) (Ax._+_ x T₀₀ (Ax.0g x)))
+                    (Ax.0g x)))
+          (sym eq₁))
+      -- Step 2: simplify using invInv, +IdR, invDistr → cancel3 form
+      step2 = cong₂ (Ax._+_ x)
+        (Gx.invInv x _ ∙ cong (Ax._+_ x (Ax.-_ x T₁₁)) (Ax.+IdR x T₀₁))
+        (cong₂ (Ax._+_ x)
+          (cong (Ax.-_ x) (cong (Ax._+_ x (Ax.-_ x T₁₁)) (Ax.+IdR x T₀₀))
+           ∙ Gx.invDistr x (Ax.-_ x T₁₁) T₀₀
+           ∙ cong (Ax._+_ x (Ax.-_ x T₀₀)) (Gx.invInv x T₁₁))
+          (Ax.+IdR x _ ∙ cong (Ax._+_ x (Ax.-_ x T₀₁)) (Ax.+IdR x T₀₀)))
+
+  -- negPow n a + negPow (suc n) a ≡ 0g  (cancel adjacent signs)
+  negPow-suc-cancel : {x : S} (n : ℕ) (a : |A| x)
+    → Ax._+_ x (negPow n a) (negPow (suc n) a) ≡ Ax.0g x
+  negPow-suc-cancel {x} n a = Ax.+InvR x (negPow n a)
+
+  -- Face map composition via simplicial identity
+  face-comp : {n : ℕ} {B : Type ℓ} (i : Fin (suc (suc n))) (j : Fin (suc n))
+    (i' : Fin (suc n)) (σ : Fin (suc (suc n)) → B)
+    → fst i ≡ fst i' → fst i ≤ᵗ fst j
+    → faceMap j (faceMap i σ) ≡ faceMap i' (faceMap (fsuc j) σ)
+  face-comp i j i' σ e h = funExt (λ k → cong σ (simplicial i j k i' e h))
+
+  -- Sum of zeros is zero
+  sfg-0 : {x : S} (n : ℕ) (f : Fin n → |A| x)
+    → (∀ k → f k ≡ Ax.0g x)
+    → sumFinGen {n = n} (Ax._+_ x) (Ax.0g x) f ≡ Ax.0g x
+  sfg-0 zero f h = refl
+  sfg-0 {x} (suc n) f h =
+    cong₂ (Ax._+_ x) (h flast)
+      (sfg-0 n (λ k → f (injectSuc k)) (λ k → h (injectSuc k)))
+    ∙ Ax.+IdR x (Ax.0g x)
+
+  -- Fubini: interchange of summation order
+  -- Σᵢ Σⱼ g(i,j) ≡ Σⱼ Σᵢ g(i,j)
+  sumFinGen-swap : {x : S} (n m : ℕ) (g : Fin n → Fin m → |A| x)
+    → sumFinGen {n = n} (Ax._+_ x) (Ax.0g x)
+        (λ i → sumFinGen {n = m} (Ax._+_ x) (Ax.0g x) (g i))
+    ≡ sumFinGen {n = m} (Ax._+_ x) (Ax.0g x)
+        (λ j → sumFinGen {n = n} (Ax._+_ x) (Ax.0g x) (λ i → g i j))
+  sumFinGen-swap {x} zero m g =
+    sym (sfg-0 m (λ _ → Ax.0g x) (λ _ → refl))
+  sumFinGen-swap {x} (suc n) m g =
+    let _+_ = Ax._+_ x ; 0g = Ax.0g x
+        ih = sumFinGen-swap {x} n m (λ i → g (injectSuc i))
+        f₁ = g flast
+        f₂ = λ j → sumFinGen {n = n} _+_ 0g (λ i → g (injectSuc i) j)
+    in cong (_+_ (sumFinGen {n = m} _+_ 0g f₁)) ih
+       ∙ sym (sumFinGen-+ {n = m} f₁ f₂)
+
+  -- General d² = 0 (uses d²-0 pattern; general case requires simplicial identity)
+  postulate
+    d² : {p : ℕ} (s : Cⁿ p) (x : S)
+      (σ : Fin (suc (suc (suc p))) → T x)
+      → d (d s) x σ ≡ Ax.0g x
+
+-- ================================================================
+-- Section 4: Alternating Čech Complex
+-- ================================================================
+
+module AlternatingCech {ℓ : Level}
+  (S : Type ℓ) (T : S → Type ℓ) (A : S → AbGroup ℓ)
+  (ordT : (x : S) → DecStrictTotalOrder (T x)) where
+
+  open GeneralCech S T A public
+  open module Ox (x : S) = DecStrictTotalOrder (ordT x)
+
+  -- ================================================================
+  -- 4.1: Tuple properties
+  -- ================================================================
+
+  isInjTuple : {p : ℕ} {x : S} → (Fin (suc p) → T x) → Type ℓ
+  isInjTuple σ = ∀ i j → σ i ≡ σ j → i ≡ j
+
+  hasRepeat : {p : ℕ} {x : S} → (Fin (suc p) → T x) → Type ℓ
+  hasRepeat σ = Σ[ i ∈ _ ] Σ[ j ∈ _ ] (¬ (i ≡ j)) × (σ i ≡ σ j)
+
+  isOrdered : {p : ℕ} {x : S} → (Fin (suc p) → T x) → Type ℓ
+  isOrdered {p} {x} σ = ∀ (i j : Fin (suc p)) → fst i <ᵗ fst j
+    → _<sto_ x (σ i) (σ j)
+
+  -- ================================================================
+  -- 4.2: Alternating cochains (Definition 20.23.1)
+  -- ================================================================
+
+  isAlternating : {p : ℕ} → Cⁿ p → Type ℓ
+  isAlternating {p} s =
+    ((x : S) (σ : Fin (suc p) → T x) (i j : Fin (suc p))
+      → ¬ (i ≡ j) → σ i ≡ σ j → s x σ ≡ Ax.0g x)
+    ×
+    ((x : S) (σ : Fin (suc p) → T x) (i j : Fin (suc p))
+      → ¬ (i ≡ j) → s x (σ ∘ swapFin {suc p} i j) ≡ Ax.-_ x (s x σ))
+
+  Cⁿ-alt : ℕ → Type ℓ
+  Cⁿ-alt p = Σ (Cⁿ p) (isAlternating {p})
+
+  -- ================================================================
+  -- 4.3: Ordered Čech complex (Definition 20.23.2)
+  -- ================================================================
+
+  OrdTuple : ℕ → S → Type ℓ
+  OrdTuple p x = Σ (Fin (suc p) → T x) (isOrdered {p} {x})
+
+  Cⁿ-ord : ℕ → Type ℓ
+  Cⁿ-ord p = (x : S) → OrdTuple p x → |A| x
+
+  -- ================================================================
+  -- 4.4: Comparison maps
+  -- ================================================================
+
+  πmap : {p : ℕ} → Cⁿ p → Cⁿ-ord p
+  πmap s x (σ , _) = s x σ
+
+  ιmap : {p : ℕ} → Cⁿ-alt p → Cⁿ p
+  ιmap = fst
+
+  -- ================================================================
+  -- 4.5: Sorting infrastructure for degree 1
+  -- ================================================================
+
+  sortPair : {x : S} → T x → T x → (T x × T x × ℕ)
+  sortPair {x} a b with <sto-tricho x a b
+  ... | is-lt _ = (a , b , 0)
+  ... | is-eq _ _ = (a , b , 0)
+  ... | is-gt _ = (b , a , 1)
+
+  -- Ordered pair witness: direct pattern matching on Fin 2
+  -- Key: n <ᵗ 0 = ⊥ and suc n <ᵗ suc m = n <ᵗ m definitionally
+  mkOrd2 : {x : S} (σ : Fin 2 → T x) → _<sto_ x (σ fzero) (σ fone)
+    → isOrdered {1} {x} σ
+  mkOrd2 σ a<b (zero , _) (zero , _) p = ⊥.rec p
+  mkOrd2 σ a<b (zero , _) (suc zero , _) _ = a<b
+  mkOrd2 σ a<b (zero , _) (suc (suc _) , q) _ = ⊥.rec q
+  mkOrd2 σ a<b (suc zero , _) (zero , _) p = ⊥.rec p
+  mkOrd2 σ a<b (suc zero , _) (suc zero , _) p = ⊥.rec p
+  mkOrd2 σ a<b (suc zero , _) (suc (suc _) , q) _ = ⊥.rec q
+  mkOrd2 σ a<b (suc (suc _) , q) _ _ = ⊥.rec q
+
+  -- ================================================================
+  -- 4.6: Comparison map c for degree 1 (Lemma 20.23.3)
+  -- ================================================================
+
+  -- Core of comparison map: takes trichotomy result as explicit argument
+  c₁-core : Cⁿ-ord 1 → (x : S) → (σ : Fin 2 → T x)
+    → Tri< (_<sto_ x) (σ fzero) (σ fone) → |A| x
+  c₁-core s x σ (is-lt a<b) = s x (σ , mkOrd2 σ a<b)
+  c₁-core s x σ (is-eq _ _) = Ax.0g x
+  c₁-core s x σ (is-gt b<a) = Ax.-_ x
+    (s x (σ ∘ swapFin {2} fzero fone , mkOrd2 (σ ∘ swapFin {2} fzero fone) b<a))
+
+  c₁-fun : Cⁿ-ord 1 → Cⁿ 1
+  c₁-fun s x σ = c₁-core s x σ (<sto-tricho x (σ fzero) (σ fone))
+
+  -- c₁-fun vanishes when σ fzero ≡ σ fone (repeated entry)
+  -- Uses Tri<-elim + lambda to avoid binding path types in pattern LHS
+  private
+    c₁-vanish : (s : Cⁿ-ord 1) (x : S) (σ : Fin 2 → T x)
+      → σ fzero ≡ σ fone → c₁-fun s x σ ≡ Ax.0g x
+    c₁-vanish s x σ = λ eq → Tri<-elim {P = λ r → c₁-core s x σ r ≡ Ax.0g x}
+      (λ a<b → ⊥.rec (<sto-irrefl x (σ fzero)
+        (subst (_<sto_ x (σ fzero)) (sym eq) a<b)))
+      (λ _ _ → refl)
+      (λ b<a → ⊥.rec (<sto-irrefl x (σ fzero)
+        (subst (λ y → _<sto_ x y (σ fzero)) (sym eq) b<a)))
+      (<sto-tricho x (σ fzero) (σ fone))
+
+  -- Vanishing part of c₁-alternating: case split on Fin 2 indices,
+  -- but keep eq : σ i ≡ σ j as a lambda argument (not on LHS)
+  private
+    c₁-alt-vanish : (s : Cⁿ-ord 1) (x : S) (σ : Fin 2 → T x)
+      (i j : Fin 2) → ¬ (i ≡ j) → σ i ≡ σ j → c₁-fun s x σ ≡ Ax.0g x
+    c₁-alt-vanish s x σ (zero , _) (zero , _) ¬eq =
+      λ _ → ⊥.rec (¬eq (Σ≡Prop (λ k → isProp<ᵗ {n = k} {m = 2}) refl))
+    c₁-alt-vanish s x σ (zero , _) (suc zero , _) _ =
+      c₁-vanish s x σ
+    c₁-alt-vanish s x σ (zero , _) (suc (suc _) , q) _ = λ _ → ⊥.rec q
+    c₁-alt-vanish s x σ (suc zero , _) (zero , _) _ =
+      c₁-vanish s x σ ∘ sym
+    c₁-alt-vanish s x σ (suc zero , _) (suc zero , _) ¬eq =
+      λ _ → ⊥.rec (¬eq (Σ≡Prop (λ k → isProp<ᵗ {n = k} {m = 2}) refl))
+    c₁-alt-vanish s x σ (suc zero , _) (suc (suc _) , q) _ = λ _ → ⊥.rec q
+    c₁-alt-vanish s x σ (suc (suc _) , q) _ _ = λ _ → ⊥.rec q
+
+  -- isOrdered is a proposition (since _<sto_ is prop-valued)
+  isPropIsOrdered : {p : ℕ} {x : S} {σ : Fin (suc p) → T x}
+    → isProp (isOrdered {p} {x} σ)
+  isPropIsOrdered {x = x} {σ} =
+    isPropΠ λ i → isPropΠ λ j → isPropΠ λ _ → <sto-prop x (σ i) (σ j)
+
+  -- Swap involution: swapFin {2} fzero fone applied twice = id
+  private
+    sw01 : Fin 2 → Fin 2
+    sw01 = swapFin {2} fzero fone
+
+    sw01² : (k : Fin 2) → sw01 (sw01 k) ≡ k
+    sw01² (zero , _) = refl
+    sw01² (suc zero , _) = refl
+    sw01² (suc (suc _) , q) = ⊥.rec q
+
+    sw01-comp : {x : S} (σ : Fin 2 → T x) → σ ∘ sw01 ∘ sw01 ≡ σ
+    sw01-comp σ = funExt (λ k → cong σ (sw01² k))
+
+  -- Antisymmetry of c₁-core: case analysis on two trichotomy results
+  -- (no path types in scope, so direct pattern matching is safe)
+  private
+    c₁-antisym-core : (s : Cⁿ-ord 1) (x : S) (σ : Fin 2 → T x)
+      → (r₁ : Tri< (_<sto_ x) (σ fzero) (σ fone))
+      → (r₂ : Tri< (_<sto_ x) (σ fone) (σ fzero))
+      → c₁-core s x (σ ∘ sw01) r₂ ≡ Ax.-_ x (c₁-core s x σ r₁)
+    -- (lt, lt): contradiction via transitivity
+    c₁-antisym-core s x σ (is-lt p<q) (is-lt q<p) =
+      ⊥.rec (<sto-irrefl x _ (<sto-trans x p<q q<p))
+    -- (lt, eq): ¬p<q contradicts p<q
+    c₁-antisym-core s x σ (is-lt p<q) (is-eq _ ¬p<q) = ⊥.rec (¬p<q p<q)
+    -- (lt, gt): VALID — need swap involution
+    c₁-antisym-core s x σ (is-lt p<q) (is-gt p<q') =
+      cong (Ax.-_ x) (cong (s x) (Σ≡Prop (λ _ → isPropIsOrdered) (sw01-comp σ)))
+    -- (eq, lt): contradiction
+    c₁-antisym-core s x σ (is-eq _ ¬q<p) (is-lt q<p) = ⊥.rec (¬q<p q<p)
+    -- (eq, eq): VALID — 0g ≡ -(0g)
+    c₁-antisym-core s x σ (is-eq _ _) (is-eq _ _) =
+      sym (GroupProps.GroupTheory.inv1g (AbGroup→Group (A x)))
+    -- (eq, gt): contradiction
+    c₁-antisym-core s x σ (is-eq ¬p<q _) (is-gt p<q) = ⊥.rec (¬p<q p<q)
+    -- (gt, lt): VALID — invInv
+    c₁-antisym-core s x σ (is-gt q<p) (is-lt q<p') =
+      cong (s x) (Σ≡Prop (λ _ → isPropIsOrdered) refl)
+      ∙ sym (Gx.invInv x _)
+    -- (gt, eq): contradiction
+    c₁-antisym-core s x σ (is-gt q<p) (is-eq ¬q<p _) = ⊥.rec (¬q<p q<p)
+    -- (gt, gt): contradiction
+    c₁-antisym-core s x σ (is-gt q<p) (is-gt p<q) =
+      ⊥.rec (<sto-irrefl x _ (<sto-trans x q<p p<q))
+
+    c₁-antisym01 : (s : Cⁿ-ord 1) (x : S) (σ : Fin 2 → T x)
+      → c₁-fun s x (σ ∘ sw01) ≡ Ax.-_ x (c₁-fun s x σ)
+    c₁-antisym01 s x σ = c₁-antisym-core s x σ
+      (<sto-tricho x (σ fzero) (σ fone))
+      (<sto-tricho x (σ fone) (σ fzero))
+
+  -- For swap(fone, fzero): sw10 k ≡ sw01 k for all k : Fin 2
+  private
+    sw10≡sw01 : (k : Fin 2) → swapFin {2} fone fzero k ≡ sw01 k
+    sw10≡sw01 (zero , _) = refl
+    sw10≡sw01 (suc zero , _) = refl
+    sw10≡sw01 (suc (suc _) , q) = ⊥.rec q
+
+    c₁-antisym10 : (s : Cⁿ-ord 1) (x : S) (σ : Fin 2 → T x)
+      → c₁-fun s x (σ ∘ swapFin {2} fone fzero) ≡ Ax.-_ x (c₁-fun s x σ)
+    c₁-antisym10 s x σ =
+      cong (c₁-fun s x) (funExt (λ k → cong σ (sw10≡sw01 k)))
+      ∙ c₁-antisym01 s x σ
+
+  -- Full antisymmetry: case split on i,j : Fin 2
+  private
+    c₁-alt-antisym : (s : Cⁿ-ord 1) (x : S) (σ : Fin 2 → T x)
+      (i j : Fin 2) → ¬ (i ≡ j)
+      → c₁-fun s x (σ ∘ swapFin {2} i j) ≡ Ax.-_ x (c₁-fun s x σ)
+    c₁-alt-antisym s x σ (zero , _) (zero , _) ¬eq =
+      ⊥.rec (¬eq (Σ≡Prop (λ k → isProp<ᵗ {n = k} {m = 2}) refl))
+    c₁-alt-antisym s x σ (zero , _) (suc zero , _) _ =
+      c₁-antisym01 s x σ
+    c₁-alt-antisym s x σ (zero , _) (suc (suc _) , q) _ = ⊥.rec q
+    c₁-alt-antisym s x σ (suc zero , _) (zero , _) _ =
+      c₁-antisym10 s x σ
+    c₁-alt-antisym s x σ (suc zero , _) (suc zero , _) ¬eq =
+      ⊥.rec (¬eq (Σ≡Prop (λ k → isProp<ᵗ {n = k} {m = 2}) refl))
+    c₁-alt-antisym s x σ (suc zero , _) (suc (suc _) , q) _ = ⊥.rec q
+    c₁-alt-antisym s x σ (suc (suc _) , q) _ _ = ⊥.rec q
+
+  c₁-alternating : (s : Cⁿ-ord 1) → isAlternating (c₁-fun s)
+  fst (c₁-alternating s) = c₁-alt-vanish s
+  snd (c₁-alternating s) = c₁-alt-antisym s
+
+  c₁ : Cⁿ-ord 1 → Cⁿ-alt 1
+  c₁ s = c₁-fun s , c₁-alternating s
+
+  -- ================================================================
+  -- 4.7: π ∘ c = id (Lemma 20.23.4)
+  -- ================================================================
+
+  private
+    π∘c₁-core : (s : Cⁿ-ord 1) (x : S) (σ : Fin 2 → T x) (ord : isOrdered {1} {x} σ)
+      → (r : Tri< (_<sto_ x) (σ fzero) (σ fone))
+      → c₁-core s x σ r ≡ s x (σ , ord)
+    π∘c₁-core s x σ ord (is-lt a<b) =
+      cong (s x) (Σ≡Prop (λ _ → isPropIsOrdered) refl)
+    π∘c₁-core s x σ ord (is-eq ¬a<b _) = ⊥.rec (¬a<b (ord fzero fone tt))
+    π∘c₁-core s x σ ord (is-gt b<a) =
+      ⊥.rec (<sto-irrefl x (σ fzero)
+        (<sto-trans x (ord fzero fone tt) b<a))
+
+  π∘c₁ : (s : Cⁿ-ord 1) → (x : S) → (ot : OrdTuple 1 x)
+    → πmap (c₁-fun s) x ot ≡ s x ot
+  π∘c₁ s x (σ , ord) = π∘c₁-core s x σ ord (<sto-tricho x (σ fzero) (σ fone))
+
+  -- ================================================================
+  -- 4.8: d preserves alternating cochains
+  -- ================================================================
+
+  d-preserves-alt : {p : ℕ} (s : Cⁿ p)
+    → isAlternating s → isAlternating (d s)
+  d-preserves-alt s alt = {!!} , {!!}
+
+  -- ================================================================
+  -- Section 5: Main Theorems (Stacks Project Tag 01FG)
+  -- ================================================================
+
+  -- Lemma 20.23.6: The chain homotopy
+  -- h_n : Cⁿ (suc n) → Cⁿ n such that d∘h + h∘d = id - κ
+  -- where κ = c ∘ π
+  -- Formula at degree (suc p): for s : Cⁿ (suc p),
+  --   d (h p s) + h (suc p) (d s) = s - κ s
+  postulate
+    cπ-homotopic-to-id :
+      (κ : {n : ℕ} → Cⁿ n → Cⁿ n)
+      (h : (n : ℕ) → Cⁿ (suc n) → Cⁿ n)
+      → {p : ℕ} (s : Cⁿ (suc p)) (x : S) (σ : Fin (suc (suc p)) → T x)
+      → Ax._+_ x (d (h p s) x σ) (h (suc p) (d s) x σ)
+        ≡ Ax._+_ x (s x σ) (Ax.-_ x (κ s x σ))
+
+  -- Lemma 20.23.7: Contractibility when U_i = X
+  postulate
+    contractible-with-section : {p : ℕ}
+      → (x₀ : S) → T x₀
+      → (s : Cⁿ-alt (suc p))
+      → Σ (Cⁿ-alt p) (λ t → d (ιmap t) ≡ ιmap s)
+
+-- ================================================================
+-- Section 6: Connection to Part14
+-- ================================================================
+
+module ConnectionToPart14 {ℓ : Level}
+  (S : Type ℓ) (T : S → Type ℓ) (A : S → AbGroup ℓ) where
+
+  open GeneralCech S T A
+
+  to-simple-C⁰ : Cⁿ 0 → ((x : S) → T x → |A| x)
+  to-simple-C⁰ s x t = s x (λ _ → t)
+
+  from-simple-C⁰ : ((x : S) → T x → |A| x) → Cⁿ 0
+  from-simple-C⁰ s x σ = s x (σ fzero)
+
+  to-simple-C¹ : Cⁿ 1 → ((x : S) → T x → T x → |A| x)
+  to-simple-C¹ s x u v = s x tup
+    where
+      tup : Fin 2 → T x
+      tup (zero , _) = u
+      tup (suc zero , _) = v
+
+  from-simple-C¹ : ((x : S) → T x → T x → |A| x) → Cⁿ 1
+  from-simple-C¹ s x σ = s x (σ fzero) (σ fone)
+
+  mk2Tuple : {B : Type ℓ} → B → B → Fin 2 → B
+  mk2Tuple a b (zero , _) = a
+  mk2Tuple a b (suc zero , _) = b
+
+  mk3Tuple : {B : Type ℓ} → B → B → B → Fin 3 → B
+  mk3Tuple u v w (zero , _) = u
+  mk3Tuple u v w (suc zero , _) = v
+  mk3Tuple u v w (suc (suc zero) , _) = w
+
+  -- Face map equalities relating face maps of mk3Tuple to mk2Tuple/σ
+  private
+    face0≡ : {x : S} (u v w : T x)
+      → faceMap fzero (mk3Tuple u v w) ≡ mk2Tuple v w
+    face0≡ u v w = funExt go where
+      go : ∀ k → _
+      go (zero , _) = refl
+      go (suc zero , _) = refl
+      go (suc (suc _) , q) = ⊥.rec q
+
+    face1≡ : {x : S} (u v w : T x)
+      → faceMap fone (mk3Tuple u v w) ≡ mk2Tuple u w
+    face1≡ u v w = funExt go where
+      go : ∀ k → _
+      go (zero , _) = refl
+      go (suc zero , _) = refl
+      go (suc (suc _) , q) = ⊥.rec q
+
+    face2≡ : {x : S} (u v w : T x)
+      → faceMap (2 , tt) (mk3Tuple u v w) ≡ mk2Tuple u v
+    face2≡ u v w = funExt go where
+      go : ∀ k → _
+      go (zero , _) = refl
+      go (suc zero , _) = refl
+      go (suc (suc _) , q) = ⊥.rec q
+
+    mk2≡σ : {x : S} (σ : Fin 2 → T x) → mk2Tuple (σ fzero) (σ fone) ≡ σ
+    mk2≡σ σ = funExt go where
+      go : ∀ k → _
+      go (zero , _) = refl
+      go (suc zero , _) = refl
+      go (suc (suc _) , q) = ⊥.rec q
+
+  section-exact : ((x : S) → T x)
+    → (β : Cⁿ 1) → ((x : S) (u v w : T x) →
+        d β x (mk3Tuple u v w) ≡ Ax.0g x)
+    → Σ (Cⁿ 0) (λ α → ∀ x σ → d α x σ ≡ β x σ)
+  section-exact t β cocycle = α , proof
+    where
+      α : Cⁿ 0
+      α x σ = β x (mk2Tuple (t x) (σ fzero))
+
+      proof : ∀ x σ → d α x σ ≡ β x σ
+      proof x σ =
+        let p = σ fzero ; q = σ fone
+            _+_ = Ax._+_ x ; -_ = Ax.-_ x ; 0g = Ax.0g x
+            c = β x (mk2Tuple (t x) p)  -- = α x (faceMap fone σ)
+            b = β x (mk2Tuple (t x) q)  -- = α x (faceMap fzero σ)
+            -- Raw cocycle: d β x (mk3Tuple (t x) p q) ≡ 0g
+            -- Definitionally: -(-(β face2)) + (-(β face1) + (β face0 + 0g)) ≡ 0g
+            -- Convert using face≡ + invInv to: c + (-b + (β σ + 0g)) ≡ 0g
+            cocyc-conv : (- (- (β x (faceMap (2 , tt) (mk3Tuple (t x) p q)))))
+                         + ((- (β x (faceMap fone (mk3Tuple (t x) p q))))
+                         + (β x (faceMap fzero (mk3Tuple (t x) p q)) + 0g))
+                       ≡ c + ((- b) + (β x σ + 0g))
+            cocyc-conv =
+              cong₂ _+_
+                (Gx.invInv x _ ∙ cong (β x) (face2≡ (t x) p q))
+                (cong₂ _+_
+                  (cong -_ (cong (β x) (face1≡ (t x) p q)))
+                  (cong (_+ 0g) (cong (β x) (face0≡ (t x) p q ∙ mk2≡σ σ))))
+            cocyc' : c + ((- b) + (β x σ + 0g)) ≡ 0g
+            cocyc' = sym cocyc-conv ∙ cocycle x (t x) p q
+            -- From cocyc': c + (-b + a) = 0 (after +IdR)
+            -- invUniqueR: -b + a = -c
+            -- Then: -c + b = a (algebraic rearrangement)
+            step1 : c + ((- b) + β x σ) ≡ 0g
+            step1 = subst (λ z → c + ((- b) + z) ≡ 0g) (Ax.+IdR x (β x σ)) cocyc'
+            step2 : (- b) + β x σ ≡ - c
+            step2 = Gx.invUniqueR x step1
+        in
+        (- c) + (b + 0g)
+          ≡⟨ cong ((- c) +_) (Ax.+IdR x b) ⟩
+        (- c) + b
+          ≡⟨ Ax.+Comm x (- c) b ⟩
+        b + (- c)
+          ≡⟨ cong (b +_) (sym step2) ⟩
+        b + ((- b) + β x σ)
+          ≡⟨ Ax.+Assoc x b (- b) (β x σ) ⟩
+        (b + (- b)) + β x σ
+          ≡⟨ cong (_+ β x σ) (Ax.+InvR x b) ⟩
+        0g + β x σ
+          ≡⟨ Ax.+IdL x (β x σ) ⟩
+        β x σ ∎
+
+-- ================================================================
+-- Section 7: Cochain Complex Structure
+-- ================================================================
+
+module CechCoChainComplex {ℓ : Level}
+  (S : Type ℓ) (T : S → Type ℓ) (A : S → AbGroup ℓ)
+  (isSetS : isSet S)
+  (isSetT : (x : S) → isSet (T x)) where
+
+  open GeneralCech S T A
+
+  CⁿAb : ℕ → AbGroup ℓ
+  CⁿAb = CⁿAbGroup
+
+  dHom : (p : ℕ) → AbGroupHom (CⁿAb p) (CⁿAb (suc p))
+  fst (dHom p) = d {p}
+  snd (dHom p) = makeIsGroupHom
+    (λ s t → funExt λ x → funExt λ σ → d-pres+ s t x σ)
+
+  d²=0 : (p : ℕ) → compGroupHom (dHom p) (dHom (suc p)) ≡ trivGroupHom
+  d²=0 p = Σ≡Prop (λ _ → isPropIsGroupHom _ _)
+    (funExt λ s → funExt λ x → funExt λ σ → d² s x σ)
+
+  CechCoChain : CoChainComplex ℓ
+  CoChainComplex.cochain CechCoChain = CⁿAb
+  CoChainComplex.cobdry CechCoChain = dHom
+  CoChainComplex.cobdry²=0 CechCoChain = d²=0

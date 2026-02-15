@@ -1,0 +1,12 @@
+CHANGES0010 - d-preserves-alt structure with postulates
+
+Major changes:
+1. Replaced two holes in d-preserves-alt with named postulates:
+   - d-vanish-repeat: if σ has a repeat, then d s x σ = 0 (for alternating s)
+   - d-antisym-swap: d s x (σ ∘ swap i j) = -(d s x σ) (for alternating s)
+2. d-preserves-alt now assembles from these two postulates (no holes)
+
+Remaining postulates: d-vanish-repeat, d-antisym-swap, d² (general),
+  cπ-homotopic-to-id, contractible-with-section
+
+876 lines (up from 812). Growth from postulate declarations. No useful work lost.

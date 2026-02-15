@@ -1,0 +1,23 @@
+CHANGES0001 - First compiling version (with holes)
+
+Initial formalization of the Alternating Čech Complex (Stacks Project 01FG).
+
+Structure:
+- Fin infrastructure: punchIn, faceMap, swapFin
+- DecStrictTotalOrder record with trichotomy
+- GeneralCech module: Cⁿ, d (coboundary), altFinSum, negPow
+  - Proved: negPow-two, negPow-add, negPow-0g
+  - Holes: d-pres+ (linearity), d² (d²=0)
+- AlternatingCech module: isAlternating, isOrdered, Cⁿ-alt, Cⁿ-ord
+  - mkOrd2 for Fin 2 (direct pattern matching, using n <ᵗ 0 = ⊥ definitionally)
+  - sortPair, c₁-fun (comparison map degree 1)
+  - Holes: c₁-alternating, π∘c₁, d-preserves-alt
+  - Postulates: cπ-homotopic-to-id, contractible-with-section
+- ConnectionToPart14 module: type conversions for low degrees
+  - Hole: section-exact proof
+- CechCoChainComplex module: packaging as CoChainComplex
+
+Key fix: mkOrd2 uses direct pattern matching on Fin 2 elements
+(zero,_)/(suc zero,_)/(suc (suc _),q) exploiting n <ᵗ 0 = ⊥ definitionally.
+
+374 lines. Compiles with holes only (no type errors).

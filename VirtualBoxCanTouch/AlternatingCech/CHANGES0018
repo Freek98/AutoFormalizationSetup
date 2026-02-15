@@ -1,0 +1,27 @@
+CHANGES0018 - swapFin-ij/ji/fix proved (3 postulates eliminated)
+
+Major changes:
+1. Replaced discreteFin-based swapFin with _≟ᵗ_-based version:
+   - swapFin now uses `with fst k ≟ᵗ fst i` / `with fst k ≟ᵗ fst j`
+   - Trichotomyᵗ is a proper data type (lt/eq/gt constructors),
+     unlike Dec which uses boolean reflection
+   - with-abstraction works because ≟ᵗ doesn't use _≡ᵇ_
+
+2. Proved swapFin-ij, swapFin-ji, swapFin-fix by mirroring the
+   with-clause structure in the proofs:
+   - swapFin-ij: match on fst i ≟ᵗ fst i; eqᵗ case gives refl,
+     lt/gt cases use ¬m<ᵗm {fst i} for absurdity
+   - swapFin-ji: match on fst j ≟ᵗ fst i then fst j ≟ᵗ fst j;
+     eqᵗ/eqᵗ gives Σ≡Prop, other eqᵗ cases give refl
+   - swapFin-fix: match on both; eqᵗ contradicts k≠i/k≠j,
+     remaining cases give refl
+   - Key trick: explicit {m = fst i} in ¬m<ᵗm avoids InversionDepthReached
+
+3. Earlier swapAux + cong approach failed with massive unsolved metas
+   because Agda's constraint solver couldn't propagate {n} through
+   the abstract swapAux applications.
+
+Remaining postulates: fact5 (face-shift-aux step case),
+  d-antisym-swap, d² (general), cπ-homotopic-to-id, contractible-with-section
+
+1307 lines (up from 1280 in bck0017). 3 postulates eliminated. No useful work lost.
