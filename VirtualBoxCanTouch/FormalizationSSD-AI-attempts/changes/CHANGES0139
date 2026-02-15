@@ -1,0 +1,15 @@
+CHANGES0139 — Combine adjacent equational steps in Part14
+
+Changes since bck0138 (6073 lines → 6069 lines, -4 lines):
+
+1. Part14 (440→436, -4 lines):
+   - Combined two pairs of adjacent rCancel + lUnit steps in `combined-is-refl`:
+     a) Lines 211-214 (old): separate `cong ... (rCancel pu)` and `cong ... (sym (lUnit pv))`
+        → combined into single `cong ... (cong (_∙ pv) (rCancel pu) ∙ sym (lUnit pv))` (-2 lines)
+     b) Lines 217-220 (old): separate `cong ... (rCancel pw)` and `cong ... (sym (lUnit pv))`
+        → combined into single `cong ... (cong (_∙ pv) (rCancel pw) ∙ sym (lUnit pv))` (-2 lines)
+   - Both optimizations use the same pattern: two consecutive cong steps where the
+     first rewrites a subterm and the second rewrites the result can be combined
+     when both target the same outer context.
+
+Compilation check: Part14 SUCCESS.

@@ -1,0 +1,28 @@
+CHANGES0136 — Inline single-use wrappers and simplify trivial proof step
+
+Changes since bck0135 (6111 lines → 6097 lines, -14 lines):
+
+All removed items are NOT in tex and NOT used elsewhere in the project.
+
+1. Part02 (864→857, -7 lines):
+   - Inlined `openOr` at its single use site in `clopenIsDecidable`:
+     replaced `openOr P ¬P Popen ¬Popen` with `openOrMP mp P ¬P Popen ¬Popen`.
+     `openOr` was a trivial wrapper: `openOr = openOrMP mp` (-4 lines incl. blank)
+   - Inlined `flatten` at its two use sites in `closedCountableIntersection`
+     and `openCountableUnion`: replaced `β = flatten αP` with
+     `β k = let (m , n) = cantorUnpair k in αP m n` (-3 lines incl. blank)
+
+2. Part07 (276→271, -5 lines):
+   - Inlined `0=1-isOpen` at its single use site in `¬Sp-isOpen`:
+     replaced `0=1-isOpen B` with direct call
+     `booleω-equality-open B (BooleanRingStr.𝟘 ...) (BooleanRingStr.𝟙 ...)`.
+     `0=1-isOpen` was a trivial specialization of the postulate. (-5 lines)
+
+3. Part14 (442→440, -2 lines):
+   - Removed unnecessary `symInvo` step in `sym-p-uw` proof:
+     `sym (sym p) = p` definitionally in Cubical Agda (since `~ ~ i = i`),
+     so `symDistr (sym pu) pw` directly gives `sym pw ∙ pu` without needing
+     an intermediate `sym pw ∙ sym (sym pu)` step and `cong ... (sym (symInvo pu))`.
+     Also removed `symInvo` from the import. (-2 lines)
+
+Full chain verification: SUCCESS (Part01 through Part20).
