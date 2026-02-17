@@ -46,3 +46,12 @@
 > Is there something you can add to your CLAUDE.md file to make sure this doesn't happen again (It timed out/ran out of context window). 
 > you can also add something about splitting the work file into comprehensible sections. 
 > continue working, yes. 
+
+❯ See Claude.md. Reorganize according to the instrunctions there. Make sure    
+  you don't ask me for any permissions. I will be going away. You can change    
+  the CLAUDE.md file to make sure you keep working and give yourself            
+  instrunctions so that the context window doesn't close.    
+
+
+
+
