@@ -1,0 +1,19 @@
+CHANGES0011 - d²≡0 PROVED, sumFin-invol-cancel completed
+
+Completed sumFin-invol-cancel (suc(suc m) case):
+- Added embed-inj, embed-φ', cancel', invol', no-fix' proofs
+- decode now returns Σ-type bundling the embedding proof
+- Fixed missing cong extract-step in the proof chain
+- Full proof: extract pair (0, φ(0)), cancel, recurse with restricted involution
+
+Added doubleSum-cancel: double sum cancellation by induction on M.
+For F : Fin(suc M) → Fin M → Ax x with pair-cancel property,
+proves sumFin(suc M)(λ i → sumFin M (F i)) ≡ 0g.
+Strategy: split first row and column, pair F(0,k) with F(k+1,0),
+cancel all pairs, recurse on shifted function F'(i,j) = F(i+1,j+1).
+
+Proved d²≡0: cechDiff(cechDiff α) x t ≡ 0g for all cochains α.
+Step 1: distribute outer sign via sumFin-ℤ· to get double sum form.
+Step 2: apply doubleSum-cancel with d²-pair-cancel as the pairing.
+
+Status: 842 lines, 0 holes, 0 postulates. d²≡0 fully proved!

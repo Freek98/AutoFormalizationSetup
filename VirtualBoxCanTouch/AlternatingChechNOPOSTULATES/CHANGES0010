@@ -1,0 +1,13 @@
+CHANGES0010 - d²-pair-cancel proved, d²≡0 structured
+
+Proved d²-pair-cancel: the core mathematical lemma that paired terms in d²
+cancel. For (i,j) with fst i ≤ fst j:
+  signℤ(i) ℤ· (signℤ(j) ℤ· v) + signℤ(j+1) ℤ· (signℤ(i) ℤ· v') ≡ 0g
+  where v = v' by skip-skip (simplicial identity).
+Proof uses: skip-skip, sign-comm, sign-cancel.
+
+d²≡0 structured: step1 distributes outer sign using sumFin-ℤ·, yielding
+the double sum form. Remaining hole: show the double sum = 0g using
+d²-pair-cancel.
+
+Status: 695 lines, 1 hole (d²≡0 sum manipulation), 0 postulates.

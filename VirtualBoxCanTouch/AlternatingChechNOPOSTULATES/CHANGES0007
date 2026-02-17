@@ -1,0 +1,40 @@
+CHANGES0007 - π∘c≡id FULLY PROVED, cMap restructured
+
+Proved π∘c≡id for ALL n (was a hole at suc n case).
+
+Key changes:
+
+1. cMap restructured: replaced nested `with` with explicit `cMap-go` helper.
+   Old: cMap used `with sortTuple t ... with weakToStrictDec t' wo`
+   New: cMap-go pattern matches on ⊎ directly, cMap calls it via `let`.
+   Reason: `with` in Cubical Agda creates abstract variables that aren't
+   judgmentally equal to the original expression. Using `let` + projections
+   gives definitional equality, so sortTuple-sorted can be used directly.
+
+2. strict-head-lt: head of strictly ordered tuple < any later element.
+   Proved by induction on n + transitivity.
+
+3. strict-no-repeat: strictly ordered tuple has no repeats.
+   Pattern matches on Fin indices (zero/suc), uses strict-head-lt + is-irrefl.
+   Key: bundles (¬(i≡j) × fst(t i)≡fst(t j)) as single `prf` to avoid
+   Cubical Agda's "Cannot split on Path" error when deep-matching Σ types
+   containing paths.
+
+4. π∘c≡id {suc n}: uses `where` clause with projections of sortTuple t.
+   - t', sgn, wo defined as projections (definitionally equal to sortTuple t)
+   - tEq, sEq from sortTuple-sorted (have correct endpoints by definition)
+   - go helper matches on weakToStrictDec t' wo:
+     * inl strict: chain sEq ∙ +IdR ∙ J-based transport of strict ordering
+     * inr rep: contradiction via strict-no-repeat + subst HasRepeat tEq
+
+Failed approaches documented:
+- `with sortTuple t | sortTuple-sorted t ord` approach failed because
+  with-variables aren't judgmentally equal to original expressions
+- `with ... in stEq` syntax failed: requires BUILTIN REFL, unavailable in Cubical Agda
+- `isProp→PathP (λ i → isPropStrictOrd (sortEq i)) strict ord` failed:
+  sortEq i0 didn't reduce to t' after with-abstraction
+
+Added to CLAUDE.md: Context Window Management rules (8 guidelines) to prevent
+running out of context in future sessions.
+
+Status: 561 lines, 1 hole (d²≡0), 0 postulates.

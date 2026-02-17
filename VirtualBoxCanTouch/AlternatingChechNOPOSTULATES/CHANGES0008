@@ -1,0 +1,15 @@
+CHANGES0008 - skip-skip simplicial identity proved, _<ᵗ_ import added
+
+Added simplicial identity skip-skip:
+  skip i (skip j k) ≡ skip (fsuc j) (skip (fst i , ip') k)  for fst i ≤ fst j
+Proved by structural induction on i, j, k:
+  - i=0: refl
+  - i=suc, j=0: contradiction via ¬-<-zero
+  - i=suc, j=suc, k=0: refl
+  - i=suc, j=suc, k=suc: cong fsuc (IH)
+
+Also added Fin≡ helper: equality of Fin elements from equality of fst components.
+
+Import fix: added _<ᵗ_ to Cubical.Data.Nat.Order.Inductive import.
+
+Status: 579 lines, 1 hole (d²≡0), 0 postulates.
