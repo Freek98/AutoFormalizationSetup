@@ -1,0 +1,66 @@
+CHANGES0013 - Split monolithic work.agda into 8 separate files
+
+REORGANIZATION: The 842-line monolithic work.agda was split into
+focused modules for faster incremental compilation.
+
+File structure (dependency order):
+
+1. Trichotomy.agda (29 lines)
+   - Tri data type (three-way comparison)
+   - IsStrictTotalOrder record
+
+2. CechBase.agda (158 lines) [depends on: Trichotomy]
+   - Fiber, Tuple, Ax, Gx, ℤ·, Cochain, sumFin
+   - _≤S_, IsStrictlyOrdered, IsWeaklyOrdered
+   - OrdTuple, SemiOrdTuple, OrdCochain, SemiOrdCochain
+   - π (restriction: standard → ordered), πsemi
+   - _<F_, triF, decEqS (fiber trichotomy)
+   - Fin≡, fsuc-inj (Fin utilities)
+   - parityℕ, signℤ (shared across modules)
+
+3. CechPermutations.agda (103 lines) [depends on: CechBase]
+   - Perm, idPerm, applyPerm
+   - invCountℕ, permToℕFun, sgnPerm
+   - HasRepeat, IsAlternating, VanishesOnRepeats
+   - AltCochain, SemiAltCochain, altIncl
+
+4. CechFaceMaps.agda (93 lines) [depends on: CechBase]
+   - skip, face (face maps)
+   - cechDiff (standard Cech differential)
+   - face-preserves-strict, ordDiff (ordered differential)
+   - skip-skip (simplicial identity)
+
+5. CechSorting.agda (173 lines) [depends on: CechBase, CechPermutations]
+   - sort2, insert, mulSign, signFromSwaps, sortTuple
+   - mapRepeatSucc, weakToStrictDec
+   - cMap-go, cMap (ordered → standard map)
+
+6. CechProperties.agda (151 lines) [depends on: CechBase, CechPermutations, CechSorting]
+   - strict→weak, isPropStrictOrd
+   - insert-result<, sortTuple-sorted
+   - strict-head-lt, strict-no-repeat
+   - π∘c≡id (PROVED)
+
+7. CechDSquared.agda (324 lines) [depends on: CechBase, CechFaceMaps]
+   - sumFin-ℤ·, sumFin-0, sumFin-add
+   - signℤ-ss, sign-cancel, sign-comm
+   - +rearrange, removeIdx, sumFin-extract
+   - d²-pair-cancel, Fin helpers
+   - removeIdx-inj, removeIdx-misses, removeIdx-surj
+   - sumFin-invol-cancel, doubleSum-cancel
+   - d²≡0 (PROVED)
+
+8. work.agda (29 lines) [imports all modules]
+   - Re-exports everything under CechComplex module
+
+Key changes:
+- parityℕ and signℤ moved to CechBase (shared across modules)
+- Fixed overlay filesystem mount for cubical library
+- All proofs preserved: 0 holes, 0 postulates
+- Total: 1060 lines across 8 files (vs 842 monolithic)
+  Increase is from repeated module headers/imports.
+
+Benefits:
+- Changing one file only triggers recompilation of that file + dependents
+- CechDSquared and CechProperties are independent — can compile in parallel
+- CechPermutations and CechFaceMaps are independent — can compile in parallel

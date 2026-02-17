@@ -1,0 +1,4 @@
+CHANGES0012 - Pre-reorganization backup
+
+Backup of the monolithic work.agda (842 lines) before splitting into
+separate files. This is the same state as bck0011 (d²≡0 fully proved).
