@@ -1,0 +1,26 @@
+CHANGES0006 - sortTuple-sorted FULLY PROVED, insert-result< lemma
+
+Proved sortTuple-sorted for ALL n (was blocked at suc(suc n) case).
+
+Key insight: the with-triF approach inside sortTuple-sorted couldn't trigger
+insert's internal go reduction because Agda normalizes sortTuple(t∘fsuc) before
+the with abstraction, creating a different is-tri expression than expected.
+
+Solution:
+1. insert-result< lemma: separately proved that when head < second element,
+   insert returns the original tuple with 0 swaps. The with-triF works in
+   this separate lemma because insert's parameters are fresh variables.
+   Split into {zero} and {suc n} cases for insert's n-based pattern matching.
+
+2. J-based transport in sortTuple-sorted: instead of with|refl matching
+   (which didn't propagate unification to tw's type in Cubical Agda),
+   used J to transport insert-result< along sym sortEq.
+
+Also fixed: extended lambda identity issue - Agda treats syntactically identical
+extended lambdas at different source locations as distinct (nominal typing).
+insert-result< avoids this by proving fst(insert ...) ≡ t directly using funExt
+pointwise, never equating with an intermediate lambda.
+
+Removed: insert-fst< and insert-swaps< (replaced by unified insert-result<).
+
+Status: 517 lines, 2 holes (π∘c≡id {suc n}, d²≡0), 0 postulates.

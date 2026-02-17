@@ -1,0 +1,23 @@
+CHANGES0005 - sortTuple-sorted structure, helper lemmas
+
+Added helper lemmas for π∘c≡id proof:
+- strict→weak: converts strict ordering to weak ordering
+- isPropStrictOrd: strict ordering is a proposition (isProp)
+- isPropUnit* and isProp<ᵗ imports added
+
+sortTuple-sorted partially proved:
+- Base case (n=0): refl, refl
+- suc zero case: with sortTuple IH matched, triF matched. Sign proof works (sgn≡).
+  Tuple equality hole remaining (needs funExt).
+- suc (suc n) case: with sortTuple IH matched via refl, triF matched in where clause.
+  Both tuple and sign holes remaining.
+- The key challenge: insert doesn't reduce when n is a variable.
+  Split into suc zero (insert {zero}) and suc (suc n) (insert {suc n}).
+- After matching triF | tri< in the where clause, insert reduces for suc (suc n).
+  But the tuple proof needs funExt and the level issue with ΣPathP was worked around
+  using cong over proof component.
+
+n=0 case of π∘c≡id proven: Gx.+IdR x (β x (t, tt*))
+
+Status: 502 lines, 5 holes (sortTuple-sorted tuple holes ×2, π∘c≡id suc n, d²≡0,
+  plus the sortTuple-sorted sign hole for suc(suc n))

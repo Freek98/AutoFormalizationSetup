@@ -43,3 +43,6 @@
 
 > most of the time, I think you should be able to use PT.rec if you're using a proposition. 
 > See Claude.md Don't ask me for any permissions, just keep on working forever. 
+> Is there something you can add to your CLAUDE.md file to make sure this doesn't happen again (It timed out/ran out of context window). 
+> you can also add something about splitting the work file into comprehensible sections. 
+> continue working, yes. 

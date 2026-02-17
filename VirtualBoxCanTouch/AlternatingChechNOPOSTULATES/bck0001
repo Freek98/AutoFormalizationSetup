@@ -1,0 +1,377 @@
+{-# OPTIONS --cubical --guardedness --lossy-unification #-}
+
+module work where
+
+open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.Function
+open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Isomorphism
+open import Cubical.Foundations.Equiv
+open import Cubical.Foundations.Structure
+open import Cubical.Foundations.Transport
+
+open import Cubical.Data.Nat using (ℕ ; zero ; suc ; _+_)
+open import Cubical.Data.Nat.Order
+open import Cubical.Data.Fin.Base using (Fin ; fzero ; fsuc ; finj)
+open import Cubical.Data.Nat.Order.Inductive using (<→<ᵗ ; <ᵗ-trans-suc)
+open import Cubical.Data.Int.Base using (ℤ ; pos ; negsuc)
+open import Cubical.Data.Bool hiding (_≤_ ; _≥_ ; _≟_)
+open import Cubical.Data.Empty renaming (rec to ⊥-rec)
+open import Cubical.Data.Sigma
+open import Cubical.Data.Sum as ⊎
+open import Cubical.Data.Unit using (Unit* ; tt*)
+
+open import Cubical.Relation.Nullary
+
+open import Cubical.HITs.PropositionalTruncation as PT
+
+open import Cubical.Algebra.Group
+open import Cubical.Algebra.Group.Morphisms
+open import Cubical.Algebra.Group.MorphismProperties
+open import Cubical.Algebra.Group.ZAction
+open import Cubical.Algebra.AbGroup
+
+open import Cubical.Functions.Surjection
+
+private variable
+  ℓ ℓ' ℓ'' : Level
+
+-- ============================================================
+-- Section 1: Trichotomy type and strict total order
+-- ============================================================
+
+-- Three-way comparison result
+data Tri {ℓa ℓb ℓc} (A : Type ℓa) (B : Type ℓb) (C : Type ℓc)
+  : Type (ℓ-max ℓa (ℓ-max ℓb ℓc)) where
+  tri< : A → ¬ B → ¬ C → Tri A B C
+  tri≡ : ¬ A → B → ¬ C → Tri A B C
+  tri> : ¬ A → ¬ B → C → Tri A B C
+
+record IsStrictTotalOrder {ℓ ℓ' : Level} {A : Type ℓ}
+  (_<_ : A → A → Type ℓ') : Type (ℓ-max ℓ ℓ') where
+  field
+    is-set : isSet A
+    is-prop-valued : (a b : A) → isProp (a < b)
+    is-irrefl : (a : A) → ¬ (a < a)
+    is-trans : (a b c : A) → a < b → b < c → a < c
+    is-tri : (a b : A) → Tri (a < b) (a ≡ b) (b < a)
+
+  is-asym : (a b : A) → a < b → ¬ (b < a)
+  is-asym a b a<b b<a = is-irrefl a (is-trans a b a a<b b<a)
+
+-- ============================================================
+-- Section 2: CechComplex module
+-- ============================================================
+
+module CechComplex
+  {ℓ : Level}
+  {S : Type ℓ}
+  {X : Type ℓ}
+  (_<S_ : S → S → Type ℓ)
+  (isSTO : IsStrictTotalOrder _<S_)
+  (isSetX : isSet X)
+  (q : S → X)
+  (isSurjQ : isSurjection q)
+  (A : X → AbGroup ℓ)
+  where
+
+  open IsStrictTotalOrder isSTO
+
+  -- ============================================================
+  -- Section 3: Basic definitions
+  -- ============================================================
+
+  Fiber : X → Type ℓ
+  Fiber x = Σ[ s ∈ S ] q s ≡ x
+
+  Tuple : ℕ → X → Type ℓ
+  Tuple n x = Fin (suc n) → Fiber x
+
+  Ax : (x : X) → Type ℓ
+  Ax x = ⟨ A x ⟩
+
+  module Gx (x : X) = AbGroupStr (str (A x))
+
+  _ℤ·_ : {x : X} → ℤ → Ax x → Ax x
+  _ℤ·_ {x} n a = n ℤ[ AbGroup→Group (A x) ]· a
+
+  Cochain : ℕ → Type ℓ
+  Cochain n = (x : X) → Tuple n x → Ax x
+
+  -- Sum over Fin m in the abelian group at x
+  sumFin : {x : X} → (m : ℕ) → (Fin m → Ax x) → Ax x
+  sumFin {x} zero _ = Gx.0g x
+  sumFin {x} (suc m) f = Gx._+_ x (f fzero) (sumFin m (f ∘ fsuc))
+
+  -- ============================================================
+  -- Section 4: Ordering predicates on tuples
+  -- ============================================================
+
+  _≤S_ : S → S → Type ℓ
+  a ≤S b = ¬ (b <S a)
+
+  -- Strict ordering: s₀ < s₁ < ⋯ < sₙ
+  IsStrictlyOrdered : {n : ℕ} {x : X} → Tuple n x → Type ℓ
+  IsStrictlyOrdered {n = zero} _ = Unit*
+  IsStrictlyOrdered {n = suc n} t =
+    (fst (t fzero) <S fst (t (fsuc fzero))) ×
+    IsStrictlyOrdered {n = n} (t ∘ fsuc)
+
+  -- Weak ordering: s₀ ≤ s₁ ≤ ⋯ ≤ sₙ
+  IsWeaklyOrdered : {n : ℕ} {x : X} → Tuple n x → Type ℓ
+  IsWeaklyOrdered {n = zero} _ = Unit*
+  IsWeaklyOrdered {n = suc n} t =
+    (fst (t fzero) ≤S fst (t (fsuc fzero))) ×
+    IsWeaklyOrdered {n = n} (t ∘ fsuc)
+
+  -- ============================================================
+  -- Section 5: Permutations and sign
+  -- ============================================================
+
+  Perm : ℕ → Type₀
+  Perm m = Fin m ≃ Fin m
+
+  idPerm : {m : ℕ} → Perm m
+  idPerm = idEquiv (Fin _)
+
+  applyPerm : {n : ℕ} {x : X} → Perm (suc n) → Tuple n x → Tuple n x
+  applyPerm σ t = t ∘ equivFun σ
+
+  -- Count inversions of a sequence f(0), f(1), ..., f(m-1)
+  -- An inversion is a pair (i,j) with i < j and f(i) > f(j)
+  invCountℕ : (m : ℕ) → (ℕ → ℕ) → ℕ
+  invCountℕ zero _ = zero
+  invCountℕ (suc m) f = headInv m + invCountℕ m (f ∘ suc)
+    where
+    -- Count how many of f(1),...,f(m) are less than f(0)
+    headInv : ℕ → ℕ
+    headInv zero = zero
+    headInv (suc k) with f zero ≟ f (suc k)
+    ... | gt _ = suc (headInv k)
+    ... | _    = headInv k
+
+  -- Parity of a natural number
+  parityℕ : ℕ → Bool
+  parityℕ zero = true
+  parityℕ (suc zero) = false
+  parityℕ (suc (suc n)) = parityℕ n
+
+  -- Extract the underlying ℕ→ℕ function from a Fin permutation
+  permToℕFun : {m : ℕ} → Perm m → ℕ → ℕ
+  permToℕFun {zero} _ k = k
+  permToℕFun {suc m} σ k with k ≟ suc m
+  ... | lt p = fst (equivFun σ (k , <→<ᵗ p))
+  ... | eq _ = k  -- out of range
+  ... | gt _ = k  -- out of range
+
+  -- Sign of a permutation: (-1)^(number of inversions)
+  sgnPerm : {m : ℕ} → Perm m → ℤ
+  sgnPerm {m} σ with parityℕ (invCountℕ m (permToℕFun σ))
+  ... | true  = pos 1
+  ... | false = negsuc 0
+
+  -- ============================================================
+  -- Section 6: Repeats and alternating condition
+  -- ============================================================
+
+  HasRepeat : {n : ℕ} {x : X} → Tuple n x → Type ℓ
+  HasRepeat {n} t = Σ[ i ∈ Fin (suc n) ] Σ[ j ∈ Fin (suc n) ]
+    (¬ (i ≡ j)) × (fst (t i) ≡ fst (t j))
+
+  IsAlternating : {n : ℕ} → Cochain n → Type ℓ
+  IsAlternating {n} α =
+    (x : X) (σ : Perm (suc n)) (t : Tuple n x) →
+      α x (applyPerm σ t) ≡ (sgnPerm σ) ℤ· (α x t)
+
+  VanishesOnRepeats : {n : ℕ} → Cochain n → Type ℓ
+  VanishesOnRepeats {n} α =
+    (x : X) (t : Tuple n x) → HasRepeat t → α x t ≡ Gx.0g x
+
+  -- ============================================================
+  -- Section 7: Cochain types
+  -- ============================================================
+
+  AltCochain : ℕ → Type ℓ
+  AltCochain n = Σ[ α ∈ Cochain n ] IsAlternating α
+
+  OrdTuple : ℕ → X → Type ℓ
+  OrdTuple n x = Σ[ t ∈ Tuple n x ] IsStrictlyOrdered t
+
+  OrdCochain : ℕ → Type ℓ
+  OrdCochain n = (x : X) → OrdTuple n x → Ax x
+
+  SemiOrdTuple : ℕ → X → Type ℓ
+  SemiOrdTuple n x = Σ[ t ∈ Tuple n x ] IsWeaklyOrdered t
+
+  SemiOrdCochain : ℕ → Type ℓ
+  SemiOrdCochain n = (x : X) → SemiOrdTuple n x → Ax x
+
+  SemiAltCochain : ℕ → Type ℓ
+  SemiAltCochain n = Σ[ α ∈ Cochain n ] VanishesOnRepeats α
+
+  -- ============================================================
+  -- Section 8: Face maps and Cech differential
+  -- ============================================================
+
+  -- Skip index: maps Fin (n+1) → Fin (n+2) skipping position i
+  skip : {n : ℕ} → Fin (suc (suc n)) → Fin (suc n) → Fin (suc (suc n))
+  skip i j with fst j ≟ fst i
+  ... | lt _ = finj j
+  ... | eq _ = fsuc j
+  ... | gt _ = fsuc j
+
+  -- Face map: delete position i from an (n+2)-tuple
+  face : {n : ℕ} {x : X} → Fin (suc (suc n)) → Tuple (suc n) x → Tuple n x
+  face i t = t ∘ skip i
+
+  -- Sign factor
+  signℤ : ℕ → ℤ
+  signℤ n with parityℕ n
+  ... | true  = pos 1
+  ... | false = negsuc 0
+
+  -- Standard Cech differential
+  cechDiff : {n : ℕ} → Cochain n → Cochain (suc n)
+  cechDiff {n} α x t = sumFin (suc (suc n)) term
+    where
+    term : Fin (suc (suc n)) → Ax x
+    term i = (signℤ (fst i)) ℤ· (α x (face i t))
+
+  -- ============================================================
+  -- Section 9: Maps between complexes
+  -- ============================================================
+
+  -- Inclusion: alternating → standard
+  altIncl : {n : ℕ} → AltCochain n → Cochain n
+  altIncl = fst
+
+  -- Restriction: standard → ordered (the π map)
+  π : {n : ℕ} → Cochain n → OrdCochain n
+  π α x (t , _) = α x t
+
+  -- Restriction: standard → semi-ordered
+  πsemi : {n : ℕ} → Cochain n → SemiOrdCochain n
+  πsemi α x (t , _) = α x t
+
+  -- ============================================================
+  -- Section 10: Trichotomy on fibers and decidable equality
+  -- ============================================================
+
+  _<F_ : {x : X} → Fiber x → Fiber x → Type ℓ
+  (s₁ , _) <F (s₂ , _) = s₁ <S s₂
+
+  triF : {x : X} → (a b : Fiber x) → Tri (a <F b) (fst a ≡ fst b) (b <F a)
+  triF (s₁ , _) (s₂ , _) = is-tri s₁ s₂
+
+  decEqS : (a b : S) → Dec (a ≡ b)
+  decEqS a b with is-tri a b
+  ... | tri< _ ¬p _ = no ¬p
+  ... | tri≡ _ p _  = yes p
+  ... | tri> _ ¬p _ = no ¬p
+
+  -- ============================================================
+  -- Section 11: Sorting tuples
+  -- ============================================================
+
+  -- Sort a pair: return elements in order and track the sign
+  sort2 : {x : X} → Fiber x → Fiber x
+    → Fiber x × Fiber x × ℤ
+  sort2 a b with triF a b
+  ... | tri< _ _ _ = a , b , pos 1
+  ... | tri≡ _ _ _ = a , b , pos 1
+  ... | tri> _ _ _ = b , a , negsuc 0
+
+  -- For insertion sort, we insert an element into a weakly ordered tuple.
+  -- Given s : Fiber x and a weakly-ordered (n+1)-tuple t,
+  -- insert s at the correct position.
+
+  -- Full sorting function: sort a tuple and return the sign
+  -- We define this as a postulate for now, and prove it correct
+  -- This is the key computational content
+
+  sortTuple : {n : ℕ} {x : X} → Tuple n x
+    → Σ[ t' ∈ Tuple n x ]
+      Σ[ sgn ∈ ℤ ]
+      IsWeaklyOrdered t'
+  sortTuple {zero} t = t , pos 1 , tt*
+  sortTuple {suc n} t = {! !}  -- TODO: implement insertion sort
+
+  -- The c map: ordered → standard
+  -- c(α)(x)(t) = sgn · α(x)(sort(t))  when sort(t) is strictly ordered
+  -- c(α)(x)(t) = 0                     when sort(t) has equal adjacent elements
+
+  -- Helper for shifting a repeat witness from tail to full tuple
+  open import Cubical.Data.Fin.Properties using (isSetFin)
+  private
+    fsuc-inj : {m : ℕ} {a b : Fin m} → fsuc a ≡ fsuc b → a ≡ b
+    fsuc-inj {m} {a} {b} p = ΣPathP (injSuc (cong fst p) , isProp→PathP (λ i → isProp<ᵗ) _ _)
+      where
+      open import Cubical.Data.Nat using (injSuc)
+      open import Cubical.Data.Nat.Order.Inductive using (isProp<ᵗ)
+
+    mapRepeatSucc : {n : ℕ} {x : X} {t : Tuple (suc n) x}
+      → HasRepeat (t ∘ fsuc) → HasRepeat t
+    mapRepeatSucc (i , j , neq , p) =
+      fsuc i , fsuc j , (λ q → neq (fsuc-inj q)) , p
+
+  -- Check if a weakly ordered tuple is strictly ordered
+  weakToStrictDec : {n : ℕ} {x : X} → (t : Tuple n x)
+    → IsWeaklyOrdered t
+    → (IsStrictlyOrdered t) ⊎ (HasRepeat t)
+  weakToStrictDec {zero} t _ = inl tt*
+  weakToStrictDec {suc n} t (h≤ , rest) = go (is-tri (fst (t fzero)) (fst (t (fsuc fzero))))
+    where
+    go : Tri (fst (t fzero) <S fst (t (fsuc fzero)))
+             (fst (t fzero) ≡ fst (t (fsuc fzero)))
+             (fst (t (fsuc fzero)) <S fst (t fzero))
+       → (IsStrictlyOrdered t) ⊎ (HasRepeat t)
+    go (tri< a<b _ _) with weakToStrictDec (t ∘ fsuc) rest
+    ... | inl strict = inl (a<b , strict)
+    ... | inr rep    = inr (mapRepeatSucc {t = t} rep)
+    go (tri≡ _ a≡b _) =
+      inr (fzero , fsuc fzero ,
+           (λ p → znots (cong fst p)) , a≡b)
+      where open import Cubical.Data.Nat using (znots)
+    go (tri> _ _ b<a) = ⊥-rec (h≤ b<a)
+
+  -- The c map (ordered → standard cochain)
+  cMap : {n : ℕ} → OrdCochain n → Cochain n
+  cMap {n} β x t with sortTuple t
+  ... | (t' , sgn , wo) with weakToStrictDec t' wo
+  ...   | inl strict = sgn ℤ· β x (t' , strict)
+  ...   | inr _      = Gx.0g x  -- vanishes on repeats
+
+  -- ============================================================
+  -- Section 12: Face maps preserve ordering
+  -- ============================================================
+
+  face-preserves-strict : {n : ℕ} {x : X}
+    → (i : Fin (suc (suc n))) → (t : Tuple (suc n) x)
+    → IsStrictlyOrdered t → IsStrictlyOrdered (face i t)
+  face-preserves-strict = {! !}  -- TODO
+
+  -- Ordered differential
+  ordDiff : {n : ℕ} → OrdCochain n → OrdCochain (suc n)
+  ordDiff {n} α x (t , ord) = sumFin (suc (suc n)) term
+    where
+    term : Fin (suc (suc n)) → Ax x
+    term i = (signℤ (fst i)) ℤ· α x (face i t , face-preserves-strict i t ord)
+
+  -- ============================================================
+  -- Section 13: Key properties
+  -- ============================================================
+
+  -- π ∘ c = id on ordered cochains
+  π∘c≡id : {n : ℕ} → (β : OrdCochain n)
+    → (x : X) → (ot : OrdTuple n x)
+    → π (cMap β) x ot ≡ β x ot
+  π∘c≡id = {! !}  -- TODO
+
+  -- d ∘ d = 0 on standard cochains
+  d²≡0 : {n : ℕ} → (α : Cochain n) → (x : X) → (t : Tuple (suc (suc n)) x)
+    → cechDiff (cechDiff α) x t ≡ Gx.0g x
+  d²≡0 = {! !}  -- TODO
+
+  -- The standard Cech cochain complex
+  -- CechCoComplex : CoChainComplex ℓ
+  -- This requires showing d² = 0 which is a standard calculation

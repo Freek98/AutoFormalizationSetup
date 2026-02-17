@@ -143,6 +143,19 @@ While doing the above, keep the following principles in mind:
 > If a proof step feels like it “should be automatic”, it probably already exists in the Cubical Agda library—search before proving it yourself.
 
 
+## Context Window Management
+
+The context window is finite. Burning through it causes session loss and wasted work. Follow these rules strictly:
+
+- **Never re-read the full file** if you only need a section. Use `offset` and `limit` parameters to read just the lines you need (e.g., the hole you're working on ± 30 lines of context).
+- **Truncate compilation output.** Pipe Agda errors through `head -80` to avoid dumping hundreds of lines of normalization output into context. Read the full error only if the truncated version is insufficient.
+- **Use subagents (Task tool) for exploratory work.** Library searches, grepping for lemmas, and speculative compilation checks should be delegated to subagents so their output doesn't bloat the main context.
+- **Don't retry the same failing approach.** If an approach fails twice, document it in the CHANGES file and move on to a different strategy. The previous session burned most of its context on three failed variants before finding the J-based solution.
+- **Make backups + CHANGES files early and often.** These serve as compressed memory. A new session can read CHANGES files to understand prior work without re-reading the full transcript.
+- **Document failed approaches in CHANGES files**, not just successes. This prevents future sessions from repeating the same dead ends.
+- **Before starting a complex proof, write a brief plan** (in a comment or CHANGES file) outlining the approach. This avoids multiple rounds of "try → fail → rethink" that consume context.
+- **Know the file's section structure.** The work file is divided into numbered sections (e.g., "Section 11: Sorting tuples"). At the start of a session, read only the section headers (first ~5 lines of each section) to build a mental map, then read only the sections relevant to the current task. Never read the full file just to "get oriented".
+
 ## Compilation Checking
 - **Run the checking frequently** to check for compilation errors
 - After any significant change, check your work like this: 

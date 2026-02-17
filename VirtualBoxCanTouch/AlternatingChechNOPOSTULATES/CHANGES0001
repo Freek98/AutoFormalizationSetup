@@ -1,0 +1,33 @@
+CHANGES0001 - Initial structure
+
+Created work.agda with the core structure of the alternating Cech complex formalization.
+
+Definitions completed (compiling):
+- Tri: Three-way comparison type (tri<, tri≡, tri>)
+- IsStrictTotalOrder: Record for strict total orders with trichotomy
+- CechComplex module parameterized by (S, X, _<S_, q, A)
+- Fiber, Tuple, Ax, Gx: basic fiber/tuple/group infrastructure
+- Cochain n: standard Cech cochains
+- sumFin: finite sums in abelian groups
+- IsStrictlyOrdered, IsWeaklyOrdered: ordering predicates on tuples
+- Perm, idPerm, applyPerm: permutations of Fin
+- invCountℕ, parityℕ, permToℕFun, sgnPerm: sign of permutation via inversion counting
+- HasRepeat, IsAlternating, VanishesOnRepeats: alternating conditions
+- AltCochain, OrdCochain, SemiOrdCochain, SemiAltCochain: all five cochain types
+- skip, face: face maps
+- signℤ, cechDiff: the standard Cech differential
+- altIncl, π, πsemi: inclusion and restriction maps
+- triF, decEqS: trichotomy/decidable equality on fibers
+- sort2: sorting pairs
+- fsuc-inj, mapRepeatSucc: helper lemmas
+- weakToStrictDec: deciding if weakly ordered tuple is strictly ordered
+- cMap: the c map (ordered → standard) using sorting
+- ordDiff: the ordered differential
+
+Remaining holes ({! !}):
+- sortTuple: full insertion sort with sign tracking (line 297)
+- face-preserves-strict: deleting from ordered preserves ordering (line 351)
+- π∘c≡id: proof that π ∘ c = id on ordered cochains (line 368)
+- d²≡0: proof that d ∘ d = 0 (line 373)
+
+Status: 377 lines, 4 holes, 0 postulates.

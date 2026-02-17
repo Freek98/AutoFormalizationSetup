@@ -1,0 +1,12 @@
+CHANGES0003 - insert hole filled, skip rewritten
+
+Filled the insert hole (previously at line 326):
+- Enriched insert's return type with a "min proof" showing the result's
+  first element is ≤ anything that's ≤ both the inserted element and
+  the original head.
+- The proof is trivial in each case: tri< and tri≡ return inl (head = s),
+  tri> returns inr (head = original head).
+- Updated sortTuple to use projection-based destructuring of the new
+  return type.
+
+Status: 3 holes → 3 remaining (face-preserves-strict, π∘c≡id, d²≡0)

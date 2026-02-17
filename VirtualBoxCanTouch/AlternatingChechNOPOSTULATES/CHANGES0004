@@ -1,0 +1,17 @@
+CHANGES0004 - face-preserves-strict proved, skip rewritten
+
+Rewrote skip function from with-based to recursive definition:
+- Old: skip i j with fst j ≟ fst i (blocked definitional reduction)
+- New: skip (0,_) (j,jp) = (suc j, jp)
+       skip (suc _,_) (0,_) = (0, tt)
+       skip {suc n} (suc i,ip) (suc j,jp) = fsuc (skip {n} (i,ip) (j,jp))
+- Key property: skip (suc k, p) (fsuc j) = fsuc (skip (k, p') j) definitionally
+
+Proved face-preserves-strict by three cases:
+- (zero, p): snd ord (tail is already strictly ordered)
+- (suc zero, p): is-trans for head gap + recursive call at (zero, tt)
+- (suc (suc k), p): h< for head + recursive call at (suc k, p) on tail
+
+Added import: Unit, tt from Cubical.Data.Unit
+
+Status: 460 lines, 2 holes (π∘c≡id, d²≡0), 0 postulates.

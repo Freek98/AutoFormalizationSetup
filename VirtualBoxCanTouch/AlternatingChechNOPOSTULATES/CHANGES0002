@@ -1,0 +1,20 @@
+CHANGES0002 - Insertion sort partially implemented
+
+Key changes from bck0001:
+- Fixed import for <→<ᵗ and isProp<ᵗ from Cubical.Data.Nat.Order.Inductive
+- Added --lossy-unification flag to handle Fin type inference
+- Rewrote invCountℕ to work on ℕ → ℕ instead of Fin → Fin
+- Added permToℕFun to extract ℕ → ℕ from a Fin permutation
+- Implemented insert function for insertion sort (zero case complete, suc case has 2 holes)
+- Added mulSign, signFromSwaps helpers for sign computation
+- Implemented sortTuple using insertion sort
+- Fixed weakToStrictDec with helper go function and explicit Tri pattern match
+- Added fsuc-inj using injSuc and isProp<ᵗ
+
+Remaining holes (5):
+- insert: 2 holes for ordering proof in tri> case (head ≤ first(rest))
+- face-preserves-strict: deleting from ordered preserves ordering
+- π∘c≡id: proof that π ∘ c = id
+- d²≡0: proof that d ∘ d = 0
+
+Status: 431 lines, 5 holes, 0 postulates. Up from 377 lines.
