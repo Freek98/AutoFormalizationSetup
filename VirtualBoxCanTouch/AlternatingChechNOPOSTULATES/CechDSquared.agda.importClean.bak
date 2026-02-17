@@ -27,10 +27,14 @@ open import Cubical.Data.Nat.Order.Inductive using (_<ᵗ_ ; isProp<ᵗ)
 open import Cubical.Data.Int.Base using (ℤ ; pos ; negsuc)
 open import Cubical.Data.Bool hiding (_≤_ ; _≥_)
 open import Cubical.Data.Empty renaming (rec to ⊥-rec)
+open import Cubical.Data.Sigma
 open import Cubical.Data.Unit using (Unit ; tt ; Unit* ; tt*)
 
 open import Cubical.Relation.Nullary
 
+open import Cubical.Algebra.Group
+open import Cubical.Algebra.Group.Morphisms
+open import Cubical.Algebra.Group.MorphismProperties
 open import Cubical.Algebra.Group.ZAction
 
 open import CechBase _<S_ isSTO isSetX q isSurjQ A

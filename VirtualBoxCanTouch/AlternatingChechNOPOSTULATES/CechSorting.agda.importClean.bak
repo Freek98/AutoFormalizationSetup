@@ -22,12 +22,16 @@ open import Cubical.Foundations.Function
 
 open import Cubical.Data.Nat using (ℕ ; zero ; suc ; znots)
 open import Cubical.Data.Fin.Base using (Fin ; fzero ; fsuc)
+open import Cubical.Data.Nat.Order.Inductive using (isProp<ᵗ)
 open import Cubical.Data.Int.Base using (ℤ ; pos ; negsuc)
+open import Cubical.Data.Bool hiding (_≤_ ; _≥_)
 open import Cubical.Data.Empty renaming (rec to ⊥-rec)
 open import Cubical.Data.Sigma
 open import Cubical.Data.Sum as ⊎
 open import Cubical.Data.Unit using (Unit* ; tt* ; isPropUnit*)
 
+open import Cubical.Algebra.Group
+open import Cubical.Algebra.Group.ZAction
 
 open import CechBase _<S_ isSTO isSetX q isSurjQ A
 open import CechPermutations _<S_ isSTO isSetX q isSurjQ A

@@ -24,9 +24,14 @@ open import Cubical.Data.Nat using (ℕ ; zero ; suc ; _+_)
 open import Cubical.Data.Nat.Order
 open import Cubical.Data.Fin.Base using (Fin ; fzero ; fsuc)
 open import Cubical.Data.Nat.Order.Inductive using (_<ᵗ_ ; <ᵗ-trans-suc ; isProp<ᵗ)
+open import Cubical.Data.Int.Base using (ℤ ; pos ; negsuc)
+open import Cubical.Data.Bool hiding (_≤_ ; _≥_)
 open import Cubical.Data.Empty renaming (rec to ⊥-rec)
+open import Cubical.Data.Sigma
 open import Cubical.Data.Unit using (Unit* ; tt ; tt*)
 
+open import Cubical.Algebra.Group
+open import Cubical.Algebra.Group.ZAction
 
 open import CechBase _<S_ isSTO isSetX q isSurjQ A
 

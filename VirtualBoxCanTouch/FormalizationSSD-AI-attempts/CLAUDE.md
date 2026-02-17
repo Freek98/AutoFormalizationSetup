@@ -1,11 +1,13 @@
 # Rules for Working 
-1. I want you to clean up the agda files in the work directory. 
-2. If something is in monolithic.tex, it is a relevant result. The statement and possible proofs should remain there.
-3. If a function can be deleted and nothing anywhere breaks down, it should be deleted **unless** it is mentioned in monolithic.tex as a result (theorem,proposition, proof).
+1. I want you to refactor some proofs. 
+2. The Markov proof should be seperated in a proof that if B is countably presented, then so is B / f, where f is any function from a countable set into B. Then we should apply that proof to show that 2/\alpha is countably presented, and continue the Markov proof from there. 
+3. Likewise, the LLPO proof should seperate out a proof that the boolean algebra given by generating g_n for n \in N and quotienting out g_n \wedge g_m for n != m gives the same Boolean algebra as cofinite/finite subsets of N. Find a better presentation of cofinite/finite subsets of N as Boolean algebra as datatype. 
+4. If a function can be deleted and nothing anywhere breaks down, it should be deleted **unless** it is mentioned in monolithic.tex as a result (theorem,proposition, proof).
 4. Almost all comments are useless, as they are not written in agda. They can go. The only useful comments are those that state that a specific theorem (which is proven in agda, not in comments) can be found somewhere in the tex file. 
 5. You should check if some functions already exist in cubical library somewhere. If they do, clean them up. 
-6. I also want you to repair a problem with your original Part01. You had a wrong definition of isClosedProp, using Sigma insteads of Mere existence. I need you to remove all mistakes that come from this. You have postulated that the Sigma is a proposition. This is False, and it propogates. This needs to be fixed. 
-
+6. You should continue on formalizing as much of monolithic.tex as possible. 
+7. You should keep working, and never ask for permissions, if you run out of context, you should return to this file and use your backups. 
+8. If possible, give your files names corresponding to the instrunctions. So follow the text of the instrunctions above or the paper. 
 
 
 

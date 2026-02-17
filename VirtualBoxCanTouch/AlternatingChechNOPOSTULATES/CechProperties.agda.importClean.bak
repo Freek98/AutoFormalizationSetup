@@ -29,6 +29,8 @@ open import Cubical.Data.Sigma
 open import Cubical.Data.Sum as ⊎
 open import Cubical.Data.Unit using (Unit* ; tt* ; isPropUnit*)
 
+open import Cubical.Algebra.Group
+open import Cubical.Algebra.Group.ZAction
 
 open import CechBase _<S_ isSTO isSetX q isSurjQ A
 open import CechPermutations _<S_ isSTO isSetX q isSurjQ A
