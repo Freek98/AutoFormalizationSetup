@@ -1,0 +1,24 @@
+CHANGES0147 (from bck0145)
+
+Summary: Moved LLPO proof and derived lemmas from Part02 to Part06.
+
+Changes:
+1. Part02: Removed `postulate llpo : LLPO` (was line 396-397)
+   - Removed `closedDeMorgan` function (~100 lines)
+   - Removed `closedOr` function (~40 lines)
+   - Removed `openDeMorgan` function (~14 lines)
+   - Removed `import Cubical.Induction.WellFounded as WF` (no longer needed)
+   - The 4 axiom postulates (sd-axiom, surj-formal-axiom, localChoice-axiom, dependentChoice-axiom) remain.
+
+2. Part06: Added `llpo = llpo-from-SD` (uses the proven llpo-from-SD from Part05)
+   - Added `closedDeMorgan` (moved from Part02, now uses proven llpo instead of postulated)
+   - Added `closedOr` (moved from Part02)
+   - Added `openDeMorgan` (moved from Part02)
+   - Added necessary imports for these functions
+
+Net effect: Eliminated `llpo` postulate (was the last omniscience-principle postulate).
+The llpo was already proved as `llpo-from-SD` in Part05 but was also postulated
+in Part02 for historical reasons. Now Part06 simply defines `llpo = llpo-from-SD`.
+
+Line count: 6443 (was 6433 in bck0145, +10 from added imports in Part06)
+Full chain Part20 compiles: YES

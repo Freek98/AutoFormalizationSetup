@@ -22,10 +22,7 @@ open import Cubical.Algebra.BooleanRing
 import QuotientBool as QB
 import Cubical.Data.Sum as ⊎
 
-postulate
-  BoolQuotientEquiv : (A : BooleanRing ℓ-zero) (f g : ℕ → ⟨ A ⟩) →
-    BooleanRing→CommRing (A QB./Im (⊎.rec f g)) ≡
-    BooleanRing→CommRing ((A QB./Im f) QB./Im (fst QB.quotientImageHom ∘ g))
+open import BooleanRing.BooleanRingQuotients.QuotientConclusions using (BoolQuotientEquiv) public
 
 binarySequence : Type₀
 binarySequence = ℕ → Bool

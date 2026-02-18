@@ -1,0 +1,40 @@
+CHANGES0150 — SSD reorganization complete: all work/ Part files migrated
+
+Completed the SSD reorganization by migrating remaining Part files:
+
+New compiling SSD modules (all compile successfully):
+- SSD/CompactHausdorff/Interval.agda: Added Fin import for finite intervals.
+  IntervalIsCHausModule, IntervalTopologyModule, ZILocalModule,
+  IntermediateValueTheoremModule (from Part12, 223 lines)
+- SSD/CompactHausdorff/BrouwerFPT.agda: BrouwerFixedPointTheoremModule
+  with Disk2, Circle, BFP-contradiction, BrouwerFixedPointTheorem
+  (from Part13, 75 lines)
+- SSD/Cohomology/Cohomology.agda: CohomologyModule containing BZ, H¹,
+  CechComplex, SectionExactCechComplex, CanonicalExactCechComplex,
+  ExactCechComplexVanishingProof, CechCover (from Part14, 450 lines)
+- SSD/Applications/Applications.agda: StoneILocalTC, BZILocalTC,
+  PathConnectedContractibleTC, NotWLPOTC with ¬WLPO proof
+  (from Part19, 121 lines)
+- SSD/All.agda: Top-level re-export module with RIContractibleTC,
+  OmnisciencePrinciplesTC, MainApplicationTheoremsTC
+  (from Part20, 42 lines)
+
+Complete module chain:
+  Preliminaries → Axioms → OpenClosed → Algebra → Bool2Presentation
+  → NormalForms → Spectrum → StoneExamples → ClosedPropSpectrum
+  → StoneEqualityClosed → StoneProperties → StoneAsClosedCantor
+  → CompactHausdorff → Interval → BrouwerFPT → Cohomology
+  → Applications → All
+
+Total SSD lines: 9573 (up from 8154 in bck0149)
+All 37 SSD .agda files compile successfully via SSD/All.agda.
+
+Key fixes during migration:
+- Added Fin import to Interval.agda (was re-exported from Part10b)
+- Added isEquiv import to Applications.agda
+- Added explicit Sp/Booleω import from SSD.Library.StoneDuality in NotWLPOTC
+  (Axioms.agda imports these non-publicly)
+- sd-axiom → sd in Applications NotWLPOTC
+- Type₀ resolved via open import Cubical.Foundations.Prelude in All.agda
+
+No changes to existing work/ files.

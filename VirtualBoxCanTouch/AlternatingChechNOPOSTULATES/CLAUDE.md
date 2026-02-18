@@ -1,4 +1,6 @@
 # Rules for Working on Math_Background.mg
+Please clean up and organize your code more. Put it in seperate files with clear names. 
+
 
 ## STRICT PROHIBITIONS
 

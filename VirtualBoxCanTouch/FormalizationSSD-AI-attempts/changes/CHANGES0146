@@ -1,0 +1,8 @@
+CHANGES0146 — Pre-reorganization backup
+
+Backup of current work/ directory before beginning the reorganization
+into a new directory structure matching the tex file sections.
+
+No code changes. This is a safety backup.
+
+Total: 6433 lines (same as bck0145).

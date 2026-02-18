@@ -1,0 +1,18 @@
+CHANGES0148 — SSD reorganization progress: Algebra + Bool2Presentation
+
+Added compiling SSD modules:
+- SSD/StoneDuality/Algebra.agda: B∞ construction, direct products,
+  Bool², SpB∞-to-ℕ∞ map (from Part03, ~140 lines)
+- SSD/StoneDuality/Bool2Presentation.agda: Bool² presentation as quotient,
+  Sp-Bool²≃Bool, f: B∞ → B∞×B∞ morphism, normal forms, parity split
+  (from Part04, ~635 lines)
+
+Fixed OpenClosed.agda compilation issues:
+- Moved local imports (isPropDec) to top-level
+- Added ⊎ qualifier for Sum import
+- Removed where-block imports
+
+All SSD files compile successfully. Module chain:
+  Preliminaries → Axioms → OpenClosed → Algebra → Bool2Presentation
+
+No changes to existing work/ files.

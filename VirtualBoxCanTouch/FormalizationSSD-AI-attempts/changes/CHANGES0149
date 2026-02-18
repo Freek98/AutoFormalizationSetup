@@ -1,0 +1,35 @@
+CHANGES0149 — SSD reorganization: Spectrum through StoneAsClosedCantor
+
+Added compiling SSD modules (all compile successfully):
+- SSD/StoneDuality/Spectrum.agda: B∞×B∞ presentation, ℕ∞→SpB∞ maps,
+  roundtrip proofs, f-injectivity, LLPOFromSD module (from Part05, ~1241 lines)
+- SSD/StoneDuality/StoneExamples.agda: SpB∞≃ℕ∞, ℕ∞-has-StoneStr,
+  Bool-has-StoneStr (from Part06, ~58 lines)
+- SSD/StoneDuality/ClosedPropSpectrum.agda: ClosedPropAsSpectrum,
+  TruncationStoneClosed, WithAxiomsCPS containing ClosedPropIffStone,
+  LemSurjectionsFormalToCompleteness, ODiscInfrastructure,
+  TruncationStoneClosedComplete, SDDecToElemModule (from Part07, ~256 lines)
+- SSD/StoneDuality/StoneEqualityClosed.agda: WithAxiomsSEC containing
+  StoneEqualityClosedModule, StoneClosedSubsetsModule with
+  SpOfQuotientBySeq, quotientBySeqHasBooleω, quotientBySeqPreservesBooleω
+  (from Part08, ~449 lines)
+- SSD/StoneDuality/StoneProperties.agda: WithAxiomsSP containing
+  ClosedInStoneIsStone, InhabitedClosedSubSpaceClosed,
+  ClosedSigmaClosedDerived, StoneSeparated, CantorIsStone
+  (from Part09, ~612 lines)
+- SSD/StoneDuality/StoneAsClosedCantor.agda: WithAxiomsSACC containing
+  StoneAsClosedSubsetOfCantorModule with Stone→ClosedInCantor,
+  ClosedInCantor→Stone (from Part10, ~128 lines)
+
+Module chain now:
+  Preliminaries → Axioms → OpenClosed → Algebra → Bool2Presentation
+  → NormalForms → Spectrum → StoneExamples → ClosedPropSpectrum
+  → StoneEqualityClosed → StoneProperties → StoneAsClosedCantor
+
+Pattern for axiom-dependent code:
+  module WithAxiomsXXX (axioms : Axioms) where
+    open WithAxioms axioms
+    open OpenClosedProperties axioms
+    open WithAxiomsYYY axioms  -- from upstream modules
+
+No changes to existing work/ files.

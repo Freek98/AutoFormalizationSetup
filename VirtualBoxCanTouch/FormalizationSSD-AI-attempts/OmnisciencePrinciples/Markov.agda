@@ -2,7 +2,7 @@
 
 module OmnisciencePrinciples.Markov where 
 
-open import Cubical.Functions.Fixpoint
+open import Axioms.StoneDuality
 
 open import Cubical.Data.Sigma
 open import Cubical.Data.Sum

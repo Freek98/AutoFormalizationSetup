@@ -1,0 +1,16 @@
+CHANGES0147 — Initial SSD reorganization: Library + Preliminaries + Axioms
+
+Created new SSD/ directory structure matching tex sections:
+- SSD/Library/: All 19 library files copied with adjusted module names
+  (QuotientBool, FreeBooleanRing, StoneDuality, Markov, etc.)
+  All compile successfully with no imports from old library.
+- SSD/StoneDuality/Preliminaries.agda: Basic definitions (binarySequence,
+  Open/Closed, interleave, firstTrue, cantor pairing, etc.)
+- SSD/StoneDuality/Axioms.agda: Axioms record type + WithAxioms module
+  containing all derived principles from Part02 (MP, quotientPreservesBooleω,
+  countableChoice, etc.)
+
+Key design: Axioms defined as a record type instead of postulates.
+The WithAxioms module is parameterized over this record.
+
+All files compile. No changes to existing work/ files.

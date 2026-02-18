@@ -1,0 +1,14 @@
+CHANGES0009 - d²≡0 infrastructure lemmas
+
+Added infrastructure for proving d²≡0:
+1. sumFin-ℤ· : distribute ℤ-action over sumFin
+2. sumFin-0 : sum of zeros is zero
+3. sumFin-add : pointwise addition of sums
+4. signℤ-ss : signℤ has period 2 (signℤ(n+2) = signℤ(n))
+5. sign-cancel : consecutive signs cancel (signℤ(n)·a + signℤ(n+1)·a = 0)
+6. sign-comm : sign ℤ-actions commute
+7. +rearrange : a+(b+c) = b+(a+c) in abelian group
+8. removeIdx : maps Fin m → Fin (suc m) skipping position j
+9. sumFin-extract : extract any element j from a sum (move to front)
+
+Status: 667 lines, 1 hole (d²≡0), 0 postulates.
