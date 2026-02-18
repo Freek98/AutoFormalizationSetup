@@ -10,7 +10,6 @@ module IntervalIsCHausModule where
   open CompactHausdorffModule
   open CantorIsStoneModule
 
-  -- tex Definition 2251 (def-cs-Interval)
   postulate
     UnitInterval : Type ℓ-zero
     isSetUnitInterval : isSet UnitInterval

@@ -936,28 +936,10 @@ module ODiscAxioms where
       ret c = isPropSeqColimProp S (λ n → isSetBool _ _) _ c
   -- tex Corollary 1441
   postulate ODiscBAareBoole : (B : BooleanRing ℓ-zero) → isODisc ⟨ B ⟩ → ∥ has-Boole-ω' B ∥₁
-  -- tex Lemma 1184 (identity types)
+  -- tex Lemma 1184 (identity types and propositional truncation)
   postulate
     OdiscPath : {A : Type ℓ-zero} → isODisc A → (a b : A) → isODisc (a ≡ b)
-  -- tex Lemma 1184 (propositional truncation): ∥ A ∥₁ of ODisc is ODisc
-  OdiscTrunc : {A : Type ℓ-zero} → isODisc A → isODisc ∥ A ∥₁
-  OdiscTrunc {A} odiscA = PropOpenIffOdisc (∥ A ∥₁ , squash₁) trunc-open where
-    trunc-open : isOpenProp (∥ A ∥₁ , squash₁)
-    trunc-open = PT.rec squash₁ go odiscA where
-      go : Σ[ S ∈ Sequence ℓ-zero ] ((n : ℕ) → isFinSet (obj S n)) × (SeqColim S ≃ A)
-         → isOpenProp (∥ A ∥₁ , squash₁)
-      go (S , finS , equiv) = openEquiv Q (∥ A ∥₁ , squash₁) Q→T T→Q Q-open where
-        Q : hProp ℓ-zero
-        Q = ∥ Σ[ n ∈ ℕ ] ∥ obj S n ∥₁ ∥₁ , squash₁
-        T→Q : ∥ A ∥₁ → fst Q
-        T→Q = PT.rec squash₁ λ a →
-          SeqColim→Prop (λ _ → squash₁) (λ n x → ∣ n , ∣ x ∣₁ ∣₁) (invEq equiv a)
-        Q→T : fst Q → ∥ A ∥₁
-        Q→T = PT.rec squash₁ λ (n , hn) →
-          PT.rec squash₁ (λ x → ∣ equivFun equiv (incl x) ∣₁) hn
-        Q-open : isOpenProp Q
-        Q-open = openCountableUnion (λ n → ∥ obj S n ∥₁ , squash₁)
-                   (λ n → decIsOpen (∥ obj S n ∥₁ , squash₁) (isFinSet→Dec∥∥ (finS n)))
+    OdiscTrunc : {A : Type ℓ-zero} → isODisc A → isODisc ∥ A ∥₁
   -- tex Lemma 1302 (converse direction: ODisc proposition is open)
   ODiscPropIsOpen : (P : hProp ℓ-zero) → isODisc (fst P) → isOpenProp P
   ODiscPropIsOpen P = PT.rec squash₁ go where

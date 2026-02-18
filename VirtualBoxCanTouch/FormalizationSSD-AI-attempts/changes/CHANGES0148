@@ -1,0 +1,19 @@
+CHANGES0148 — isPropSeqColimProp and PropOpenIffOdisc proved
+
+Changes since bck0147 (8742 lines → 8791 lines, +49 lines):
+
+1. Part07 (980→1029, +49 lines):
+   - PROVED isPropSeqColimProp: sequential colimits of propositions are propositions.
+     Key insight: given a point at level n, all maps from n onward are equivalences
+     (between inhabited propositions), so converges→ColimIso gives SeqColim S ≃ obj S n.
+     Uses SeqColim→Prop (target isPropIsProp is a prop) + propBiimpl→Equiv for map equivs.
+   - PROVED PropOpenIffOdisc (tex Lemma 1302 forward direction): open propositions are ODisc.
+     Proof constructs a sequence S where obj S n = (anyTrue α n ≡ true), a decidable prop.
+     Uses isDecProp→isFinSet for finiteness, extractWitness for forward map,
+     α-true→anyTrue for backward map, isPropSeqColimProp for retraction coherence.
+   - Added imports: SeqColim→Prop, isDecProp→isFinSet, _or_, _≟_, isOfHLevelRespectEquiv,
+     equivFun, invEq, _+ℕ_ (renamed from Agda.Builtin.Nat._+_ to avoid ring ambiguity)
+
+Postulates eliminated: PropOpenIffOdisc (1 total).
+
+Full chain verification: PENDING (background task).

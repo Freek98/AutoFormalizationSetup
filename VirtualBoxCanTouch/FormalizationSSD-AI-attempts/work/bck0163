@@ -1066,123 +1066,12 @@ module SigmaCompactHausdorffModule where
 
 module AlgebraCompactHausdorffCountablyPresentedModule where
   open CompactHausdorffModule
-  open AllOpenSubspaceOpenModule
-  open ODiscAxioms
-  open import Axioms.StoneDuality using (2^; Stone; hasStoneStr; SDHomVersion)
-  open import Cubical.Functions.Surjection using (isSurjection)
-  open import Cubical.Relation.Nullary using (Dec; yes; no)
-  open import Cubical.Data.Bool using (_≟_)
-  open import Cubical.HITs.PropositionalTruncation.Properties using (rec→Set)
+  open import Axioms.StoneDuality using (2^)
+  open import CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω')
 
-  -- Helper: if P is closed and Q is decidable, (P → Q) is open
-  closedImplDecIsOpen : (P Q : hProp ℓ-zero) → isClosedProp P → Dec ⟨ Q ⟩
-    → isOpenProp ((⟨ P ⟩ → ⟨ Q ⟩) , isPropΠ (λ _ → snd Q))
-  closedImplDecIsOpen P Q Pclosed (yes q) =
-    ∣ (λ _ → true) , (λ _ → 0 , refl) , (λ _ _ → q) ∣₁
-  closedImplDecIsOpen P Q Pclosed (no ¬q) = PT.rec squash₁ go Pclosed
-    where
-    go : Σ[ α ∈ binarySequence ] ⟨ P ⟩ ↔ ((n : ℕ) → α n ≡ false)
-       → isOpenProp ((⟨ P ⟩ → ⟨ Q ⟩) , isPropΠ (λ _ → snd Q))
-    go (α , P→∀ , ∀→P) = openEquiv (¬hProp P)
-      ((⟨ P ⟩ → ⟨ Q ⟩) , isPropΠ (λ _ → snd Q))
-      (λ ¬p p → ex-falso (¬p p))
-      (λ f p → ¬q (f p))
-      (negClosedIsOpen mp P α (P→∀ , ∀→P))
-
-  AlgebraCompactHausdorffCountablyPresented : (X : CHaus)
-    → ∥ has-Boole-ω' (2^ (fst X)) ∥₁
-  AlgebraCompactHausdorffCountablyPresented X =
-    PT.rec squash₁ go (hasCHausStr.stoneCover (snd X))
-    where
-    go : Σ[ S ∈ Stone ] Σ[ q ∈ (fst S → fst X) ] isSurjection q
-       → ∥ has-Boole-ω' (2^ (fst X)) ∥₁
-    go (S , q , q-surj) = ODiscBAareBoole (2^ (fst X)) 2^X-isODisc
-      where
-      B : Booleω
-      B = fst (snd S)
-      p : Sp B ≡ fst S
-      p = snd (snd S)
-
-      -- (fst S → Bool) is ODisc via Stone duality
-      2^S-isODisc : isODisc (fst S → Bool)
-      2^S-isODisc = isODisc-path
-        (ua (fst (SDHomVersion sd-axiom B)) ∙ cong (λ T → T → Bool) p)
-        (BooleIsODisc B)
-
-      -- compatibility predicate
-      compatible : (fst S → Bool) → Type ℓ-zero
-      compatible b = (s t : fst S) → q s ≡ q t → b s ≡ b t
-
-      isProp-compatible : (b : fst S → Bool) → isProp (compatible b)
-      isProp-compatible b =
-        isPropΠ λ s → isPropΠ λ t → isPropΠ λ _ → isSetBool (b s) (b t)
-
-      -- each (q s ≡ q t → b s ≡ b t) is open
-      S-CHaus : CHaus
-      S-CHaus = Stone→CHaus S
-
-      impl-open : (b : fst S → Bool) (s t : fst S)
-        → isOpenProp ((q s ≡ q t → b s ≡ b t) , isPropΠ (λ _ → isSetBool (b s) (b t)))
-      impl-open b s t = closedImplDecIsOpen
-        ((q s ≡ q t) , hasCHausStr.isSetX (snd X) (q s) (q t))
-        ((b s ≡ b t) , isSetBool (b s) (b t))
-        (hasCHausStr.equalityClosed (snd X) (q s) (q t))
-        ((b s) ≟ (b t))
-
-      -- compatible b is open for each b
-      compatible-open : (b : fst S → Bool)
-        → isOpenProp (compatible b , isProp-compatible b)
-      compatible-open b = AllOpenSubspaceOpen S-CHaus
-        (λ s → ((t : fst S) → q s ≡ q t → b s ≡ b t) ,
-               isPropΠ λ t → isPropΠ λ _ → isSetBool (b s) (b t))
-        (λ s → AllOpenSubspaceOpen S-CHaus
-          (λ t → (q s ≡ q t → b s ≡ b t) ,
-                 isPropΠ (λ _ → isSetBool (b s) (b t)))
-          (λ t → impl-open b s t))
-
-      -- (fst X → Bool) ≃ Σ (fst S → Bool) compatible
-      fwd : (fst X → Bool) → Σ[ b ∈ (fst S → Bool) ] compatible b
-      fwd a = (λ s → a (q s)) , (λ s t e → cong a e)
-
-      bwd : (Σ[ b ∈ (fst S → Bool) ] compatible b) → fst X → Bool
-      bwd (b , comp) x = rec→Set isSetBool
-        (λ { (s , _) → b s })
-        (λ { (s₁ , p₁) (s₂ , p₂) → comp s₁ s₂ (p₁ ∙ sym p₂) })
-        (q-surj x)
-
-      fwd-bwd : (bc : Σ[ b ∈ (fst S → Bool) ] compatible b) → fwd (bwd bc) ≡ bc
-      fwd-bwd (b , comp) = Σ≡Prop isProp-compatible (funExt λ s →
-        PT.elim
-          {P = λ w → rec→Set isSetBool
-                       (λ { (s' , _) → b s' })
-                       (λ { (s₁ , p₁) (s₂ , p₂) → comp s₁ s₂ (p₁ ∙ sym p₂) })
-                       w
-                     ≡ b s}
-          (λ _ → isSetBool _ _)
-          (λ { (s' , p') → comp s' s p' }) (q-surj (q s)))
-
-      bwd-fwd : (a : fst X → Bool) → bwd (fwd a) ≡ a
-      bwd-fwd a = funExt λ x →
-        PT.elim
-          {P = λ w → rec→Set isSetBool
-                       (λ { (s , _) → a (q s) })
-                       (λ { (s₁ , p₁) (s₂ , p₂) → cong a (p₁ ∙ sym p₂) })
-                       w
-                     ≡ a x}
-          (λ _ → isSetBool _ _)
-          (λ { (s , e) → cong a e }) (q-surj x)
-
-      2^X≃Σ : (fst X → Bool) ≃ (Σ[ b ∈ (fst S → Bool) ] compatible b)
-      2^X≃Σ = isoToEquiv (iso fwd bwd fwd-bwd bwd-fwd)
-
-      -- Σ (fst S → Bool) compatible is ODisc
-      Σ-isODisc : isODisc (Σ[ b ∈ (fst S → Bool) ] (compatible b))
-      Σ-isODisc = OdiscSigma 2^S-isODisc
-        (λ b → PropOpenIffOdisc (compatible b , isProp-compatible b) (compatible-open b))
-
-      -- (fst X → Bool) is ODisc
-      2^X-isODisc : isODisc (fst X → Bool)
-      2^X-isODisc = isODisc-path (sym (ua 2^X≃Σ)) Σ-isODisc
+  postulate
+    AlgebraCompactHausdorffCountablyPresented : (X : CHaus)
+      → ∥ has-Boole-ω' (2^ (fst X)) ∥₁
 
 -- ConnectedComponentModule (tex 2138-2171)
 
@@ -1729,7 +1618,7 @@ module StoneCompactHausdorffTotallyDisconnectedModule where
       ev-equiv : fst X ≃ Sp BX
       ev-equiv = ev , isEmbedding×isSurjection→isEquiv (ev-emb , ev-surj)
 
--- StoneSigmaClosedModule (tex Theorem 2214, stone-sigma-closed)
+-- StoneSigmaClosedModule (tex Theorem 2214)
 
 module StoneSigmaClosedModule where
   open import Axioms.StoneDuality using (Stone; hasStoneStr)

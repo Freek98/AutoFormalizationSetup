@@ -69,7 +69,7 @@ Bool-Booleω = BoolBR , ∣ is-cp-2 ∣₁
 Sp-Bool-inhabited : ∥ Sp Bool-Booleω ∥₁
 Sp-Bool-inhabited = ∣ idBoolHom BoolBR ∣₁
 
--- Dependent Choice axiom (tex Axiom 355, axDependentChoice)
+-- Dependent Choice axiom (tex line 324, AxDependentChoice)
 
 SeqLimit : (E : ℕ → Type ℓ-zero) → ((n : ℕ) → E (suc n) → E n) → Type ℓ-zero
 SeqLimit E p = Σ[ f ∈ ((n : ℕ) → E n) ] ((n : ℕ) → p n (f (suc n)) ≡ f n)
@@ -391,8 +391,7 @@ injective→Sp-surjective : (B C : Booleω) (g : BoolHom (fst B) (fst C)) →
   isInjectiveBoolHom B C g → isSurjectiveSpHom B C g
 injective→Sp-surjective B C g = fst (surj-formal-axiom B C g)
 
--- Local Choice axiom (tex Axiom 348, AxLocalChoice)
--- tex Remark 394 (LocalChoiceSurjectionForm): equivalent surjection-diagram formulation
+-- Local Choice axiom (tex line 348-353, AxLocalChoice)
 
 isSurjectiveSpMap : {B C : Booleω} → (Sp C → Sp B) → Type ℓ-zero
 isSurjectiveSpMap {B} {C} q = (h : Sp B) → ∥ Σ[ h' ∈ Sp C ] q h' ≡ h ∥₁
@@ -761,10 +760,7 @@ openSubsetTransitive : {T : Type₀}
 openSubsetTransitive V Vopen W Wopen t =
   openSigmaOpen (V t) (Vopen t) (W t) (Wopen t)
 
--- Open forms a dominance (tex Remark OpenDominance 1330):
---   ⊤ is open (decIsOpen), and open propositions are closed under Σ (openSigmaOpen).
+-- Remark: Open forms a dominance (tex Remark OpenDominance 1330)
 
--- Closed forms a dominance (tex Remark ClosedDominance 1794):
---   ⊤ is closed (decIsClosed), and closed propositions are closed under Σ
---   (closedSigmaClosed-derived in Part09).
+-- Remark: Closed forms a dominance (tex Remark ClosedDominance 1794)
 

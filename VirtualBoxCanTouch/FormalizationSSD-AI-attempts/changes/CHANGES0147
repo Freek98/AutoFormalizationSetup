@@ -1,0 +1,18 @@
+CHANGES0147 — ODisc definition and proofs
+
+Changes since bck0146 (8704 lines → 8742 lines, +38 lines):
+
+1. Part07 (942→980, +38 lines):
+   - DEFINED isODisc properly (was postulate): sequential colimit of finite sets
+     isODisc A = ∥ Σ[ S ∈ Sequence ] ((n : ℕ) → isFinSet (obj S n)) × (SeqColim S ≃ A) ∥₁
+   - PROVED isProp-isODisc: trivially squash₁
+   - PROVED ODiscBool: constant Bool sequence converging at 0
+   - PROVED ODiscNat: sequence Fin 1 → Fin 2 → Fin 3 → ... via fsuc inclusions
+     Backward map: incl {n} x ↦ n ∸ toℕ x
+     Forward map: n ↦ incl {n} fzero
+     Section uses compPath-filler for push coherence
+   - Added imports: SequentialColimit, Sequence, FinSet, SumFin, Nat
+
+Postulates eliminated: isODisc (definition), isProp-isODisc, ODiscBool, ODiscNat (4 total).
+
+Full chain verification: PENDING (background task).

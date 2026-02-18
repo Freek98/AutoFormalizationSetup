@@ -376,7 +376,6 @@ module IdealBound (B : BooleanRing ℓ-zero) (d : ℕ → ⟨ B ⟩) where
     go : isInIdeal R d (CRS.1r) → Σ[ N ∈ ℕ ] fJ N ≡ BooleanRingStr.𝟙 (snd B)
     go iI = let (N , p) = idealBound iI in N , sym (CRS.·IdL (fJ N)) ∙ p
 
--- tex Lemma 1824 (StoneSeperated)
 module StoneSeparatedModule where
   open import Axioms.StoneDuality using (Stone; hasStoneStr; isSetBoolHom)
   open StoneClosedSubsetsModule

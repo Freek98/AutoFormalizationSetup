@@ -236,26 +236,6 @@ module ClosedSigmaClosedDerived where
     P-Stone : Stone
     P-Stone = fst P , closedProp→hasStoneStr P P-closed
 
-open ClosedSigmaClosedDerived
-
--- isClosedSubset (tex Definition 884-886, closed analog)
-isClosedSubset : {T : Type₀} → (A : T → hProp ℓ-zero) → Type₀
-isClosedSubset {T} A = (t : T) → isClosedProp (A t)
-
--- Preimage of closed subset is closed (tex remark 889 analog)
-preimageClosedIsClosed : {S T : Type₀} (f : S → T) (A : T → hProp ℓ-zero)
-                       → isClosedSubset A → isClosedSubset (λ s → A (f s))
-preimageClosedIsClosed f A Aclosed s = Aclosed (f s)
-
--- Transitivity of closedness (tex Remark ClosedTransitive 1794)
-closedSubsetTransitive : {T : Type₀}
-  → (V : T → hProp ℓ-zero) → isClosedSubset V
-  → (W : (t : T) → ⟨ V t ⟩ → hProp ℓ-zero)
-  → ((t : T) (v : ⟨ V t ⟩) → isClosedProp (W t v))
-  → isClosedSubset (λ t → (∥ Σ[ v ∈ ⟨ V t ⟩ ] ⟨ W t v ⟩ ∥₁) , squash₁)
-closedSubsetTransitive V Vclosed W Wclosed t =
-  closedSigmaClosed-derived (V t) (Vclosed t) (W t) (Wclosed t)
-
 -- Opaque bridge: 0≡1 in BooleanRing quotient → 1 in CommRing ideal
 import Cubical.Algebra.CommRing.Quotient.ImageQuotient as IQ
 open import CommRingQuotients.IdealTerms using (isInIdeal; isImage; iszero; isSum; isMul; idealDecomp)
@@ -376,7 +356,6 @@ module IdealBound (B : BooleanRing ℓ-zero) (d : ℕ → ⟨ B ⟩) where
     go : isInIdeal R d (CRS.1r) → Σ[ N ∈ ℕ ] fJ N ≡ BooleanRingStr.𝟙 (snd B)
     go iI = let (N , p) = idealBound iI in N , sym (CRS.·IdL (fJ N)) ∙ p
 
--- tex Lemma 1824 (StoneSeperated)
 module StoneSeparatedModule where
   open import Axioms.StoneDuality using (Stone; hasStoneStr; isSetBoolHom)
   open StoneClosedSubsetsModule

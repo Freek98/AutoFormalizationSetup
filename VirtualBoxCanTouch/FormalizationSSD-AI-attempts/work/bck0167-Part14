@@ -425,66 +425,16 @@ module CohomologyModule where
       fibers-inhabited : (x : fst X) → ∥ fst (S x) ∥₁
       total-is-Stone : hasStoneStr (Σ (fst X) (λ x → fst (S x)))
 
-  -- tex Lemma 2912 (cech-eilenberg-0-agree): H⁰(X,A) = Ȟ⁰(X,S,A)
-  -- Proof: Ȟ⁰ elements are constant on fibers; by mere inhabitation this gives global sections.
-  module CechEilenberg0Agree {ℓ : Level} (S' : Type ℓ) (T : S' → Type ℓ) (A : S' → AbGroup ℓ)
-      (inhabited : (x : S') → ∥ T x ∥₁) where
-    open CechComplex S' T A
-    open import Cubical.HITs.PropositionalTruncation.Properties as PT-Props
-
-    private module Gx (x : S') = GrpProps.GroupTheory (AbGroup→Group (A x))
-
-    d₀-zero→const : (f : C⁰) → ((x : S') (u v : T x) → d₀ f x u v ≡ AGx.0g x)
-      → (x : S') (u v : T x) → f x u ≡ f x v
-    d₀-zero→const f d₀-eq x u v =
-      f x u
-        ≡⟨ sym (Gx.invInv x (f x u)) ⟩
-      AGx.-_ x (AGx.-_ x (f x u))
-        ≡⟨ sym (Gx.invUniqueL x (d₀-eq x u v)) ⟩
-      f x v ∎
-
-    Ȟ⁰→H⁰ : (f : C⁰) → ((x : S') (u v : T x) → d₀ f x u v ≡ AGx.0g x)
-      → (x : S') → |A| x
-    Ȟ⁰→H⁰ f d₀-eq x =
-      let module SE = PT-Props.SetElim (AGx.is-set x)
-      in SE.rec→Set (f x) (d₀-zero→const f d₀-eq x) (inhabited x)
-
-    H⁰→Ȟ⁰-f : ((x : S') → |A| x) → C⁰
-    H⁰→Ȟ⁰-f g x _ = g x
-
-    H⁰→Ȟ⁰-cocycle : (g : (x : S') → |A| x) (x : S') (u v : T x)
-      → d₀ (H⁰→Ȟ⁰-f g) x u v ≡ AGx.0g x
-    H⁰→Ȟ⁰-cocycle g x u v = AGx.+InvR x (g x)
-
-  -- tex Lemma 2921 (eilenberg-exact):
-  -- For a Čech cover (X,S), the sequence
-  -- H⁰(X,ℤ^{S_x}) → H⁰(X,ℤ^{S_x}/ℤ) → H¹(X,ℤ) → 0 is exact.
-  -- Uses long exact cohomology sequence and stone-commute-delooping.
-
-  -- tex Lemma 2932 (cech-exact):
-  -- For a Čech cover (X,S), the sequence
-  -- Ȟ⁰(X,S,ℤ^{S_x}) → Ȟ⁰(X,S,ℤ^{S_x}/ℤ) → Ȟ¹(X,S,ℤ) → 0 is exact.
-  -- Uses canonical-exact and eilenberg-stone-vanish.
-
-  -- tex Theorem 2945 (cech-eilenberg-1-agree)
+  -- tex Theorem 2945
   postulate
     cech-eilenberg-1-agree : (cover : CechCover) →
       let X = fst (CechCover.X cover)
           T = λ x → fst (CechCover.S cover x)
       in H¹-vanishes X ↔ CechComplex.Ȟ¹-vanishes X T (λ _ → ℤAbGroup)
 
-  -- tex Lemma 2843 (finite-approximation-surjection-stone):
-  -- Given S:Stone, T:S→Stone with Π_{x:S}∥T(x)∥₁, there exist finite approximations
-  -- S_k, T_k with lim S_k = S and lim(Σ_{x:S_k}T_k(x)) = Σ_{x:S}T(x).
-  -- Uses stone-sigma-closed and ProFiniteMapsFactorization.
-
   -- tex Corollary 2895 (stone-commute-delooping):
   -- For S:Stone, B(Z^S) ≃ (BZ)^S. This follows from eilenberg-stone-vanish above:
   -- the canonical map is an embedding, and surjectivity follows from H¹(S,ℤ)=0.
-
-  -- tex Remark 2963 (description-Cn-simn):
-  -- (I_n, ~_n) is equivalent to (Fin(2^n), λ x y. |x-y| ≤ 1), and
-  -- cs(α)=cs(β) ↔ ∀_n α|_n ~_n β|_n.
 
   -- tex Lemma 2973 (Cn-exact-sequence):
   -- For each n:ℕ, the Cech complex 0→ℤ→ℤ^{I_n}→ℤ^{I_n^{~2}}→ℤ^{I_n^{~3}} is exact.

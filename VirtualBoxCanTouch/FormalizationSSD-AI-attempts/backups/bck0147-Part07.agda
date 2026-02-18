@@ -855,37 +855,20 @@ module SDDecToElemModule where
 -- ODisc axioms (tex Section "Overtly discrete spaces", lines 906-1492)
 module ODiscAxioms where
   open import Cubical.HITs.SequentialColimit using (SeqColim; incl; push)
-  open import Cubical.HITs.SequentialColimit.Properties using (converges→ColimIso; SeqColim→Prop)
+  open import Cubical.HITs.SequentialColimit.Properties using (converges→ColimIso)
   open import Cubical.Data.Sequence using (Sequence; sequence; converges)
   open import Cubical.Data.FinSet using (isFinSet)
-  open import Cubical.Data.FinSet.Properties using (isFinSetBool; isFinSetFin; isDecProp→isFinSet; isFinSet→Dec∥∥)
+  open import Cubical.Data.FinSet.Properties using (isFinSetBool; isFinSetFin)
   open import Cubical.Foundations.Isomorphism using (Iso; iso; invIso; isoToEquiv)
-  open import Cubical.Foundations.Equiv using (idIsEquiv; equivFun; invEq)
-  open import Cubical.Foundations.HLevels using (isOfHLevelRespectEquiv)
+  open import Cubical.Foundations.Equiv using (idIsEquiv)
   open import Cubical.Data.SumFin.Base using (Fin; fzero; fsuc; toℕ)
   open import Cubical.Data.Nat.Base using (zero; suc; _∸_)
-  open import Agda.Builtin.Nat renaming (_+_ to _+ℕ_)
-  open import Cubical.Data.Bool.Base using (_or_; _≟_)
-  open import Cubical.Data.Empty.Base using (⊥*) renaming (rec* to ⊥*-rec)
   open Sequence
   -- tex Definition 918: A type is overtly discrete if it is a sequential colimit of finite sets
   isODisc : Type ℓ-zero → Type (ℓ-suc ℓ-zero)
   isODisc A = ∥ Σ[ S ∈ Sequence ℓ-zero ] ((n : ℕ) → isFinSet (obj S n)) × (SeqColim S ≃ A) ∥₁
   isProp-isODisc : (X : Type ℓ-zero) → isProp (isODisc X)
   isProp-isODisc _ = squash₁
-  -- Sequential colimits of propositions are propositions
-  -- Key idea: given a point at level n, converges→ColimIso shows SeqColim S ≃ obj S n
-  isPropSeqColimProp : (S : Sequence ℓ-zero) → ((n : ℕ) → isProp (obj S n)) → isProp (SeqColim S)
-  isPropSeqColimProp S allProp x y = inhab→isProp x x y where
-    shiftS : (j : ℕ) {n : ℕ} → obj S n → obj S (j +ℕ n)
-    shiftS zero a = a
-    shiftS (suc j) {n} a = map S (shiftS j a)
-    mapsAreEquiv : (n : ℕ) → obj S n → converges S n
-    mapsAreEquiv n a j =
-      snd (propBiimpl→Equiv (allProp (j +ℕ n)) (allProp (suc (j +ℕ n))) (map S) (λ _ → shiftS j a))
-    inhab→isProp : SeqColim S → isProp (SeqColim S)
-    inhab→isProp = SeqColim→Prop (λ _ → isPropIsProp) λ n a →
-      isOfHLevelRespectEquiv 1 (isoToEquiv (converges→ColimIso n (mapsAreEquiv n a))) (allProp n)
   -- Bool is ODisc (finite type, hence ODisc by constant sequence)
   private
     BoolSeq : Sequence ℓ-zero
@@ -900,78 +883,16 @@ module ODiscAxioms where
   postulate
     OdiscSigma : {A : Type ℓ-zero} {B : A → Type ℓ-zero}
       → isODisc A → ((a : A) → isODisc (B a)) → isODisc (Σ A B)
-  -- tex Lemma 1302 (forward: open prop is ODisc)
-  PropOpenIffOdisc : (P : hProp ℓ-zero) → isOpenProp P → isODisc (fst P)
-  PropOpenIffOdisc P = PT.rec (isProp-isODisc _) go where
-    go : isOpenWitness P → isODisc (fst P)
-    go (α , P→Σ , Σ→P) = ∣ S , fin , isoToEquiv (iso fwd bwd sec ret) ∣₁ where
-      anyTrue : ℕ → Bool
-      anyTrue zero = α zero
-      anyTrue (suc n) = α (suc n) or anyTrue n
-      anyTrue-mono : (n : ℕ) → anyTrue n ≡ true → anyTrue (suc n) ≡ true
-      anyTrue-mono n p with α (suc n)
-      ... | true = refl
-      ... | false = p
-      α-true→anyTrue : (k : ℕ) → α k ≡ true → anyTrue k ≡ true
-      α-true→anyTrue zero p = p
-      α-true→anyTrue (suc k) p = cong (_or anyTrue k) p
-      S : Sequence ℓ-zero
-      obj S n = anyTrue n ≡ true
-      map S {n} = anyTrue-mono n
-      fin : (n : ℕ) → isFinSet (obj S n)
-      fin n = isDecProp→isFinSet (isSetBool _ _) (anyTrue n ≟ true)
-      extractWitness : (n : ℕ) → anyTrue n ≡ true → Σ[ k ∈ ℕ ] α k ≡ true
-      extractWitness zero p = zero , p
-      extractWitness (suc n) = extract-suc (α (suc n)) refl where
-        extract-suc : (b : Bool) → b ≡ α (suc n) → b or anyTrue n ≡ true → Σ[ k ∈ ℕ ] α k ≡ true
-        extract-suc true eq _ = suc n , sym eq
-        extract-suc false _ p = extractWitness n p
-      fwd : SeqColim S → fst P
-      fwd = SeqColim→Prop (λ _ → snd P) (λ n p → Σ→P (extractWitness n p))
-      bwd : fst P → SeqColim S
-      bwd x = let (k , αk) = P→Σ x in incl {n = k} (α-true→anyTrue k αk)
-      sec : (x : fst P) → fwd (bwd x) ≡ x
-      sec x = snd P _ x
-      ret : (c : SeqColim S) → bwd (fwd c) ≡ c
-      ret c = isPropSeqColimProp S (λ n → isSetBool _ _) _ c
+  -- tex Lemma 1302
+  postulate PropOpenIffOdisc : (P : hProp ℓ-zero) → isOpenProp P → isODisc (fst P)
   -- tex Corollary 1441
   postulate ODiscBAareBoole : (B : BooleanRing ℓ-zero) → isODisc ⟨ B ⟩ → ∥ has-Boole-ω' B ∥₁
-  -- tex Lemma 1184 (identity types)
+  -- tex Lemma 1184 (identity types and propositional truncation)
   postulate
     OdiscPath : {A : Type ℓ-zero} → isODisc A → (a b : A) → isODisc (a ≡ b)
-  -- tex Lemma 1184 (propositional truncation): ∥ A ∥₁ of ODisc is ODisc
-  OdiscTrunc : {A : Type ℓ-zero} → isODisc A → isODisc ∥ A ∥₁
-  OdiscTrunc {A} odiscA = PropOpenIffOdisc (∥ A ∥₁ , squash₁) trunc-open where
-    trunc-open : isOpenProp (∥ A ∥₁ , squash₁)
-    trunc-open = PT.rec squash₁ go odiscA where
-      go : Σ[ S ∈ Sequence ℓ-zero ] ((n : ℕ) → isFinSet (obj S n)) × (SeqColim S ≃ A)
-         → isOpenProp (∥ A ∥₁ , squash₁)
-      go (S , finS , equiv) = openEquiv Q (∥ A ∥₁ , squash₁) Q→T T→Q Q-open where
-        Q : hProp ℓ-zero
-        Q = ∥ Σ[ n ∈ ℕ ] ∥ obj S n ∥₁ ∥₁ , squash₁
-        T→Q : ∥ A ∥₁ → fst Q
-        T→Q = PT.rec squash₁ λ a →
-          SeqColim→Prop (λ _ → squash₁) (λ n x → ∣ n , ∣ x ∣₁ ∣₁) (invEq equiv a)
-        Q→T : fst Q → ∥ A ∥₁
-        Q→T = PT.rec squash₁ λ (n , hn) →
-          PT.rec squash₁ (λ x → ∣ equivFun equiv (incl x) ∣₁) hn
-        Q-open : isOpenProp Q
-        Q-open = openCountableUnion (λ n → ∥ obj S n ∥₁ , squash₁)
-                   (λ n → decIsOpen (∥ obj S n ∥₁ , squash₁) (isFinSet→Dec∥∥ (finS n)))
+    OdiscTrunc : {A : Type ℓ-zero} → isODisc A → isODisc ∥ A ∥₁
   -- tex Lemma 1302 (converse direction: ODisc proposition is open)
-  ODiscPropIsOpen : (P : hProp ℓ-zero) → isODisc (fst P) → isOpenProp P
-  ODiscPropIsOpen P = PT.rec squash₁ go where
-    go : Σ[ S ∈ Sequence ℓ-zero ] ((n : ℕ) → isFinSet (obj S n)) × (SeqColim S ≃ fst P) → isOpenProp P
-    go (S , finS , equiv) = openEquiv Q P Q→P P→Q Q-open where
-      Q : hProp ℓ-zero
-      Q = ∥ Σ[ n ∈ ℕ ] ∥ obj S n ∥₁ ∥₁ , squash₁
-      P→Q : fst P → fst Q
-      P→Q p = SeqColim→Prop (λ _ → squash₁) (λ n x → ∣ n , ∣ x ∣₁ ∣₁) (invEq equiv p)
-      Q→P : fst Q → fst P
-      Q→P = PT.rec (snd P) λ (n , hn) → PT.rec (snd P) (λ x → equivFun equiv (incl x)) hn
-      Q-open : isOpenProp Q
-      Q-open = openCountableUnion (λ n → ∥ obj S n ∥₁ , squash₁)
-                 (λ n → decIsOpen (∥ obj S n ∥₁ , squash₁) (isFinSet→Dec∥∥ (finS n)))
+  postulate ODiscPropIsOpen : (P : hProp ℓ-zero) → isODisc (fst P) → isOpenProp P
   -- Derived from definition: ODisc types have surjection from ℕ
   postulate
     ODiscSurjFromN : {A : Type ℓ-zero} → isODisc A

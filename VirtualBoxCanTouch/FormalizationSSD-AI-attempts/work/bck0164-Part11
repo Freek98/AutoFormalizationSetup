@@ -1729,7 +1729,7 @@ module StoneCompactHausdorffTotallyDisconnectedModule where
       ev-equiv : fst X ≃ Sp BX
       ev-equiv = ev , isEmbedding×isSurjection→isEquiv (ev-emb , ev-surj)
 
--- StoneSigmaClosedModule (tex Theorem 2214, stone-sigma-closed)
+-- StoneSigmaClosedModule (tex Theorem 2214)
 
 module StoneSigmaClosedModule where
   open import Axioms.StoneDuality using (Stone; hasStoneStr)

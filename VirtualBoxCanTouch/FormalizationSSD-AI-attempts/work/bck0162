@@ -34,103 +34,15 @@ module ClosedInStoneIsStoneModule where
   open SDDecToElemModule
   open StoneClosedSubsetsModule
 
-  open ODiscAxioms
-  open import Cubical.Foundations.Equiv using (equivFun; invEq; secEq)
-
-  -- tex Theorem StoneClosedSubsets, (v)→(i) direction
-  -- Proved from localChoice-axiom + ImageStoneMapDecidableIntersection + quotientBySeqPreservesBooleω
-  closedFamilyChoice : (S : Stone) (A : fst S → hProp ℓ-zero)
-    → ((x : fst S) → isClosedProp (A x))
-    → ∥ ((x : fst S) → Σ[ α ∈ binarySequence ] ⟨ A x ⟩ ↔ ((n : ℕ) → α n ≡ false)) ∥₁
-  closedFamilyChoice S A A-closed =
-    PT.rec squash₁ step1 (localChoice-axiom B P P-trunc)
-    where
-    |S| = fst S
-    B : Booleω
-    B = fst (snd S)
-    SpB≡S : Sp B ≡ |S|
-    SpB≡S = snd (snd S)
-    P : Sp B → Type ℓ-zero
-    P s = Σ[ α ∈ binarySequence ] ⟨ A (transport SpB≡S s) ⟩ ↔ ((n : ℕ) → α n ≡ false)
-    P-trunc : (s : Sp B) → ∥ P s ∥₁
-    P-trunc s = A-closed (transport SpB≡S s)
-
-    step1 : Σ[ C ∈ Booleω ] Σ[ q ∈ (Sp C → Sp B) ]
-              (isSurjectiveSpMap {B} {C} q × ((t : Sp C) → P (q t)))
-          → ∥ ((x : |S|) → Σ[ α ∈ binarySequence ] ⟨ A x ⟩ ↔ ((n : ℕ) → α n ≡ false)) ∥₁
-    step1 (C , q , q-surj , h) =
-      PT.rec squash₁ step2 (quotientBySeqPreservesBooleω C d')
-      where
-      β : Sp C → ℕ → Bool
-      β c n = fst (h c) n
-      d' : ℕ → ⟨ fst C ⟩
-      d' n = elemFromDecPred sd-axiom C (λ c → β c n)
-      d'-prop : (n : ℕ) (c : Sp C) → fst c (d' n) ≡ β c n
-      d'-prop n c = decPred-elem-correspondence sd-axiom C (λ c → β c n) c
-
-      step2 : Σ[ T ∈ Booleω ] (Sp T ≃ (Σ[ c ∈ Sp C ] ((n : ℕ) → fst c (d' n) ≡ false)))
-            → ∥ ((x : |S|) → Σ[ α ∈ binarySequence ] ⟨ A x ⟩ ↔ ((n : ℕ) → α n ≡ false)) ∥₁
-      step2 (T , SpT≃CS) =
-        PT.rec squash₁ step3 (ImageStoneMapDecidableIntersection B T fT→B)
-        where
-        fT→B : Sp T → Sp B
-        fT→B t = q (fst (equivFun SpT≃CS t))
-
-        -- Im(fT→B)(x) ↔ A(transport SpB≡S x)
-        imf→A : (x : Sp B) → ∥ Σ[ t ∈ Sp T ] fT→B t ≡ x ∥₁ → ⟨ A (transport SpB≡S x) ⟩
-        imf→A x = PT.rec (snd (A (transport SpB≡S x))) go
-          where
-          go : Σ[ t ∈ Sp T ] fT→B t ≡ x → ⟨ A (transport SpB≡S x) ⟩
-          go (t , ft≡x) = subst (λ z → ⟨ A (transport SpB≡S z) ⟩) ft≡x witness
-            where
-            cs = equivFun SpT≃CS t
-            c = fst cs
-            c-all-false : (n : ℕ) → fst c (d' n) ≡ false
-            c-all-false = snd cs
-            β-false : (n : ℕ) → β c n ≡ false
-            β-false n = sym (d'-prop n c) ∙ c-all-false n
-            witness : ⟨ A (transport SpB≡S (q c)) ⟩
-            witness = snd (snd (h c)) β-false
-
-        A→imf : (x : Sp B) → ⟨ A (transport SpB≡S x) ⟩ → ∥ Σ[ t ∈ Sp T ] fT→B t ≡ x ∥₁
-        A→imf x Ax = PT.rec squash₁ go (q-surj x)
-          where
-          go : Σ[ c ∈ Sp C ] q c ≡ x → ∥ Σ[ t ∈ Sp T ] fT→B t ≡ x ∥₁
-          go (c , qc≡x) = ∣ t , ft≡x ∣₁
-            where
-            Aqc : ⟨ A (transport SpB≡S (q c)) ⟩
-            Aqc = subst (λ z → ⟨ A (transport SpB≡S z) ⟩) (sym qc≡x) Ax
-            β-false : (n : ℕ) → β c n ≡ false
-            β-false = fst (snd (h c)) Aqc
-            c-all-false : (n : ℕ) → fst c (d' n) ≡ false
-            c-all-false n = d'-prop n c ∙ β-false n
-            cs : Σ[ c' ∈ Sp C ] ((n : ℕ) → fst c' (d' n) ≡ false)
-            cs = c , c-all-false
-            t : Sp T
-            t = invEq SpT≃CS cs
-            ft≡x : fT→B t ≡ x
-            ft≡x =
-              q (fst (equivFun SpT≃CS (invEq SpT≃CS cs))) ≡⟨ cong (λ z → q (fst z)) (secEq SpT≃CS cs) ⟩
-              q c                                           ≡⟨ qc≡x ⟩
-              x ∎
-
-        step3 : Σ[ d ∈ (ℕ → ⟨ fst B ⟩) ]
-                  ((x : Sp B) → (∥ Σ[ t ∈ Sp T ] fT→B t ≡ x ∥₁) ↔ ((n : ℕ) → fst x (d n) ≡ false))
-              → ∥ ((y : |S|) → Σ[ α ∈ binarySequence ] ⟨ A y ⟩ ↔ ((n : ℕ) → α n ≡ false)) ∥₁
-        step3 (d , d-iff) = ∣ result ∣₁
-          where
-          result : (y : |S|) → Σ[ α ∈ binarySequence ] ⟨ A y ⟩ ↔ ((n : ℕ) → α n ≡ false)
-          result y = α-y , fwd , bwd
-            where
-            x : Sp B
-            x = transport (sym SpB≡S) y
-            α-y : binarySequence
-            α-y n = fst x (d n)
-            fwd : ⟨ A y ⟩ → (n : ℕ) → α-y n ≡ false
-            fwd Ay = fst (d-iff x) (A→imf x (subst (λ z → ⟨ A z ⟩) (sym (transportTransport⁻ SpB≡S y)) Ay))
-            bwd : ((n : ℕ) → α-y n ≡ false) → ⟨ A y ⟩
-            bwd all-false = subst (λ z → ⟨ A z ⟩) (transportTransport⁻ SpB≡S y)
-              (imf→A x (snd (d-iff x) all-false))
+  -- Truncated choice for families of closed propositions over Stone spaces.
+  -- Derivable from localChoice-axiom via the StoneClosedSubsets equivalence
+  -- (tex Theorem StoneClosedSubsets, (v)→(i) direction), but the full
+  -- derivation requires implementing additional machinery.
+  -- Replaces the false extractClosedProp which used isPropIsClosedPropBare.
+  postulate
+    closedFamilyChoice : (S : Stone) (A : fst S → hProp ℓ-zero)
+      → ((x : fst S) → isClosedProp (A x))
+      → ∥ ((x : fst S) → Σ[ α ∈ binarySequence ] ⟨ A x ⟩ ↔ ((n : ℕ) → α n ≡ false)) ∥₁
 
   ClosedInStoneIsStone : (S : Stone) → (A : fst S → hProp ℓ-zero)
                        → ((x : fst S) → isClosedProp (A x))
@@ -235,26 +147,6 @@ module ClosedSigmaClosedDerived where
     where
     P-Stone : Stone
     P-Stone = fst P , closedProp→hasStoneStr P P-closed
-
-open ClosedSigmaClosedDerived
-
--- isClosedSubset (tex Definition 884-886, closed analog)
-isClosedSubset : {T : Type₀} → (A : T → hProp ℓ-zero) → Type₀
-isClosedSubset {T} A = (t : T) → isClosedProp (A t)
-
--- Preimage of closed subset is closed (tex remark 889 analog)
-preimageClosedIsClosed : {S T : Type₀} (f : S → T) (A : T → hProp ℓ-zero)
-                       → isClosedSubset A → isClosedSubset (λ s → A (f s))
-preimageClosedIsClosed f A Aclosed s = Aclosed (f s)
-
--- Transitivity of closedness (tex Remark ClosedTransitive 1794)
-closedSubsetTransitive : {T : Type₀}
-  → (V : T → hProp ℓ-zero) → isClosedSubset V
-  → (W : (t : T) → ⟨ V t ⟩ → hProp ℓ-zero)
-  → ((t : T) (v : ⟨ V t ⟩) → isClosedProp (W t v))
-  → isClosedSubset (λ t → (∥ Σ[ v ∈ ⟨ V t ⟩ ] ⟨ W t v ⟩ ∥₁) , squash₁)
-closedSubsetTransitive V Vclosed W Wclosed t =
-  closedSigmaClosed-derived (V t) (Vclosed t) (W t) (Wclosed t)
 
 -- Opaque bridge: 0≡1 in BooleanRing quotient → 1 in CommRing ideal
 import Cubical.Algebra.CommRing.Quotient.ImageQuotient as IQ
@@ -376,7 +268,6 @@ module IdealBound (B : BooleanRing ℓ-zero) (d : ℕ → ⟨ B ⟩) where
     go : isInIdeal R d (CRS.1r) → Σ[ N ∈ ℕ ] fJ N ≡ BooleanRingStr.𝟙 (snd B)
     go iI = let (N , p) = idealBound iI in N , sym (CRS.·IdL (fJ N)) ∙ p
 
--- tex Lemma 1824 (StoneSeperated)
 module StoneSeparatedModule where
   open import Axioms.StoneDuality using (Stone; hasStoneStr; isSetBoolHom)
   open StoneClosedSubsetsModule
