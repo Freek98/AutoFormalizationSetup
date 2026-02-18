@@ -678,187 +678,13 @@ module CHausSeperationOfClosedByOpensModule where
 
 module SigmaCompactHausdorffModule where
   open CompactHausdorffModule
-  open import Axioms.StoneDuality using (Stone; hasStoneStr)
-  open import Cubical.Functions.Surjection using (isSurjection)
-  open import Cubical.Foundations.Equiv using (equivFun; invEq; retEq)
-  open StoneAsClosedSubsetOfCantorModule
-  open StoneProductModule
-  open ClosedSigmaClosedDerived
-  open CantorIsStoneModule
-  open ClosedInStoneIsStoneModule using (ClosedInStoneIsStone; closedFamilyChoice)
 
   SigmaCHausType : (X : CHaus) → (Y : fst X → CHaus) → Type₀
   SigmaCHausType X Y = Σ[ x ∈ fst X ] fst (Y x)
 
-  SigmaCompactHausdorff : (X : CHaus) (Y : fst X → CHaus)
-    → hasCHausStr (SigmaCHausType X Y)
-  SigmaCompactHausdorff X Y = record
-    { isSetX = isSetΣXY
-    ; equalityClosed = σ-eq-closed
-    ; stoneCover = σ-stoneCover
-    }
-    where
-    open hasCHausStr (snd X) renaming (isSetX to isSetXbase; equalityClosed to X-eq-cl; stoneCover to X-sc)
-
-    isSetΣXY : isSet (SigmaCHausType X Y)
-    isSetΣXY = isSetΣ isSetXbase (λ x → hasCHausStr.isSetX (snd (Y x)))
-
-    -- Equality in Σ X Y is closed (tex ClosedDependentSums 1785)
-    σ-eq-closed : (σ₁ σ₂ : SigmaCHausType X Y)
-      → isClosedProp ((σ₁ ≡ σ₂) , isSetΣXY σ₁ σ₂)
-    σ-eq-closed (x₁ , y₁) (x₂ , y₂) =
-      closedEquiv
-        (∥ Σ[ p ∈ x₁ ≡ x₂ ] PathP (λ i → fst (Y (p i))) y₁ y₂ ∥₁ , squash₁)
-        (((x₁ , y₁) ≡ (x₂ , y₂)) , isSetΣXY (x₁ , y₁) (x₂ , y₂))
-        (PT.rec (isSetΣXY _ _) (λ { (p , q) → ΣPathP (p , q) }))
-        (λ eq → ∣ cong fst eq , cong snd eq ∣₁)
-        trunc-sigma-closed
-      where
-      eq-x-closed : isClosedProp ((x₁ ≡ x₂) , isSetXbase x₁ x₂)
-      eq-x-closed = X-eq-cl x₁ x₂
-
-      pathP-closed : (p : x₁ ≡ x₂) → isClosedProp (PathP (λ i → fst (Y (p i))) y₁ y₂ ,
-                       isOfHLevelPathP' 1 (hasCHausStr.isSetX (snd (Y x₂))) y₁ y₂)
-      pathP-closed p = closedEquiv
-        ((subst (λ z → fst (Y z)) p y₁ ≡ y₂) , hasCHausStr.isSetX (snd (Y x₂)) _ _)
-        (PathP (λ i → fst (Y (p i))) y₁ y₂ ,
-         isOfHLevelPathP' 1 (hasCHausStr.isSetX (snd (Y x₂))) y₁ y₂)
-        toPathP fromPathP
-        (hasCHausStr.equalityClosed (snd (Y x₂)) (subst (λ z → fst (Y z)) p y₁) y₂)
-
-      trunc-sigma-closed : isClosedProp (∥ Σ[ p ∈ x₁ ≡ x₂ ] PathP (λ i → fst (Y (p i))) y₁ y₂ ∥₁ , squash₁)
-      trunc-sigma-closed = closedSigmaClosed-derived
-        ((x₁ ≡ x₂) , isSetXbase x₁ x₂) eq-x-closed
-        (λ p → PathP (λ i → fst (Y (p i))) y₁ y₂ ,
-               isOfHLevelPathP' 1 (hasCHausStr.isSetX (snd (Y x₂))) y₁ y₂)
-        pathP-closed
-
-    -- Stone cover of Σ X Y (tex proof of Lemma 2098)
-    -- Uses localChoice with Type₀ encoding of closed subsets (binary sequences)
-    σ-stoneCover : ∥ Σ[ S ∈ Stone ] Σ[ q ∈ (fst S → SigmaCHausType X Y) ] isSurjection q ∥₁
-    σ-stoneCover = PT.rec squash₁ build-cover X-sc
-      where
-      build-cover : Σ[ S ∈ Stone ] Σ[ q ∈ (fst S → fst X) ] isSurjection q
-        → ∥ Σ[ S' ∈ Stone ] Σ[ q' ∈ (fst S' → SigmaCHausType X Y) ] isSurjection q' ∥₁
-      build-cover (S_X , q_X , surj_X) =
-        PT.rec squash₁ build-from-lc
-          (localChoice-axiom (fst (snd S_X)) P' P'-all)
-        where
-        p_X : Sp (fst (snd S_X)) ≡ fst S_X
-        p_X = snd (snd S_X)
-
-        -- Type₀ encoding: binary sequence per Cantor point + surjection to Y(q_X s)
-        FiberData : fst S_X → Type₀
-        FiberData s = Σ[ enc ∈ (CantorSpace → binarySequence) ]
-                      Σ[ f ∈ ((Σ[ γ ∈ CantorSpace ] ((n : ℕ) → enc γ n ≡ false)) → fst (Y (q_X s))) ]
-                      isSurjection f
-
-        FiberData-all : (s : fst S_X) → ∥ FiberData s ∥₁
-        FiberData-all s = PT.rec squash₁ step1 (hasCHausStr.stoneCover (snd (Y (q_X s))))
-          where
-          step1 : Σ[ T ∈ Stone ] Σ[ r ∈ (fst T → fst (Y (q_X s))) ] isSurjection r
-                → ∥ FiberData s ∥₁
-          step1 (T_s , r_s , surj_s) = PT.rec squash₁ step2 (Stone→ClosedInCantor T_s)
-            where
-            step2 : Σ[ A ∈ ClosedSubsetOfCantor ] (fst T_s ≃ (Σ[ γ ∈ CantorSpace ] fst (fst A γ)))
-                  → ∥ FiberData s ∥₁
-            step2 (A , equiv) = PT.map step3
-              (closedFamilyChoice (CantorSpace , CantorIsStone) (fst A) (snd A))
-              where
-              step3 : ((γ : CantorSpace) → Σ[ β ∈ binarySequence ] fst (fst A γ) ↔ ((n : ℕ) → β n ≡ false))
-                    → FiberData s
-              step3 witness = enc , g , g-surj
-                where
-                enc : CantorSpace → binarySequence
-                enc γ = fst (witness γ)
-                toA : (γ : CantorSpace) → ((n : ℕ) → enc γ n ≡ false) → fst (fst A γ)
-                toA γ = snd (snd (witness γ))
-                fromA : (γ : CantorSpace) → fst (fst A γ) → ((n : ℕ) → enc γ n ≡ false)
-                fromA γ = fst (snd (witness γ))
-                g : (Σ[ γ ∈ CantorSpace ] ((n : ℕ) → enc γ n ≡ false)) → fst (Y (q_X s))
-                g (γ , prf) = r_s (invEq equiv (γ , toA γ prf))
-                g-surj : isSurjection g
-                g-surj y = PT.map (λ { (t , rt≡y) →
-                  let γ' = fst (equivFun equiv t)
-                      a = snd (equivFun equiv t)
-                  in (γ' , fromA γ' a) ,
-                    (r_s (invEq equiv (γ' , toA γ' (fromA γ' a)))
-                      ≡⟨ cong (λ z → r_s (invEq equiv (γ' , z))) (snd (fst A γ') _ _) ⟩
-                     r_s (invEq equiv (equivFun equiv t))
-                      ≡⟨ cong r_s (retEq equiv t) ⟩
-                     r_s t
-                      ≡⟨ rt≡y ⟩
-                     y ∎)
-                  }) (surj_s y)
-
-        P' : Sp (fst (snd S_X)) → Type₀
-        P' h = FiberData (transport p_X h)
-
-        P'-all : (h : Sp (fst (snd S_X))) → ∥ P' h ∥₁
-        P'-all h = FiberData-all (transport p_X h)
-
-        build-from-lc :
-          Σ[ Dlc ∈ Booleω ] Σ[ φ ∈ (Sp Dlc → Sp (fst (snd S_X))) ]
-            (isSurjectiveSpMap {fst (snd S_X)} {Dlc} φ × ((t : Sp Dlc) → P' (φ t)))
-          → ∥ Σ[ S' ∈ Stone ] Σ[ q' ∈ (fst S' → SigmaCHausType X Y) ] isSurjection q' ∥₁
-        build-from-lc (Dlc , φ , surjφ , datT) =
-          ∣ total-Stone , total-map , total-surj ∣₁
-          where
-          qT : Sp Dlc → fst S_X
-          qT t = transport p_X (φ t)
-
-          enc-of : (t : Sp Dlc) → CantorSpace → binarySequence
-          enc-of t = fst (datT t)
-
-          f-of : (t : Sp Dlc) → (Σ[ γ ∈ CantorSpace ] ((n : ℕ) → enc-of t γ n ≡ false))
-               → fst (Y (q_X (qT t)))
-          f-of t = fst (snd (datT t))
-
-          surj-f : (t : Sp Dlc) → isSurjection (f-of t)
-          surj-f t = snd (snd (datT t))
-
-          SpDlc-Stone : Stone
-          SpDlc-Stone = Sp Dlc , Dlc , refl
-
-          product-Stone : Stone
-          product-Stone = Sp Dlc × CantorSpace , StoneProduct SpDlc-Stone (CantorSpace , CantorIsStone)
-
-          C-pred : Sp Dlc × CantorSpace → hProp ℓ-zero
-          C-pred (t , γ) = ((n : ℕ) → enc-of t γ n ≡ false) , isPropΠ (λ _ → isSetBool _ _)
-
-          C-closed : (p : Sp Dlc × CantorSpace) → isClosedProp (C-pred p)
-          C-closed (t , γ) = closedCountableIntersection
-            (λ n → (enc-of t γ n ≡ false) , isSetBool _ _)
-            (λ n → Bool-equality-closed (enc-of t γ n) false)
-
-          total-Stone : Stone
-          total-Stone = Σ (Sp Dlc × CantorSpace) (λ p → fst (C-pred p)) ,
-                        ClosedInStoneIsStone product-Stone C-pred C-closed
-
-          total-map : fst total-Stone → SigmaCHausType X Y
-          total-map ((t , γ) , prf) = q_X (qT t) , f-of t (γ , prf)
-
-          total-surj : isSurjection total-map
-          total-surj (x , y) = PT.rec squash₁
-            (λ { (s , qs≡x) → PT.rec squash₁
-              (λ { (t , φt≡h) →
-                let qt≡s : qT t ≡ s
-                    qt≡s = cong (transport p_X) φt≡h ∙ transportTransport⁻ p_X s
-                    path-to-x : q_X (qT t) ≡ x
-                    path-to-x = cong q_X qt≡s ∙ qs≡x
-                    y' : fst (Y (q_X (qT t)))
-                    y' = subst (λ z → fst (Y z)) (sym path-to-x) y
-                in PT.map
-                  (λ { ((γ , prf) , fac≡y') →
-                    ((t , γ) , prf) , ΣPathP (path-to-x , toPathP (
-                      subst (λ z → fst (Y z)) path-to-x (f-of t (γ , prf))
-                        ≡⟨ cong (subst (λ z → fst (Y z)) path-to-x) fac≡y' ⟩
-                      subst (λ z → fst (Y z)) path-to-x (subst (λ z → fst (Y z)) (sym path-to-x) y)
-                        ≡⟨ transportTransport⁻ (cong (λ z → fst (Y z)) path-to-x) y ⟩
-                      y ∎))
-                  }) (surj-f t y')
-              }) (surjφ (transport (sym p_X) s))
-            }) (surj_X x)
+  postulate
+    SigmaCompactHausdorff : (X : CHaus) (Y : fst X → CHaus)
+      → hasCHausStr (SigmaCHausType X Y)
 
   CHausΣ : (X : CHaus) → (Y : fst X → CHaus) → CHaus
   CHausΣ X Y = SigmaCHausType X Y , SigmaCompactHausdorff X Y
@@ -867,32 +693,18 @@ module SigmaCompactHausdorffModule where
 
 module AlgebraCompactHausdorffCountablyPresentedModule where
   open CompactHausdorffModule
-  open import Axioms.StoneDuality using (2^)
-  open import CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω')
+
+  BoolAlgOfCHaus : CHaus → Type₀
+  BoolAlgOfCHaus X = fst X → Bool
 
   postulate
     AlgebraCompactHausdorffCountablyPresented : (X : CHaus)
-      → ∥ has-Boole-ω' (2^ (fst X)) ∥₁
+      → ∥ Σ[ B ∈ Booleω ] ⟨ fst B ⟩ ≡ BoolAlgOfCHaus X ∥₁
 
 -- ConnectedComponentModule (tex 2138-2171)
 
 module ConnectedComponentModule where
   open CompactHausdorffModule
-  open AlgebraCompactHausdorffCountablyPresentedModule
-  open import Axioms.StoneDuality using (2^)
-  open import CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω'; BooleanEquivToHomInv)
-  open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator)
-  open import BooleanRing.FreeBooleanRing.freeBATerms using (equalityFromEqualityOnGenerators)
-  open import QuotientBool using (quotientImageHom; quotientImageHomSurjective; _/Im_)
-  open import Cubical.Algebra.CommRing using (_∘cr_; IsCommRingHom)
-  open import Cubical.Algebra.BooleanRing using (BoolHom)
-  open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
-  open import Cubical.Functions.Surjection using (isSurjection)
-  open import Cubical.Foundations.Univalence using (hPropExt)
-  open import Cubical.Foundations.Equiv using (equivFun; invEq; retEq)
-  import Cubical.HITs.PropositionalTruncation as PT
-  open CHausFiniteIntersectionPropertyModule
-  open import Cubical.Data.Bool using (_and_)
 
   DecSubsetCHaus : CHaus → Type₀
   DecSubsetCHaus X = fst X → Bool
@@ -905,301 +717,27 @@ module ConnectedComponentModule where
     ((D : DecSubsetCHaus X) → inDec X x D → inDec X y D) ,
     isPropΠ (λ D → isPropΠ (λ _ → isSetBool (D y) true))
 
-  private
-    bool-eq : Bool → Bool → Bool
-    bool-eq true  true  = true
-    bool-eq true  false = false
-    bool-eq false true  = false
-    bool-eq false false = true
-
-    bool-eq-refl : (b : Bool) → bool-eq b b ≡ true
-    bool-eq-refl true  = refl
-    bool-eq-refl false = refl
-
-    bool-eq-eq : (a b : Bool) → bool-eq a b ≡ true → a ≡ b
-    bool-eq-eq true  true  _ = refl
-    bool-eq-eq true  false p = sym p
-    bool-eq-eq false true  p = p
-    bool-eq-eq false false _ = refl
-
-  ConnectedComponentClosedInCompactHausdorff : (X : CHaus) (x : fst X)
-    → ∥ Σ[ D ∈ (ℕ → DecSubsetCHaus X) ]
-        ((y : fst X) → fst (ConnectedComponent X x y)
-          ≡ ((n : ℕ) → inDec X y (D n))) ∥₁
-  ConnectedComponentClosedInCompactHausdorff X x =
-    PT.rec squash₁ construct (AlgebraCompactHausdorffCountablyPresented X)
-    where
-    construct : has-Boole-ω' (2^ (fst X))
+  postulate
+    ConnectedComponentClosedInCompactHausdorff : (X : CHaus) (x : fst X)
       → ∥ Σ[ D ∈ (ℕ → DecSubsetCHaus X) ]
           ((y : fst X) → fst (ConnectedComponent X x y)
             ≡ ((n : ℕ) → inDec X y (D n))) ∥₁
-    construct (rel , equiv) = ∣ D , proof ∣₁
-      where
-      Q = freeBA ℕ /Im rel
-
-      inv-hom : BoolHom Q (2^ (fst X))
-      inv-hom = BooleanEquivToHomInv (2^ (fst X)) Q equiv
-
-      Φ : BoolHom (freeBA ℕ) (2^ (fst X))
-      Φ = inv-hom ∘cr quotientImageHom
-
-      g : ℕ → DecSubsetCHaus X
-      g n = fst Φ (generator n)
-
-      D : ℕ → DecSubsetCHaus X
-      D n y = bool-eq (g n x) (g n y)
-
-      open IsCommRingHom
-
-      ev : fst X → BoolHom (2^ (fst X)) BoolBR
-      fst (ev z) h = h z
-      pres0 (snd (ev z)) = refl
-      pres1 (snd (ev z)) = refl
-      pres+ (snd (ev z)) _ _ = refl
-      pres· (snd (ev z)) _ _ = refl
-      pres- (snd (ev z)) _ = refl
-
-      proof : (y : fst X) → fst (ConnectedComponent X x y)
-            ≡ ((n : ℕ) → inDec X y (D n))
-      proof y = hPropExt
-        (isPropΠ (λ _ → isPropΠ (λ _ → isSetBool _ _)))
-        (isPropΠ (λ _ → isSetBool _ _))
-        forward backward
-        where
-        forward : fst (ConnectedComponent X x y) → (n : ℕ) → inDec X y (D n)
-        forward qxy n = qxy (D n) (bool-eq-refl (g n x))
-
-        backward : ((n : ℕ) → inDec X y (D n)) → fst (ConnectedComponent X x y)
-        backward allDn E Ex≡true =
-          PT.rec (isSetBool _ _) step (quotientImageHomSurjective (equivFun (fst equiv) E))
-          where
-          gn-eq : (n : ℕ) → g n x ≡ g n y
-          gn-eq n = bool-eq-eq (g n x) (g n y) (allDn n)
-
-          hom-eq : ev x ∘cr Φ ≡ ev y ∘cr Φ
-          hom-eq = equalityFromEqualityOnGenerators BoolBR (ev x ∘cr Φ) (ev y ∘cr Φ) gn-eq
-
-          step : Σ[ t ∈ ⟨ freeBA ℕ ⟩ ] fst quotientImageHom t ≡ equivFun (fst equiv) E
-               → E y ≡ true
-          step (t , qt≡q) =
-            E y
-              ≡⟨ cong (λ h → h y) (sym Φt≡E) ⟩
-            fst Φ t y
-              ≡⟨ sym (funExt⁻ (cong fst hom-eq) t) ⟩
-            fst Φ t x
-              ≡⟨ cong (λ h → h x) Φt≡E ⟩
-            E x
-              ≡⟨ Ex≡true ⟩
-            true ∎
-            where
-            Φt≡E : fst Φ t ≡ E
-            Φt≡E = cong (invEq (fst equiv)) qt≡q ∙ retEq (fst equiv) E
-
-  ConnectedComponentSubOpenHasDecidableInbetween : (X : CHaus) (x : fst X)
-    → (U : fst X → hProp ℓ-zero) → ((y : fst X) → isOpenProp (U y))
-    → ((y : fst X) → fst (ConnectedComponent X x y) → fst (U y))
-    → ∥ Σ[ E ∈ DecSubsetCHaus X ] inDec X x E × ((y : fst X) → inDec X y E → fst (U y)) ∥₁
-  ConnectedComponentSubOpenHasDecidableInbetween X x U Uopen Qx⊆U =
-    PT.rec squash₁ construct (ConnectedComponentClosedInCompactHausdorff X x)
-    where
-    construct : Σ[ D ∈ (ℕ → DecSubsetCHaus X) ]
-        ((y : fst X) → fst (ConnectedComponent X x y) ≡ ((n : ℕ) → inDec X y (D n)))
+    ConnectedComponentSubOpenHasDecidableInbetween : (X : CHaus) (x : fst X)
+      → (U : fst X → hProp ℓ-zero) → ((y : fst X) → isOpenProp (U y))
+      → ((y : fst X) → fst (ConnectedComponent X x y) → fst (U y))
       → ∥ Σ[ E ∈ DecSubsetCHaus X ] inDec X x E × ((y : fst X) → inDec X y E → fst (U y)) ∥₁
-    construct (D , Deq) = PT.rec squash₁ fromK getK
-      where
-      C : ℕ → (fst X → hProp ℓ-zero)
-      C n y = ((D n y ≡ true) × (¬ fst (U y))) ,
-              isProp× (isSetBool _ _) (isPropΠ (λ _ → isProp⊥))
-
-      C-closed : (n : ℕ) → (y : fst X) → isClosedProp (C n y)
-      C-closed n y = closedAnd ((D n y ≡ true) , isSetBool _ _) (¬hProp (U y))
-                     (Bool-equality-closed (D n y) true) (negOpenIsClosed (U y) (Uopen y))
-
-      countInt-empty : (y : fst X) → ¬ fst (countableIntersectionClosed C y)
-      countInt-empty y allCn = snd (allCn 0) (Qx⊆U y qxy)
-        where
-        qxy : fst (ConnectedComponent X x y)
-        qxy = transport (sym (Deq y)) (λ n → fst (allCn n))
-
-      getK : ∥ Σ[ k ∈ ℕ ] ((y : fst X) → ¬ fst (finiteIntersectionClosed C k y)) ∥₁
-      getK = CHausFiniteIntersectionProperty X C C-closed countInt-empty
-
-      finBoolAnd : ℕ → fst X → Bool
-      finBoolAnd zero y = D zero y
-      finBoolAnd (suc j) y = D (suc j) y and finBoolAnd j y
-
-      and-true-l : (a b : Bool) → a and b ≡ true → a ≡ true
-      and-true-l true  _ _ = refl
-      and-true-l false _ p = p
-
-      and-true-r : (a b : Bool) → a and b ≡ true → b ≡ true
-      and-true-r true  _ p = p
-      and-true-r false _ p = ex-falso (false≢true p)
-
-      build-finInt : (j : ℕ) (y : fst X)
-        → finBoolAnd j y ≡ true → ¬ fst (U y) → fst (finiteIntersectionClosed C j y)
-      build-finInt zero y p ¬Uy = p , ¬Uy
-      build-finInt (suc j) y p ¬Uy =
-        (and-true-l (D (suc j) y) (finBoolAnd j y) p , ¬Uy) ,
-        build-finInt j y (and-true-r (D (suc j) y) (finBoolAnd j y) p) ¬Uy
-
-      fromK : Σ[ k ∈ ℕ ] ((y : fst X) → ¬ fst (finiteIntersectionClosed C k y))
-        → ∥ Σ[ E ∈ DecSubsetCHaus X ] inDec X x E × ((y : fst X) → inDec X y E → fst (U y)) ∥₁
-      fromK (k , kEmpty) = ∣ finBoolAnd k , x-in-E , E-sub-U ∣₁
-        where
-        x-in-all-D : (n : ℕ) → D n x ≡ true
-        x-in-all-D = transport (Deq x) (λ _ xInD → xInD)
-
-        x-in-E : inDec X x (finBoolAnd k)
-        x-in-E = go k
-          where
-          go : (j : ℕ) → finBoolAnd j x ≡ true
-          go zero = x-in-all-D 0
-          go (suc j) = cong₂ _and_ (x-in-all-D (suc j)) (go j)
-
-        E-sub-U : (y : fst X) → inDec X y (finBoolAnd k) → fst (U y)
-        E-sub-U y Ey = openIsStable mp (U y) (Uopen y) ¬¬Uy
-          where
-          ¬¬Uy : ¬ ¬ fst (U y)
-          ¬¬Uy ¬Uy = kEmpty y (build-finInt k y Ey ¬Uy)
 
 -- ConnectedComponentConnectedModule (tex Lemma 2173)
 
 module ConnectedComponentConnectedModule where
   open CompactHausdorffModule
   open ConnectedComponentModule
-  open CHausSeperationOfClosedByOpensModule
-    using (CHausSeperationOfClosedByOpens; areDisjoint; subsetOf)
-  open ClosedSigmaClosedDerived using (closedSigmaClosed-derived)
-  import Cubical.Data.Sum as ⊎
-  open import Cubical.Data.Bool using (Dec→Bool; not; _≟_)
-  open import Cubical.Relation.Nullary using (Dec; yes; no)
 
-  private
-    self≢not : (b : Bool) → b ≡ not b → ⊥
-    self≢not true = true≢false
-    self≢not false = false≢true
-
-    Bool-dichotomy : (b1 b2 : Bool) → (b1 ≡ b2) ⊎ (b1 ≡ not b2)
-    Bool-dichotomy true true = ⊎.inl refl
-    Bool-dichotomy true false = ⊎.inr refl
-    Bool-dichotomy false true = ⊎.inr refl
-    Bool-dichotomy false false = ⊎.inl refl
-
-    Dec→Bool-true : {A : Type₀} → A → (d : Dec A) → Dec→Bool d ≡ true
-    Dec→Bool-true a (yes _) = refl
-    Dec→Bool-true a (no ¬a) = ex-falso (¬a a)
-
-    Dec→Bool-extract : {A : Type₀} → (d : Dec A) → Dec→Bool d ≡ true → A
-    Dec→Bool-extract (yes a) _ = a
-    Dec→Bool-extract (no _) p = ex-falso (false≢true p)
-
-  ConnectedComponentConnected : (X : CHaus) (x : fst X)
-    → (f : (Σ[ y ∈ fst X ] fst (ConnectedComponent X x y)) → Bool)
-    → (y z : Σ[ y ∈ fst X ] fst (ConnectedComponent X x y))
-    → f y ≡ f z
-  ConnectedComponentConnected X x f (y , qy) (z , qz) =
-    f (y , qy) ≡⟨ sym (from-x (y , qy)) ⟩
-    fval ≡⟨ from-x (z , qz) ⟩
-    f (z , qz) ∎
-    where
-    fval : Bool
-    fval = f (x , (λ D p → p))
-    from-x : (a : Σ[ w ∈ fst X ] fst (ConnectedComponent X x w)) → fval ≡ f a
-    from-x (a , qa) = PT.rec (isSetBool fval (f (a , qa))) step1
-      (ConnectedComponentClosedInCompactHausdorff X x)
-      where
-      step1 : Σ[ D ∈ (ℕ → DecSubsetCHaus X) ]
-              ((w : fst X) → fst (ConnectedComponent X x w) ≡ ((n : ℕ) → inDec X w (D n)))
-            → fval ≡ f (a , qa)
-      step1 (D , Deq) = PT.rec (isSetBool fval (f (a , qa))) step2
-        (CHausSeperationOfClosedByOpens X A_X B_X A-closed B-closed AB-disjoint)
-        where
-        Qx-closed : (w : fst X) → isClosedProp (ConnectedComponent X x w)
-        Qx-closed w = closedEquiv
-          (((n : ℕ) → D n w ≡ true) , isPropΠ (λ n → isSetBool (D n w) true))
-          (ConnectedComponent X x w)
-          (transport (sym (Deq w)))
-          (transport (Deq w))
-          (closedCountableIntersection (λ n → (D n w ≡ true) , isSetBool (D n w) true)
-            (λ n → Bool-equality-closed (D n w) true))
-        A_X : fst X → hProp ℓ-zero
-        A_X w = ∥ Σ[ q ∈ fst (ConnectedComponent X x w) ] (f (w , q) ≡ fval) ∥₁ , squash₁
-        A-closed : (w : fst X) → isClosedProp (A_X w)
-        A-closed w = closedSigmaClosed-derived (ConnectedComponent X x w) (Qx-closed w)
-          (λ q → (f (w , q) ≡ fval) , isSetBool (f (w , q)) fval)
-          (λ q → Bool-equality-closed (f (w , q)) fval)
-        B_X : fst X → hProp ℓ-zero
-        B_X w = ∥ Σ[ q ∈ fst (ConnectedComponent X x w) ] (f (w , q) ≡ not fval) ∥₁ , squash₁
-        B-closed : (w : fst X) → isClosedProp (B_X w)
-        B-closed w = closedSigmaClosed-derived (ConnectedComponent X x w) (Qx-closed w)
-          (λ q → (f (w , q) ≡ not fval) , isSetBool (f (w , q)) (not fval))
-          (λ q → Bool-equality-closed (f (w , q)) (not fval))
-        AB-disjoint : areDisjoint A_X B_X
-        AB-disjoint w (aw , bw) = PT.rec2 isProp⊥
-          (λ (q1 , eq1) (q2 , eq2) → self≢not fval
-            (fval ≡⟨ sym eq1 ⟩
-             f (w , q1) ≡⟨ cong (λ q → f (w , q)) (snd (ConnectedComponent X x w) q1 q2) ⟩
-             f (w , q2) ≡⟨ eq2 ⟩
-             not fval ∎))
-          aw bw
-        step2 : Σ[ U ∈ (fst X → hProp ℓ-zero) ] Σ[ V ∈ (fst X → hProp ℓ-zero) ]
-                ((w : fst X) → isOpenProp (U w)) ×
-                ((w : fst X) → isOpenProp (V w)) ×
-                subsetOf A_X U × subsetOf B_X V × areDisjoint U V
-              → fval ≡ f (a , qa)
-        step2 (U , V , Uopen , Vopen , A⊆U , B⊆V , UV-disj) =
-          PT.rec (isSetBool fval (f (a , qa))) step3
-            (ConnectedComponentSubOpenHasDecidableInbetween X x UV UV-open Qx⊆UV)
-          where
-          UV : fst X → hProp ℓ-zero
-          UV w = ∥ fst (U w) ⊎ fst (V w) ∥₁ , squash₁
-          UV-open : (w : fst X) → isOpenProp (UV w)
-          UV-open w = openOrMP mp (U w) (V w) (Uopen w) (Vopen w)
-          Qx⊆UV : (w : fst X) → fst (ConnectedComponent X x w) → fst (UV w)
-          Qx⊆UV w qw with Bool-dichotomy (f (w , qw)) fval
-          ... | ⊎.inl p = ∣ ⊎.inl (A⊆U w ∣ qw , p ∣₁) ∣₁
-          ... | ⊎.inr p = ∣ ⊎.inr (B⊆V w ∣ qw , p ∣₁) ∣₁
-          step3 : Σ[ E ∈ DecSubsetCHaus X ] inDec X x E ×
-                  ((w : fst X) → inDec X w E → fst (UV w))
-                → fval ≡ f (a , qa)
-          step3 (E , x-in-E , E⊆UV) = conclusion
-            where
-            x-in-U : fst (U x)
-            x-in-U = A⊆U x ∣ (λ D p → p) , refl ∣₁
-            x-not-in-V : ¬ fst (V x)
-            x-not-in-V vx = UV-disj x (x-in-U , vx)
-            E'-prop : fst X → hProp ℓ-zero
-            E'-prop w = (E w ≡ true) × (¬ fst (V w)) ,
-                        isProp× (isSetBool _ _) (snd (¬hProp (V w)))
-            E'-closed : (w : fst X) → isClosedProp (E'-prop w)
-            E'-closed w = closedAnd ((E w ≡ true) , isSetBool _ _) (¬hProp (V w))
-                          (Bool-equality-closed (E w) true) (negOpenIsClosed (V w) (Vopen w))
-            E'-open : (w : fst X) → isOpenProp (E'-prop w)
-            E'-open w = openEquiv
-              ((E w ≡ true) × fst (U w) , isProp× (isSetBool _ _) (snd (U w)))
-              (E'-prop w)
-              (λ (ew , uw) → ew , λ vw → UV-disj w (uw , vw))
-              (λ (ew , ¬vw) → ew , openIsStable mp (U w) (Uopen w)
-                (λ ¬uw → PT.rec isProp⊥
-                  (λ { (⊎.inl uw) → ¬uw uw ; (⊎.inr vw) → ¬vw vw })
-                  (E⊆UV w ew)))
-              (openAnd ((E w ≡ true) , isSetBool _ _) (U w)
-                (decIsOpen ((E w ≡ true) , isSetBool _ _) (E w ≟ true)) (Uopen w))
-            E'bool : DecSubsetCHaus X
-            E'bool w = Dec→Bool (clopenIsDecidable (E'-prop w) (E'-open w) (E'-closed w))
-            x-in-E' : E'bool x ≡ true
-            x-in-E' = Dec→Bool-true (x-in-E , x-not-in-V)
-              (clopenIsDecidable (E'-prop x) (E'-open x) (E'-closed x))
-            a-in-E' : E'bool a ≡ true
-            a-in-E' = qa E'bool x-in-E'
-            a-not-in-V : ¬ fst (V a)
-            a-not-in-V = snd (Dec→Bool-extract
-              (clopenIsDecidable (E'-prop a) (E'-open a) (E'-closed a)) a-in-E')
-            conclusion : fval ≡ f (a , qa)
-            conclusion with Bool-dichotomy (f (a , qa)) fval
-            ... | ⊎.inl p = sym p
-            ... | ⊎.inr p = ex-falso (a-not-in-V (B⊆V a ∣ qa , p ∣₁))
+  postulate
+    ConnectedComponentConnected : (X : CHaus) (x : fst X)
+      → (f : (Σ[ y ∈ fst X ] fst (ConnectedComponent X x y)) → Bool)
+      → (y z : Σ[ y ∈ fst X ] fst (ConnectedComponent X x y))
+      → f y ≡ f z
 
 -- StoneCompactHausdorffTotallyDisconnectedModule (tex Lemma 2186)
 

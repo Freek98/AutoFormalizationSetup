@@ -13,7 +13,6 @@ open import Cubical.Foundations.Equiv
 
 open import Cubical.Data.Nat renaming (_+_ to _+ℕ_ ; _·_ to _·ℕ_)
 open import Cubical.Data.Nat.Order
-import Cubical.Induction.WellFounded as WF
 open import Cubical.Data.Bool hiding (_≤_ ; _≥_) renaming (_≟_ to _=B_)
 open import Cubical.Data.Empty renaming (rec to ex-falso)
 open import Cubical.Data.Sigma
@@ -70,225 +69,284 @@ Bool-Booleω = BoolBR , ∣ is-cp-2 ∣₁
 Sp-Bool-inhabited : ∥ Sp Bool-Booleω ∥₁
 Sp-Bool-inhabited = ∣ idBoolHom BoolBR ∣₁
 
-quotientPreservesBooleω : (α : binarySequence) → ∥ has-Boole-ω' (BoolBR QB./Im α) ∥₁
-quotientPreservesBooleω α = ∣ presentationWitness ∣₁
+-- Dependent Choice axiom (tex line 324, AxDependentChoice)
+
+SeqLimit : (E : ℕ → Type ℓ-zero) → ((n : ℕ) → E (suc n) → E n) → Type ℓ-zero
+SeqLimit E p = Σ[ f ∈ ((n : ℕ) → E n) ] ((n : ℕ) → p n (f (suc n)) ≡ f n)
+
+seqLim-proj₀ : (E : ℕ → Type ℓ-zero) (p : (n : ℕ) → E (suc n) → E n)
+             → SeqLimit E p → E 0
+seqLim-proj₀ E p (f , _) = f 0
+
+DependentChoiceAxiom : Type (ℓ-suc ℓ-zero)
+DependentChoiceAxiom = (E : ℕ → Type ℓ-zero) (p : (n : ℕ) → E (suc n) → E n)
+  → ((n : ℕ) → (y : E n) → ∥ Σ[ x ∈ E (suc n) ] p n x ≡ y ∥₁)
+  → (e₀ : E 0) → ∥ Σ[ s ∈ SeqLimit E p ] seqLim-proj₀ E p s ≡ e₀ ∥₁
+
+postulate
+  dependentChoice-axiom : DependentChoiceAxiom
+
+CountableChoiceAxiom : Type (ℓ-suc ℓ-zero)
+CountableChoiceAxiom = (A : ℕ → Type ℓ-zero)
+  → ((n : ℕ) → ∥ A n ∥₁)
+  → ∥ ((n : ℕ) → A n) ∥₁
+
+countableChoice : CountableChoiceAxiom
+countableChoice A witnesses = PT.map (λ { ((f , _) , _) n → snd (f (suc n)) })
+    (dependentChoice-axiom E p p-surj tt)
   where
-  f₀ : ℕ → ⟨ freeBA ℕ ⟩
-  f₀ = fst is-cp-2
+  E : ℕ → Type ℓ-zero
+  E zero = Unit
+  E (suc n) = E n × A n
 
-  equiv : BooleanRingEquiv BoolBR (freeBA ℕ QB./Im f₀)
-  equiv = snd is-cp-2
+  p : (n : ℕ) → E (suc n) → E n
+  p n (e , _) = e
 
-  π₀ : ⟨ freeBA ℕ ⟩ → ⟨ freeBA ℕ QB./Im f₀ ⟩
-  π₀ = fst QB.quotientImageHom
+  p-surj : (n : ℕ) → (y : E n) → ∥ Σ[ x ∈ E (suc n) ] p n x ≡ y ∥₁
+  p-surj n y = PT.map (λ a → (y , a) , refl) (witnesses n)
 
-  embBR : ⟨ BoolBR ⟩ → ⟨ freeBA ℕ QB./Im f₀ ⟩
-  embBR = fst (fst equiv)
+-- If B is Booleω, then B/d is Booleω for any sequence d (tex: Rule 2 separation)
 
-  α' : ℕ → ⟨ freeBA ℕ QB./Im f₀ ⟩
-  α' n = embBR (α n)
+quotientBySeqHasBooleω : (B : Booleω) (d : ℕ → ⟨ fst B ⟩)
+  → ∥ has-Boole-ω' (fst B QB./Im d) ∥₁
+quotientBySeqHasBooleω B d = PT.rec squash₁ construct (snd B)
+  where
+  B/d : BooleanRing ℓ-zero
+  B/d = fst B QB./Im d
 
-  encode : ℕ ⊎ ℕ → ℕ
-  encode = Iso.fun ℕ⊎ℕ≅ℕ
-
-  decode : ℕ → ℕ ⊎ ℕ
-  decode = Iso.inv ℕ⊎ℕ≅ℕ
-
-  open BooleanRingStr (snd (freeBA ℕ))
-
-  g : ℕ → ⟨ freeBA ℕ ⟩
-  g n = if (α n) then 𝟙 else 𝟘
-
-  h : ℕ → ⟨ freeBA ℕ ⟩
-  h n with decode n
-  ... | inl m = f₀ m
-  ... | inr m = g m
-
-  presentationWitness : has-Boole-ω' (BoolBR QB./Im α)
-  presentationWitness = h , equivToPresentation
+  construct : has-Boole-ω' (fst B) → ∥ has-Boole-ω' B/d ∥₁
+  construct (f , equiv) = PT.rec squash₁ (λ lifts → ∣ constructFromLifts lifts ∣₁)
+      (countableChoice LiftType (λ n → QB.quotientImageHomSurjective (d' n)))
     where
+    d' : ℕ → ⟨ freeBA ℕ QB./Im f ⟩
+    d' n = fst (fst equiv) (d n)
 
-    step2-equiv : BooleanRingEquiv (freeBA ℕ QB./Im (⊎.rec f₀ g)) ((freeBA ℕ QB./Im f₀) QB./Im (π₀ ∘ g))
-    step2-equiv = commRingPath→boolRingEquiv (freeBA ℕ QB./Im (⊎.rec f₀ g)) ((freeBA ℕ QB./Im f₀) QB./Im (π₀ ∘ g))
-                    (BoolQuotientEquiv (freeBA ℕ) f₀ g)
+    LiftType : ℕ → Type ℓ-zero
+    LiftType n = Σ[ x ∈ ⟨ freeBA ℕ ⟩ ] fst QB.quotientImageHom x ≡ d' n
 
-    h≡rec∘decode-pointwise : (n : ℕ) → h n ≡ ⊎.rec f₀ g (decode n)
-    h≡rec∘decode-pointwise n with decode n
-    ... | inl m = refl
-    ... | inr m = refl
+    constructFromLifts : ((n : ℕ) → LiftType n) → has-Boole-ω' B/d
+    constructFromLifts lifts = h , B/d-equiv
+      where
+      g : ℕ → ⟨ freeBA ℕ ⟩
+      g n = fst (lifts n)
 
-    rec-of-decode : (n : ℕ) → ⊎.rec f₀ g (decode n) ≡ h n
-    rec-of-decode n = sym (h≡rec∘decode-pointwise n)
+      g-is-section : (n : ℕ) → fst QB.quotientImageHom (g n) ≡ d' n
+      g-is-section n = snd (lifts n)
 
-    rec-quotient : BooleanRing ℓ-zero
-    rec-quotient = freeBA ℕ QB./Im (⊎.rec f₀ g)
+      encode : ℕ ⊎ ℕ → ℕ
+      encode = Iso.fun ℕ⊎ℕ≅ℕ
 
-    h-quotient : BooleanRing ℓ-zero
-    h-quotient = freeBA ℕ QB./Im h
+      decode : ℕ → ℕ ⊎ ℕ
+      decode = Iso.inv ℕ⊎ℕ≅ℕ
 
-    π-rec : BoolHom (freeBA ℕ) rec-quotient
-    π-rec = QB.quotientImageHom
+      h : ℕ → ⟨ freeBA ℕ ⟩
+      h n with decode n
+      ... | inl m = f m
+      ... | inr m = g m
 
-    π-h : BoolHom (freeBA ℕ) h-quotient
-    π-h = QB.quotientImageHom
+      step2-equiv : BooleanRingEquiv (freeBA ℕ QB./Im (⊎.rec f g))
+                                     ((freeBA ℕ QB./Im f) QB./Im (fst QB.quotientImageHom ∘ g))
+      step2-equiv = commRingPath→boolRingEquiv
+                      (freeBA ℕ QB./Im (⊎.rec f g))
+                      ((freeBA ℕ QB./Im f) QB./Im (fst QB.quotientImageHom ∘ g))
+                      (BoolQuotientEquiv (freeBA ℕ) f g)
 
-    π-rec-sends-h-to-0 : (n : ℕ) → π-rec $cr (h n) ≡ BooleanRingStr.𝟘 (snd rec-quotient)
-    π-rec-sends-h-to-0 n =
-      π-rec $cr (h n)
-        ≡⟨ cong (π-rec $cr_) (sym (rec-of-decode n)) ⟩
-      π-rec $cr ((⊎.rec f₀ g) (decode n))
-        ≡⟨ QB.zeroOnImage {B = freeBA ℕ} {f = ⊎.rec f₀ g} (decode n) ⟩
-      BooleanRingStr.𝟘 (snd rec-quotient) ∎
+      h≡rec∘decode-pointwise : (n : ℕ) → h n ≡ ⊎.rec f g (decode n)
+      h≡rec∘decode-pointwise n with decode n
+      ... | inl m = refl
+      ... | inr m = refl
 
-    step3-forward-hom : BoolHom h-quotient rec-quotient
-    step3-forward-hom = QB.inducedHom {B = freeBA ℕ} {f = h} rec-quotient π-rec π-rec-sends-h-to-0
+      rec-quotient : BooleanRing ℓ-zero
+      rec-quotient = freeBA ℕ QB./Im (⊎.rec f g)
 
-    rec-eq-h-encode : (x : ℕ ⊎ ℕ) → (⊎.rec f₀ g) x ≡ h (encode x)
-    rec-eq-h-encode x =
-      (⊎.rec f₀ g) x
-        ≡⟨ cong (⊎.rec f₀ g) (sym (Iso.ret ℕ⊎ℕ≅ℕ x)) ⟩
-      (⊎.rec f₀ g) (decode (encode x))
-        ≡⟨ rec-of-decode (encode x) ⟩
-      h (encode x) ∎
+      h-quotient : BooleanRing ℓ-zero
+      h-quotient = freeBA ℕ QB./Im h
 
-    π-h-sends-rec-to-0 : (x : ℕ ⊎ ℕ) → π-h $cr ((⊎.rec f₀ g) x) ≡ BooleanRingStr.𝟘 (snd h-quotient)
-    π-h-sends-rec-to-0 x =
-      π-h $cr ((⊎.rec f₀ g) x)
-        ≡⟨ cong (π-h $cr_) (rec-eq-h-encode x) ⟩
-      π-h $cr (h (encode x))
-        ≡⟨ QB.zeroOnImage {B = freeBA ℕ} {f = h} (encode x) ⟩
-      BooleanRingStr.𝟘 (snd h-quotient) ∎
+      π-rec : BoolHom (freeBA ℕ) rec-quotient
+      π-rec = QB.quotientImageHom
 
-    step3-backward-hom : BoolHom rec-quotient h-quotient
-    step3-backward-hom = QB.inducedHom {B = freeBA ℕ} {f = ⊎.rec f₀ g} h-quotient π-h π-h-sends-rec-to-0
+      π-h : BoolHom (freeBA ℕ) h-quotient
+      π-h = QB.quotientImageHom
 
-    step3-forward : ⟨ h-quotient ⟩ → ⟨ rec-quotient ⟩
-    step3-forward = fst step3-forward-hom
+      π-rec-sends-h-to-0 : (n : ℕ) → π-rec $cr (h n) ≡ BooleanRingStr.𝟘 (snd rec-quotient)
+      π-rec-sends-h-to-0 n =
+        π-rec $cr (h n)
+          ≡⟨ cong (π-rec $cr_) (h≡rec∘decode-pointwise n) ⟩
+        π-rec $cr ((⊎.rec f g) (decode n))
+          ≡⟨ QB.zeroOnImage {B = freeBA ℕ} {f = ⊎.rec f g} (decode n) ⟩
+        BooleanRingStr.𝟘 (snd rec-quotient) ∎
 
-    step3-backward : ⟨ rec-quotient ⟩ → ⟨ h-quotient ⟩
-    step3-backward = fst step3-backward-hom
+      step3-forward-hom : BoolHom h-quotient rec-quotient
+      step3-forward-hom = QB.inducedHom {B = freeBA ℕ} {f = h} rec-quotient π-rec π-rec-sends-h-to-0
 
-    step3-forward-eval : step3-forward-hom ∘cr π-h ≡ π-rec
-    step3-forward-eval = QB.evalInduce {B = freeBA ℕ} {f = h} rec-quotient
+      rec-eq-h-encode : (x : ℕ ⊎ ℕ) → (⊎.rec f g) x ≡ h (encode x)
+      rec-eq-h-encode x =
+        (⊎.rec f g) x
+          ≡⟨ cong (⊎.rec f g) (sym (Iso.ret ℕ⊎ℕ≅ℕ x)) ⟩
+        (⊎.rec f g) (decode (encode x))
+          ≡⟨ sym (h≡rec∘decode-pointwise (encode x)) ⟩
+        h (encode x) ∎
 
-    step3-backward-eval : step3-backward-hom ∘cr π-rec ≡ π-h
-    step3-backward-eval = QB.evalInduce {B = freeBA ℕ} {f = ⊎.rec f₀ g} h-quotient
+      π-h-sends-rec-to-0 : (x : ℕ ⊎ ℕ) → π-h $cr ((⊎.rec f g) x) ≡ BooleanRingStr.𝟘 (snd h-quotient)
+      π-h-sends-rec-to-0 x =
+        π-h $cr ((⊎.rec f g) x)
+          ≡⟨ cong (π-h $cr_) (rec-eq-h-encode x) ⟩
+        π-h $cr (h (encode x))
+          ≡⟨ QB.zeroOnImage {B = freeBA ℕ} {f = h} (encode x) ⟩
+        BooleanRingStr.𝟘 (snd h-quotient) ∎
 
-    step3-backward∘forward-on-π : (x : ⟨ freeBA ℕ ⟩) → step3-backward (step3-forward (fst π-h x)) ≡ fst π-h x
-    step3-backward∘forward-on-π x =
-      step3-backward (step3-forward (fst π-h x))
-        ≡⟨ cong step3-backward (cong (λ f → fst f x) step3-forward-eval) ⟩
-      step3-backward (fst π-rec x)
-        ≡⟨ cong (λ f → fst f x) step3-backward-eval ⟩
-      fst π-h x ∎
+      step3-backward-hom : BoolHom rec-quotient h-quotient
+      step3-backward-hom = QB.inducedHom {B = freeBA ℕ} {f = ⊎.rec f g} h-quotient π-h π-h-sends-rec-to-0
 
-    step3-forward∘backward-on-π : (y : ⟨ freeBA ℕ ⟩) → step3-forward (step3-backward (fst π-rec y)) ≡ fst π-rec y
-    step3-forward∘backward-on-π y =
-      step3-forward (step3-backward (fst π-rec y))
-        ≡⟨ cong step3-forward (cong (λ f → fst f y) step3-backward-eval) ⟩
-      step3-forward (fst π-h y)
-        ≡⟨ cong (λ f → fst f y) step3-forward-eval ⟩
-      fst π-rec y ∎
+      step3-forward : ⟨ h-quotient ⟩ → ⟨ rec-quotient ⟩
+      step3-forward = fst step3-forward-hom
 
-    step3-iso : Iso ⟨ h-quotient ⟩ ⟨ rec-quotient ⟩
-    Iso.fun step3-iso = step3-forward
-    Iso.inv step3-iso = step3-backward
-    Iso.sec step3-iso = funExt⁻ (QB.quotientImageHomEpi {B = freeBA ℕ} {f = ⊎.rec f₀ g}
-      (⟨ rec-quotient ⟩ , BooleanRingStr.is-set (snd rec-quotient)) (funExt step3-forward∘backward-on-π))
-    Iso.ret step3-iso = funExt⁻ (QB.quotientImageHomEpi {B = freeBA ℕ} {f = h}
-      (⟨ h-quotient ⟩ , BooleanRingStr.is-set (snd h-quotient)) (funExt step3-backward∘forward-on-π))
+      step3-backward : ⟨ rec-quotient ⟩ → ⟨ h-quotient ⟩
+      step3-backward = fst step3-backward-hom
 
-    step3-equiv : BooleanRingEquiv (freeBA ℕ QB./Im h) (freeBA ℕ QB./Im (⊎.rec f₀ g))
-    step3-equiv = isoToEquiv step3-iso , snd step3-forward-hom
+      step3-forward-eval : step3-forward-hom ∘cr π-h ≡ π-rec
+      step3-forward-eval = QB.evalInduce {B = freeBA ℕ} {f = h} rec-quotient
 
-    target : BooleanRing ℓ-zero
-    target = (freeBA ℕ QB./Im f₀) QB./Im α'
+      step3-backward-eval : step3-backward-hom ∘cr π-rec ≡ π-h
+      step3-backward-eval = QB.evalInduce {B = freeBA ℕ} {f = ⊎.rec f g} h-quotient
 
-    π-α' : BoolHom (freeBA ℕ QB./Im f₀) target
-    π-α' = QB.quotientImageHom
+      step3-backward∘forward-on-π : (x : ⟨ freeBA ℕ ⟩) → step3-backward (step3-forward (fst π-h x)) ≡ fst π-h x
+      step3-backward∘forward-on-π x =
+        step3-backward (step3-forward (fst π-h x))
+          ≡⟨ cong step3-backward (cong (λ hom → fst hom x) step3-forward-eval) ⟩
+        step3-backward (fst π-rec x)
+          ≡⟨ cong (λ hom → fst hom x) step3-backward-eval ⟩
+        fst π-h x ∎
 
-    composite-hom : BoolHom BoolBR target
-    composite-hom = π-α' ∘cr (fst (fst equiv) , snd equiv)
+      step3-forward∘backward-on-π : (y : ⟨ freeBA ℕ ⟩) → step3-forward (step3-backward (fst π-rec y)) ≡ fst π-rec y
+      step3-forward∘backward-on-π y =
+        step3-forward (step3-backward (fst π-rec y))
+          ≡⟨ cong step3-forward (cong (λ hom → fst hom y) step3-backward-eval) ⟩
+        step3-forward (fst π-h y)
+          ≡⟨ cong (λ hom → fst hom y) step3-forward-eval ⟩
+        fst π-rec y ∎
 
-    forward-hom : BoolHom (BoolBR QB./Im α) target
-    forward-hom = QB.inducedHom target composite-hom (λ n → QB.zeroOnImage {f = α'} n)
+      step3-iso : Iso ⟨ h-quotient ⟩ ⟨ rec-quotient ⟩
+      Iso.fun step3-iso = step3-forward
+      Iso.inv step3-iso = step3-backward
+      Iso.sec step3-iso = funExt⁻ (QB.quotientImageHomEpi {B = freeBA ℕ} {f = ⊎.rec f g}
+        (⟨ rec-quotient ⟩ , BooleanRingStr.is-set (snd rec-quotient)) (funExt step3-forward∘backward-on-π))
+      Iso.ret step3-iso = funExt⁻ (QB.quotientImageHomEpi {B = freeBA ℕ} {f = h}
+        (⟨ h-quotient ⟩ , BooleanRingStr.is-set (snd h-quotient)) (funExt step3-backward∘forward-on-π))
 
-    source : BooleanRing ℓ-zero
-    source = BoolBR QB./Im α
+      step3-equiv' : BooleanRingEquiv h-quotient rec-quotient
+      step3-equiv' = isoToEquiv step3-iso , snd step3-forward-hom
 
-    equiv⁻¹-hom : BoolHom (freeBA ℕ QB./Im f₀) BoolBR
-    equiv⁻¹-hom = fst (fst (invBooleanRingEquiv BoolBR (freeBA ℕ QB./Im f₀) equiv)) ,
-                  snd (invBooleanRingEquiv BoolBR (freeBA ℕ QB./Im f₀) equiv)
+      target-ring : BooleanRing ℓ-zero
+      target-ring = (freeBA ℕ QB./Im f) QB./Im d'
 
-    π-α : BoolHom BoolBR source
-    π-α = QB.quotientImageHom
+      equiv-hom : BoolHom (fst B) (freeBA ℕ QB./Im f)
+      equiv-hom = fst (fst equiv) , snd equiv
 
-    backward-composite : BoolHom (freeBA ℕ QB./Im f₀) source
-    backward-composite = π-α ∘cr equiv⁻¹-hom
+      π-d' : BoolHom (freeBA ℕ QB./Im f) target-ring
+      π-d' = QB.quotientImageHom
 
-    backward-composite-sends-α'-to-0 : (n : ℕ) → backward-composite $cr (α' n) ≡ BooleanRingStr.𝟘 (snd source)
-    backward-composite-sends-α'-to-0 n =
-      π-α $cr (equiv⁻¹-hom $cr (embBR (α n)))
-        ≡⟨ cong (π-α $cr_) (Iso.ret (equivToIso (fst equiv)) (α n)) ⟩
-      π-α $cr (α n)
-        ≡⟨ QB.zeroOnImage {f = α} n ⟩
-      BooleanRingStr.𝟘 (snd source) ∎
+      composite-hom-1 : BoolHom (fst B) target-ring
+      composite-hom-1 = π-d' ∘cr equiv-hom
 
-    backward-hom : BoolHom target source
-    backward-hom = QB.inducedHom source backward-composite backward-composite-sends-α'-to-0
+      composite-sends-d-to-0 : (n : ℕ) → composite-hom-1 $cr (d n) ≡ BooleanRingStr.𝟘 (snd target-ring)
+      composite-sends-d-to-0 n = QB.zeroOnImage {f = d'} n
 
-    forward-eval : forward-hom ∘cr π-α ≡ composite-hom
-    forward-eval = QB.evalInduce {B = BoolBR} {f = α} target
+      step1-forward-hom : BoolHom B/d target-ring
+      step1-forward-hom = QB.inducedHom target-ring composite-hom-1 composite-sends-d-to-0
 
-    backward-eval : backward-hom ∘cr π-α' ≡ backward-composite
-    backward-eval = QB.evalInduce {B = freeBA ℕ QB./Im f₀} {f = α'} source
+      π-d : BoolHom (fst B) B/d
+      π-d = QB.quotientImageHom
 
-    backward∘forward-on-π : (x : Bool) → fst backward-hom (fst forward-hom (fst π-α x)) ≡ fst π-α x
-    backward∘forward-on-π x =
-      fst backward-hom (fst forward-hom (fst π-α x))
-        ≡⟨ cong (fst backward-hom) (cong (λ h → fst h x) forward-eval) ⟩
-      fst backward-hom (fst composite-hom x)
-        ≡⟨ cong (λ h → fst h (embBR x)) backward-eval ⟩
-      fst π-α (fst equiv⁻¹-hom (embBR x))
-        ≡⟨ cong (fst π-α) (Iso.ret (equivToIso (fst equiv)) x) ⟩
-      fst π-α x ∎
+      equiv⁻¹-hom : BoolHom (freeBA ℕ QB./Im f) (fst B)
+      equiv⁻¹-hom = fst (fst (invBooleanRingEquiv (fst B) (freeBA ℕ QB./Im f) equiv)) ,
+                    snd (invBooleanRingEquiv (fst B) (freeBA ℕ QB./Im f) equiv)
 
-    forward∘backward-on-π : (y : ⟨ freeBA ℕ QB./Im f₀ ⟩) → fst forward-hom (fst backward-hom (fst π-α' y)) ≡ fst π-α' y
-    forward∘backward-on-π y =
-      fst forward-hom (fst backward-hom (fst π-α' y))
-        ≡⟨ cong (fst forward-hom) (cong (λ h → fst h y) backward-eval) ⟩
-      fst forward-hom (fst backward-composite y)
-        ≡⟨ cong (λ h → fst h (fst equiv⁻¹-hom y)) forward-eval ⟩
-      fst π-α' (embBR (fst equiv⁻¹-hom y))
-        ≡⟨ cong (fst π-α') (Iso.sec (equivToIso (fst equiv)) y) ⟩
-      fst π-α' y ∎
+      backward-composite-1 : BoolHom (freeBA ℕ QB./Im f) B/d
+      backward-composite-1 = π-d ∘cr equiv⁻¹-hom
 
-    step1-iso : Iso ⟨ source ⟩ ⟨ target ⟩
-    Iso.fun step1-iso = fst forward-hom
-    Iso.inv step1-iso = fst backward-hom
-    Iso.sec step1-iso = funExt⁻ (QB.quotientImageHomEpi {B = freeBA ℕ QB./Im f₀} {f = α'}
-      (⟨ target ⟩ , BooleanRingStr.is-set (snd target)) (funExt forward∘backward-on-π))
-    Iso.ret step1-iso = funExt⁻ (QB.quotientImageHomEpi {B = BoolBR} {f = α}
-      (⟨ source ⟩ , BooleanRingStr.is-set (snd source)) (funExt backward∘forward-on-π))
+      backward-composite-sends-d'-to-0 : (n : ℕ) → backward-composite-1 $cr (d' n) ≡ BooleanRingStr.𝟘 (snd B/d)
+      backward-composite-sends-d'-to-0 n =
+        π-d $cr (equiv⁻¹-hom $cr (fst (fst equiv) (d n)))
+          ≡⟨ cong (π-d $cr_) (Iso.ret (equivToIso (fst equiv)) (d n)) ⟩
+        π-d $cr (d n)
+          ≡⟨ QB.zeroOnImage {f = d} n ⟩
+        BooleanRingStr.𝟘 (snd B/d) ∎
 
-    open IsCommRingHom
+      step1-backward-hom : BoolHom target-ring B/d
+      step1-backward-hom = QB.inducedHom B/d backward-composite-1 backward-composite-sends-d'-to-0
 
-    α'≡π₀∘g-pointwise : (n : ℕ) → α' n ≡ π₀ (g n)
-    α'≡π₀∘g-pointwise n with α n
-    ... | true  = pres1 (snd equiv) ∙ sym (pres1 (snd QB.quotientImageHom))
-    ... | false = pres0 (snd equiv) ∙ sym (pres0 (snd QB.quotientImageHom))
+      step1-forward-fun : ⟨ B/d ⟩ → ⟨ target-ring ⟩
+      step1-forward-fun = fst step1-forward-hom
 
-    A' = BoolBR QB./Im α
-    B' = (freeBA ℕ QB./Im f₀) QB./Im (π₀ ∘ g)
+      step1-backward-fun : ⟨ target-ring ⟩ → ⟨ B/d ⟩
+      step1-backward-fun = fst step1-backward-hom
 
-    equivToPresentation : BooleanRingEquiv (BoolBR QB./Im α) (freeBA ℕ QB./Im h)
-    equivToPresentation = compBoolRingEquiv A' rec-quotient h-quotient
-      (compBoolRingEquiv A' B' rec-quotient
-        (subst (λ f → BooleanRingEquiv A' ((freeBA ℕ QB./Im f₀) QB./Im f))
-               (funExt α'≡π₀∘g-pointwise)
-               (isoToEquiv step1-iso , snd forward-hom))
-        (invBooleanRingEquiv rec-quotient B' step2-equiv))
-      (invBooleanRingEquiv h-quotient rec-quotient step3-equiv)
+      step1-forward-eval : step1-forward-hom ∘cr π-d ≡ composite-hom-1
+      step1-forward-eval = QB.evalInduce {B = fst B} {f = d} target-ring
+
+      step1-backward-eval : step1-backward-hom ∘cr π-d' ≡ backward-composite-1
+      step1-backward-eval = QB.evalInduce {B = freeBA ℕ QB./Im f} {f = d'} B/d
+
+      equiv⁻¹∘equiv≡id : (x : ⟨ fst B ⟩) → fst equiv⁻¹-hom (fst (fst equiv) x) ≡ x
+      equiv⁻¹∘equiv≡id = Iso.ret (equivToIso (fst equiv))
+
+      equiv∘equiv⁻¹≡id : (y : ⟨ freeBA ℕ QB./Im f ⟩) → fst (fst equiv) (fst equiv⁻¹-hom y) ≡ y
+      equiv∘equiv⁻¹≡id = Iso.sec (equivToIso (fst equiv))
+
+      step1-backward∘forward-on-π : (x : ⟨ fst B ⟩) → step1-backward-fun (step1-forward-fun (fst π-d x)) ≡ fst π-d x
+      step1-backward∘forward-on-π x =
+        step1-backward-fun (step1-forward-fun (fst π-d x))
+          ≡⟨ cong step1-backward-fun (cong (λ hom → fst hom x) step1-forward-eval) ⟩
+        step1-backward-fun (fst composite-hom-1 x)
+          ≡⟨ cong (λ hom → fst hom (fst (fst equiv) x)) step1-backward-eval ⟩
+        fst π-d (fst equiv⁻¹-hom (fst (fst equiv) x))
+          ≡⟨ cong (fst π-d) (equiv⁻¹∘equiv≡id x) ⟩
+        fst π-d x ∎
+
+      step1-forward∘backward-on-π : (y : ⟨ freeBA ℕ QB./Im f ⟩) →
+                                     step1-forward-fun (step1-backward-fun (fst π-d' y)) ≡ fst π-d' y
+      step1-forward∘backward-on-π y =
+        step1-forward-fun (step1-backward-fun (fst π-d' y))
+          ≡⟨ cong step1-forward-fun (cong (λ hom → fst hom y) step1-backward-eval) ⟩
+        step1-forward-fun (fst backward-composite-1 y)
+          ≡⟨ cong (λ hom → fst hom (fst equiv⁻¹-hom y)) step1-forward-eval ⟩
+        fst π-d' (fst (fst equiv) (fst equiv⁻¹-hom y))
+          ≡⟨ cong (fst π-d') (equiv∘equiv⁻¹≡id y) ⟩
+        fst π-d' y ∎
+
+      step1-iso : Iso ⟨ B/d ⟩ ⟨ target-ring ⟩
+      Iso.fun step1-iso = step1-forward-fun
+      Iso.inv step1-iso = step1-backward-fun
+      Iso.sec step1-iso = funExt⁻ (QB.quotientImageHomEpi {B = freeBA ℕ QB./Im f} {f = d'}
+        (⟨ target-ring ⟩ , BooleanRingStr.is-set (snd target-ring)) (funExt step1-forward∘backward-on-π))
+      Iso.ret step1-iso = funExt⁻ (QB.quotientImageHomEpi {B = fst B} {f = d}
+        (⟨ B/d ⟩ , BooleanRingStr.is-set (snd B/d)) (funExt step1-backward∘forward-on-π))
+
+      step1-equiv : BooleanRingEquiv B/d target-ring
+      step1-equiv = isoToEquiv step1-iso , snd step1-forward-hom
+
+      step1-equiv' : BooleanRingEquiv B/d ((freeBA ℕ QB./Im f) QB./Im (fst QB.quotientImageHom ∘ g))
+      step1-equiv' = subst (λ seq → BooleanRingEquiv B/d ((freeBA ℕ QB./Im f) QB./Im seq))
+                       (funExt (λ n → sym (g-is-section n))) step1-equiv
+
+      B'-seq : BooleanRing ℓ-zero
+      B'-seq = (freeBA ℕ QB./Im f) QB./Im (fst QB.quotientImageHom ∘ g)
+
+      invStep2-seq : BooleanRingEquiv B'-seq rec-quotient
+      invStep2-seq = invBooleanRingEquiv rec-quotient B'-seq step2-equiv
+
+      invStep3-seq : BooleanRingEquiv rec-quotient h-quotient
+      invStep3-seq = invBooleanRingEquiv h-quotient rec-quotient step3-equiv'
+
+      step12-seq : BooleanRingEquiv B/d rec-quotient
+      step12-seq = compBoolRingEquiv B/d B'-seq rec-quotient step1-equiv' invStep2-seq
+
+      B/d-equiv : BooleanRingEquiv B/d (freeBA ℕ QB./Im h)
+      B/d-equiv = compBoolRingEquiv B/d rec-quotient h-quotient step12-seq invStep3-seq
+
+quotientPreservesBooleω : (α : binarySequence) → ∥ has-Boole-ω' (BoolBR QB./Im α) ∥₁
+quotientPreservesBooleω α = quotientBySeqHasBooleω Bool-Booleω α
 
 2/α-Booleω : (α : binarySequence) → Booleω
 2/α-Booleω α = (BoolBR QB./Im α) , quotientPreservesBooleω α
@@ -347,42 +405,6 @@ LocalChoiceAxiom = (B : Booleω) (P : Sp B → Type ℓ-zero)
 postulate
   localChoice-axiom : LocalChoiceAxiom
 
--- Dependent Choice axiom (tex line 324, AxDependentChoice)
-
-SeqLimit : (E : ℕ → Type ℓ-zero) → ((n : ℕ) → E (suc n) → E n) → Type ℓ-zero
-SeqLimit E p = Σ[ f ∈ ((n : ℕ) → E n) ] ((n : ℕ) → p n (f (suc n)) ≡ f n)
-
-seqLim-proj₀ : (E : ℕ → Type ℓ-zero) (p : (n : ℕ) → E (suc n) → E n)
-             → SeqLimit E p → E 0
-seqLim-proj₀ E p (f , _) = f 0
-
-DependentChoiceAxiom : Type (ℓ-suc ℓ-zero)
-DependentChoiceAxiom = (E : ℕ → Type ℓ-zero) (p : (n : ℕ) → E (suc n) → E n)
-  → ((n : ℕ) → (y : E n) → ∥ Σ[ x ∈ E (suc n) ] p n x ≡ y ∥₁)
-  → (e₀ : E 0) → ∥ Σ[ s ∈ SeqLimit E p ] seqLim-proj₀ E p s ≡ e₀ ∥₁
-
-postulate
-  dependentChoice-axiom : DependentChoiceAxiom
-
-CountableChoiceAxiom : Type (ℓ-suc ℓ-zero)
-CountableChoiceAxiom = (A : ℕ → Type ℓ-zero)
-  → ((n : ℕ) → ∥ A n ∥₁)
-  → ∥ ((n : ℕ) → A n) ∥₁
-
-countableChoice : CountableChoiceAxiom
-countableChoice A witnesses = PT.map (λ { ((f , _) , _) n → snd (f (suc n)) })
-    (dependentChoice-axiom E p p-surj tt)
-  where
-  E : ℕ → Type ℓ-zero
-  E zero = Unit
-  E (suc n) = E n × A n
-
-  p : (n : ℕ) → E (suc n) → E n
-  p n (e , _) = e
-
-  p-surj : (n : ℕ) → (y : E n) → ∥ Σ[ x ∈ E (suc n) ] p n x ≡ y ∥₁
-  p-surj n y = PT.map (λ a → (y , a) , refl) (witnesses n)
-
 mp : MarkovPrinciple
 mp = mp-from-SD sd-axiom
 
@@ -392,9 +414,6 @@ mp = mp-from-SD sd-axiom
 -- Markov principle for ℕ∞ elements (tex Theorem after NotWLPO, line 500)
 ℕ∞-Markov : (α : ℕ∞) → ¬ ((n : ℕ) → fst α n ≡ false) → Σ[ n ∈ ℕ ] fst α n ≡ true
 ℕ∞-Markov α = mp (fst α)
-
-postulate
-  llpo : LLPO
 
 data Reveal_·_is_ {A : Type₀} {B : A → Type₀} (f : (x : A) → B x) (x : A) (y : B x) : Type₀ where
   [_] : f x ≡ y → Reveal f · x is y
@@ -501,164 +520,6 @@ firstTrue-false-but-original-true α (suc n) ft-sn=f α-sn=t with α zero | insp
 ... | false | _ =
   let (m , m<n , αsm=t) = firstTrue-false-but-original-true (α ∘ suc) n ft-sn=f α-sn=t
   in suc m , suc-≤-suc m<n , αsm=t
-
-closedDeMorgan : (P Q : hProp ℓ-zero) → isClosedProp P → isClosedProp Q
-               → ¬ ((¬ ⟨ P ⟩) × (¬ ⟨ Q ⟩)) → ∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁
-closedDeMorgan P Q Pclosed Qclosed ¬¬P∧¬Q = PT.rec2 squash₁ go Pclosed Qclosed
-  where
-  go : Σ[ α ∈ binarySequence ] ⟨ P ⟩ ↔ ((n : ℕ) → α n ≡ false)
-     → Σ[ β ∈ binarySequence ] ⟨ Q ⟩ ↔ ((n : ℕ) → β n ≡ false)
-     → ∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁
-  go (α , P→∀α , ∀α→P) (β , Q→∀β , ∀β→Q) =
-    let
-        δ₀ : binarySequence
-        δ₀ = interleave α β
-
-        δ : binarySequence
-        δ = firstTrue δ₀
-
-        δ-hamo : hitsAtMostOnce δ
-        δ-hamo = firstTrue-hitsAtMostOnce δ₀
-
-        δ∞ : ℕ∞
-        δ∞ = δ , δ-hamo
-
-        llpo-result : ∥ ((k : ℕ) → δ (2 ·ℕ k) ≡ false) ⊎ ((k : ℕ) → δ (suc (2 ·ℕ k)) ≡ false) ∥₁
-        llpo-result = llpo δ∞
-
-    in PT.rec squash₁ helper llpo-result
-    where
-    module _ where
-      open WF.WFI (<-wellfounded)
-
-      ResultOdd : ℕ → Type₀
-      ResultOdd n = interleave α β n ≡ true
-                  → ((k : ℕ) → firstTrue (interleave α β) (2 ·ℕ k) ≡ false)
-                  → Σ[ m ∈ ℕ ] (isEvenB m ≡ false) × (β (half m) ≡ true)
-
-      find-first-true-odd-step : (n : ℕ) → ((m : ℕ) → m < n → ResultOdd m) → ResultOdd n
-      find-first-true-odd-step n rec δ₀-n=t allEvensF with firstTrue (interleave α β) n =B true
-      ... | yes ft-n=t with isEvenB n =B true
-      ...   | yes n-even =
-              ex-falso (true≢false (sym (subst (λ x → firstTrue (interleave α β) x ≡ true)
-                                          (sym (2·half-even n n-even)) ft-n=t)
-                                    ∙ allEvensF (half n)))
-      ...   | no n-odd =
-              let odd-eq = ¬true→false (isEvenB n) n-odd
-              in n , odd-eq , sym (interleave-odd α β n odd-eq) ∙ δ₀-n=t
-      find-first-true-odd-step n rec δ₀-n=t allEvensF | no ft-n≠t =
-        let (m , m<n , δ₀-m=t) = firstTrue-false-but-original-true (interleave α β) n
-                                    (¬true→false (firstTrue (interleave α β) n) ft-n≠t) δ₀-n=t
-        in rec m m<n δ₀-m=t allEvensF
-
-      find-first-true-odd : (n : ℕ) → ResultOdd n
-      find-first-true-odd = induction find-first-true-odd-step
-
-    allEvensF-implies-P : ((k : ℕ) → firstTrue (interleave α β) (2 ·ℕ k) ≡ false) → ⟨ P ⟩
-    allEvensF-implies-P allEvensF = closedIsStable P Pclosed ¬¬P
-      where
-      ¬¬P : ¬ ¬ ⟨ P ⟩
-      ¬¬P ¬p =
-        let (k , αk=t) = mp α (λ all-false → ¬p (∀α→P all-false))
-            (m , m-odd , βj=t) = find-first-true-odd (2 ·ℕ k) (interleave-2k α β k ∙ αk=t) allEvensF
-        in ¬¬P∧¬Q (¬p , λ q → false≢true (sym (Q→∀β q (half m)) ∙ βj=t))
-
-    module _ where
-      open WF.WFI (<-wellfounded)
-
-      ResultEven : ℕ → Type₀
-      ResultEven n = interleave α β n ≡ true
-                   → ((k : ℕ) → firstTrue (interleave α β) (suc (2 ·ℕ k)) ≡ false)
-                   → Σ[ m ∈ ℕ ] (isEvenB m ≡ true) × (α (half m) ≡ true)
-
-      find-first-true-even-step : (n : ℕ) → ((m : ℕ) → m < n → ResultEven m) → ResultEven n
-      find-first-true-even-step n rec δ₀-n=t allOddsF with firstTrue (interleave α β) n =B true
-      ... | yes ft-n=t with isEvenB n =B true
-      ...   | yes n-even =
-              n , n-even , sym (interleave-even α β n n-even) ∙ δ₀-n=t
-      ...   | no n-odd =
-              let odd-eq = ¬true→false (isEvenB n) n-odd
-              in ex-falso (true≢false (sym (subst (λ x → firstTrue (interleave α β) x ≡ true)
-                                             (sym (suc-2·half-odd n odd-eq)) ft-n=t)
-                                       ∙ allOddsF (half n)))
-      find-first-true-even-step n rec δ₀-n=t allOddsF | no ft-n≠t =
-        let (m , m<n , δ₀-m=t) = firstTrue-false-but-original-true (interleave α β) n
-                                    (¬true→false (firstTrue (interleave α β) n) ft-n≠t) δ₀-n=t
-        in rec m m<n δ₀-m=t allOddsF
-
-      find-first-true-even : (n : ℕ) → ResultEven n
-      find-first-true-even = induction find-first-true-even-step
-
-    allOddsF-implies-Q : ((k : ℕ) → firstTrue (interleave α β) (suc (2 ·ℕ k)) ≡ false) → ⟨ Q ⟩
-    allOddsF-implies-Q allOddsF = closedIsStable Q Qclosed ¬¬Q
-      where
-      ¬¬Q : ¬ ¬ ⟨ Q ⟩
-      ¬¬Q ¬q =
-        let (k , βk=t) = mp β (λ all-false → ¬q (∀β→Q all-false))
-            (m , m-even , αj=t) = find-first-true-even (suc (2 ·ℕ k)) (interleave-2k+1 α β k ∙ βk=t) allOddsF
-        in ¬¬P∧¬Q ((λ p → false≢true (sym (P→∀α p (half m)) ∙ αj=t)) , ¬q)
-
-    helper : ((k : ℕ) → firstTrue (interleave α β) (2 ·ℕ k) ≡ false)
-           ⊎ ((k : ℕ) → firstTrue (interleave α β) (suc (2 ·ℕ k)) ≡ false)
-           → ∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁
-    helper (inl allEvensF) = ∣ inl (allEvensF-implies-P allEvensF) ∣₁
-    helper (inr allOddsF) = ∣ inr (allOddsF-implies-Q allOddsF) ∣₁
-
-closedOr : (P Q : hProp ℓ-zero) → isClosedProp P → isClosedProp Q
-         → isClosedProp (∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁ , squash₁)
-closedOr P Q Pclosed Qclosed = PT.rec2 squash₁ go Pclosed Qclosed
-  where
-  go : Σ[ αP ∈ binarySequence ] ⟨ P ⟩ ↔ ((n : ℕ) → αP n ≡ false)
-     → Σ[ αQ ∈ binarySequence ] ⟨ Q ⟩ ↔ ((n : ℕ) → αQ n ≡ false)
-     → isClosedProp (∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁ , squash₁)
-  go (αP , P→∀ , ∀→P) (αQ , Q→∀ , ∀→Q) =
-    PT.rec squash₁ go2 ¬P∧¬Qopen
-    where
-    ¬P : hProp ℓ-zero
-    ¬P = (¬ ⟨ P ⟩) , isProp¬ ⟨ P ⟩
-
-    ¬Q : hProp ℓ-zero
-    ¬Q = (¬ ⟨ Q ⟩) , isProp¬ ⟨ Q ⟩
-
-    ¬P∧¬Qopen : isOpenProp (((¬ ⟨ P ⟩) × (¬ ⟨ Q ⟩)) , isProp× (isProp¬ ⟨ P ⟩) (isProp¬ ⟨ Q ⟩))
-    ¬P∧¬Qopen = openAnd ¬P ¬Q (negClosedIsOpen mp P αP (P→∀ , ∀→P)) (negClosedIsOpen mp Q αQ (Q→∀ , ∀→Q))
-
-    go2 : isOpenWitness (((¬ ⟨ P ⟩) × (¬ ⟨ Q ⟩)) , isProp× (isProp¬ ⟨ P ⟩) (isProp¬ ⟨ Q ⟩))
-        → isClosedProp (∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁ , squash₁)
-    go2 (γ , fwd-open , bwd-open) = ∣ γ , forward , backward ∣₁
-      where
-      forward : ∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁ → (n : ℕ) → γ n ≡ false
-      forward P∨Q n with γ n =B true
-      ... | yes γn=t = ex-falso (PT.rec isProp⊥ (helper γn=t) P∨Q)
-        where
-        helper : γ n ≡ true → ⟨ P ⟩ ⊎ ⟨ Q ⟩ → ⊥
-        helper γn=t (inl p) = fst (bwd-open (n , γn=t)) p
-        helper γn=t (inr q) = snd (bwd-open (n , γn=t)) q
-      ... | no γn≠t = ¬true→false (γ n) γn≠t
-
-      backward : ((n : ℕ) → γ n ≡ false) → ∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁
-      backward all-false =
-        closedDeMorgan P Q Pclosed Qclosed ¬¬P∧¬Q
-        where
-        ¬¬P∧¬Q : ¬ ((¬ ⟨ P ⟩) × (¬ ⟨ Q ⟩))
-        ¬¬P∧¬Q (¬p , ¬q) =
-          let (n , γn=t) = fwd-open (¬p , ¬q)
-          in false≢true (sym (all-false n) ∙ γn=t)
-
--- (tex line 716)
-openDeMorgan : (P Q : hProp ℓ-zero) → isOpenProp P → isOpenProp Q
-             → (¬ (⟨ P ⟩ × ⟨ Q ⟩)) ↔ ∥ (¬ ⟨ P ⟩) ⊎ (¬ ⟨ Q ⟩) ∥₁
-openDeMorgan P Q Popen Qopen = forward , backward
-  where
-  forward : ¬ (⟨ P ⟩ × ⟨ Q ⟩) → ∥ (¬ ⟨ P ⟩) ⊎ (¬ ⟨ Q ⟩) ∥₁
-  forward ¬P×Q = closedDeMorgan (¬hProp P) (¬hProp Q) (negOpenIsClosed P Popen) (negOpenIsClosed Q Qopen)
-    (λ (¬¬p , ¬¬q) → ¬P×Q (openIsStable mp P Popen ¬¬p , openIsStable mp Q Qopen ¬¬q))
-
-  backward : ∥ (¬ ⟨ P ⟩) ⊎ (¬ ⟨ Q ⟩) ∥₁ → ¬ (⟨ P ⟩ × ⟨ Q ⟩)
-  backward = PT.rec (isProp¬ _) λ
-    { (inl ¬p) (p , _) → ¬p p
-    ; (inr ¬q) (_ , q) → ¬q q
-    }
 
 closedCountableIntersection : (P : ℕ → hProp ℓ-zero)
                             → ((n : ℕ) → isClosedProp (P n))

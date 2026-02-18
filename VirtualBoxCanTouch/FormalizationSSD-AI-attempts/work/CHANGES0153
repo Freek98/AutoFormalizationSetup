@@ -1,0 +1,25 @@
+CHANGES0153 (from bck0152)
+
+Summary: Proved SigmaCompactHausdorff (tex Lemma 2098), eliminating a postulate.
+
+Changes:
+1. Part11: Replaced postulate SigmaCompactHausdorff with full proof.
+   - isSetΣXY: trivial from isSetΣ
+   - σ-eq-closed: equality in Σ X Y is closed, using:
+     closedEquiv + closedSigmaClosed-derived + PathP↔transport (toPathP/fromPathP)
+   - σ-stoneCover: Stone cover of Σ X Y via localChoice-axiom:
+     (a) For each s ∈ S_X, use Y(q_X s)'s Stone cover + Stone→ClosedInCantor
+         to encode fibers as binary sequences (Type₀)
+     (b) closedFamilyChoice extracts binary sequence witnesses
+     (c) localChoice-axiom over Sp(B_X) produces Dlc : Booleω with φ : Sp Dlc → Sp B_X
+     (d) Product Stone space: Sp Dlc × CantorSpace via StoneProduct
+     (e) Closed subset: {(t,γ) | enc(t,γ,n) = false ∀n}
+     (f) total-Stone via ClosedInStoneIsStone product-Stone C-pred C-closed
+     (g) Surjection proof uses transportTransport⁻ and ΣPathP + toPathP
+   - Added CHausΣ : (X : CHaus) → (Y : fst X → CHaus) → CHaus convenience wrapper
+   - New imports: Cubical.Foundations.Equiv (equivFun, invEq, retEq),
+     StoneProductModule, ClosedSigmaClosedDerived, CantorIsStoneModule,
+     ClosedInStoneIsStoneModule (ClosedInStoneIsStone, closedFamilyChoice)
+
+Line count: 6980 (was 6806 in bck0152, +174 from SigmaCompactHausdorff proof)
+Full chain Part20 compiles: YES
