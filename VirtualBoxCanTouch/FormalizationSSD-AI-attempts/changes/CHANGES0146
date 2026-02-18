@@ -65,3 +65,9 @@ closedFamilyChoice (Part09).
 New postulates: H¹-vanishes-Interval (Part14).
 
 Full chain verification: SUCCESS (Part01 through Part20).
+
+---
+[Parallel branch: SSD reorganization]
+Pre-reorganization backup of current work/ directory before beginning
+the reorganization into a new directory structure matching the tex file sections.
+No code changes in the reorganization branch at this point.

@@ -14,3 +14,12 @@ Changes since bck0148 (8791 lines → 8803 lines, +12 lines):
 Postulates eliminated: ODiscPropIsOpen (1 this backup, 2 total since bck0147).
 
 Full chain verification: SUCCESS (bck0148 verified, bck0149 only Part07 change).
+
+---
+[Parallel branch: SSD reorganization]
+Added SSD modules: Spectrum.agda, StoneExamples.agda, ClosedPropSpectrum.agda,
+StoneEqualityClosed.agda, StoneProperties.agda, StoneAsClosedCantor.agda.
+Module chain: Preliminaries → Axioms → OpenClosed → Algebra → Bool2Presentation
+→ NormalForms → Spectrum → StoneExamples → ClosedPropSpectrum
+→ StoneEqualityClosed → StoneProperties → StoneAsClosedCantor.
+Pattern: module WithAxiomsXXX (axioms : Axioms) where.

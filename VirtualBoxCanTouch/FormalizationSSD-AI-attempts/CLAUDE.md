@@ -5,10 +5,12 @@
 4. If a function can be deleted and nothing anywhere breaks down, it should be deleted **unless** it is mentioned in monolithic.tex as a result (theorem,proposition, proof).
 4. Almost all comments are useless, as they are not written in agda. They can go. The only useful comments are those that state that a specific theorem (which is proven in agda, not in comments) can be found somewhere in the tex file. 
 5. You should check if some functions already exist in cubical library somewhere. If they do, clean them up. 
-6. You should continue on formalizing as much of monolithic.tex as possible. 
-7. You should keep working, and never ask for permissions, if you run out of context, you should return to this file and use your backups. 
-8. If possible, give your files names corresponding to the instrunctions. So follow the text of the instrunctions above or the paper. 
-
+6. I also want you to organize the agda files according to the tex file. Create a new directory, with folders named after the sections of the tex file. 
+9. You should also reorgnaize the given library into this directory. Copy code and make sure it does not import anything from the library. 
+10. Also don't use postulates, but modules over the axioms in this new directory. 
+11. You should continue on formalizing as much of monolithic.tex as possible. 
+12. You should keep working, and never ask for permissions, if you run out of context, you should return to this file and use your backups. 
+13. If possible, give your files names corresponding to the instrunctions. So follow the text of the instrunctions above or the paper. 
 
 
 ## STRICT PROHIBITIONS

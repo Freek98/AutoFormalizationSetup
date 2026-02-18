@@ -17,3 +17,8 @@ Changes since bck0147 (8742 lines → 8791 lines, +49 lines):
 Postulates eliminated: PropOpenIffOdisc (1 total).
 
 Full chain verification: PENDING (background task).
+
+---
+[Parallel branch: SSD reorganization]
+Added SSD/StoneDuality/Algebra.agda and SSD/StoneDuality/Bool2Presentation.agda.
+Fixed OpenClosed.agda compilation issues. All SSD files compile.

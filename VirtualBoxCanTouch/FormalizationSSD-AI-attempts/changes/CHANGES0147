@@ -16,3 +16,12 @@ Changes since bck0146 (8704 lines → 8742 lines, +38 lines):
 Postulates eliminated: isODisc (definition), isProp-isODisc, ODiscBool, ODiscNat (4 total).
 
 Full chain verification: PENDING (background task).
+
+---
+[Parallel branch: SSD reorganization]
+Created new SSD/ directory structure matching tex sections:
+- SSD/Library/: All 19 library files copied with adjusted module names
+- SSD/StoneDuality/Preliminaries.agda: Basic definitions
+- SSD/StoneDuality/Axioms.agda: Axioms record type + WithAxioms module
+Key design: Axioms defined as a record type instead of postulates.
+All files compile successfully.
