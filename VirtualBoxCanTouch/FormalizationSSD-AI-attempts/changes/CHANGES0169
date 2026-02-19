@@ -1,0 +1,21 @@
+CHANGES0169 — ODiscSurjFromN proved
+
+Changes since bck0168 (Part07: 1070→1121, +51 lines):
+
+1. Part07 (1070→1121, +51 lines):
+   - PROVED ODiscSurjFromN: ODisc inhabited types have a surjection from ℕ.
+     Type changed from `isODisc A → ∥ Σ e ... ∥₁` to `isODisc A → ∥ A ∥₁ → ∥ Σ e ... ∥₁`
+     (extra ∥ A ∥₁ hypothesis needed because empty types are ODisc but have no ℕ → A function).
+     Proof strategy:
+     1) Unwrap isODisc to get (S, finS, equiv : SeqColim S ≃ A) and a₀ : A
+     2) Use countableChoice to get concrete equivalences equivs : (n) → obj S n ≃ Fin kₙ
+     3) Build enum : ℕ → A via ℕ×ℕ≅ℕ pairing: unpair to (n,j), then lookupFin
+        using invEq (equivs n) (fromℕ j) when kₙ > 0, else default a₀
+     4) Surjectivity: given a, lift invEq equiv a via SeqColim→Prop to get (n, x, p),
+        then pair (n, toℕ (equivFun (equivs n) x)) maps back to a via fromℕ-toℕ roundtrip
+   - Added helper: fromℕ-toℕ : fromℕ (toℕ x) ≡ x for SumFin (not in library)
+   - Added imports: retEq, fromℕ, ⊥/⊥-rec, ℕ×ℕ≅ℕ
+
+Postulates eliminated: ODiscSurjFromN (1 this backup).
+
+Full chain verification: SUCCESS.

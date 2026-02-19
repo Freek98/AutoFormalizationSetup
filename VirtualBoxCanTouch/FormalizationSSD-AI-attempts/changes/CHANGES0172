@@ -1,0 +1,31 @@
+CHANGES0172 — OdiscPath postulate eliminated
+
+Changes since bck0171 (Part07: 1242→1291, +49 lines):
+
+1. Part07 (1242→1291, +49 lines):
+   - ELIMINATED OdiscPath postulate (tex Lemma 1184, identity types).
+   - Proof strategy: show a ≡ b is an open proposition, then use PropOpenIffOdisc.
+   - Openness proved via encode-decode machinery from SCSet module:
+     * For incl x₁ at level n₁ and incl x₂ at level n₂, set N = n₁ +ℕ n₂.
+     * a₀ = subst (obj S) (+-comm n₂ n₁) (sh n₂ x₁) at level N.
+     * b₀ = sh n₁ x₂ at level N.
+     * EncDec with base point a₀ gives Code family on SeqColim S.
+     * Path incl x₁ ≡ incl x₂ is equivalent to ∥ Σ j. sh j a₀ ≡ sh j b₀ ∥₁.
+     * Each level is decidable (isFinSet→Discrete on finite sets).
+     * Countable union of decidable props is open (openCountableUnion).
+   - Key helpers:
+     * inclS: local alias for incl to anchor Sequence resolution.
+     * incl-tr: path incl x ≡ incl (subst (obj S) p x) via J.
+     * oii: openness proof for incl-incl case.
+     * sc-open: extends to all SeqColim points via SeqColim→Prop.
+   - Multiple explicit type annotations needed for Agda type inference:
+     * {C = pathSeq {0} b₀} and {B = ...} for SeqColim→Prop in fwd.
+     * {k = 0} for codeβ (Agda can't solve k +ℕ N = N).
+     * {B = ...} for outer SeqColim→Prop in sc-open.
+
+Postulates eliminated: OdiscPath (1 this backup).
+Part07 remaining postulates: 5 (BooleIsODisc, OdiscSigma,
+  ODiscBAareBoole, ODiscClosedUnderSequentialColimits,
+  ImageStoneMapDecidableIntersection).
+
+Full chain verification: pending.

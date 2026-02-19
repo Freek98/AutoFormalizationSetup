@@ -1,8 +1,73 @@
-CHANGES0146 — Pre-reorganization backup
+CHANGES0146 — Major formalization progress (accumulated from multiple sessions post-0145)
 
-Backup of current work/ directory before beginning the reorganization
-into a new directory structure matching the tex file sections.
+Changes since bck0145 (6433 lines → 8704 lines, +2271 lines):
 
-No code changes. This is a safety backup.
+The increase reflects substantial new formalization work across multiple sessions,
+including proving several postulates, new module implementations, and tex reference updates.
 
-Total: 6433 lines (same as bck0145).
+1. Part07 (269→942, +673 lines):
+   - PROVED booleω-equality-open (was postulate): equality in Booleω Boolean algebras is open
+   - Proof uses FreeBooleanRing term evaluation, decidability of finite-variable Boolean terms,
+     and Stone duality's SDHomVersion to lift decidability from generators
+   - Added SpectrumEmptyIff01Equal: 0=1 ↔ ¬Sp(B) (tex Lemma 406)
+   - Added ODisc axiom postulates with comprehensive tex label references:
+     lemDecompositionOfColimitMorphisms (933), lemDecompositionOfEpiMonoFactorization (939),
+     decompositionInjectionSurjectionOfOdisc (1134), decompositionBooleMaps (1486),
+     ProFiniteMapsFactorization (1540), StoneAreProfinite (1520), ScottFiniteCodomain (1558),
+     scott-continuity (1590), ODiscClosedUnderSequentialColimits, ImageStoneMapDecidableIntersection
+
+2. Part11 (479→1831, +1352 lines):
+   - PROVED CHausFiniteIntersectionProperty (was postulate)
+   - PROVED CompactHausdorffTopology (open/closed set operations)
+   - Added StoneProduct (product of Stone spaces is Stone) via CantorPair
+   - Added closedFamilyChoice derivation and CHaus topology infrastructure
+   - Imported from Part09's closedFamilyChoice for the FIP proof
+
+3. Part09 (606→845, +239 lines):
+   - PROVED closedFamilyChoice from localChoice-axiom (was postulate)
+   - Proof uses Stone duality + quotient ring + ideal membership + decidable image intersection
+   - Added max-related monotonicity helpers for finJoinBR
+
+4. Part08 (444→207, -237 lines):
+   - Moved quotientBySeqHasBooleω and related infrastructure to Part02
+   - Kept only core ClosedBySequenceModule content
+
+5. Part02 (886→770, -116 lines):
+   - Received quotientBySeqHasBooleω (formerly in Part08)
+   - Updated tex references: DependentChoiceAxiom (355, axDependentChoice),
+     LocalChoiceSurjectionForm (394)
+   - Restructured quotientPreservesBooleω
+
+6. Part06 (55→227, +172 lines):
+   - Added closedDeMorgan proof (tex Lemma 760): ¬(¬P × ¬Q) → ∥ P ⊎ Q ∥₁ for closed P,Q
+   - Uses LLPO + interleave/firstTrue infrastructure from Part01
+
+7. Part10 (122→234, +112 lines):
+   - Added StoneProductModule: product of Stone spaces is Stone
+   - CantorPair bijection (pairCantor, unpairL, unpairR with section/retraction proofs)
+
+8. Part14 (433→499, +66 lines):
+   - DERIVED CechEilenberg0Agree (tex Lemma 2912): H⁰(X,A) = Ȟ⁰(X,S,A)
+   - Added tex comments for: eilenberg-exact (2921), cech-exact (2932),
+     finite-approximation-surjection-stone (2843), stone-commute-delooping (2895),
+     description-Cn-simn (2963), Cn-exact-sequence (2973), cohomology-I (2991)
+   - Added H¹-vanishes-Interval postulate
+
+9. Part01 (278→282, +4 lines): minor additions
+10. Part20 (27→33, +6 lines): minor additions
+11. Part09: tex Lemma 1824 (StoneSeperated) reference added
+12. Part11: stone-sigma-closed label added
+13. Part12: tex Definition 2251 (def-cs-Interval) reference added
+
+Postulates eliminated: booleω-equality-open (Part07), CHausFiniteIntersectionProperty (Part11),
+closedFamilyChoice (Part09).
+
+New postulates: H¹-vanishes-Interval (Part14).
+
+Full chain verification: SUCCESS (Part01 through Part20).
+
+---
+[Parallel branch: SSD reorganization]
+Pre-reorganization backup of current work/ directory before beginning
+the reorganization into a new directory structure matching the tex file sections.
+No code changes in the reorganization branch at this point.

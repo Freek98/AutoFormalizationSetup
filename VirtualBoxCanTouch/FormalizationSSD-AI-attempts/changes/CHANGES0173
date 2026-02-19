@@ -1,0 +1,34 @@
+CHANGES0173 — ODiscClosedUnderSequentialColimits postulate eliminated
+
+Changes since bck0172 (Part07: 1291→1457, +166 lines):
+
+1. Part07 (1291→1457, +166 lines):
+   - ELIMINATED ODiscClosedUnderSequentialColimits postulate
+     (tex Lemma 1160: countable coproducts of ODisc types are ODisc).
+   - Proof strategy: anti-diagonal construction.
+     * Given (Sn : ℕ → Sequence) with all levels finite,
+       build diagonal sequence T where DiagObj k = Σ[ n ∈ ℕ ] (n ≤ k) × obj (Sn n) (k ∸ n).
+     * diagMap preserves the ℕ component (no PathP issues).
+     * SeqColim T ≃ Σ ℕ (SeqColim ∘ Sn) via forward/backward maps with push coherence.
+   - FinSeqData encoding to work around universe level issues:
+     * countableChoice works at ℓ-zero, but isODisc data lives at ℓ-suc ℓ-zero.
+     * FinSeqData B = Σ[ sz ∈ (ℕ → ℕ) ] Σ[ fmp ∈ (...) ] SeqColim (mkFinSeq sz fmp) ≃ B
+       encodes sequence data at Type ℓ-zero using Fin (sz m) as objects.
+     * isODisc→FinSeqData: extracts Fin equivalences via inner countableChoice,
+       builds SequenceIso via retEq, converts to colimit equivalence via
+       sequenceEquiv→ColimIso from library.
+   - Finiteness proof via Fin equivalence:
+     * DiagObjFin k = Σ[ i ∈ Fin (suc k) ] obj (Sn (toℕ i)) (k ∸ toℕ i)
+     * Explicit Iso between DiagObj k and DiagObjFin k using toℕ/fromℕ.
+     * EquivPresIsFinSet transfers finiteness across the equivalence.
+   - Set-ness proofs using isSetSeqColimOfSets (proved in bck0171).
+   - Key helpers: suc∸≤', incl-tr', toℕ-fromℕ≤, toℕ≤k, substCancel.
+   - Push coherences (bwd-push, sec, ret) use isProp→PathP with set-ness.
+   - Explicit {B = λ i → n ≤ q i} annotation needed for isProp→PathP in
+     bwd-fwd-incl (Agda can't infer type family over ≤-∸-+-cancel path).
+
+Postulates eliminated: ODiscClosedUnderSequentialColimits (1 this backup).
+Part07 remaining postulates: 4 (BooleIsODisc, OdiscSigma,
+  ODiscBAareBoole, ImageStoneMapDecidableIntersection).
+
+Full chain verification: SUCCESS.

@@ -1,18 +1,24 @@
-CHANGES0148 — SSD reorganization progress: Algebra + Bool2Presentation
+CHANGES0148 — isPropSeqColimProp and PropOpenIffOdisc proved
 
-Added compiling SSD modules:
-- SSD/StoneDuality/Algebra.agda: B∞ construction, direct products,
-  Bool², SpB∞-to-ℕ∞ map (from Part03, ~140 lines)
-- SSD/StoneDuality/Bool2Presentation.agda: Bool² presentation as quotient,
-  Sp-Bool²≃Bool, f: B∞ → B∞×B∞ morphism, normal forms, parity split
-  (from Part04, ~635 lines)
+Changes since bck0147 (8742 lines → 8791 lines, +49 lines):
 
-Fixed OpenClosed.agda compilation issues:
-- Moved local imports (isPropDec) to top-level
-- Added ⊎ qualifier for Sum import
-- Removed where-block imports
+1. Part07 (980→1029, +49 lines):
+   - PROVED isPropSeqColimProp: sequential colimits of propositions are propositions.
+     Key insight: given a point at level n, all maps from n onward are equivalences
+     (between inhabited propositions), so converges→ColimIso gives SeqColim S ≃ obj S n.
+     Uses SeqColim→Prop (target isPropIsProp is a prop) + propBiimpl→Equiv for map equivs.
+   - PROVED PropOpenIffOdisc (tex Lemma 1302 forward direction): open propositions are ODisc.
+     Proof constructs a sequence S where obj S n = (anyTrue α n ≡ true), a decidable prop.
+     Uses isDecProp→isFinSet for finiteness, extractWitness for forward map,
+     α-true→anyTrue for backward map, isPropSeqColimProp for retraction coherence.
+   - Added imports: SeqColim→Prop, isDecProp→isFinSet, _or_, _≟_, isOfHLevelRespectEquiv,
+     equivFun, invEq, _+ℕ_ (renamed from Agda.Builtin.Nat._+_ to avoid ring ambiguity)
 
-All SSD files compile successfully. Module chain:
-  Preliminaries → Axioms → OpenClosed → Algebra → Bool2Presentation
+Postulates eliminated: PropOpenIffOdisc (1 total).
 
-No changes to existing work/ files.
+Full chain verification: PENDING (background task).
+
+---
+[Parallel branch: SSD reorganization]
+Added SSD/StoneDuality/Algebra.agda and SSD/StoneDuality/Bool2Presentation.agda.
+Fixed OpenClosed.agda compilation issues. All SSD files compile.

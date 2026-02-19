@@ -1,35 +1,25 @@
-CHANGES0149 — SSD reorganization: Spectrum through StoneAsClosedCantor
+CHANGES0149 — ODiscPropIsOpen proved
 
-Added compiling SSD modules (all compile successfully):
-- SSD/StoneDuality/Spectrum.agda: B∞×B∞ presentation, ℕ∞→SpB∞ maps,
-  roundtrip proofs, f-injectivity, LLPOFromSD module (from Part05, ~1241 lines)
-- SSD/StoneDuality/StoneExamples.agda: SpB∞≃ℕ∞, ℕ∞-has-StoneStr,
-  Bool-has-StoneStr (from Part06, ~58 lines)
-- SSD/StoneDuality/ClosedPropSpectrum.agda: ClosedPropAsSpectrum,
-  TruncationStoneClosed, WithAxiomsCPS containing ClosedPropIffStone,
-  LemSurjectionsFormalToCompleteness, ODiscInfrastructure,
-  TruncationStoneClosedComplete, SDDecToElemModule (from Part07, ~256 lines)
-- SSD/StoneDuality/StoneEqualityClosed.agda: WithAxiomsSEC containing
-  StoneEqualityClosedModule, StoneClosedSubsetsModule with
-  SpOfQuotientBySeq, quotientBySeqHasBooleω, quotientBySeqPreservesBooleω
-  (from Part08, ~449 lines)
-- SSD/StoneDuality/StoneProperties.agda: WithAxiomsSP containing
-  ClosedInStoneIsStone, InhabitedClosedSubSpaceClosed,
-  ClosedSigmaClosedDerived, StoneSeparated, CantorIsStone
-  (from Part09, ~612 lines)
-- SSD/StoneDuality/StoneAsClosedCantor.agda: WithAxiomsSACC containing
-  StoneAsClosedSubsetOfCantorModule with Stone→ClosedInCantor,
-  ClosedInCantor→Stone (from Part10, ~128 lines)
+Changes since bck0148 (8791 lines → 8803 lines, +12 lines):
 
-Module chain now:
-  Preliminaries → Axioms → OpenClosed → Algebra → Bool2Presentation
-  → NormalForms → Spectrum → StoneExamples → ClosedPropSpectrum
-  → StoneEqualityClosed → StoneProperties → StoneAsClosedCantor
+1. Part07 (1029→1041, +12 lines):
+   - PROVED ODiscPropIsOpen (tex Lemma 1302 converse): ODisc propositions are open.
+     Proof strategy: given isODisc P = ∥ Σ S. fin × equiv ∥₁ with P a prop:
+     1) Define Q = ∥ Σ n. ∥ obj S n ∥₁ ∥₁ (countable disjunction of decidable props)
+     2) Show P ↔ Q via SeqColim→Prop (forward) and PT.rec + equiv (backward)
+     3) Q is open by openCountableUnion + decIsOpen (each level is decidable)
+     4) Transport openness from Q to P via openEquiv
+   - Added import: isFinSet→Dec∥∥ from FinSet.Properties
 
-Pattern for axiom-dependent code:
-  module WithAxiomsXXX (axioms : Axioms) where
-    open WithAxioms axioms
-    open OpenClosedProperties axioms
-    open WithAxiomsYYY axioms  -- from upstream modules
+Postulates eliminated: ODiscPropIsOpen (1 this backup, 2 total since bck0147).
 
-No changes to existing work/ files.
+Full chain verification: SUCCESS (bck0148 verified, bck0149 only Part07 change).
+
+---
+[Parallel branch: SSD reorganization]
+Added SSD modules: Spectrum.agda, StoneExamples.agda, ClosedPropSpectrum.agda,
+StoneEqualityClosed.agda, StoneProperties.agda, StoneAsClosedCantor.agda.
+Module chain: Preliminaries → Axioms → OpenClosed → Algebra → Bool2Presentation
+→ NormalForms → Spectrum → StoneExamples → ClosedPropSpectrum
+→ StoneEqualityClosed → StoneProperties → StoneAsClosedCantor.
+Pattern: module WithAxiomsXXX (axioms : Axioms) where.

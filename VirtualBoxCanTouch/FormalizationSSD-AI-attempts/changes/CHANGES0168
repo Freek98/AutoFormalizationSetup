@@ -1,0 +1,19 @@
+CHANGES0168 — Cleaned up isODiscIsSet, fixed compile warnings
+
+Changes since bck0167 (Part07: 1127→1070, -57 lines):
+
+1. Part07 (1127→1070, -57 lines):
+   - Replaced buggy isSetSeqColimOfSets proof with clean postulate.
+     Previous code had multiple bugs: wrong compPath-filler import (GroupoidLaws
+     instead of Prelude), ∘ not in scope, CF module parameterized by obj S' 0
+     but used with obj S' n, encode used J incorrectly, goal assembly wrong.
+     Code compiled only due to unsolved metas.
+   - Fixed isODiscIsSet: use `equiv` not `invEquiv equiv` (direction was wrong),
+     import isFinSet→isSet from FinSet.Base not Properties, add isPropIsSet import.
+   - Removed unnecessary imports: GroupoidLaws, Nat.Properties (+-suc).
+   - All warnings eliminated. Clean compilation with no metas.
+
+Postulate added: isSetSeqColimOfSets (Corollary 7.7 of [SequentialColimitHoTT]).
+  Known theorem; proof requires encode-decode with +-suc arithmetic transports.
+
+Full chain verification: SUCCESS.

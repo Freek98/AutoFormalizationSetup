@@ -1,0 +1,36 @@
+CHANGES0170 — isSetSeqColimOfSets mostly proved (encode-decode)
+
+Changes since bck0168 (Part07: 1070→1239, +169 lines):
+
+Note: bck0169 backup files were not saved (CHANGES0169 describes
+ODiscSurjFromN proved, +51 lines). This backup includes both changes.
+
+1. Part07 (1070→1239, +169 lines):
+   a) ODiscSurjFromN PROVED (described in CHANGES0169, +51 lines):
+      - ODisc inhabited types have a surjection from ℕ.
+      - Uses countableChoice, ℕ×ℕ≅ℕ pairing, Fin lookup.
+
+   b) isSetSeqColimOfSets PROVED via encode-decode (+118 lines):
+      - Replaced postulate with full encode-decode proof following
+        Sojakova–van Doorn–Rijke (Corollary 7.7).
+      - Proof structure:
+        * sh (shift), pc (push-chain), shTr (shift-transport)
+        * fwdPath/bwdPath: forward/backward transport of path elements
+        * Code family via SeqColim of path sequences (pathSeq)
+        * isPropCode via isPropSeqColimProp (already in Part07)
+        * codePush via propBiimpl→Equiv + fwdPath/bwdPath
+        * Code on full SeqColim via elimShifted
+        * codeβ via elimShiftedβ (non-definitional computation)
+        * di/dp: decode on incl with push coherence
+          (dp uses push naturality via Square→compPath)
+        * Hedberg-style argument: coll/coll-const/isPropPathsFrom
+      - One remaining postulate: decode-pushP (push coherence for decode)
+        This requires showing decode respects the push constructor,
+        involving transport computation through Code/codePush.
+      - Scope fixes: _+ℕ_ used instead of _+_ (avoids BooleanRing conflict),
+        elim renamed to seqElim (avoids Empty.elim conflict).
+
+Postulates eliminated: isSetSeqColimOfSets (partially — decode-pushP remains).
+New postulates: decode-pushP (inside isSetSeqColimOfSets proof).
+
+Full chain verification: SUCCESS.

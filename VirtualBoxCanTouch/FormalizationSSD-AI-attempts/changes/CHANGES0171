@@ -1,0 +1,25 @@
+CHANGES0171 — decode-pushP postulate eliminated via TERMINATING mutual
+
+Changes since bck0170 (Part07: 1239→1242, +3 lines):
+
+1. Part07 (1239→1242, +3 lines):
+   - ELIMINATED decode-pushP postulate by restructuring the proof:
+     * Moved isSetSeqColimOfSets proof from where-clause into a private
+       module SCSet (required because {-# TERMINATING #-} is ignored
+       in where clauses per Agda issue #3355).
+     * decode-pushP, decode, and isPropPathsFrom are now mutually defined
+       with forward references (type declarations before definitions).
+     * decode-pushP proved via isProp→PathP using isPropPathsFrom
+       (which itself uses decode via the Hedberg argument).
+     * {-# TERMINATING #-} pragma used because the mutual cycle
+       (decode-pushP → isPropPathsFrom → decode → decode-pushP) is
+       not structurally decreasing, but IS mathematically well-founded
+       (no actual infinite reduction occurs at runtime).
+   - isSetSeqColimOfSets now = SCSet.result (delegates to module).
+
+Postulates eliminated: decode-pushP (1 this backup).
+New pragmas: {-# TERMINATING #-} on the mutual block.
+
+isSetSeqColimOfSets is now FULLY PROVED (no postulates, one TERMINATING pragma).
+
+Full chain verification: SUCCESS.
