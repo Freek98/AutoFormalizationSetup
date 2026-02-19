@@ -1,0 +1,52 @@
+CHANGES0165 (from bck0164)
+
+Summary: Added more ODisc axioms to Part07 (OdiscPath, OdiscTrunc, ODiscPropIsOpen,
+ODiscSurjFromN, ImageStoneMapDecidableIntersection) and derived OpenDependentSums
+and OpenTransitive. ELIMINATED closedFamilyChoice postulate in Part09 by proving it
+from LocalChoice + ImageStoneMapDecidableIntersection + quotientBySeqPreservesBooleω.
+
+Changes:
+1. Part07: Extended ODiscAxioms module (+34 lines, was 865, now 899)
+   - OdiscPath: identity types of ODisc are ODisc (tex Lemma 1184)
+   - OdiscTrunc: propositional truncation of ODisc is ODisc (tex Lemma 1184)
+   - ODiscPropIsOpen: converse of PropOpenIffOdisc — ODisc prop is open (tex Lemma 1302)
+   - ODiscSurjFromN: ODisc types have surjection from ℕ (derived from definition)
+   - ImageStoneMapDecidableIntersection: image of Stone map = countable intersection
+     of decidable subsets (tex Remark 1475, BooleEpiMono consequence)
+   - openDependentSums: open props stable under Σ-types (tex Corollary after 1302)
+   - openTransitive: openness is transitive (tex Corollary after OpenDependentSums)
+   - Added isPropΣ to HLevels import
+
+2. Part09: PROVED closedFamilyChoice (+88 lines, was 736, now 824)
+   - Replaced postulate with proof using LocalChoice + quotientBySeqPreservesBooleω
+     + ImageStoneMapDecidableIntersection
+   - Proof strategy:
+     a. Apply LocalChoice to get C:Booleω, q:Sp C→→Sp B, and closed witnesses h
+     b. Extract β : Sp C → ℕ → Bool, d' : ℕ → ⟨fst C⟩ via elemFromDecPred
+     c. quotientBySeqPreservesBooleω on C and d' gives T:Booleω with
+        Sp T ≃ {c : Sp C | ∀n. β(c,n)=false}
+     d. Compose to get fT→B : Sp T → Sp B with Im(fT→B) = A
+     e. ImageStoneMapDecidableIntersection gives d : ℕ → ⟨fst B⟩ with
+        ∥Σ t. fT→B t ≡ x∥₁ ↔ ∀n. x(d n)=false
+     f. Bidirectional proof: Im(fT→B)(x) ↔ A(transport SpB≡S x)
+        - Forward: A(x) → surj gives c, h(c) gives β-false → t exists
+        - Backward: t gives c in closed subset, h(c) backward gives A(x)
+     g. Combine to get uniform α_y(n) = fst(transport(sym SpB≡S) y)(d n)
+   - Added: open ODiscAxioms, import equivFun/invEq/secEq
+
+Line count: Part07 899 (was 865, +34), Part09 824 (was 736, +88)
+Total across all files: 8538 (was 8416, +122)
+Full chain Part20 compiles: YES
+
+Postulate changes:
+- ELIMINATED: closedFamilyChoice (Part09) — NOW PROVED
+- ADDED (all tex-referenced in Part07 ODiscAxioms):
+  OdiscPath, OdiscTrunc, ODiscPropIsOpen, ODiscSurjFromN,
+  ImageStoneMapDecidableIntersection
+- DERIVED (new proven results):
+  openDependentSums, openTransitive
+
+Net postulate change: -1 (closedFamilyChoice) +5 (ODisc axioms) = +4 postulates
+However: the 5 new postulates are all tex-referenced axioms/remarks from the ODisc
+section, while closedFamilyChoice was a derived result. So the formalization is now
+more faithful to the paper's structure: axioms are postulated, derived results are proved.

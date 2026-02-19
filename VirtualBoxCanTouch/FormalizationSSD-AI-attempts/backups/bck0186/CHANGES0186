@@ -1,0 +1,18 @@
+bck0186: COMPILES (Part07 verified). Added colimCompact infrastructure.
+
+New module ColimCompactHelpers (parameterized by Sequence S'):
+  - iterMap : iterate sequence map d times, obj S' n → obj S' (d + n)
+  - inclIter : incl x ≡ incl (iterMap d x) via repeated push
+  - liftTo : lift element to higher stage using n ≤ N
+  - inclLift : incl x ≡ incl (liftTo le x) combining iterMap + J-based subst proof
+  - inStage : every SeqColim element is merely at some stage
+
+New functions:
+  - colimCompactFin : Fin k → SeqColim S' factors through a stage (by induction on k)
+  - colimCompact : A → SeqColim S' factors through a stage for any finite A
+
+Building block for tex Lemma 1160 (ODiscColimOfODisc).
+Uses max/left-≤-max/right-≤-max for combining stages in inductive step.
+Note: right-≤-max has implicit order {n} {m} (swapped vs left-≤-max's {m} {n}).
+
+Line count: 2377 (bck0185) → 2426 (bck0186), +49 lines.

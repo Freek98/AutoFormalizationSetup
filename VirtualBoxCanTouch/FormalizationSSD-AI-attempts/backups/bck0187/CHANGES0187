@@ -1,0 +1,16 @@
+bck0187: COMPILES (Part07 verified). Added iterMap-comp + fixed QuotientConclusions.
+
+ColimCompactHelpers additions:
+  - iterMap-comp : composition of iterMap up to +-assoc transport
+    subst (obj S') (sym (+-assoc d₂ d₁ n)) (iterMap (d₂+d₁) x) ≡ iterMap d₂ (iterMap d₁ x)
+    Proof by induction on d₂, using substCommSlice for suc case.
+
+QuotientConclusions.agda fix:
+  - Added `unfolding quotientCheck` to BoolQuotientEquiv opaque block
+  - Added `--lossy-unification` to OPTIONS (by linter)
+  - The file's source was newer than its interface, causing Agda to recheck it
+    and discover that quotientCheck was opaque in the BoolQuotientEquiv block.
+
+Building toward: separation property for SeqColim of sets → lemDecomp → ODiscColimOfODisc.
+
+Line count: 2426 (bck0186) → 2434 (bck0187), +8 lines.

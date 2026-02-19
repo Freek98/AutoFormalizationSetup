@@ -1,0 +1,16 @@
+bck0184: COMPILES (Part07 verified). Replaced broken ODiscColimOfODisc proof with clean postulate.
+
+Previously (bck0183): ODiscColimOfODisc had a broken diagonal construction with {!!} holes.
+The approach was fundamentally flawed: diagMap only had horizontal transitions (keeping
+row index n fixed), so elements from different rows could never be identified in SeqColim T.
+This made the backward map's push case impossible (needs cross-row identifications).
+
+Now: Clean postulate for tex Lemma 1160 (ODiscClosedUnderSequentialColimits for
+sequential colimits). The correct proof requires lemDecompositionOfColimitMorphisms
+(tex line 933, itself unformalized) + dependent choice + quarter-plane construction.
+
+The diagonal construction DOES work for the coproduct case (Σ ℕ A), which remains
+fully proven as ODiscClosedUnderSequentialColimits (line ~2005).
+
+Line count: 2511 (broken, with holes) → 2366 (compiles, clean postulate).
+Compared to bck0183 (2365 lines): +1 line (comment about what's needed).

@@ -1243,21 +1243,6 @@ module ODiscAxioms where
     iterMap-comp d₁ (suc d₂) {n} x =
       substCommSlice (obj S') (obj S' ∘ suc) (λ _ → map S') (sym (+-assoc d₂ d₁ n)) (iterMap (d₂ +ℕ d₁) x)
       ∙ cong (map S') (iterMap-comp d₁ d₂ x)
-    liftTo-isProp : {n N : ℕ} (le₁ le₂ : n ≤ N) (x : obj S' n) → liftTo le₁ x ≡ liftTo le₂ x
-    liftTo-isProp le₁ le₂ x = cong (λ le → liftTo le x) (isProp≤ le₁ le₂)
-    liftTo-comp : {n m N : ℕ} (le₁ : n ≤ m) (le₂ : m ≤ N) (x : obj S' n)
-      → liftTo le₂ (liftTo le₁ x) ≡ liftTo (≤-trans le₁ le₂) x
-    liftTo-comp {n} (d₁ , p₁) (d₂ , p₂) x =
-      J (λ _ p₂' → liftTo (d₂ , p₂') (liftTo (d₁ , p₁) x) ≡ liftTo (≤-trans (d₁ , p₁) (d₂ , p₂')) x)
-        (J (λ _ p₁' → liftTo (d₂ , refl) (liftTo (d₁ , p₁') x) ≡ liftTo (≤-trans (d₁ , p₁') (d₂ , refl)) x)
-          base p₁) p₂
-      where
-      base : liftTo (d₂ , refl) (liftTo (d₁ , refl) x) ≡ liftTo (≤-trans (d₁ , refl) (d₂ , refl)) x
-      base =
-        transportRefl (iterMap d₂ (subst (obj S') refl (iterMap d₁ x)))
-        ∙ cong (iterMap d₂) (transportRefl (iterMap d₁ x))
-        ∙ sym (iterMap-comp d₁ d₂ x)
-        ∙ liftTo-isProp (d₂ +ℕ d₁ , sym (+-assoc d₂ d₁ n)) (≤-trans (d₁ , refl) (d₂ , refl)) x
   colimCompactFin : (S' : Sequence ℓ-zero) (k : ℕ) (f : Fin k → SeqColim S')
     → ∥ Σ[ N ∈ ℕ ] Σ[ g ∈ (Fin k → obj S' N) ] ((i : Fin k) → incl (g i) ≡ f i) ∥₁
   colimCompactFin S' zero f = ∣ 0 , (λ ()) , (λ ()) ∣₁
@@ -1288,39 +1273,6 @@ module ODiscAxioms where
       xfer : Σ[ N ∈ ℕ ] Σ[ g ∈ (Fin k → obj S' N) ] ((i : Fin k) → incl (g i) ≡ f (invEq eq i))
         → Σ[ N ∈ ℕ ] Σ[ g ∈ (A → obj S' N) ] ((a : A) → incl (g a) ≡ f a)
       xfer (N , g , ok) = N , g ∘ equivFun eq , λ a → ok (equivFun eq a) ∙ cong f (retEq eq a)
-  -- Separation: if stages are sets, incl a ≡ incl b → eventual equality at some stage
-  module ColimSep (S' : Sequence ℓ-zero) (setStages : (n : ℕ) → isSet (obj S' n)) where
-    open ColimCompactHelpers S'
-    open import Cubical.HITs.SetQuotients as SQ using (_/_; [_]; eq/)
-    open import Cubical.HITs.SetQuotients.Properties using (effective)
-    private
-      Carrier = Σ ℕ (obj S')
-      EvEq : Carrier → Carrier → Type
-      EvEq (n , a) (m , b) = ∥ Σ[ N ∈ ℕ ] Σ[ le₁ ∈ n ≤ N ] Σ[ le₂ ∈ m ≤ N ] (liftTo le₁ a ≡ liftTo le₂ b) ∥₁
-      isPropEvEq : BinaryRelation.isPropValued EvEq
-      isPropEvEq _ _ = squash₁
-      open BinaryRelation EvEq using (isEquivRel)
-      isEquivRelEvEq : isEquivRel
-      isEquivRelEvEq = BinaryRelation.equivRel refl' sym' trans' where
-        refl' : BinaryRelation.isRefl EvEq
-        refl' (n , a) = ∣ n , ≤-refl , ≤-refl , refl ∣₁
-        sym' : BinaryRelation.isSym EvEq
-        sym' _ _ = PT.map λ (N , le₁ , le₂ , p) → N , le₂ , le₁ , sym p
-        trans' : BinaryRelation.isTrans EvEq
-        trans' (n , a) (m , b) (k , c) = PT.rec2 squash₁ λ
-          (N₁ , le₁ , le₂ , p₁) (N₂ , le₃ , le₄ , p₂) →
-          let l≤ = left-≤-max {N₁} {N₂}
-              r≤ = right-≤-max {N₂} {N₁}
-          in ∣ max N₁ N₂ , ≤-trans le₁ l≤ , ≤-trans le₄ r≤ ,
-               sym (liftTo-comp le₁ l≤ a) ∙ cong (liftTo l≤) p₁ ∙ liftTo-comp le₂ l≤ b
-               ∙ liftTo-isProp _ _ b
-               ∙ sym (liftTo-comp le₃ r≤ b) ∙ cong (liftTo r≤) p₂ ∙ liftTo-comp le₄ r≤ c ∣₁
-      fwd : SeqColim S' → Carrier SQ./ EvEq
-      fwd (incl {n} x) = SQ.[ n , x ]
-      fwd (push {n} x i) = eq/ (n , x) (suc n , map S' x) ∣ suc n , ≤-sucℕ , ≤-refl , refl ∣₁ i
-    colimSeparation : {n m : ℕ} (a : obj S' n) (b : obj S' m) → incl a ≡ incl b
-      → ∥ Σ[ N ∈ ℕ ] Σ[ le₁ ∈ n ≤ N ] Σ[ le₂ ∈ m ≤ N ] (liftTo le₁ a ≡ liftTo le₂ b) ∥₁
-    colimSeparation a b p = effective isPropEvEq isEquivRelEvEq _ _ (cong fwd p)
   isFinSet-freeBA-Fin : (k : ℕ) → isFinSet ⟨ freeBA (DF.Fin k) ⟩
   isFinSet-freeBA-Fin k = EquivPresIsFinSet (invEquiv total-equiv) isFinSetTarget where
     open import Cubical.Foundations.Equiv.Properties using (preCompEquiv)

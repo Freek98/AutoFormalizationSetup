@@ -1,0 +1,21 @@
+CHANGES0177 — genBound.lem postulate eliminated (liftTerm approach)
+
+Changes since bck0176 (Part07: 1691→1691, +0 lines net):
+
+1. Part07 ODiscInfrastructure (modified ~20 lines, same line count):
+   - PROVED genBound.lem (was inner postulate in genBound function).
+   - Strategy: instead of showing ι-inc(m) ∘ π-proj(m) = id on bounded terms
+     (which caused OOM due to double ring hom pres+ unfolding), we:
+     a. Define liftTerm: lifts freeBATerms(ℕ) to freeBATerms(Fin m) when
+        maxGenT(t) ≤ m, by replacing Tvar k with Tvar (k, proof)
+     b. Prove ι-on-liftTerm (opaque): ι-inc(m)(include_Fin(liftTerm m t p)) ≡ include_ℕ(t)
+        by term induction, using only ONE ring hom (ι-inc), halving pres+ applications
+     c. genBound now returns liftTerm witness instead of π-proj witness
+   - Fixed implicit arg resolution: explicit {n} {m} for isProp<ᵗ,
+     explicit maxGenT t / maxGenT s for max-≤L / max-≤R (max not invertible).
+
+Net postulate change: eliminated genBound.lem.
+Part07 remaining postulates: 3 top-level (ODiscColimOfODisc, ODiscBAareBoole,
+  ImageStoneMapDecidableIntersection) + 3 inner (mapBN, isFinSetBN, colimEquiv).
+
+Full chain verification: SUCCESS.

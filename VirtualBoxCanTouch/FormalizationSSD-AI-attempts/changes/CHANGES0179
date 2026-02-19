@@ -1,0 +1,26 @@
+CHANGES0179 — isFinSetBN postulate eliminated (isFinSet-BRquot general lemma)
+
+Changes since bck0178 (Part07: 1804→1910, +106 lines):
+
+1. Part07 ODiscAxioms (added ~106 lines):
+   - PROVED isFinSetBN (was inner postulate in quotientFreeBA-isODisc).
+   - New general lemma: isFinSet-BRquot : (B' : BooleanRing) (finB : isFinSet ⟨ B' ⟩)
+     {n : ℕ} (g : DF.Fin n → ⟨ B' ⟩) → isFinSet ⟨ B' /Im g ⟩
+   - Strategy: use isFinSetQuot from Cubical.Data.FinSet.Quotients.
+     a. Define idealRel x y = generatedIdeal(x - y), prove equivR (equiv relation)
+     b. Key insight: generatedIdeal z ↔ z · genJ ≡ z, where genJ = join of generators
+        - fwd: by induction on generatedIdeal (single/zero/add/mul/squash)
+        - bwd: z · genJ ∈ ideal since genJ ∈ ideal (go-in-ideal)
+     c. decR: decidable because disc(z · genJ, z) is decidable (isFinSet→Discrete)
+     d. Apply isFinSetQuot to conclude
+   - Technical challenges solved:
+     - IQ anonymous module params are implicit for constructors (no explicit CR g needed)
+     - BooleanRingStr record projections overloaded → use CRS module for CommRingStr
+     - BooleanAlgebraStr _∧_ conflicts with primIMin → renamed to _·B_
+     - Provided explicit proof terms for ≤-trans in equational chain to resolve metas
+
+Net postulate change: eliminated isFinSetBN.
+Part07 remaining postulates: 3 top-level (ODiscColimOfODisc, ODiscBAareBoole,
+  ImageStoneMapDecidableIntersection) + 2 inner (mapBN, colimEquiv).
+
+Full chain verification: SUCCESS.

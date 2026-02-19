@@ -1,0 +1,24 @@
+CHANGES0180 — mapBN transition map implemented (BN(n) → BN(suc n))
+
+Changes since bck0179 (Part07: 1910→1963, +53 lines):
+
+1. Part07 ODiscAxioms (added ~53 lines):
+   - PROVED mapBN : (n : ℕ) → ⟨ BN n ⟩ → ⟨ BN (suc n) ⟩
+     (was inner postulate in quotientFreeBA-isODisc).
+   - Strategy: compose πQ ∘ π-proj(M(suc n)) ∘ ι-inc(M(n)) and use QB.inducedHom.
+     a. M(n): monotone bound function (max of generator indices for first n+1 relations)
+     b. M-step/M-mono-go/M-mono': monotonicity infrastructure for M
+     c. choice-le: each generator index ≤ M(i), via right-≤-max
+     d. mapBN via QB.inducedHom with g = quotientImageHom ∘cr π-proj(M(n+1)) ∘cr ι-inc(M(n))
+     e. gfx=0 proof: uses ιπι-retract to show retraction, then QB.zeroOnImage
+   - Technical fixes:
+     - right-≤-max: only need {m = ...} (Agda infers {n} from context)
+     - <ᵗ→< needs explicit {n = k} to resolve meta in j' definition
+     - M-mono' termination: ℕ helper M-mono-go avoids Σ structural decrease issue
+     - _+ℕ_ renamed import to avoid ambiguity with BooleanRing _+_
+
+Net postulate change: eliminated mapBN.
+Part07 remaining postulates: 3 top-level (ODiscColimOfODisc, ODiscBAareBoole,
+  ImageStoneMapDecidableIntersection) + 1 inner (colimEquiv).
+
+Full chain verification: PENDING.

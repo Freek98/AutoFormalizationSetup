@@ -1,0 +1,30 @@
+CHANGES0176 — quotientFreeBA-isODisc proved (modular, from ODiscColimOfODisc)
+
+Changes since bck0175 (Part07: 1569→1646, +77 lines):
+
+1. Part07 ODiscInfrastructure (added ~38 lines):
+   - Added genBound infrastructure for tex Lemma 1396 (BooleIsODisc):
+     * ι-inc: inclusion BoolHom freeBA(Fin m) → freeBA ℕ
+     * π-on-gen / π-proj: projection BoolHom freeBA ℕ → freeBA(Fin m)
+     * maxGenT: extract max generator index from freeBATerms
+     * genBound: every element of freeBA ℕ is truncatedly in the image of some ι-inc m
+       (inner postulate: lem — ι(π(include(t))) = include(t) for bounded terms)
+
+2. Part07 ODiscAxioms (modified ~39 lines):
+   - PROVED quotientFreeBA-isODisc (was top-level postulate).
+   - Proof structure:
+     a. Use countableChoice to get bounds for all relations simultaneously
+     b. Define M(n) = monotone bound function
+     c. Define sequence BN: level n = freeBA(Fin(M n)) /Im (first n+1 projected relations)
+     d. Apply ODiscColimOfODisc + isODisc-equiv with colimit equivalence
+   - Three focused inner postulates remain:
+     * mapBN: the map BN(n) → BN(n+1) (via inclusion through quotient)
+     * isFinSetBN: each level is finite (from SD + quotient of finite BA)
+     * colimEquiv: colimit of BN ≃ freeBA ℕ /Im f
+
+Net postulate change: eliminated quotientFreeBA-isODisc (top-level),
+  added 4 focused inner postulates (genBound.lem, mapBN, isFinSetBN, colimEquiv).
+Part07 remaining top-level postulates: 3 (ODiscColimOfODisc, ODiscBAareBoole,
+  ImageStoneMapDecidableIntersection).
+
+Full chain verification: SUCCESS.

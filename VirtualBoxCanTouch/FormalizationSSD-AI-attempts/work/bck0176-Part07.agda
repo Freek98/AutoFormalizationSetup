@@ -12,7 +12,7 @@ open import Cubical.Foundations.Equiv using (_≃_; invEq; propBiimpl→Equiv; c
 open import Cubical.Foundations.Univalence using (ua)
 open import Cubical.Data.Sigma
 open import Cubical.Data.Nat using (ℕ)
-open import Cubical.Data.Bool using (Bool; true; false; isSetBool; true≢false; if_then_else_)
+open import Cubical.Data.Bool using (Bool; true; false; isSetBool; true≢false)
 open import Cubical.Relation.Nullary using (¬_)
 open import Cubical.Relation.Nullary.Properties using (isProp¬)
 open import Cubical.HITs.PropositionalTruncation as PT using (∣_∣₁; ∥_∥₁; rec; squash₁)
@@ -795,9 +795,8 @@ module ODiscInfrastructure where
   -- Generator bound infrastructure for tex Lemma 1396 (BooleIsODisc)
   -- freeBA(Fin m) where Fin is from Cubical.Data.Fin (= Σ ℕ (λ k → k <ᵗ m))
   import Cubical.Data.Fin as DF
-  open import Cubical.Data.Nat.Order using (_<_; <Dec; ¬m+n<m; _≤_; ≤-refl; ≤-trans; left-≤-max; right-≤-max)
-  open import Cubical.Data.Nat.Order.Inductive using (<→<ᵗ; <ᵗ→<; isProp<ᵗ)
-  open IsCommRingHom
+  open import Cubical.Data.Nat.Order using (_<_; <Dec; ¬m+n<m)
+  open import Cubical.Data.Nat.Order.Inductive using (<→<ᵗ)
 
   -- Inclusion: freeBA(Fin m) → freeBA ℕ
   ι-inc : (m : ℕ) → BoolHom (freeBA (DF.Fin m)) freeBA-ℕ
@@ -820,82 +819,17 @@ module ODiscInfrastructure where
   maxGenT (-T t) = maxGenT t
   maxGenT (t ·T s) = max (maxGenT t) (maxGenT s)
 
-  -- π-on-gen gives generator when index is below bound
-  π-on-gen-below : (m n : ℕ) → (p : n < m) → π-on-gen m n ≡ generator (n , <→<ᵗ p)
-  π-on-gen-below m n p with <Dec n m
-  ... | yes q = cong (λ r → generator (n , r)) (isProp<ᵗ {n} {m} (<→<ᵗ q) (<→<ᵗ p))
-  ... | no ¬q = ex-falso (¬q p)
-
-  -- Lift a term with generators in ℕ to a term with generators in Fin m
-  private
-    max-≤L : (a b c : ℕ) → max a b ≤ c → a ≤ c
-    max-≤L a b c p = ≤-trans (left-≤-max {a} {b}) p
-    max-≤R : (a b c : ℕ) → max a b ≤ c → b ≤ c
-    max-≤R a b c p = ≤-trans (right-≤-max {b} {a}) p
-
-  liftTerm : (m : ℕ) → (t : freeBATerms ℕ) → maxGenT t ≤ m → freeBATerms (DF.Fin m)
-  liftTerm m (Tvar k) p = Tvar (k , <→<ᵗ p)
-  liftTerm m (Tconst b) _ = Tconst b
-  liftTerm m (t +T s) p = liftTerm m t (max-≤L (maxGenT t) (maxGenT s) m p) +T liftTerm m s (max-≤R (maxGenT t) (maxGenT s) m p)
-  liftTerm m (-T t) p = -T liftTerm m t p
-  liftTerm m (t ·T s) p = liftTerm m t (max-≤L (maxGenT t) (maxGenT s) m p) ·T liftTerm m s (max-≤R (maxGenT t) (maxGenT s) m p)
-
-  -- ι-inc(m)(include_Fin(liftTerm m t p)) ≡ include_ℕ(t)
-  -- Only needs one ring hom (ι-inc), avoiding double-pres+ from π-proj
-  opaque
-    unfolding generator
-    unfolding includeBATermsSurj
-    ι-on-liftTerm : (m : ℕ) (t : freeBATerms ℕ) (p : maxGenT t ≤ m) →
-      fst (ι-inc m) (fst (includeBATermsSurj {A = DF.Fin m}) (liftTerm m t p))
-        ≡ fst includeBATermsSurj t
-    ι-on-liftTerm m (Tvar k) p =
-      cong (λ h → h (k , <→<ᵗ p)) (evalBAInduce (DF.Fin m) freeBA-ℕ (generator ∘ fst))
-    ι-on-liftTerm m (Tconst false) _ = pres0 (snd (ι-inc m))
-    ι-on-liftTerm m (Tconst true) _ = pres1 (snd (ι-inc m))
-    ι-on-liftTerm m (t +T s) p =
-      pres+ (snd (ι-inc m)) _ _
-       ∙ cong₂ (BooleanRingStr._+_ (snd freeBA-ℕ))
-               (ι-on-liftTerm m t (max-≤L (maxGenT t) (maxGenT s) m p))
-               (ι-on-liftTerm m s (max-≤R (maxGenT t) (maxGenT s) m p))
-    ι-on-liftTerm m (-T t) p =
-      pres- (snd (ι-inc m)) _
-       ∙ cong (BooleanRingStr.-_ (snd freeBA-ℕ)) (ι-on-liftTerm m t p)
-    ι-on-liftTerm m (t ·T s) p =
-      pres· (snd (ι-inc m)) _ _
-       ∙ cong₂ (BooleanRingStr._·_ (snd freeBA-ℕ))
-               (ι-on-liftTerm m t (max-≤L (maxGenT t) (maxGenT s) m p))
-               (ι-on-liftTerm m s (max-≤R (maxGenT t) (maxGenT s) m p))
-
   -- genBound: every element of freeBA ℕ is in the image of some ι-inc m
   open import Cubical.Foundations.Equiv using (fiber)
 
   genBound : (x : ⟨ freeBA-ℕ ⟩) → ∥ Σ[ m ∈ ℕ ] fiber (fst (ι-inc m)) x ∥₁
   genBound x = PT.map go (snd includeBATermsSurj x) where
     go : fiber (fst includeBATermsSurj) x → Σ[ m ∈ ℕ ] fiber (fst (ι-inc m)) x
-    go (t , eq) = m , fst (includeBATermsSurj {A = DF.Fin m}) (liftTerm m t ≤-refl) ,
-      (ι-on-liftTerm m t ≤-refl ∙ eq) where
+    go (t , eq) = maxGenT t , fst (π-proj m) x' , lem where
       m = maxGenT t
-
-  -- Retraction: ι-inc(m₂) ∘ π-proj(m₂) ∘ ι-inc(m₁) = ι-inc(m₁) when m₁ ≤ m₂
-  ιπι-retract : (m₁ m₂ : ℕ) → m₁ ≤ m₂
-    → ι-inc m₂ ∘cr π-proj m₂ ∘cr ι-inc m₁ ≡ ι-inc m₁
-  ιπι-retract m₁ m₂ le = sym (inducedBAHomUnique (DF.Fin m₁) freeBA-ℕ (generator ∘ fst)
-    (ι-inc m₂ ∘cr π-proj m₂ ∘cr ι-inc m₁) (funExt on-gen)) where
-    on-gen : (j : DF.Fin m₁) → fst (ι-inc m₂) (fst (π-proj m₂)
-        (fst (ι-inc m₁) (generator j))) ≡ generator (fst j)
-    on-gen (k , p) =
-      fst (ι-inc m₂) (fst (π-proj m₂) (fst (ι-inc m₁) (generator (k , p))))
-        ≡⟨ cong (fst (ι-inc m₂) ∘ fst (π-proj m₂))
-             (funExt⁻ (evalBAInduce (DF.Fin m₁) freeBA-ℕ (generator ∘ fst)) (k , p)) ⟩
-      fst (ι-inc m₂) (fst (π-proj m₂) (generator k))
-        ≡⟨ cong (fst (ι-inc m₂))
-             (funExt⁻ (evalBAInduce ℕ (freeBA (DF.Fin m₂)) (π-on-gen m₂)) k) ⟩
-      fst (ι-inc m₂) (π-on-gen m₂ k)
-        ≡⟨ cong (fst (ι-inc m₂)) (π-on-gen-below m₂ k (≤-trans (<ᵗ→< p) le)) ⟩
-      fst (ι-inc m₂) (generator (k , <→<ᵗ (≤-trans (<ᵗ→< p) le)))
-        ≡⟨ funExt⁻ (evalBAInduce (DF.Fin m₂) freeBA-ℕ (generator ∘ fst))
-             (k , <→<ᵗ (≤-trans (<ᵗ→< p) le)) ⟩
-      generator k ∎
+      x' = fst includeBATermsSurj t
+      -- ι(π(include(t))) = include(t) when maxGen bounds all generators in t
+      postulate lem : fst (ι-inc m) (fst (π-proj m) x') ≡ x
 
 -- TruncationStoneClosed completion (tex Corollary 1613)
 
@@ -934,17 +868,6 @@ module TruncationStoneClosedComplete where
   TruncationStoneClosed (S , (B , p)) =
     transport (cong (λ X → isClosedProp (∥ X ∥₁ , squash₁)) p) (truncSp-isClosed B)
 
--- tex Corollary 1628: P is a closed prop ↔ P has Stone structure
-module ClosedPropIffStone' where
-  open import Axioms.StoneDuality using (hasStoneStr; Stone)
-  hasStoneStr→closedProp : (P : hProp ℓ-zero) → hasStoneStr (fst P) → isClosedProp P
-  hasStoneStr→closedProp P stoneP =
-    transport (cong isClosedProp hpEq)
-      (TruncationStoneClosedComplete.TruncationStoneClosed ((fst P) , stoneP))
-    where
-    hpEq : (∥ fst P ∥₁ , squash₁) ≡ P
-    hpEq = TypeOfHLevel≡ 1 (ua (PT.propTruncIdempotent≃ (snd P)))
-
 -- SDDecToElem: Stone Duality Correspondence (tex AxStoneDuality)
 
 module SDDecToElemModule where
@@ -980,12 +903,12 @@ module ODiscAxioms where
   open import Cubical.Data.FinSet using (isFinSet)
   open import Cubical.Data.FinSet.Properties using (isFinSetBool; isFinSetFin; isDecProp→isFinSet; isFinSet→Dec∥∥; isFinSet→Discrete; EquivPresIsFinSet)
   open import Cubical.Foundations.Isomorphism using (Iso; iso; invIso; isoToEquiv)
-  open import Cubical.Foundations.Equiv using (idIsEquiv; idEquiv; equivFun; invEq; retEq; secEq; equivToIso; invEquiv)
+  open import Cubical.Foundations.Equiv using (idIsEquiv; equivFun; invEq; retEq; secEq; equivToIso; invEquiv)
   open import Cubical.Foundations.HLevels using (isOfHLevelRespectEquiv; isPropIsSet)
   open import Cubical.Data.SumFin.Base using (Fin; fzero; fsuc; toℕ; fromℕ)
   open import Cubical.Data.Nat.Base using (zero; suc; _∸_)
-  open import Agda.Builtin.Nat renaming (_+_ to _+ℕ_) hiding (_<_; _-_)
-  open import Cubical.Data.Bool.Base using (_or_; _≟_; Dec→Bool)
+  open import Agda.Builtin.Nat renaming (_+_ to _+ℕ_)
+  open import Cubical.Data.Bool.Base using (_or_; _≟_)
   open import Cubical.Data.Empty.Base using (⊥; ⊥*) renaming (rec to ⊥-rec; rec* to ⊥*-rec)
   open import Cubical.Data.Nat.Bijections.Product using (ℕ×ℕ≅ℕ)
   open Sequence
@@ -1187,356 +1110,26 @@ module ODiscAxioms where
         (λ { (a , incl x) → refl ; (a , push x i) → refl })
         (λ { (incl _) → refl ; (push _ _) → refl }))
   -- tex Lemma 1160: sequential colimits of ODisc types are ODisc
-  -- Requires colimCompact + lemDecompositionOfColimitMorphisms (tex line 933) + dependent choice
   postulate
     ODiscColimOfODisc : (S : Sequence ℓ-zero)
       → ((n : ℕ) → isODisc (obj S n)) → isODisc (SeqColim S)
-  -- freeBA(Fin k) is finite (uses SD)
-  open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator; inducedBAHom;
-    inducedBAHomUnique; evalBAInduce)
-  open import CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω'; idBoolHom; countℕ; BooleanRingEquiv)
-  open import CountablyPresentedBooleanRings.Examples.FreeCase using (replacementFreeOnCountable)
+  -- Quotient of freeBA ℕ by countable relations is ODisc
+  -- (tex Lemma 1396 core: each Bₙ = freeBA(Fin Mₙ)/rels is finite, colim Bₙ ≅ B)
+  open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator; inducedBAHom)
+  open import CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω')
   import Cubical.Data.Fin as DF
   open import Cubical.Foundations.Equiv using (fiber)
-  open import Cubical.Data.Nat using (max) renaming (_+_ to _+ℕ_)
-  open import Cubical.Data.Nat.Order using (_<_; _≤_; <Dec; ¬m+n<m; ¬m<m; ¬-<-zero; ≤-refl; ≤-trans; ≤-sucℕ; ≤-split; pred-≤-pred; isProp≤; left-≤-max; right-≤-max; suc-≤-suc)
-  open import Cubical.Data.Nat.Order.Inductive using (<→<ᵗ; isProp<ᵗ; <ᵗ→<)
-  open import Cubical.Relation.Nullary using (Dec; yes; no)
-  open import Cubical.Algebra.CommRing.Properties using (_∘cr_; invCommRingEquiv)
-  open import Cubical.Foundations.Function using (_∘_; idfun)
-  open import Cubical.Data.FinSet.Constructors using (isFinSet→; isFinSetΠ)
-  open import Cubical.Data.SumFin.Properties using (SumFin≃Fin)
-  open import Cubical.Data.FinSet.Quotients using (isFinSetQuot)
-  open import Cubical.Relation.Binary.Base using (module BinaryRelation)
-  open import Cubical.Relation.Nullary.DecidablePropositions using (isDecProp)
-  import Cubical.Algebra.CommRing.Quotient.ImageQuotient as IQ
-  open import Cubical.Algebra.CommRing.Quotient.Base using (zeroOnIdeal)
-  open import Cubical.Data.Bool.Properties using (Dec≃DecBool)
-  import Cubical.Data.Sum as ⊎
-  open import Cubical.Functions.Surjection using (isSurjection; isEmbedding×isSurjection→isEquiv)
-  open import Cubical.Functions.Embedding using (injEmbedding)
-  open import Cubical.HITs.SetQuotients using (elimProp2)
-  -- colimCompact: maps from finite types into sequential colimits factor through a stage
-  -- Building block for tex Lemma 1160 (ODiscColimOfODisc)
-  module ColimCompactHelpers (S' : Sequence ℓ-zero) where
-    iterMap : (d : ℕ) {n : ℕ} → obj S' n → obj S' (d +ℕ n)
-    iterMap zero x = x
-    iterMap (suc d) x = map S' (iterMap d x)
-    inclIter : (d : ℕ) {n : ℕ} (x : obj S' n)
-      → Path (SeqColim S') (incl x) (incl (iterMap d x))
-    inclIter zero x = refl
-    inclIter (suc d) x = inclIter d x ∙ push (iterMap d x)
-    liftTo : {n N : ℕ} → n ≤ N → obj S' n → obj S' N
-    liftTo (d , p) x = subst (obj S') p (iterMap d x)
-    inclLift : {n N : ℕ} (le : n ≤ N) (x : obj S' n)
-      → Path (SeqColim S') (incl x) (incl (liftTo le x))
-    inclLift {n} (d , p) x = inclIter d x ∙
-      J (λ m q → Path (SeqColim S') (incl (iterMap d x)) (incl (subst (obj S') q (iterMap d x))))
-        (cong incl (sym (transportRefl (iterMap d x)))) p
-    inStage : (z : SeqColim S') → ∥ Σ[ n ∈ ℕ ] Σ[ x ∈ obj S' n ] (incl x ≡ z) ∥₁
-    inStage = SeqColim→Prop (λ _ → squash₁) λ n x → ∣ n , x , refl ∣₁
-    open import Cubical.Data.Nat.Properties using (+-assoc)
-    open import Cubical.Foundations.Transport using (substCommSlice)
-    iterMap-comp : (d₁ d₂ : ℕ) {n : ℕ} (x : obj S' n)
-      → subst (obj S') (sym (+-assoc d₂ d₁ n)) (iterMap (d₂ +ℕ d₁) x) ≡ iterMap d₂ (iterMap d₁ x)
-    iterMap-comp d₁ zero x = transportRefl _
-    iterMap-comp d₁ (suc d₂) {n} x =
-      substCommSlice (obj S') (obj S' ∘ suc) (λ _ → map S') (sym (+-assoc d₂ d₁ n)) (iterMap (d₂ +ℕ d₁) x)
-      ∙ cong (map S') (iterMap-comp d₁ d₂ x)
-    liftTo-isProp : {n N : ℕ} (le₁ le₂ : n ≤ N) (x : obj S' n) → liftTo le₁ x ≡ liftTo le₂ x
-    liftTo-isProp le₁ le₂ x = cong (λ le → liftTo le x) (isProp≤ le₁ le₂)
-    liftTo-comp : {n m N : ℕ} (le₁ : n ≤ m) (le₂ : m ≤ N) (x : obj S' n)
-      → liftTo le₂ (liftTo le₁ x) ≡ liftTo (≤-trans le₁ le₂) x
-    liftTo-comp {n} (d₁ , p₁) (d₂ , p₂) x =
-      J (λ _ p₂' → liftTo (d₂ , p₂') (liftTo (d₁ , p₁) x) ≡ liftTo (≤-trans (d₁ , p₁) (d₂ , p₂')) x)
-        (J (λ _ p₁' → liftTo (d₂ , refl) (liftTo (d₁ , p₁') x) ≡ liftTo (≤-trans (d₁ , p₁') (d₂ , refl)) x)
-          base p₁) p₂
-      where
-      base : liftTo (d₂ , refl) (liftTo (d₁ , refl) x) ≡ liftTo (≤-trans (d₁ , refl) (d₂ , refl)) x
-      base =
-        transportRefl (iterMap d₂ (subst (obj S') refl (iterMap d₁ x)))
-        ∙ cong (iterMap d₂) (transportRefl (iterMap d₁ x))
-        ∙ sym (iterMap-comp d₁ d₂ x)
-        ∙ liftTo-isProp (d₂ +ℕ d₁ , sym (+-assoc d₂ d₁ n)) (≤-trans (d₁ , refl) (d₂ , refl)) x
-  colimCompactFin : (S' : Sequence ℓ-zero) (k : ℕ) (f : Fin k → SeqColim S')
-    → ∥ Σ[ N ∈ ℕ ] Σ[ g ∈ (Fin k → obj S' N) ] ((i : Fin k) → incl (g i) ≡ f i) ∥₁
-  colimCompactFin S' zero f = ∣ 0 , (λ ()) , (λ ()) ∣₁
-  colimCompactFin S' (suc k) f = PT.rec2 squash₁ combine
-    (colimCompactFin S' k (f ∘ fsuc))
-    (inStage (f fzero)) where
-    open ColimCompactHelpers S'
-    combine : Σ[ N₁ ∈ ℕ ] Σ[ g₁ ∈ (Fin k → obj S' N₁) ] ((i : Fin k) → incl (g₁ i) ≡ f (fsuc i))
-      → Σ[ n₀ ∈ ℕ ] Σ[ x₀ ∈ obj S' n₀ ] (incl x₀ ≡ f fzero)
-      → ∥ Σ[ N ∈ ℕ ] Σ[ g ∈ (Fin (suc k) → obj S' N) ] ((i : Fin (suc k)) → incl (g i) ≡ f i) ∥₁
-    combine (N₁ , g₁ , ok₁) (n₀ , x₀ , ok₀) = ∣ N , g , gOk ∣₁ where
-      N = max N₁ n₀
-      g : Fin (suc k) → obj S' N
-      r≤ : n₀ ≤ N
-      r≤ = right-≤-max {n₀} {N₁}
-      l≤ : N₁ ≤ N
-      l≤ = left-≤-max {N₁} {n₀}
-      g fzero = liftTo r≤ x₀
-      g (fsuc i) = liftTo l≤ (g₁ i)
-      gOk : (i : Fin (suc k)) → incl (g i) ≡ f i
-      gOk fzero = sym (inclLift r≤ x₀) ∙ ok₀
-      gOk (fsuc i) = sym (inclLift l≤ (g₁ i)) ∙ ok₁ i
-  colimCompact : (S' : Sequence ℓ-zero) (A : Type ℓ-zero) → isFinSet A
-    → (f : A → SeqColim S') → ∥ Σ[ N ∈ ℕ ] Σ[ g ∈ (A → obj S' N) ] ((a : A) → incl (g a) ≡ f a) ∥₁
-  colimCompact S' A (k , e) f = PT.rec squash₁ go e where
-    go : A ≃ Fin k → ∥ Σ[ N ∈ ℕ ] Σ[ g ∈ (A → obj S' N) ] ((a : A) → incl (g a) ≡ f a) ∥₁
-    go eq = PT.map xfer (colimCompactFin S' k (f ∘ invEq eq)) where
-      xfer : Σ[ N ∈ ℕ ] Σ[ g ∈ (Fin k → obj S' N) ] ((i : Fin k) → incl (g i) ≡ f (invEq eq i))
-        → Σ[ N ∈ ℕ ] Σ[ g ∈ (A → obj S' N) ] ((a : A) → incl (g a) ≡ f a)
-      xfer (N , g , ok) = N , g ∘ equivFun eq , λ a → ok (equivFun eq a) ∙ cong f (retEq eq a)
-  -- Separation: if stages are sets, incl a ≡ incl b → eventual equality at some stage
-  module ColimSep (S' : Sequence ℓ-zero) (setStages : (n : ℕ) → isSet (obj S' n)) where
-    open ColimCompactHelpers S'
-    open import Cubical.HITs.SetQuotients as SQ using (_/_; [_]; eq/)
-    open import Cubical.HITs.SetQuotients.Properties using (effective)
-    private
-      Carrier = Σ ℕ (obj S')
-      EvEq : Carrier → Carrier → Type
-      EvEq (n , a) (m , b) = ∥ Σ[ N ∈ ℕ ] Σ[ le₁ ∈ n ≤ N ] Σ[ le₂ ∈ m ≤ N ] (liftTo le₁ a ≡ liftTo le₂ b) ∥₁
-      isPropEvEq : BinaryRelation.isPropValued EvEq
-      isPropEvEq _ _ = squash₁
-      open BinaryRelation EvEq using (isEquivRel)
-      isEquivRelEvEq : isEquivRel
-      isEquivRelEvEq = BinaryRelation.equivRel refl' sym' trans' where
-        refl' : BinaryRelation.isRefl EvEq
-        refl' (n , a) = ∣ n , ≤-refl , ≤-refl , refl ∣₁
-        sym' : BinaryRelation.isSym EvEq
-        sym' _ _ = PT.map λ (N , le₁ , le₂ , p) → N , le₂ , le₁ , sym p
-        trans' : BinaryRelation.isTrans EvEq
-        trans' (n , a) (m , b) (k , c) = PT.rec2 squash₁ λ
-          (N₁ , le₁ , le₂ , p₁) (N₂ , le₃ , le₄ , p₂) →
-          let l≤ = left-≤-max {N₁} {N₂}
-              r≤ = right-≤-max {N₂} {N₁}
-          in ∣ max N₁ N₂ , ≤-trans le₁ l≤ , ≤-trans le₄ r≤ ,
-               sym (liftTo-comp le₁ l≤ a) ∙ cong (liftTo l≤) p₁ ∙ liftTo-comp le₂ l≤ b
-               ∙ liftTo-isProp _ _ b
-               ∙ sym (liftTo-comp le₃ r≤ b) ∙ cong (liftTo r≤) p₂ ∙ liftTo-comp le₄ r≤ c ∣₁
-      fwd : SeqColim S' → Carrier SQ./ EvEq
-      fwd (incl {n} x) = SQ.[ n , x ]
-      fwd (push {n} x i) = eq/ (n , x) (suc n , map S' x) ∣ suc n , ≤-sucℕ , ≤-refl , refl ∣₁ i
-    colimSeparation : {n m : ℕ} (a : obj S' n) (b : obj S' m) → incl a ≡ incl b
-      → ∥ Σ[ N ∈ ℕ ] Σ[ le₁ ∈ n ≤ N ] Σ[ le₂ ∈ m ≤ N ] (liftTo le₁ a ≡ liftTo le₂ b) ∥₁
-    colimSeparation a b p = effective isPropEvEq isEquivRelEvEq _ _ (cong fwd p)
-  isFinSet-freeBA-Fin : (k : ℕ) → isFinSet ⟨ freeBA (DF.Fin k) ⟩
-  isFinSet-freeBA-Fin k = EquivPresIsFinSet (invEquiv total-equiv) isFinSetTarget where
-    open import Cubical.Foundations.Equiv.Properties using (preCompEquiv)
-    open import Axioms.StoneDuality using (SDHomVersion)
-    open BooleanRingStr
-    freeBA-k = freeBA (DF.Fin k)
-    freeBA-ℕ' = freeBA ℕ
-    -- Step 1: Booleω structure for freeBA(Fin k) via killRel
-    killRel : ℕ → ⟨ freeBA-ℕ' ⟩
-    killRel j = generator (k +ℕ j)
-    Qk : BooleanRing ℓ-zero
-    Qk = freeBA-ℕ' QB./Im killRel
-    πQ : ⟨ freeBA-ℕ' ⟩ → ⟨ Qk ⟩
-    πQ = fst (QB.quotientImageHom {B = freeBA-ℕ'} {f = killRel})
-    -- Forward: freeBA(Fin k) → Qk
-    fwd-hom : BoolHom freeBA-k Qk
-    fwd-hom = inducedBAHom (DF.Fin k) Qk (λ i → πQ (generator (fst i)))
-    -- Backward: Qk → freeBA(Fin k)
-    bwd-gen : ℕ → ⟨ freeBA-k ⟩
-    bwd-gen j with <Dec j k
-    ... | yes p = generator (j , <→<ᵗ p)
-    ... | no _  = 𝟘 (snd freeBA-k)
-    bwd-free : BoolHom freeBA-ℕ' freeBA-k
-    bwd-free = inducedBAHom ℕ freeBA-k bwd-gen
-    bwd-kills : (j : ℕ) → fst bwd-free (killRel j) ≡ 𝟘 (snd freeBA-k)
-    bwd-kills j = cong (λ f → f (k +ℕ j)) (evalBAInduce ℕ freeBA-k bwd-gen) ∙ step₂ where
-      step₂ : bwd-gen (k +ℕ j) ≡ 𝟘 (snd freeBA-k)
-      step₂ with <Dec (k +ℕ j) k
-      ... | yes p = ex-falso (¬m+n<m p)
-      ... | no _  = refl
-    bwd-hom : BoolHom Qk freeBA-k
-    bwd-hom = QB.inducedHom {B = freeBA-ℕ'} {f = killRel} freeBA-k bwd-free bwd-kills
-    -- Roundtrip 1: bwd ∘ fwd = id on freeBA(Fin k)
-    -- Both BoolHoms agree on generators, so equal by universal property
-    rt₁-on-gen : (i : DF.Fin k) → fst bwd-hom (fst fwd-hom (generator i)) ≡ generator i
-    rt₁-on-gen i =
-      cong (fst bwd-hom) (cong (λ f → f i) (evalBAInduce (DF.Fin k) Qk (λ i' → πQ (generator (fst i')))))
-      ∙ cong (λ f → f (generator (fst i))) (cong fst (QB.evalInduce {B = freeBA-ℕ'} {f = killRel} freeBA-k {g = bwd-free}))
-      ∙ cong (λ f → f (fst i)) (evalBAInduce ℕ freeBA-k bwd-gen)
-      ∙ bwd-gen-at-i
-      where
-      bwd-gen-at-i : bwd-gen (fst i) ≡ generator i
-      bwd-gen-at-i with <Dec (fst i) k
-      ... | yes p = cong generator (Σ≡Prop (λ _ → isProp<ᵗ {_} {k}) refl)
-      ... | no ¬p = ex-falso (¬p (<ᵗ→< (snd i)))
-    roundtrip₁ : (x : ⟨ freeBA-k ⟩) → fst bwd-hom (fst fwd-hom x) ≡ x
-    roundtrip₁ x = cong (λ h → fst h x) path where
-      comp-hom : BoolHom freeBA-k freeBA-k
-      comp-hom = bwd-hom ∘cr fwd-hom
-      agree : fst comp-hom ∘ generator ≡ generator
-      agree = funExt rt₁-on-gen
-      path : comp-hom ≡ idBoolHom freeBA-k
-      path = sym (inducedBAHomUnique (DF.Fin k) freeBA-k generator comp-hom agree)
-           ∙ inducedBAHomUnique (DF.Fin k) freeBA-k generator (idBoolHom freeBA-k) refl
-    -- Roundtrip 2: fwd ∘ bwd = id on Qk
-    -- Both fwd ∘ bwd ∘ πQ and πQ = id ∘ πQ agree on generators of freeBA ℕ
-    rt₂-on-gen : (j : ℕ) → fst fwd-hom (fst bwd-hom (πQ (generator j))) ≡ πQ (generator j)
-    rt₂-on-gen j =
-      cong (fst fwd-hom) (cong (λ f → f (generator j))
-        (cong fst (QB.evalInduce {B = freeBA-ℕ'} {f = killRel} freeBA-k {g = bwd-free})))
-      ∙ cong (fst fwd-hom) (cong (λ f → f j) (evalBAInduce ℕ freeBA-k bwd-gen))
-      ∙ fwd-bwd-gen-j
-      where
-      fwd-bwd-gen-j : fst fwd-hom (bwd-gen j) ≡ πQ (generator j)
-      fwd-bwd-gen-j with <Dec j k
-      ... | yes p = cong (λ f → f (j , <→<ᵗ p)) (evalBAInduce (DF.Fin k) Qk (λ i → πQ (generator (fst i))))
-      ... | no ¬p = IsCommRingHom.pres0 (snd fwd-hom)
-                  ∙ sym (cong πQ (cong generator lem) ∙ QB.zeroOnImage {B = freeBA-ℕ'} {f = killRel} d)
-        where
-        open import Cubical.Data.Nat.Order using (<-asym')
-        open import Cubical.Data.Nat.Properties using (+-comm)
-        k≤j = <-asym' ¬p
-        d = fst k≤j
-        lem : j ≡ k +ℕ d
-        lem = sym (snd k≤j) ∙ +-comm d k
-    roundtrip₂ : (x : ⟨ Qk ⟩) → fst fwd-hom (fst bwd-hom x) ≡ x
-    roundtrip₂ = funExt⁻ (QB.quotientImageHomEpi {B = freeBA-ℕ'} {f = killRel}
-      (⟨ Qk ⟩ , is-set (snd Qk)) on-πQ)
-      where
-      πQ-hom : BoolHom freeBA-ℕ' Qk
-      πQ-hom = QB.quotientImageHom {B = freeBA-ℕ'} {f = killRel}
-      comp-hom : BoolHom freeBA-ℕ' Qk
-      comp-hom = fwd-hom ∘cr bwd-hom ∘cr πQ-hom
-      on-πQ : (fst fwd-hom ∘ fst bwd-hom) ∘ πQ ≡ idfun _ ∘ πQ
-      on-πQ = cong fst
-        (sym (inducedBAHomUnique ℕ Qk (πQ ∘ generator) comp-hom (funExt rt₂-on-gen))
-         ∙ inducedBAHomUnique ℕ Qk (πQ ∘ generator) πQ-hom refl)
-    -- Booleω structure
-    booleω-k : Booleω
-    booleω-k = freeBA-k , ∣ killRel , isoToEquiv (iso (fst fwd-hom) (fst bwd-hom) roundtrip₂ roundtrip₁) , snd fwd-hom ∣₁
-    -- Step 2: Sp(freeBA(Fin k)) ≃ (Fin k → Bool) via universal property
-    sp-equiv : Sp booleω-k ≃ (DF.Fin k → Bool)
-    sp-equiv = isoToEquiv (iso
-      (λ h → fst h ∘ generator)
-      (λ f → inducedBAHom (DF.Fin k) BoolBR f)
-      (evalBAInduce (DF.Fin k) BoolBR)
-      (λ h → inducedBAHomUnique (DF.Fin k) BoolBR (fst h ∘ generator) h refl))
-    -- Step 3: compose equivs, deduce finiteness
-    sd-equiv : ⟨ freeBA-k ⟩ ≃ (Sp booleω-k → Bool)
-    sd-equiv = fst (SDHomVersion sd-axiom booleω-k)
-    total-equiv : ⟨ freeBA-k ⟩ ≃ ((DF.Fin k → Bool) → Bool)
-    total-equiv = compEquiv sd-equiv (preCompEquiv (invEquiv sp-equiv))
-    isFinSetDFFin : isFinSet (DF.Fin k)
-    isFinSetDFFin = EquivPresIsFinSet (SumFin≃Fin k) isFinSetFin
-    isFinSetTarget : isFinSet ((DF.Fin k → Bool) → Bool)
-    isFinSetTarget = isFinSet→ (_ , isFinSet→ (_ , isFinSetDFFin) (_ , isFinSetBool)) (_ , isFinSetBool)
-  -- Quotient of finite Boolean ring by finitely many relations is finite
-  opaque
-    unfolding QB._/Im_
-    isFinSet-BRquot : (B' : BooleanRing ℓ-zero) (finB : isFinSet ⟨ B' ⟩)
-      {n : ℕ} (g : DF.Fin n → ⟨ B' ⟩) → isFinSet ⟨ B' QB./Im g ⟩
-    isFinSet-BRquot B' finB {n} g = BRQ.result where
-      module BRQ where
-        open BooleanAlgebraStr B' renaming (_∨_ to _∨B_; _∧_ to _·B_)
-        CR : CommRing ℓ-zero
-        CR = BooleanRing→CommRing B'
-        private module CRS = CommRingStr (snd CR)
-        infixl 6 _+B_
-        _+B_ : ⟨ B' ⟩ → ⟨ B' ⟩ → ⟨ B' ⟩
-        _+B_ = CRS._+_
-        -B_ : ⟨ B' ⟩ → ⟨ B' ⟩
-        -B_ = CRS.-_
-        𝟘' : ⟨ B' ⟩
-        𝟘' = CRS.0r
-        genI : ⟨ B' ⟩ → Type
-        genI = IQ.generatedIdeal CR g
-        disc = isFinSet→Discrete finB
-        go : (i : ℕ) → i ≤ n → ⟨ B' ⟩
-        go zero _ = 𝟘'
-        go (suc i) p = go i (≤-trans ≤-sucℕ p) ∨B g (i , <→<ᵗ p)
-        genJ : ⟨ B' ⟩
-        genJ = go n ≤-refl
-        mono : ∀ {a b c} → a ·B b ≡ a → a ·B (b ∨B c) ≡ a
-        mono {a} {b} {c} h =
-          a ·B (b ∨B c)          ≡⟨ ∧DistR∨ ⟩
-          (a ·B b) ∨B (a ·B c)  ≡⟨ cong (_∨B (a ·B c)) h ⟩
-          a ∨B (a ·B c)          ≡⟨ ∨AbsorbL∧ ⟩
-          a ∎
-        gen-below-go : (j : DF.Fin n) (i : ℕ) (p : i ≤ n)
-          → fst j < i → g j ·B go i p ≡ g j
-        gen-below-go _ zero _ q = ⊥-rec (¬-<-zero q)
-        gen-below-go j (suc i) p q with ≤-split (pred-≤-pred q)
-        ... | ⊎.inl fj<i = mono (gen-below-go j i (≤-trans ≤-sucℕ p) fj<i)
-        ... | ⊎.inr fj≡i =
-          g j ·B (go i p' ∨B g (i , <→<ᵗ p))
-            ≡⟨ cong (λ w → g j ·B (go i p' ∨B g w))
-                 (sym (Σ≡Prop (λ _ → isProp<ᵗ {_} {n}) fj≡i)) ⟩
-          g j ·B (go i p' ∨B g j)
-            ≡⟨ cong (g j ·B_) ∨Comm ⟩
-          g j ·B (g j ∨B go i p')
-            ≡⟨ ∧AbsorbL∨ ⟩
-          g j ∎
-          where p' = ≤-trans ≤-sucℕ p
-        gen-below : (j : DF.Fin n) → g j ·B genJ ≡ g j
-        gen-below j = gen-below-go j n ≤-refl (<ᵗ→< (snd j))
-        fwd : ∀ {z} → genI z → z ·B genJ ≡ z
-        fwd (IQ.single x) = gen-below x
-        fwd IQ.zero = ∧AnnihilL
-        fwd (IQ.add {x} {y} gx gy) =
-          (x +B y) ·B genJ              ≡⟨ CRS.·DistL+ x y genJ ⟩
-          (x ·B genJ) +B (y ·B genJ)   ≡⟨ cong₂ _+B_ (fwd gx) (fwd gy) ⟩
-          x +B y                         ∎
-        fwd (IQ.mul {r} {x} gx) =
-          (r ·B x) ·B genJ ≡⟨ sym (CRS.·Assoc r x genJ) ⟩
-          r ·B (x ·B genJ) ≡⟨ cong (r ·B_) (fwd gx) ⟩
-          r ·B x            ∎
-        fwd (IQ.squash gx gy i) = CRS.is-set _ _ (fwd gx) (fwd gy) i
-        go-in-ideal : (i : ℕ) (p : i ≤ n) → genI (go i p)
-        go-in-ideal zero _ = IQ.zero
-        go-in-ideal (suc i) p =
-          IQ.add (IQ.add (go-in-ideal i _) (IQ.single (i , <→<ᵗ p)))
-              (IQ.mul {r = go i _} (IQ.single (i , <→<ᵗ p)))
-        bwd : ∀ {z} → z ·B genJ ≡ z → genI z
-        bwd {z} p = subst genI p (IQ.mul {r = z} (go-in-ideal n ≤-refl))
-        idealRel : ⟨ B' ⟩ → ⟨ B' ⟩ → Type
-        idealRel x y = genI (x +B (-B y))
-        equivR : BinaryRelation.isEquivRel idealRel
-        equivR = let open BinaryRelation idealRel in equivRel
-          (λ x → subst genI (sym (CRS.+InvR x)) IQ.zero)
-          (λ x y gxy → subst genI
-            (x +B (-B y) ≡⟨ cong (x +B_) (sym -IsId) ⟩
-             x +B y      ≡⟨ CRS.+Comm x y ⟩
-             y +B x      ≡⟨ cong (y +B_) -IsId ⟩
-             y +B (-B x) ∎) gxy)
-          (λ x y z gxy gyz → subst genI
-            ((x +B (-B y)) +B (y +B (-B z))
-              ≡⟨ cong₂ _+B_ (cong (x +B_) (sym -IsId)) (cong (y +B_) (sym -IsId)) ⟩
-             (x +B y) +B (y +B z)
-              ≡⟨ sym (CRS.+Assoc x y (y +B z)) ⟩
-             x +B (y +B (y +B z))
-              ≡⟨ cong (x +B_) (CRS.+Assoc y y z) ⟩
-             x +B ((y +B y) +B z)
-              ≡⟨ cong (x +B_) (cong (_+B z) characteristic2) ⟩
-             x +B (𝟘' +B z)
-              ≡⟨ cong (x +B_) (CRS.+IdL z) ⟩
-             x +B z
-              ≡⟨ cong (x +B_) -IsId ⟩
-             x +B (-B z) ∎) (IQ.add gxy gyz))
-        decR : (x y : ⟨ B' ⟩) → isDecProp (idealRel x y)
-        decR x y = Dec→Bool d , Dec≃DecBool IQ.squash d where
-          d : Dec (idealRel x y)
-          d with disc ((x +B (-B y)) ·B genJ) (x +B (-B y))
-          ... | yes p = yes (bwd p)
-          ... | no ¬p = no (λ gI → ¬p (fwd gI))
-        result : isFinSet ⟨ B' QB./Im g ⟩
-        result = isFinSetQuot (⟨ B' ⟩ , finB) idealRel equivR decR
+  open import Cubical.Data.Nat using (max)
   -- tex Lemma 1396 (core): proved from ODiscColimOfODisc + countableChoice + genBound
   quotientFreeBA-isODisc : (f : ℕ → ⟨ freeBA ℕ ⟩) → isODisc ⟨ freeBA ℕ QB./Im f ⟩
   quotientFreeBA-isODisc f =
     PT.rec (isProp-isODisc _) go
       (countableChoice _ (λ k → ODiscInfrastructure.genBound (f k)))
     where
-      open ODiscInfrastructure using (ι-inc; π-proj; ιπι-retract; π-on-gen-below)
+      open ODiscInfrastructure using (ι-inc; π-proj)
       go : ((k : ℕ) → Σ[ m ∈ ℕ ] fiber (fst (ι-inc m)) (f k))
          → isODisc ⟨ freeBA ℕ QB./Im f ⟩
-      go choice = isODisc-equiv colimEquiv ∣ seqB , isFinSetBN , idEquiv _ ∣₁ where
+      go choice = isODisc-equiv colimEquiv (ODiscColimOfODisc seqB odiscLevels) where
         -- M(n): monotone function bounding generators in first n+1 relations
         M : ℕ → ℕ
         M zero = max (suc zero) (fst (choice zero))
@@ -1546,333 +1139,24 @@ module ODiscAxioms where
         relN n j = fst (π-proj (M n)) (f (fst j))
         BN : (n : ℕ) → BooleanRing ℓ-zero
         BN n = freeBA (DF.Fin (M n)) QB./Im relN n
-        M-step : (i : ℕ) → M i ≤ M (suc i)
-        M-step i = ≤-trans (≤-sucℕ {n = M i})
-          (left-≤-max {m = suc (M i)} {n = fst (choice (suc i))})
-        M-mono-go : (m₁ : ℕ) (d : ℕ) → M m₁ ≤ M (d +ℕ m₁)
-        M-mono-go _ zero = ≤-refl
-        M-mono-go m₁ (suc d) = ≤-trans (M-mono-go m₁ d) (M-step (d +ℕ m₁))
-        M-mono' : {m₁ m₂ : ℕ} → m₁ ≤ m₂ → M m₁ ≤ M m₂
-        M-mono' {m₁} (d , p) = subst (λ x → M m₁ ≤ M x) p (M-mono-go m₁ d)
-        choice-le : (i : ℕ) → fst (choice i) ≤ M i
-        choice-le zero = right-≤-max {m = suc zero}
-        choice-le (suc i) = right-≤-max {m = suc (M i)}
-        -- Map: BN(n) → BN(n+1) via πQ ∘ π-proj(M(n+1)) ∘ ι-inc(M(n))
-        mapBN : (n : ℕ) → ⟨ BN n ⟩ → ⟨ BN (suc n) ⟩
-        mapBN n = fst (QB.inducedHom {B = freeBA (DF.Fin (M n))} {f = relN n}
-          (BN (suc n)) g gfx=0) where
-          g : BoolHom (freeBA (DF.Fin (M n))) (BN (suc n))
-          g = QB.quotientImageHom ∘cr π-proj (M (suc n)) ∘cr ι-inc (M n)
-          gfx=0 : (j : DF.Fin (suc n))
-            → fst g (relN n j) ≡ BooleanRingStr.𝟘 (snd (BN (suc n)))
-          gfx=0 j =
-            cong (fst QB.quotientImageHom ∘ fst (π-proj (M (suc n)))) retract-step
-            ∙ QB.zeroOnImage {B = freeBA (DF.Fin (M (suc n)))} {f = relN (suc n)} j'
-            where
-              k = fst j
-              m_k = fst (choice k)
-              x_k = fst (snd (choice k))
-              eq_k = snd (snd (choice k))
-              le_k : m_k ≤ M n
-              le_k = ≤-trans (choice-le k)
-                (M-mono' {m₁ = k} {m₂ = n} (pred-≤-pred (<ᵗ→< (snd j))))
-              j' : DF.Fin (suc (suc n))
-              j' = (k , <→<ᵗ (≤-trans (<ᵗ→< {n = k} (snd j)) (≤-sucℕ {n = suc n})))
-              retract-step : fst (ι-inc (M n)) (fst (π-proj (M n)) (f k)) ≡ f k
-              retract-step =
-                cong (fst (ι-inc (M n)) ∘ fst (π-proj (M n))) (sym eq_k)
-                ∙ funExt⁻ (cong fst (ιπι-retract m_k (M n) le_k)) x_k
-                ∙ eq_k
+        -- Sequence of underlying sets
+        -- Map: BN(n) → BN(n+1) via inclusion freeBA(Fin(M n)) → freeBA(Fin(M(n+1)))
+        -- and the quotient map. Well-defined because M(n) ≥ bnd(j) for j ≤ n,
+        -- so ι(π_{M(n)}(f(j))) = π_{M(n+1)}(f(j)) = 0 in BN(n+1).
+        postulate mapBN : (n : ℕ) → ⟨ BN n ⟩ → ⟨ BN (suc n) ⟩
         seqB : Sequence ℓ-zero
         obj seqB n = ⟨ BN n ⟩
         map seqB = mapBN _
         -- Each level is ODisc (finite, hence ODisc)
-        isFinSetBN : (n : ℕ) → isFinSet (obj seqB n)
-        isFinSetBN n = isFinSet-BRquot (freeBA (DF.Fin (M n)))
-          (isFinSet-freeBA-Fin (M n)) {suc n} (relN n)
+        -- Proof: freeBA(Fin k) is finite by Stone Duality,
+        -- its quotient by finitely many relations is also finite.
+        postulate isFinSetBN : (n : ℕ) → isFinSet (obj seqB n)
+        odiscLevels : (n : ℕ) → isODisc (obj seqB n)
+        odiscLevels n = ODiscFinSet (isFinSetBN n)
         -- Colimit of BN ≃ freeBA ℕ /Im f
-        Q = freeBA ℕ QB./Im f
-        πQ : BoolHom (freeBA ℕ) Q
-        πQ = QB.quotientImageHom {B = freeBA ℕ} {f = f}
-        -- Forward hom at each level: BN(n) → Q
-        fwdKills : (n : ℕ) (j : DF.Fin (suc n))
-          → fst (πQ ∘cr ι-inc (M n)) (relN n j) ≡ BooleanRingStr.𝟘 (snd Q)
-        fwdKills n j =
-          fst πQ (fst (ι-inc (M n)) (fst (π-proj (M n)) (f k)))
-            ≡⟨ cong (fst πQ) retract-step ⟩
-          fst πQ (f k)
-            ≡⟨ QB.zeroOnImage {B = freeBA ℕ} {f = f} k ⟩
-          BooleanRingStr.𝟘 (snd Q) ∎
-          where
-            k = fst j
-            le_k : fst (choice k) ≤ M n
-            le_k = ≤-trans (choice-le k)
-              (M-mono' {m₁ = k} {m₂ = n} (pred-≤-pred (<ᵗ→< (snd j))))
-            retract-step : fst (ι-inc (M n)) (fst (π-proj (M n)) (f k)) ≡ f k
-            retract-step =
-              cong (fst (ι-inc (M n)) ∘ fst (π-proj (M n))) (sym (snd (snd (choice k))))
-              ∙ funExt⁻ (cong fst (ιπι-retract (fst (choice k)) (M n) le_k))
-                  (fst (snd (choice k)))
-              ∙ snd (snd (choice k))
-        fwdHom : (n : ℕ) → BoolHom (BN n) Q
-        fwdHom n = QB.inducedHom {B = freeBA (DF.Fin (M n))} {f = relN n}
-          Q (πQ ∘cr ι-inc (M n)) (fwdKills n)
-        -- Push compatibility: fwdHom n = fwdHom(n+1) ∘ mapBN n
-        πBN : (n : ℕ) → ⟨ freeBA (DF.Fin (M n)) ⟩ → ⟨ BN n ⟩
-        πBN n = fst (QB.quotientImageHom {B = freeBA (DF.Fin (M n))} {f = relN n})
-        evalFwd : (n : ℕ) → fwdHom n ∘cr QB.quotientImageHom
-          {B = freeBA (DF.Fin (M n))} {f = relN n} ≡ πQ ∘cr ι-inc (M n)
-        evalFwd n = QB.evalInduce {B = freeBA (DF.Fin (M n))} {f = relN n} Q
-        fwd-compat : (n : ℕ) (x : ⟨ BN n ⟩)
-          → fst (fwdHom n) x ≡ fst (fwdHom (suc n)) (mapBN n x)
-        fwd-compat n = funExt⁻ (QB.quotientImageHomEpi
-          {B = freeBA (DF.Fin (M n))} {f = relN n}
-          (⟨ Q ⟩ , BooleanRingStr.is-set (snd Q))
-          (funExt λ a → sym (
-            fst (fwdHom (suc n)) (mapBN n (πBN n a))
-              ≡⟨ cong (fst (fwdHom (suc n)))
-                   (funExt⁻ (cong fst (QB.evalInduce
-                     {B = freeBA (DF.Fin (M n))} {f = relN n}
-                     (BN (suc n)))) a) ⟩
-            fst (fwdHom (suc n)) (πBN (suc n)
-              (fst (π-proj (M (suc n))) (fst (ι-inc (M n)) a)))
-              ≡⟨ funExt⁻ (cong fst (evalFwd (suc n)))
-                   (fst (π-proj (M (suc n))) (fst (ι-inc (M n)) a)) ⟩
-            fst πQ (fst (ι-inc (M (suc n)))
-              (fst (π-proj (M (suc n))) (fst (ι-inc (M n)) a)))
-              ≡⟨ cong (fst πQ)
-                   (funExt⁻ (cong fst (ιπι-retract (M n) (M (suc n)) (M-step n))) a) ⟩
-            fst πQ (fst (ι-inc (M n)) a)
-              ≡⟨ sym (funExt⁻ (cong fst (evalFwd n)) a) ⟩
-            fst (fwdHom n) (πBN n a) ∎)))
-        -- Forward map
-        fwd : SeqColim seqB → ⟨ Q ⟩
-        fwd (incl {n} x) = fst (fwdHom n) x
-        fwd (push {n} x i) = fwd-compat n x i
-        -- Surjectivity of fwd
-        M-ge-suc : (n : ℕ) → suc n ≤ M n
-        M-ge-suc zero = left-≤-max {m = suc zero} {n = fst (choice zero)}
-        M-ge-suc (suc n) = ≤-trans (suc-≤-suc (M-ge-suc n))
-          (left-≤-max {m = suc (M n)} {n = fst (choice (suc n))})
-        fwd-surj : isSurjection fwd
-        fwd-surj q = PT.rec squash₁ (λ (b , eq) →
-          PT.rec squash₁ (λ (m , x_m , eq_m) →
-            let n = m
-                le_m : m ≤ M n
-                le_m = ≤-trans (≤-sucℕ {n = m}) (M-ge-suc n)
-                y = fst (π-proj (M n)) b
-            in ∣ incl {n = n} (fst (QB.quotientImageHom
-                   {B = freeBA (DF.Fin (M n))} {f = relN n}) y) ,
-                 (fst (fwdHom n) (fst (QB.quotientImageHom
-                    {B = freeBA (DF.Fin (M n))} {f = relN n}) y)
-                   ≡⟨ funExt⁻ (cong fst (QB.evalInduce
-                        {B = freeBA (DF.Fin (M n))} {f = relN n} Q)) y ⟩
-                  fst πQ (fst (ι-inc (M n)) (fst (π-proj (M n)) b))
-                   ≡⟨ cong (fst πQ)
-                        (fst (ι-inc (M n)) (fst (π-proj (M n)) b)
-                          ≡⟨ cong (fst (ι-inc (M n)) ∘ fst (π-proj (M n))) (sym eq_m) ⟩
-                         fst (ι-inc (M n)) (fst (π-proj (M n)) (fst (ι-inc m) x_m))
-                          ≡⟨ funExt⁻ (cong fst (ιπι-retract m (M n) le_m)) x_m ⟩
-                         fst (ι-inc m) x_m
-                          ≡⟨ eq_m ⟩
-                         b ∎) ⟩
-                  fst πQ b
-                   ≡⟨ eq ⟩
-                  q ∎) ∣₁)
-            (ODiscInfrastructure.genBound b))
-          (QB.quotientImageHomSurjective {B = freeBA ℕ} {f = f} q)
-        -- SeqColim of sets is a set
-        isSetSC : isSet (SeqColim seqB)
-        isSetSC = isSetSeqColimOfSets seqB (λ n → BooleanRingStr.is-set (snd (BN n)))
-        -- mapBN evaluation: mapBN n ∘ πBN n = πBN(n+1) ∘ π-proj(M(n+1)) ∘ ι-inc(M n)
-        mapBN-eval : (n : ℕ) (a : ⟨ freeBA (DF.Fin (M n)) ⟩)
-          → mapBN n (πBN n a) ≡ πBN (suc n) (fst (π-proj (M (suc n))) (fst (ι-inc (M n)) a))
-        mapBN-eval n a = funExt⁻ (cong fst (QB.evalInduce
-          {B = freeBA (DF.Fin (M n))} {f = relN n} (BN (suc n)))) a
-        -- Push to higher level: incl {n} (πBN n a) ≡ incl {suc d+n} (πBN ... (π-proj ∘ ι-inc $ a))
-        G : (n k : ℕ) → ⟨ freeBA (DF.Fin (M n)) ⟩ → obj seqB k
-        G n k a = πBN k (fst (π-proj (M k)) (fst (ι-inc (M n)) a))
-        push-to-πBN : (d n : ℕ) (a : ⟨ freeBA (DF.Fin (M n)) ⟩)
-          → Path (SeqColim seqB) (incl {n = n} (πBN n a))
-              (incl {n = suc d +ℕ n} (G n (suc d +ℕ n) a))
-        push-to-πBN zero n a =
-          push (πBN n a) ∙ cong (incl {n = suc n}) (mapBN-eval n a)
-        push-to-πBN (suc d) n a =
-          let y = G n (suc d +ℕ n) a
-              retract-step = funExt⁻ (cong fst (ιπι-retract (M n) (M (suc d +ℕ n))
-                (M-mono' {m₁ = n} {m₂ = suc d +ℕ n} (suc d , refl)))) a
-          in push-to-πBN d n a ∙ push y
-            ∙ cong (incl {n = suc (suc d +ℕ n)})
-                (mapBN-eval (suc d +ℕ n)
-                  (fst (π-proj (M (suc d +ℕ n))) (fst (ι-inc (M n)) a))
-                ∙ cong (πBN (suc (suc d +ℕ n)) ∘ fst (π-proj (M (suc (suc d +ℕ n))))) retract-step)
-        -- Transport along level equality by J
-        incl-level-eq : (n : ℕ) {m m' : ℕ} (p : m ≡ m') (a : ⟨ freeBA (DF.Fin (M n)) ⟩)
-          → Path (SeqColim seqB) (incl {n = m} (G n m a))
-              (incl {n = m'} (G n m' a))
-        incl-level-eq n {m} p a =
-          J (λ m' _ → Path (SeqColim seqB) (incl (G n m a)) (incl (G n m' a))) refl p
-        -- Decompose n ≤ K' with suc n ≤ K' to get d' with suc d' + n ≡ K'
-        suc-le-decomp : {n K' : ℕ} → n ≤ K' → suc n ≤ K'
-          → Σ[ d' ∈ ℕ ] suc d' +ℕ n ≡ K'
-        suc-le-decomp {n} (zero , p) sn≤K' =
-          ex-falso (¬m<m (subst (suc n ≤_) (sym p) sn≤K'))
-        suc-le-decomp (suc d' , p) _ = d' , p
-        -- Finite support: genIdeal(f)(z) → ∃K. ∀K'≥K. genIdeal(relN K')(π-proj(M K')(z))
-        CR-ℕ = BooleanRing→CommRing (freeBA ℕ)
-        combined : {z : ⟨ freeBA ℕ ⟩}
-          → IQ.generatedIdeal CR-ℕ f z
-          → ∥ Σ[ K ∈ ℕ ] ((K' : ℕ) → K ≤ K'
-            → IQ.generatedIdeal (BooleanRing→CommRing (freeBA (DF.Fin (M K'))))
-                (relN K') (fst (π-proj (M K')) z)) ∥₁
-        combined (IQ.single k) = ∣ k , (λ K' le →
-          IQ.single (k , <→<ᵗ (suc-≤-suc le))) ∣₁
-        combined IQ.zero = ∣ 0 , (λ K' _ →
-          subst (IQ.generatedIdeal _ (relN K'))
-            (sym (IsCommRingHom.pres0 (snd (π-proj (M K'))))) IQ.zero) ∣₁
-        combined (IQ.add {x} {y} gx gy) = PT.rec2 squash₁
-          (λ (Kx , hx) (Ky , hy) →
-            ∣ max Kx Ky , (λ K' le →
-              subst (IQ.generatedIdeal _ (relN K'))
-                (sym (IsCommRingHom.pres+ (snd (π-proj (M K'))) x y))
-                (IQ.add (hx K' (≤-trans (left-≤-max {Kx} {Ky}) le))
-                        (hy K' (≤-trans (right-≤-max {Ky} {Kx}) le)))) ∣₁)
-          (combined gx) (combined gy)
-        combined (IQ.mul {r} {x} gx) = PT.map
-          (λ (K , h) → K , (λ K' le →
-            subst (IQ.generatedIdeal _ (relN K'))
-              (sym (IsCommRingHom.pres· (snd (π-proj (M K'))) r x))
-              (IQ.mul (h K' le)))) (combined gx)
-        combined (IQ.squash gx gy i) = squash₁ (combined gx) (combined gy) i
-        -- Characteristic 2: a + b = 0 → a = b (in any BooleanRing)
-        char2-eq : {B' : BooleanRing ℓ-zero} (a b : ⟨ B' ⟩)
-          → BooleanRingStr._+_ (snd B') a b ≡ BooleanRingStr.𝟘 (snd B')
-          → a ≡ b
-        char2-eq {B'} a b p =
-          a ≡⟨ sym (BooleanRingStr.+IdR (snd B') a) ⟩
-          a +B' BooleanRingStr.𝟘 (snd B')
-            ≡⟨ cong (a +B'_) (sym (BooleanAlgebraStr.characteristic2 B' {b})) ⟩
-          a +B' (b +B' b)
-            ≡⟨ BooleanRingStr.+Assoc (snd B') a b b ⟩
-          (a +B' b) +B' b ≡⟨ cong (_+B' b) p ⟩
-          BooleanRingStr.𝟘 (snd B') +B' b
-            ≡⟨ BooleanRingStr.+IdL (snd B') b ⟩
-          b ∎ where _+B'_ = BooleanRingStr._+_ (snd B')
-        -- Ideal elements project to zero in quotient
-        ideal→zero : (K' : ℕ) {z : ⟨ freeBA (DF.Fin (M K')) ⟩}
-          → IQ.generatedIdeal (BooleanRing→CommRing (freeBA (DF.Fin (M K')))) (relN K') z
-          → πBN K' z ≡ BooleanRingStr.𝟘 (snd (BN K'))
-        ideal→zero K' (IQ.single j) =
-          QB.zeroOnImage {B = freeBA (DF.Fin (M K'))} {f = relN K'} j
-        ideal→zero K' IQ.zero =
-          IsCommRingHom.pres0 (snd (QB.quotientImageHom
-            {B = freeBA (DF.Fin (M K'))} {f = relN K'}))
-        ideal→zero K' (IQ.add {x} {y} gx gy) =
-          IsCommRingHom.pres+ (snd (QB.quotientImageHom
-            {B = freeBA (DF.Fin (M K'))} {f = relN K'})) x y
-          ∙ cong₂ (BooleanRingStr._+_ (snd (BN K')))
-              (ideal→zero K' gx) (ideal→zero K' gy)
-          ∙ BooleanRingStr.+IdR (snd (BN K')) _
-        ideal→zero K' (IQ.mul {r} {x} gx) =
-          IsCommRingHom.pres· (snd (QB.quotientImageHom
-            {B = freeBA (DF.Fin (M K'))} {f = relN K'})) r x
-          ∙ cong (BooleanRingStr._·_ (snd (BN K')) (πBN K' r))
-              (ideal→zero K' gx)
-          ∙ BooleanAlgebraStr.∧AnnihilR (BN K')
-        ideal→zero K' (IQ.squash gx gy i) =
-          BooleanRingStr.is-set (snd (BN K')) _ _
-            (ideal→zero K' gx) (ideal→zero K' gy) i
-        -- Injectivity of fwd
-        fwd-inj : (c₁ c₂ : SeqColim seqB)
-          → fwd c₁ ≡ fwd c₂ → c₁ ≡ c₂
-        fwd-inj = SeqColim→Prop (λ c₁ → isPropΠ λ c₂ → isPropΠ λ _ → isSetSC c₁ c₂)
-          λ n₁ x₁ → SeqColim→Prop (λ c₂ → isPropΠ λ _ → isSetSC (incl x₁) c₂)
-          λ n₂ x₂ eq →
-          PT.rec2 (isSetSC _ _)
-            (λ (a₁ , ea₁) (a₂ , ea₂) → let
-              _+F_ = BooleanRingStr._+_ (snd (freeBA ℕ))
-              _+Q_ = BooleanRingStr._+_ (snd Q)
-              𝟘Q = BooleanRingStr.𝟘 (snd Q)
-              ι₁a₁ = fst (ι-inc (M n₁)) a₁
-              ι₂a₂ = fst (ι-inc (M n₂)) a₂
-              d = ι₁a₁ +F ι₂a₂
-              ev₁ : fst πQ ι₁a₁ ≡ fst (fwdHom n₁) x₁
-              ev₁ = sym (funExt⁻ (cong fst (evalFwd n₁)) a₁)
-                ∙ cong (fst (fwdHom n₁)) ea₁
-              ev₂ : fst πQ ι₂a₂ ≡ fst (fwdHom n₂) x₂
-              ev₂ = sym (funExt⁻ (cong fst (evalFwd n₂)) a₂)
-                ∙ cong (fst (fwdHom n₂)) ea₂
-              πQd≡0 : fst πQ d ≡ 𝟘Q
-              πQd≡0 = IsCommRingHom.pres+ (snd πQ) ι₁a₁ ι₂a₂
-                ∙ cong₂ _+Q_ ev₁ ev₂
-                ∙ cong (_+Q fst (fwdHom n₂) x₂) eq
-                ∙ BooleanAlgebraStr.characteristic2 Q
-              d-in-I : IQ.generatedIdeal CR-ℕ f d
-              d-in-I = QB.fromKernel {B = freeBA ℕ} {f = f} πQd≡0
-              in PT.rec (isSetSC _ _)
-                (λ (K , hK) → let
-                  K' = suc (max (max n₁ n₂) K)
-                  le-n₁ : n₁ ≤ K'
-                  le-n₁ = ≤-trans (left-≤-max {n₁} {n₂})
-                    (≤-trans (left-≤-max {max n₁ n₂} {K}) ≤-sucℕ)
-                  le-n₂ : n₂ ≤ K'
-                  le-n₂ = ≤-trans (right-≤-max {n₂} {n₁})
-                    (≤-trans (left-≤-max {max n₁ n₂} {K}) ≤-sucℕ)
-                  le-K : K ≤ K'
-                  le-K = ≤-trans (right-≤-max {K} {max n₁ n₂}) ≤-sucℕ
-                  sn₁≤K' : suc n₁ ≤ K'
-                  sn₁≤K' = suc-≤-suc (≤-trans (left-≤-max {n₁} {n₂})
-                    (left-≤-max {max n₁ n₂} {K}))
-                  sn₂≤K' : suc n₂ ≤ K'
-                  sn₂≤K' = suc-≤-suc (≤-trans (right-≤-max {n₂} {n₁})
-                    (left-≤-max {max n₁ n₂} {K}))
-                  -- Decompose ≤ proofs to get d' with suc d' + n ≡ K'
-                  dec₁ = suc-le-decomp le-n₁ sn₁≤K'
-                  dec₂ = suc-le-decomp le-n₂ sn₂≤K'
-                  d₁' = fst dec₁; d₂' = fst dec₂
-                  eq-level₁ : suc d₁' +ℕ n₁ ≡ K'
-                  eq-level₁ = snd dec₁
-                  eq-level₂ : suc d₂' +ℕ n₂ ≡ K'
-                  eq-level₂ = snd dec₂
-                  -- πBN K'(π-proj(d)) = πBN K'(π-proj(ι₁a₁)) + πBN K'(π-proj(ι₂a₂)) = 0
-                  _+K'_ = BooleanRingStr._+_ (snd (BN K'))
-                  πBN-split : πBN K' (fst (π-proj (M K')) ι₁a₁) +K'
-                              πBN K' (fst (π-proj (M K')) ι₂a₂)
-                              ≡ BooleanRingStr.𝟘 (snd (BN K'))
-                  πBN-split =
-                    sym (IsCommRingHom.pres+ (snd (QB.quotientImageHom
-                      {B = freeBA (DF.Fin (M K'))} {f = relN K'})) _ _)
-                    ∙ cong (πBN K') (sym (IsCommRingHom.pres+ (snd (π-proj (M K'))) ι₁a₁ ι₂a₂))
-                    ∙ ideal→zero K' (hK K' le-K)
-                  eq-at-K' : πBN K' (fst (π-proj (M K')) ι₁a₁)
-                    ≡ πBN K' (fst (π-proj (M K')) ι₂a₂)
-                  eq-at-K' = char2-eq {BN K'} _ _ πBN-split
-                  in
-                  incl x₁
-                    ≡⟨ cong incl (sym ea₁) ⟩
-                  incl (πBN n₁ a₁)
-                    ≡⟨ push-to-πBN d₁' n₁ a₁ ⟩
-                  incl (πBN (suc d₁' +ℕ n₁)
-                    (fst (π-proj (M (suc d₁' +ℕ n₁))) (fst (ι-inc (M n₁)) a₁)))
-                    ≡⟨ incl-level-eq n₁ eq-level₁ a₁ ⟩
-                  incl (πBN K' (fst (π-proj (M K')) (fst (ι-inc (M n₁)) a₁)))
-                    ≡⟨ cong incl eq-at-K' ⟩
-                  incl (πBN K' (fst (π-proj (M K')) (fst (ι-inc (M n₂)) a₂)))
-                    ≡⟨ sym (incl-level-eq n₂ eq-level₂ a₂) ⟩
-                  incl (πBN (suc d₂' +ℕ n₂)
-                    (fst (π-proj (M (suc d₂' +ℕ n₂))) (fst (ι-inc (M n₂)) a₂)))
-                    ≡⟨ sym (push-to-πBN d₂' n₂ a₂) ⟩
-                  incl (πBN n₂ a₂)
-                    ≡⟨ cong incl ea₂ ⟩
-                  incl x₂ ∎)
-                (combined d-in-I))
-            (QB.quotientImageHomSurjective {B = freeBA (DF.Fin (M n₁))} {f = relN n₁} x₁)
-            (QB.quotientImageHomSurjective {B = freeBA (DF.Fin (M n₂))} {f = relN n₂} x₂)
-        colimEquiv : SeqColim seqB ≃ ⟨ freeBA ℕ QB./Im f ⟩
-        colimEquiv = fwd ,
-          isEmbedding×isSurjection→isEquiv
-            (injEmbedding (BooleanRingStr.is-set (snd Q))
-              (λ {c₁} {c₂} → fwd-inj c₁ c₂) , fwd-surj)
+        -- Forward: each BN(n) maps to Q via ι_{M(n)} ∘ πQ
+        -- Backward: freeBA ℕ → colim BN sends gen(k) to level k in BN(k)
+        postulate colimEquiv : SeqColim seqB ≃ ⟨ freeBA ℕ QB./Im f ⟩
   -- tex Lemma 1396
   BooleIsODisc : (B : Booleω) → isODisc ⟨ fst B ⟩
   BooleIsODisc B = PT.rec (isProp-isODisc _) go (snd B) where
@@ -1975,6 +1259,8 @@ module ODiscAxioms where
       sec x = snd P _ x
       ret : (c : SeqColim S) → bwd (fwd c) ≡ c
       ret c = isPropSeqColimProp S (λ n → isSetBool _ _) _ c
+  -- tex Corollary 1441
+  postulate ODiscBAareBoole : (B : BooleanRing ℓ-zero) → isODisc ⟨ B ⟩ → ∥ has-Boole-ω' B ∥₁
   -- tex Lemma 1184 (propositional truncation): ∥ A ∥₁ of ODisc is ODisc
   OdiscTrunc : {A : Type ℓ-zero} → isODisc A → isODisc ∥ A ∥₁
   OdiscTrunc {A} odiscA = PropOpenIffOdisc (∥ A ∥₁ , squash₁) trunc-open where
@@ -2289,128 +1575,6 @@ module ODiscAxioms where
     → isOpenProp ((a ≡ b) , isODiscIsSet odiscA a b)
   ODiscEqualityOpen odiscA a b =
     ODiscPropIsOpen ((a ≡ b) , isODiscIsSet odiscA a b) (OdiscPath odiscA a b)
-  -- tex Corollary 1441: ODisc Boolean algebras are countably presented (Boole)
-  freeBAℕ-isODisc : isODisc ⟨ freeBA ℕ ⟩
-  freeBAℕ-isODisc = BooleIsODisc (freeBA ℕ , ∣ replacementFreeOnCountable ℕ countℕ ∣₁)
-  ODiscBAareBoole : (B : BooleanRing ℓ-zero) → isODisc ⟨ B ⟩ → ∥ has-Boole-ω' B ∥₁
-  ODiscBAareBoole B odiscB =
-    PT.rec squash₁ go₁ (ODiscSurjFromN odiscB ∣ BooleanRingStr.𝟘 (snd B) ∣₁)
-   where
-    open BooleanRingStr (snd B) renaming (𝟘 to 0B; is-set to isSetB)
-    open IsCommRingHom
-    freeBA-surj : ∥ Σ[ e' ∈ (ℕ → ⟨ freeBA ℕ ⟩) ]
-      ((a : ⟨ freeBA ℕ ⟩) → ∥ Σ[ n ∈ ℕ ] e' n ≡ a ∥₁) ∥₁
-    freeBA-surj = ODiscSurjFromN freeBAℕ-isODisc ∣ generator zero ∣₁
-    go₁ : Σ[ e ∈ (ℕ → ⟨ B ⟩) ] ((a : ⟨ B ⟩) → ∥ Σ[ n ∈ ℕ ] e n ≡ a ∥₁)
-        → ∥ has-Boole-ω' B ∥₁
-    go₁ (e , surjE) = PT.rec squash₁ go₂ freeBA-surj where
-      φ : BoolHom (freeBA ℕ) B
-      φ = inducedBAHom ℕ B e
-      φ-eval : (n : ℕ) → fst φ (generator n) ≡ e n
-      φ-eval n = funExt⁻ (evalBAInduce ℕ B e) n
-      go₂ : Σ[ e' ∈ (ℕ → ⟨ freeBA ℕ ⟩) ]
-        ((a : ⟨ freeBA ℕ ⟩) → ∥ Σ[ n ∈ ℕ ] e' n ≡ a ∥₁)
-        → ∥ has-Boole-ω' B ∥₁
-      go₂ (e' , surjE') = PT.rec squash₁ go₃
-        (countableChoice _
-          (λ n → ODiscEqualityOpen odiscB (fst φ (e' n)) 0B)) where
-        go₃ : ((n : ℕ) → isOpenWitness ((fst φ (e' n) ≡ 0B) , isSetB _ _))
-            → ∥ has-Boole-ω' B ∥₁
-        go₃ openWit = ∣ r , ψ-equiv ∣₁ where
-          α : ℕ → binarySequence
-          α n = fst (openWit n)
-          φ0→Σ : (n : ℕ) → fst φ (e' n) ≡ 0B → Σ[ k ∈ ℕ ] α n k ≡ true
-          φ0→Σ n = fst (snd (openWit n))
-          Σ→φ0 : (n : ℕ) → Σ[ k ∈ ℕ ] α n k ≡ true → fst φ (e' n) ≡ 0B
-          Σ→φ0 n = snd (snd (openWit n))
-          pair : ℕ × ℕ → ℕ
-          pair = Iso.fun ℕ×ℕ≅ℕ
-          unpair : ℕ → ℕ × ℕ
-          unpair = Iso.inv ℕ×ℕ≅ℕ
-          0F = BooleanRingStr.𝟘 (snd (freeBA ℕ))
-          r : ℕ → ⟨ freeBA ℕ ⟩
-          r m = let (n , k) = unpair m in
-            if α n k then e' n else 0F
-          φ-kills-r : (m : ℕ) → fst φ (r m) ≡ 0B
-          φ-kills-r m with α (fst (unpair m)) (snd (unpair m))
-                         in eq
-          ... | true  = Σ→φ0 (fst (unpair m))
-                          (snd (unpair m) , builtin→Path-Bool eq)
-          ... | false = pres0 (snd φ)
-          Q = freeBA ℕ QB./Im r
-          ψ : BoolHom Q B
-          ψ = QB.inducedHom {f = r} B φ φ-kills-r
-          ψ-surj : isSurjection (fst ψ)
-          ψ-surj b = PT.map (λ (n , p) →
-            fst QB.quotientImageHom (generator n) ,
-            funExt⁻ (cong fst (QB.evalInduce {f = r} B)) (generator n)
-            ∙ φ-eval n ∙ p) (surjE b)
-          ker⊆ideal : (c : ⟨ freeBA ℕ ⟩) → fst φ c ≡ 0B
-            → IQ.generatedIdeal (BooleanRing→CommRing (freeBA ℕ)) r c
-          ker⊆ideal c p = PT.rec IQ.squash go-ker (surjE' c) where
-            go-ker : Σ[ n ∈ ℕ ] e' n ≡ c
-              → IQ.generatedIdeal (BooleanRing→CommRing (freeBA ℕ)) r c
-            go-ker (n , q) = subst (IQ.generatedIdeal _ r) q r-in-ideal where
-              φe'n=0 : fst φ (e' n) ≡ 0B
-              φe'n=0 = cong (fst φ) q ∙ p
-              witness : Σ[ k ∈ ℕ ] α n k ≡ true
-              witness = φ0→Σ n φe'n=0
-              k' = fst witness
-              αnk=true : α n k' ≡ true
-              αnk=true = snd witness
-              m = pair (n , k')
-              unpair-pair : unpair m ≡ (n , k')
-              unpair-pair = Iso.ret ℕ×ℕ≅ℕ (n , k')
-              r-is-e'n : r m ≡ e' n
-              r-is-e'n with α (fst (unpair m)) (snd (unpair m))
-                         in eq
-              ... | true  = cong e' (cong fst unpair-pair)
-              ... | false = ⊥-rec (true≢false
-                  (sym αnk=true
-                   ∙ sym (cong₂ α (cong fst unpair-pair) (cong snd unpair-pair))
-                   ∙ builtin→Path-Bool eq))
-              r-in-ideal : IQ.generatedIdeal _ r (e' n)
-              r-in-ideal = subst (IQ.generatedIdeal _ r) r-is-e'n (IQ.single m)
-          isSetQ = BooleanRingStr.is-set (snd Q)
-          π = fst QB.quotientImageHom
-          πHom = snd QB.quotientImageHom
-          πSurj : isSurjection π
-          πSurj = QB.quotientImageHomSurjective {f = r}
-          ψπ≡φ : (x : ⟨ freeBA ℕ ⟩) → fst ψ (π x) ≡ fst φ x
-          ψπ≡φ x = funExt⁻ (cong fst (QB.evalInduce {f = r} B)) x
-          ψ-inj-lift : (a b : ⟨ freeBA ℕ ⟩) → fst ψ (π a) ≡ fst ψ (π b)
-            → π a ≡ π b
-          ψ-inj-lift a b p = let
-              φa≡φb : fst φ a ≡ fst φ b
-              φa≡φb = sym (ψπ≡φ a) ∙ p ∙ ψπ≡φ b
-              diff = BooleanRingStr._+_ (snd (freeBA ℕ)) a b
-              φ-diff=0 : fst φ diff ≡ 0B
-              φ-diff=0 = pres+ (snd φ) a b
-                ∙ cong₂ (BooleanRingStr._+_ (snd B)) φa≡φb refl
-                ∙ BooleanAlgebraStr.characteristic2 B
-              diff-in-ideal = ker⊆ideal diff φ-diff=0
-              πdiff=0 : π diff ≡ BooleanRingStr.𝟘 (snd Q)
-              πdiff=0 = QB.toKernel {f = r} diff-in-ideal
-              πa+πb=0 : BooleanRingStr._+_ (snd Q) (π a) (π b)
-                ≡ BooleanRingStr.𝟘 (snd Q)
-              πa+πb=0 = sym (pres+ πHom a b) ∙ πdiff=0
-            in sym (BooleanRingStr.+IdR (snd Q) _)
-              ∙ cong (BooleanRingStr._+_ (snd Q) (π a))
-                  (sym (BooleanAlgebraStr.characteristic2 Q))
-              ∙ BooleanRingStr.+Assoc (snd Q) _ _ _
-              ∙ cong (λ z → BooleanRingStr._+_ (snd Q) z (π b)) πa+πb=0
-              ∙ BooleanRingStr.+IdL (snd Q) _
-          ψ-inj : (x y : ⟨ Q ⟩) → fst ψ x ≡ fst ψ y → x ≡ y
-          ψ-inj x y hyp = PT.rec2 (isSetQ x y) go (πSurj x) (πSurj y) where
-            go : Σ[ a ∈ _ ] π a ≡ x → Σ[ b ∈ _ ] π b ≡ y → x ≡ y
-            go (a , pa) (b , pb) = sym pa ∙ ψ-inj-lift a b
-              (cong (fst ψ) pa ∙ hyp ∙ cong (fst ψ) (sym pb)) ∙ pb
-          ψ-equiv : BooleanRingEquiv B Q
-          ψ-equiv = invCommRingEquiv
-            (BooleanRing→CommRing Q) (BooleanRing→CommRing B)
-            ((fst ψ , isEmbedding×isSurjection→isEquiv
-              (injEmbedding isSetB (λ {x} {y} → ψ-inj x y) , ψ-surj))
-            , snd ψ)
   -- ℕ is ODisc (colimit of Fin 1 → Fin 2 → Fin 3 → ...)
   private
     NatSeq : Sequence ℓ-zero

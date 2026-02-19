@@ -1,0 +1,29 @@
+bck0183: COMPILES (full chain Part20 verified). Eliminated ODiscBAareBoole postulate in Part07.agda.
+
+Previously (bck0182): ODiscBAareBoole was postulated (tex Corollary 1441).
+Now: Full proof written using:
+  - freeBAℕ-isODisc: freeBA(ℕ) is ODisc (via replacementFreeOnCountable + BooleIsODisc)
+  - Surjection ℕ →→ B (from ODiscSurjFromN)
+  - Surjection ℕ →→ freeBA(ℕ) (from ODiscSurjFromN + freeBAℕ-isODisc)
+  - BoolHom φ : freeBA(ℕ) → B induced by e
+  - Open witnesses α_n for "φ(e'(n)) = 0" (from ODiscEqualityOpen + countableChoice)
+  - Relations r via pairing: r(m) = if α_{π₁m}(π₂m) then e'(π₁m) else 0
+  - φ-kills-r: φ sends r-values to 0 (with ... in eq + builtin→Path-Bool)
+  - Induced ψ : Q → B (Q = freeBA(ℕ) / Im(r))
+  - ψ-surj: surjectivity from surjection onto B
+  - ker⊆ideal: kernel of φ ⊆ ideal of r (via open witness witness extraction)
+  - ψ-inj: injectivity via surjectivity of π and char2 + kernel analysis
+  - ψ-equiv: combining into BooleanRingEquiv via invCommRingEquiv
+
+QuotientBool.agda: Added toKernel (reverse of fromKernel):
+  ideal membership → quotient map sends to zero.
+
+New imports in Part07.agda:
+  - if_then_else_ from Cubical.Data.Bool
+  - elimProp2 from Cubical.HITs.SetQuotients
+  - invCommRingEquiv from Cubical.Algebra.CommRing.Properties
+  - zeroOnIdeal from Cubical.Algebra.CommRing.Quotient.Base
+  - BooleanRingEquiv from PresentedBoole
+
+Line count: 2244 (bck0182) → 2365 (bck0183), +121 lines.
+QuotientBool: 97 → 99 lines (+2 for toKernel).

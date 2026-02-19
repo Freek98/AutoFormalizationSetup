@@ -1,0 +1,21 @@
+CHANGES0175 — BooleIsODisc proved from quotientFreeBA-isODisc
+
+Changes since bck0174 (Part07: 1559→1569, +10 lines):
+
+1. Part07 (1559→1569, +10 lines):
+   - PROVED BooleIsODisc (tex Lemma 1396: every countably presented BA is ODisc).
+   - Reduced to new postulate quotientFreeBA-isODisc:
+     "For any f : ℕ → ⟨ freeBA ℕ ⟩, the quotient freeBA ℕ /Im f is ODisc."
+   - Proof strategy: given has-Boole-ω' B = (f, bEquiv) where
+     bEquiv : BooleanRingEquiv B (freeBA ℕ /Im f), transfer ODisc via invEquiv.
+   - Added invEquiv to Equiv import in ODiscAxioms.
+   - Added local imports of freeBA and has-Boole-ω' inside ODiscAxioms module.
+
+Net postulate change: eliminated BooleIsODisc, added quotientFreeBA-isODisc.
+Part07 remaining postulates: 4 (ODiscColimOfODisc, quotientFreeBA-isODisc,
+  ODiscBAareBoole, ImageStoneMapDecidableIntersection).
+
+Test file work/test-boole-odisc.agda: prototype infrastructure for proving
+quotientFreeBA-isODisc (SpFreeBAFin, FreeBAFinBooleω, FreeBAFinFinite modules).
+
+Full chain verification: SUCCESS.

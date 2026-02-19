@@ -1,0 +1,8 @@
+bck0185: COMPILES (Part07 verified). Added hasStoneStr→closedProp (tex Corollary 1628).
+
+New module ClosedPropIffStone' (lines ~937-948):
+  - hasStoneStr→closedProp : (P : hProp) → hasStoneStr (fst P) → isClosedProp P
+  - Proof: Transport TruncationStoneClosed along hProp equality via TypeOfHLevel≡ + propTruncIdempotent≃
+  - Complements existing closedProp→hasStoneStr (← direction, in ClosedPropIffStone module)
+
+Line count: 2366 (bck0184) → 2377 (bck0185), +11 lines.

@@ -1,0 +1,26 @@
+CHANGES0174 — OdiscSigma postulate eliminated (traded for ODiscColimOfODisc)
+
+Changes since bck0173 (Part07: 1457→1559, +102 lines):
+
+1. Part07 (1457→1559, +102 lines):
+   - ELIMINATED OdiscSigma postulate (tex Lemma 1184: ODisc types are stable under Σ-types).
+   - OdiscSigma is now PROVED from building blocks:
+     * ODiscFinSet: finite sets are ODisc (constant sequence).
+     * isODisc-equiv: ODisc transported along equivalences.
+     * finΣ-ODisc: Σ over finite base with ODisc fibers is ODisc.
+       Uses finite choice from Cubical.Data.FinSet.FiniteChoice.
+       Fixed-base Σ-colimit commutativity: SeqColim(Σ A (T · n)) ≃ Σ A (SeqColim ∘ T).
+     * ODiscColimOfODisc (NEW postulate, tex Lemma 1160): sequential colimits
+       of ODisc types are ODisc. More primitive than OdiscSigma.
+     * Σ-colimit commutativity (inline): SeqColim(ΣSA) ≃ Σ(SeqColim SA)(B').
+       Forward uses subst-filler, backward uses hcomp+transp+transportTransport⁻.
+       Roundtrips use isProp→PathP with set-ness.
+   - Moved SCSet module and isSetSeqColimOfSets before new ODisc code
+     (was after, causing forward reference errors).
+   - Removed duplicate isODisc→isSet (identical to existing isODiscIsSet).
+
+Net postulate change: eliminated OdiscSigma, added ODiscColimOfODisc.
+Part07 remaining postulates: 4 (ODiscColimOfODisc, BooleIsODisc,
+  ODiscBAareBoole, ImageStoneMapDecidableIntersection).
+
+Full chain verification: SUCCESS.

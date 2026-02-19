@@ -1,0 +1,11 @@
+bck0188: COMPILES (Part07 verified). Added liftTo-isProp + liftTo-comp.
+
+ColimCompactHelpers additions:
+  - liftTo-isProp : two ≤-proofs give same liftTo result (via isProp≤)
+  - liftTo-comp : liftTo le₂ (liftTo le₁ x) ≡ liftTo (≤-trans le₁ le₂) x
+    Proof uses J on both path components of ≤, reducing to base case where
+    transportRefl + iterMap-comp + liftTo-isProp chain through.
+
+Building toward: EvEq relation → separation → lemDecomp → ODiscColimOfODisc.
+
+Line count: 2434 (bck0187) → 2449 (bck0188), +15 lines.

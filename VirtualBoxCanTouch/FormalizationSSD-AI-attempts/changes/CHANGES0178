@@ -1,0 +1,21 @@
+CHANGES0178 — isFinSet-freeBA-Fin proved (freeBA on finite generators is finite)
+
+Changes since bck0177 (Part07: 1691→1804, +113 lines):
+
+1. Part07 ODiscAxioms (added ~113 lines):
+   - PROVED isFinSet-freeBA-Fin : (k : ℕ) → isFinSet ⟨ freeBA (DF.Fin k) ⟩
+   - Strategy: use SD + universal property of free Boolean algebras:
+     a. killRel: kills generators ≥ k in freeBA ℕ (maps j ↦ generator(k+j))
+     b. Forward/backward homs between freeBA(Fin k) and freeBA(ℕ)/Im killRel
+     c. Roundtrip proofs using inducedBAHomUnique + quotientImageHomEpi
+     d. Booleω structure from the isomorphism (SD applies)
+     e. Sp ≃ (DF.Fin k → Bool) via universal property
+     f. Compose equivs: ⟨ freeBA(Fin k) ⟩ ≃ ((Fin k → Bool) → Bool)
+     g. isFinSet→ gives finiteness of target type
+   - This is a key helper for proving isFinSetBN (next step).
+
+Net postulate change: none (isFinSet-freeBA-Fin is new infrastructure).
+Part07 remaining postulates: 3 top-level (ODiscColimOfODisc, ODiscBAareBoole,
+  ImageStoneMapDecidableIntersection) + 3 inner (mapBN, isFinSetBN, colimEquiv).
+
+Full chain verification: SUCCESS.

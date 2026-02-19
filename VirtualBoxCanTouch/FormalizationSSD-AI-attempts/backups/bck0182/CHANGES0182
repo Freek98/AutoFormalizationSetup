@@ -1,0 +1,26 @@
+bck0182: COMPILES. Eliminated colimEquiv postulate in Part07.agda.
+
+Previously (bck0180): colimEquiv was postulated inside quotientFreeBA-isODisc.
+Now: colimEquiv is fully proved via fwd-inj (injectivity) + fwd-surj (surjectivity).
+
+New infrastructure for fwd-inj proof:
+- isSetSC: SeqColim seqB is a set
+- mapBN-eval: evaluates mapBN on πBN elements using QB.evalInduce
+- G: helper function G n k a = πBN k (π-proj(M k) ∘ ι-inc(M n)) a
+- push-to-πBN: by induction on distance d, connects incl(πBN n a) to incl(G n (suc d+n) a)
+  via push steps and retract lemmas (ιπι-retract)
+- incl-level-eq: J-based level transport for SeqColim incl
+- suc-le-decomp: decomposes n≤K' with suc n≤K' into Σ d', suc d'+n≡K'
+- combined: from generatedIdeal elements, extracts finite support bound K
+- char2-eq: characteristic 2 identity: a+b=0 → a=b (in any BooleanRing)
+- ideal→zero: ideal elements project to zero in quotient ring
+- fwd-inj: equational chain proof of injectivity using all above
+
+Strategy: Given fwd(incl x₁) = fwd(incl x₂), lift x₁,x₂ to generators a₁,a₂,
+  form d = ι₁a₁ + ι₂a₂, show πQ(d)=0, extract d∈genIdeal(f), get finite support K,
+  push both elements to level K' = suc(max(max n₁ n₂) K), prove they agree there
+  via char2-eq and ideal→zero, then connect back via push-to-πBN equational chain.
+
+Line count: 2061 (bck0180) → 2244 (bck0182), +183 lines of new proven code.
+Decrease from bck0181 (2274): removed duplicate char2-eq, hKills, iterMap/push-iter/iterMap-eval
+(non-compiling intermediates replaced by cleaner push-to-πBN approach).
