@@ -1,0 +1,96 @@
+{-# OPTIONS --cubical --guardedness #-}
+
+module BooleanRing.BooleanRingQuotients.countablypresentedQuotient where
+
+open import Cubical.Data.Sigma
+open import Cubical.Data.Sum
+import Cubical.Data.Sum as ⊎
+open import Cubical.Data.Nat using (ℕ)
+open import Cubical.Data.Nat.Bijections.Sum
+
+open import Cubical.Foundations.Structure
+open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.Function
+open import Cubical.Foundations.Isomorphism
+open import Cubical.Foundations.Equiv
+
+open import Cubical.Algebra.CommRing
+open import Cubical.Algebra.BooleanRing
+open import Cubical.Algebra.CommRing.Univalence
+
+open import QuotientBool as QB
+import Cubical.Algebra.CommRing.Quotient.ImageQuotient as IQ
+
+open import BooleanRing.FreeBooleanRing.FreeBool
+open import CountablyPresentedBooleanRings.PresentedBoole
+open import BooleanRing.BooleanRingQuotients.QuotientCase
+open import BooleanRing.BooleanRingQuotients.QuotientConclusions
+open import Boole.EquivHelper
+
+-- Reindexing: if σ : Iso X Y, then A /Im f ≅ A /Im (f ∘ Iso.inv σ)
+module reindex {A : BooleanRing ℓ-zero} {X Y : Type} (σ : Iso X Y) (f : X → ⟨ A ⟩) where
+  open BooleanRingStr ⦃...⦄
+  instance
+    _ = snd A
+    _ = snd (A QB./Im f)
+    _ = snd (A QB./Im (f ∘ Iso.inv σ))
+
+  f' : Y → ⟨ A ⟩
+  f' = f ∘ Iso.inv σ
+
+  fwdKills : (x : X) → QB.quotientImageHom {B = A} {f = f'} $cr f x ≡ 𝟘
+  fwdKills x = subst (λ y → QB.quotientImageHom {B = A} {f = f'} $cr f' y ≡ 𝟘)
+    (sym (Iso.sec σ x))
+    (QB.zeroOnImage (Iso.fun σ x))
+
+  fwd : BoolHom (A QB./Im f) (A QB./Im f')
+  fwd = QB.inducedHom (A QB./Im f') QB.quotientImageHom fwdKills
+
+  bwdKills : (y : Y) → QB.quotientImageHom {B = A} {f = f} $cr f' y ≡ 𝟘
+  bwdKills y = QB.zeroOnImage (Iso.inv σ y)
+
+  bwd : BoolHom (A QB./Im f') (A QB./Im f)
+  bwd = QB.inducedHom (A QB./Im f) QB.quotientImageHom bwdKills
+
+  fwd∘π : fwd ∘cr QB.quotientImageHom {B = A} {f = f} ≡ QB.quotientImageHom
+  fwd∘π = QB.evalInduce (A QB./Im f')
+
+  bwd∘π : bwd ∘cr QB.quotientImageHom {B = A} {f = f'} ≡ QB.quotientImageHom
+  bwd∘π = QB.evalInduce (A QB./Im f)
+
+  ret∘π : (bwd ∘cr fwd) ∘cr QB.quotientImageHom {B = A} {f = f} ≡
+          idCommRingHom (BooleanRing→CommRing (A QB./Im f)) ∘cr QB.quotientImageHom
+  ret∘π =
+    (bwd ∘cr fwd) ∘cr QB.quotientImageHom
+      ≡⟨ CommRingHom≡ refl ⟩
+    bwd ∘cr (fwd ∘cr QB.quotientImageHom)
+      ≡⟨ cong (bwd ∘cr_) fwd∘π ⟩
+    bwd ∘cr QB.quotientImageHom {B = A} {f = f'}
+      ≡⟨ bwd∘π ⟩
+    QB.quotientImageHom
+      ≡⟨ sym (idCompCommRingHom QB.quotientImageHom) ⟩
+    idCommRingHom _ ∘cr QB.quotientImageHom ∎
+
+  sec∘π : (fwd ∘cr bwd) ∘cr QB.quotientImageHom {B = A} {f = f'} ≡
+          idCommRingHom (BooleanRing→CommRing (A QB./Im f')) ∘cr QB.quotientImageHom
+  sec∘π =
+    (fwd ∘cr bwd) ∘cr QB.quotientImageHom
+      ≡⟨ CommRingHom≡ refl ⟩
+    fwd ∘cr (bwd ∘cr QB.quotientImageHom)
+      ≡⟨ cong (fwd ∘cr_) bwd∘π ⟩
+    fwd ∘cr QB.quotientImageHom {B = A} {f = f}
+      ≡⟨ fwd∘π ⟩
+    QB.quotientImageHom
+      ≡⟨ sym (idCompCommRingHom QB.quotientImageHom) ⟩
+    idCommRingHom _ ∘cr QB.quotientImageHom ∎
+
+  ret : bwd ∘cr fwd ≡ idCommRingHom _
+  ret = QB.quotientImageHomEpi (⟨ A QB./Im f ⟩ , is-set) (cong fst ret∘π)
+
+  sec : fwd ∘cr bwd ≡ idCommRingHom _
+  sec = QB.quotientImageHomEpi (⟨ A QB./Im f' ⟩ , is-set) (cong fst sec∘π)
+
+  reindexEquiv : BooleanRingEquiv (A QB./Im f) (A QB./Im f')
+  reindexEquiv = isoToCommRingEquiv fwd (fst bwd)
+    (funExt⁻ (cong fst sec)) (funExt⁻ (cong fst ret))
+

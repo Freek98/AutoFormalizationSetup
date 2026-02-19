@@ -1,0 +1,8 @@
+CHANGES0002: Added sumQuotientPresented and iteratedQuotientPresented
+- sumToBoolPath: Extracts BoolRing path from BoolQuotientEquiv's CommRing path
+  via uaBoolRing ∘ invEq CommRingPath
+- sumQuotientPresented: freeBA ℕ /Im (⊎.rec f g) is countably presented
+  (uses reindexEquiv with ℕ⊎ℕ≅ℕ)
+- iteratedQuotientPresented: (freeBA ℕ /Im f) /Im (π ∘ g) is countably presented
+  (uses subst has-Boole-ω' along sumToBoolPath)
+- All compiling. Pending: main theorem connecting to arbitrary B and h.

@@ -1,0 +1,13 @@
+CHANGES0005: Added BoolBR /Im α application (328 lines, was 297)
+
+New: boolQuotient module
+- boolLift : Bool → ⟨ freeBA ℕ ⟩ (maps true→𝟙, false→𝟘)
+- liftCondition : proves π ∘ (boolLift ∘ α) ≡ e ∘ α
+  (via pres1/pres0 of quotientImageHom and the presentation equivalence)
+- boolQuotientPresented : (α : ℕ → Bool) → has-Boole-ω' (BoolBR QB./Im α)
+  (applies countablyPresentedQuotient with explicit lift)
+
+This replaces the ~220-line manual proof in backups/bck0127_Part02.agda
+(quotientPreservesBooleω) with a clean 30-line application of the general theorem.
+
+All compiling, no postulates.

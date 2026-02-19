@@ -1,0 +1,327 @@
+{-# OPTIONS --cubical --guardedness #-}
+
+module BooleanRing.BooleanRingQuotients.countablypresentedQuotient where
+
+open import Cubical.Data.Sigma
+open import Cubical.Data.Sum
+import Cubical.Data.Sum as ⊎
+open import Cubical.Data.Nat using (ℕ)
+open import Cubical.Data.Nat.Bijections.Sum
+
+open import Cubical.Foundations.Structure
+open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.Function
+open import Cubical.Foundations.Isomorphism
+open import Cubical.Foundations.Equiv
+
+open import Cubical.Algebra.CommRing
+open import Cubical.Algebra.BooleanRing
+open import Cubical.Algebra.CommRing.Univalence
+
+open import QuotientBool as QB
+import Cubical.Algebra.CommRing.Quotient.ImageQuotient as IQ
+
+open import BooleanRing.FreeBooleanRing.FreeBool
+open import CountablyPresentedBooleanRings.PresentedBoole
+open import BooleanRing.BooleanRingQuotients.QuotientConclusions
+open import Boole.EquivHelper
+
+-- Reindexing: if σ : Iso X Y, then A /Im f ≅ A /Im (f ∘ Iso.inv σ)
+module reindex {A : BooleanRing ℓ-zero} {X Y : Type} (σ : Iso X Y) (f : X → ⟨ A ⟩) where
+  open BooleanRingStr ⦃...⦄
+  instance
+    _ = snd A
+    _ = snd (A QB./Im f)
+    _ = snd (A QB./Im (f ∘ Iso.inv σ))
+
+  f' : Y → ⟨ A ⟩
+  f' = f ∘ Iso.inv σ
+
+  fwdKills : (x : X) → QB.quotientImageHom {B = A} {f = f'} $cr f x ≡ 𝟘
+  fwdKills x = subst (λ a → QB.quotientImageHom {B = A} {f = f'} $cr a ≡ 𝟘)
+    (cong f (Iso.ret σ x))
+    (QB.zeroOnImage (Iso.fun σ x))
+
+  fwd : BoolHom (A QB./Im f) (A QB./Im f')
+  fwd = QB.inducedHom (A QB./Im f') QB.quotientImageHom fwdKills
+
+  bwdKills : (y : Y) → QB.quotientImageHom {B = A} {f = f} $cr f' y ≡ 𝟘
+  bwdKills y = QB.zeroOnImage (Iso.inv σ y)
+
+  bwd : BoolHom (A QB./Im f') (A QB./Im f)
+  bwd = QB.inducedHom (A QB./Im f) QB.quotientImageHom bwdKills
+
+  fwd∘π : fwd ∘cr QB.quotientImageHom {B = A} {f = f} ≡ QB.quotientImageHom
+  fwd∘π = QB.evalInduce (A QB./Im f')
+
+  bwd∘π : bwd ∘cr QB.quotientImageHom {B = A} {f = f'} ≡ QB.quotientImageHom
+  bwd∘π = QB.evalInduce (A QB./Im f)
+
+  ret∘π : (bwd ∘cr fwd) ∘cr QB.quotientImageHom {B = A} {f = f} ≡
+          idCommRingHom (BooleanRing→CommRing (A QB./Im f)) ∘cr QB.quotientImageHom
+  ret∘π =
+    (bwd ∘cr fwd) ∘cr QB.quotientImageHom
+      ≡⟨ CommRingHom≡ refl ⟩
+    bwd ∘cr (fwd ∘cr QB.quotientImageHom)
+      ≡⟨ cong (bwd ∘cr_) fwd∘π ⟩
+    bwd ∘cr QB.quotientImageHom {B = A} {f = f'}
+      ≡⟨ bwd∘π ⟩
+    QB.quotientImageHom
+      ≡⟨ sym (idCompCommRingHom QB.quotientImageHom) ⟩
+    idCommRingHom _ ∘cr QB.quotientImageHom ∎
+
+  sec∘π : (fwd ∘cr bwd) ∘cr QB.quotientImageHom {B = A} {f = f'} ≡
+          idCommRingHom (BooleanRing→CommRing (A QB./Im f')) ∘cr QB.quotientImageHom
+  sec∘π =
+    (fwd ∘cr bwd) ∘cr QB.quotientImageHom
+      ≡⟨ CommRingHom≡ refl ⟩
+    fwd ∘cr (bwd ∘cr QB.quotientImageHom)
+      ≡⟨ cong (fwd ∘cr_) bwd∘π ⟩
+    fwd ∘cr QB.quotientImageHom {B = A} {f = f}
+      ≡⟨ fwd∘π ⟩
+    QB.quotientImageHom
+      ≡⟨ sym (idCompCommRingHom QB.quotientImageHom) ⟩
+    idCommRingHom _ ∘cr QB.quotientImageHom ∎
+
+  ret : bwd ∘cr fwd ≡ idCommRingHom (BooleanRing→CommRing (A QB./Im f))
+  ret = CommRingHom≡ $
+    QB.quotientImageHomEpi {B = A} {f = f}
+      (⟨ A QB./Im f ⟩ , BooleanRingStr.is-set (snd (A QB./Im f)))
+      (cong fst ret∘π)
+
+  sec : fwd ∘cr bwd ≡ idCommRingHom (BooleanRing→CommRing (A QB./Im f'))
+  sec = CommRingHom≡ $
+    QB.quotientImageHomEpi {B = A} {f = f'}
+      (⟨ A QB./Im f' ⟩ , BooleanRingStr.is-set (snd (A QB./Im f')))
+      (cong fst sec∘π)
+
+  reindexEquiv : BooleanRingEquiv (A QB./Im f) (A QB./Im f')
+  reindexEquiv = isoToCommRingEquiv fwd (fst bwd)
+    (funExt⁻ (cong fst sec)) (funExt⁻ (cong fst ret))
+
+open import BooleanRing.BoolRingUnivalence
+
+-- Given f, g : ℕ → ⟨ freeBA ℕ ⟩, the combined quotient is countably presented.
+-- freeBA ℕ /Im (⊎.rec f g) ≅ freeBA ℕ /Im k where k : ℕ → ⟨ freeBA ℕ ⟩
+sumQuotientPresented : (f g : ℕ → ⟨ freeBA ℕ ⟩) → has-Boole-ω' (freeBA ℕ QB./Im (⊎.rec f g))
+sumQuotientPresented f g = k , equivChain where
+  k : ℕ → ⟨ freeBA ℕ ⟩
+  k = ⊎.rec f g ∘ Iso.inv ℕ⊎ℕ≅ℕ
+
+  equivChain : BooleanRingEquiv (freeBA ℕ QB./Im (⊎.rec f g)) (freeBA ℕ QB./Im k)
+  equivChain = reindex.reindexEquiv ℕ⊎ℕ≅ℕ (⊎.rec f g)
+
+-- BoolQuotientEquiv gives a CommRing path. We extract a BoolRing path from it.
+sumToBoolPath : (f g : ℕ → ⟨ freeBA ℕ ⟩) →
+  freeBA ℕ QB./Im (⊎.rec f g) ≡
+  (freeBA ℕ QB./Im f) QB./Im (fst QB.quotientImageHom ∘ g)
+sumToBoolPath f g = uaBoolRing
+  (invEq (CommRingPath _ _) (BoolQuotientEquiv (freeBA ℕ) f g))
+
+-- The iterated quotient (freeBA ℕ /Im f) /Im (π ∘ g) is countably presented.
+iteratedQuotientPresented : (f g : ℕ → ⟨ freeBA ℕ ⟩) →
+  has-Boole-ω' ((freeBA ℕ QB./Im f) QB./Im (fst QB.quotientImageHom ∘ g))
+iteratedQuotientPresented f g = subst has-Boole-ω' (sumToBoolPath f g) (sumQuotientPresented f g)
+
+-- Quotient compatible with equivalence: if A ≅ B then A /Im h ≅ B /Im (e ∘ h)
+module equivQuot {A B : BooleanRing ℓ-zero} (e : BooleanRingEquiv A B)
+  {X : Type} (h : X → ⟨ A ⟩) where
+  open BooleanRingStr ⦃...⦄
+  instance
+    _ = snd A
+    _ = snd B
+    _ = snd (A QB./Im h)
+    _ = snd (B QB./Im (fst (fst e) ∘ h))
+
+  eFwd : ⟨ A ⟩ → ⟨ B ⟩
+  eFwd = fst (fst e)
+
+  eBwd : ⟨ B ⟩ → ⟨ A ⟩
+  eBwd = fst (fst (invBooleanRingEquiv A B e))
+
+  eFwdHom : BoolHom A B
+  eFwdHom = BooleanEquivToHom A B e
+
+  eBwdHom : BoolHom B A
+  eBwdHom = BooleanEquivToHomInv A B e
+
+  eBwd∘eFwd : eBwdHom ∘cr eFwdHom ≡ idBoolHom A
+  eBwd∘eFwd = BooleanEquivLeftInv A B e
+
+  eFwd∘eBwd : eFwdHom ∘cr eBwdHom ≡ idBoolHom B
+  eFwd∘eBwd = BooleanEquivRightInv A B e
+
+  -- Forward: A → B /Im (e ∘ h) via e then quotient
+  φ : BoolHom A (B QB./Im (eFwd ∘ h))
+  φ = QB.quotientImageHom ∘cr eFwdHom
+
+  φKills : (x : X) → φ $cr h x ≡ 𝟘
+  φKills x = QB.zeroOnImage x
+
+  fwdQ : BoolHom (A QB./Im h) (B QB./Im (eFwd ∘ h))
+  fwdQ = QB.inducedHom (B QB./Im (eFwd ∘ h)) φ φKills
+
+  -- Backward: B → A /Im h via e⁻¹ then quotient
+  ψ : BoolHom B (A QB./Im h)
+  ψ = QB.quotientImageHom ∘cr eBwdHom
+
+  ψKills : (x : X) → ψ $cr (eFwd (h x)) ≡ 𝟘
+  ψKills x = cong (fst QB.quotientImageHom) (funExt⁻ (cong fst eBwd∘eFwd) (h x))
+    ∙ QB.zeroOnImage x
+
+  bwdQ : BoolHom (B QB./Im (eFwd ∘ h)) (A QB./Im h)
+  bwdQ = QB.inducedHom (A QB./Im h) ψ ψKills
+
+  fwdQ∘π : fwdQ ∘cr QB.quotientImageHom {B = A} {f = h} ≡ φ
+  fwdQ∘π = QB.evalInduce (B QB./Im (eFwd ∘ h))
+
+  bwdQ∘π : bwdQ ∘cr QB.quotientImageHom {B = B} {f = eFwd ∘ h} ≡ ψ
+  bwdQ∘π = QB.evalInduce (A QB./Im h)
+
+  ret∘π : (bwdQ ∘cr fwdQ) ∘cr QB.quotientImageHom {B = A} {f = h} ≡
+    idCommRingHom (BooleanRing→CommRing (A QB./Im h)) ∘cr QB.quotientImageHom
+  ret∘π =
+    (bwdQ ∘cr fwdQ) ∘cr QB.quotientImageHom
+      ≡⟨ CommRingHom≡ refl ⟩
+    bwdQ ∘cr (fwdQ ∘cr QB.quotientImageHom)
+      ≡⟨ cong (bwdQ ∘cr_) fwdQ∘π ⟩
+    bwdQ ∘cr (QB.quotientImageHom ∘cr eFwdHom)
+      ≡⟨ CommRingHom≡ refl ⟩
+    (bwdQ ∘cr QB.quotientImageHom) ∘cr eFwdHom
+      ≡⟨ cong (_∘cr eFwdHom) bwdQ∘π ⟩
+    (QB.quotientImageHom ∘cr eBwdHom) ∘cr eFwdHom
+      ≡⟨ CommRingHom≡ refl ⟩
+    QB.quotientImageHom ∘cr (eBwdHom ∘cr eFwdHom)
+      ≡⟨ cong (QB.quotientImageHom ∘cr_) eBwd∘eFwd ⟩
+    QB.quotientImageHom ∘cr idBoolHom A
+      ≡⟨ CommRingHom≡ refl ⟩
+    QB.quotientImageHom
+      ≡⟨ sym (idCompCommRingHom QB.quotientImageHom) ⟩
+    idCommRingHom _ ∘cr QB.quotientImageHom ∎
+
+  sec∘π : (fwdQ ∘cr bwdQ) ∘cr QB.quotientImageHom {B = B} {f = eFwd ∘ h} ≡
+    idCommRingHom (BooleanRing→CommRing (B QB./Im (eFwd ∘ h))) ∘cr QB.quotientImageHom
+  sec∘π =
+    (fwdQ ∘cr bwdQ) ∘cr QB.quotientImageHom
+      ≡⟨ CommRingHom≡ refl ⟩
+    fwdQ ∘cr (bwdQ ∘cr QB.quotientImageHom)
+      ≡⟨ cong (fwdQ ∘cr_) bwdQ∘π ⟩
+    fwdQ ∘cr (QB.quotientImageHom ∘cr eBwdHom)
+      ≡⟨ CommRingHom≡ refl ⟩
+    (fwdQ ∘cr QB.quotientImageHom) ∘cr eBwdHom
+      ≡⟨ cong (_∘cr eBwdHom) fwdQ∘π ⟩
+    (QB.quotientImageHom ∘cr eFwdHom) ∘cr eBwdHom
+      ≡⟨ CommRingHom≡ refl ⟩
+    QB.quotientImageHom ∘cr (eFwdHom ∘cr eBwdHom)
+      ≡⟨ cong (QB.quotientImageHom ∘cr_) eFwd∘eBwd ⟩
+    QB.quotientImageHom ∘cr idBoolHom B
+      ≡⟨ CommRingHom≡ refl ⟩
+    QB.quotientImageHom
+      ≡⟨ sym (idCompCommRingHom QB.quotientImageHom) ⟩
+    idCommRingHom _ ∘cr QB.quotientImageHom ∎
+
+  retQ : bwdQ ∘cr fwdQ ≡ idCommRingHom (BooleanRing→CommRing (A QB./Im h))
+  retQ = CommRingHom≡ $
+    QB.quotientImageHomEpi {B = A} {f = h}
+      (⟨ A QB./Im h ⟩ , BooleanRingStr.is-set (snd (A QB./Im h)))
+      (cong fst ret∘π)
+
+  secQ : fwdQ ∘cr bwdQ ≡ idCommRingHom (BooleanRing→CommRing (B QB./Im (eFwd ∘ h)))
+  secQ = CommRingHom≡ $
+    QB.quotientImageHomEpi {B = B} {f = eFwd ∘ h}
+      (⟨ B QB./Im (eFwd ∘ h) ⟩ , BooleanRingStr.is-set (snd (B QB./Im (eFwd ∘ h))))
+      (cong fst sec∘π)
+
+  equivQuotient : BooleanRingEquiv (A QB./Im h) (B QB./Im (eFwd ∘ h))
+  equivQuotient = isoToCommRingEquiv fwdQ (fst bwdQ)
+    (funExt⁻ (cong fst secQ)) (funExt⁻ (cong fst retQ))
+
+-- Main theorem: if B is countably presented and g lifts h through the quotient map,
+-- then B /Im h is countably presented.
+module mainTheorem (B : BooleanRing ℓ-zero)
+  (pres : has-Boole-ω' B) (h : ℕ → ⟨ B ⟩)
+  (g : ℕ → ⟨ freeBA ℕ ⟩)
+  (liftCond : fst QB.quotientImageHom ∘ g ≡ fst (fst (snd pres)) ∘ h) where
+
+  f : ℕ → ⟨ freeBA ℕ ⟩
+  f = fst pres
+
+  e : BooleanRingEquiv B (freeBA ℕ QB./Im f)
+  e = snd pres
+
+  eFwd : ⟨ B ⟩ → ⟨ freeBA ℕ QB./Im f ⟩
+  eFwd = fst (fst e)
+
+  -- Step 1: B /Im h ≅ (freeBA ℕ /Im f) /Im (e ∘ h) via equivQuot
+  step1 : BooleanRingEquiv (B QB./Im h) ((freeBA ℕ QB./Im f) QB./Im (eFwd ∘ h))
+  step1 = equivQuot.equivQuotient e h
+
+  -- Step 2: (freeBA ℕ /Im f) /Im (e ∘ h) = (freeBA ℕ /Im f) /Im (π ∘ g)
+  -- by the lift condition: π ∘ g = e ∘ h
+  step2Path : (freeBA ℕ QB./Im f) QB./Im (eFwd ∘ h) ≡
+    (freeBA ℕ QB./Im f) QB./Im (fst QB.quotientImageHom ∘ g)
+  step2Path = cong (λ q → (freeBA ℕ QB./Im f) QB./Im q) (sym liftCond)
+
+  -- Step 3: (freeBA ℕ /Im f) /Im (π ∘ g) is countably presented
+  step3 : has-Boole-ω' ((freeBA ℕ QB./Im f) QB./Im (fst QB.quotientImageHom ∘ g))
+  step3 = iteratedQuotientPresented f g
+
+  -- Combine: B /Im h is countably presented
+  result : has-Boole-ω' (B QB./Im h)
+  result = subst has-Boole-ω' (sym chainPath) step3 where
+    path1 : B QB./Im h ≡ (freeBA ℕ QB./Im f) QB./Im (eFwd ∘ h)
+    path1 = uaBoolRing step1
+
+    chainPath : B QB./Im h ≡ (freeBA ℕ QB./Im f) QB./Im (fst QB.quotientImageHom ∘ g)
+    chainPath = path1 ∙ step2Path
+
+-- Top-level theorem: countably presented quotients are countably presented,
+-- given a lift of h through the quotient map.
+countablyPresentedQuotient :
+  (B : BooleanRing ℓ-zero) →
+  (pres : has-Boole-ω' B) →
+  (h : ℕ → ⟨ B ⟩) →
+  (g : ℕ → ⟨ freeBA ℕ ⟩) →
+  (liftCond : fst QB.quotientImageHom ∘ g ≡ fst (fst (snd pres)) ∘ h) →
+  has-Boole-ω' (B QB./Im h)
+countablyPresentedQuotient B pres h g lc = mainTheorem.result B pres h g lc
+
+-- Variant: when h already factors through the quotient map
+-- (i.e., h = e⁻¹ ∘ π ∘ g for some g : ℕ → ⟨ freeBA ℕ ⟩)
+countablyPresentedQuotientViaLift :
+  (f g : ℕ → ⟨ freeBA ℕ ⟩) →
+  has-Boole-ω' ((freeBA ℕ QB./Im f) QB./Im (fst QB.quotientImageHom ∘ g))
+countablyPresentedQuotientViaLift = iteratedQuotientPresented
+
+-- Application: BoolBR /Im α is countably presented for any α : ℕ → Bool
+open import Cubical.Data.Bool using (Bool ; true ; false)
+open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
+open import CountablyPresentedBooleanRings.Examples.Bool using (is-cp-2)
+
+module boolQuotient where
+  open IsCommRingHom
+  open BooleanRingStr (snd (freeBA ℕ)) using (𝟙 ; 𝟘)
+
+  private
+    f₀ = fst is-cp-2
+    e = snd is-cp-2
+    eFwd = fst (fst e)
+    π : BoolHom (freeBA ℕ) (freeBA ℕ QB./Im f₀)
+    π = QB.quotientImageHom
+
+  boolLift : Bool → ⟨ freeBA ℕ ⟩
+  boolLift true  = 𝟙
+  boolLift false = 𝟘
+
+  liftCondition : (α : ℕ → Bool) →
+    fst π ∘ (boolLift ∘ α) ≡ eFwd ∘ α
+  liftCondition α = funExt pointwise where
+    pointwise : (n : ℕ) → fst π (boolLift (α n)) ≡ eFwd (α n)
+    pointwise n with α n
+    ... | true  = pres1 (snd π) ∙ sym (pres1 (snd e))
+    ... | false = pres0 (snd π) ∙ sym (pres0 (snd e))
+
+  boolQuotientPresented : (α : ℕ → Bool) → has-Boole-ω' (BoolBR QB./Im α)
+  boolQuotientPresented α =
+    countablyPresentedQuotient BoolBR is-cp-2 α (boolLift ∘ α) (liftCondition α)
+
