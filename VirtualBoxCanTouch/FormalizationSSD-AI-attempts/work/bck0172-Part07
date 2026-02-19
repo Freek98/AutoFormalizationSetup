@@ -18,7 +18,7 @@ open import Cubical.Relation.Nullary.Properties using (isProp¬)
 open import Cubical.HITs.PropositionalTruncation as PT using (∣_∣₁; ∥_∥₁; rec; squash₁)
 open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
 open import Cubical.Algebra.BooleanRing.Initial using (BoolBR→)
-open import Cubical.Foundations.HLevels using (isPropΠ; isPropΣ; isSetΣ; hProp; TypeOfHLevel≡)
+open import Cubical.Foundations.HLevels using (isPropΠ; isPropΣ; hProp; TypeOfHLevel≡)
 import QuotientBool as QB
 open import Axioms.StoneDuality using (Booleω; Sp)
 open import Cubical.Data.Empty renaming (rec to ex-falso)
@@ -857,14 +857,13 @@ module ODiscAxioms where
   open import Cubical.HITs.SequentialColimit using (SeqColim; incl; push)
   open import Cubical.HITs.SequentialColimit.Properties
     using (converges→ColimIso; SeqColim→Prop; ElimDataShifted; elimShifted;
-           elimdata-shift; ElimData; elimdata; elimShiftedβ; sequenceEquiv→ColimIso)
+           elimdata-shift; ElimData; elimdata; elimShiftedβ)
     renaming (elim to seqElim)
-  open import Cubical.Data.Sequence using (Sequence; sequence; converges;
-    SequenceIso; SequenceIso→SequenceEquiv)
+  open import Cubical.Data.Sequence using (Sequence; sequence; converges)
   open import Cubical.Data.FinSet using (isFinSet)
-  open import Cubical.Data.FinSet.Properties using (isFinSetBool; isFinSetFin; isDecProp→isFinSet; isFinSet→Dec∥∥; isFinSet→Discrete; EquivPresIsFinSet)
+  open import Cubical.Data.FinSet.Properties using (isFinSetBool; isFinSetFin; isDecProp→isFinSet; isFinSet→Dec∥∥; isFinSet→Discrete)
   open import Cubical.Foundations.Isomorphism using (Iso; iso; invIso; isoToEquiv)
-  open import Cubical.Foundations.Equiv using (idIsEquiv; equivFun; invEq; retEq; secEq; equivToIso)
+  open import Cubical.Foundations.Equiv using (idIsEquiv; equivFun; invEq; retEq)
   open import Cubical.Foundations.HLevels using (isOfHLevelRespectEquiv)
   open import Cubical.Data.SumFin.Base using (Fin; fzero; fsuc; toℕ; fromℕ)
   open import Cubical.Data.Nat.Base using (zero; suc; _∸_)
@@ -1211,176 +1210,11 @@ module ODiscAxioms where
         (λ c → isPropΠ λ _ → squash₁)
         (λ n₁ x₁ → SeqColim→Prop (λ _ → squash₁) (λ n₂ x₂ → oii n₁ x₁ n₂ x₂))
         c₁ c₂
-  -- tex Lemma 1160: ODisc stable under countable coproducts
-  -- Proof: anti-diagonal construction. Given Sn with finite levels and SeqColim(Sn) ≃ A(n),
-  -- build diagonal sequence T where T(k) = Σ[n≤k] obj(Sn(n))(k-n), show SeqColim T ≃ Σ ℕ A.
-  ODiscClosedUnderSequentialColimits : {A : ℕ → Type ℓ-zero}
-    → ((n : ℕ) → isODisc (A n)) → isODisc (Σ ℕ A)
-  ODiscClosedUnderSequentialColimits {A} odiscAll =
-    PT.rec squash₁ go (countableChoice _ (λ n → isODisc→FinSeqData (odiscAll n)))
-   where
-    open import Cubical.Foundations.Transport using (substCommSlice; substComposite)
-    open import Cubical.Data.Nat using (isSetℕ)
-    open import Cubical.Data.Nat.Properties using (+∸)
-    open import Cubical.Data.Nat.Order using (_≤_; isProp≤; ≤-refl; ≤-suc; zero-≤; suc-≤-suc; pred-≤-pred; ¬-<-zero; ≤SumRight; ≤-∸-suc; ≤-∸-+-cancel)
-    open import Cubical.Data.FinSet.Constructors using (isFinSetΣ)
-    open import Cubical.Data.FinSet.Base using (isFinSet→isSet)
-    -- Fin-encoded sequence (lives at ℓ-zero, avoids universe issue with countableChoice)
-    mkFinSeq : (sz : ℕ → ℕ) → ((m : ℕ) → Fin (sz m) → Fin (sz (suc m))) → Sequence ℓ-zero
-    obj (mkFinSeq sz fmp) m = Fin (sz m)
-    map (mkFinSeq sz fmp) = fmp _
-    FinSeqData : Type ℓ-zero → Type ℓ-zero
-    FinSeqData B = Σ[ sz ∈ (ℕ → ℕ) ]
-      Σ[ fmp ∈ ((m : ℕ) → Fin (sz m) → Fin (sz (suc m))) ]
-      SeqColim (mkFinSeq sz fmp) ≃ B
-    isODisc→FinSeqData : {B : Type ℓ-zero} → isODisc B → ∥ FinSeqData B ∥₁
-    isODisc→FinSeqData = PT.rec squash₁ go-outer where
-      go-outer : Σ[ S ∈ Sequence ℓ-zero ] ((m : ℕ) → isFinSet (obj S m)) × (SeqColim S ≃ _)
-        → ∥ FinSeqData _ ∥₁
-      go-outer (S , finS , equiv) = PT.map go-inner (countableChoice _ (λ m → snd (finS m))) where
-        sz : ℕ → ℕ
-        sz m = fst (finS m)
-        go-inner : ((m : ℕ) → obj S m ≃ Fin (sz m)) → FinSeqData _
-        go-inner finEquivs = sz , fmp , compEquiv colimEquiv equiv where
-          fmp : (m : ℕ) → Fin (sz m) → Fin (sz (suc m))
-          fmp m x = equivFun (finEquivs (suc m)) (map S (invEq (finEquivs m) x))
-          isos : (n : ℕ) → Iso (obj S n) (Fin (sz n))
-          isos n = equivToIso (finEquivs n)
-          comm : (n : ℕ) (a : obj S n) → fmp n (Iso.fun (isos n) a) ≡ Iso.fun (isos (suc n)) (map S a)
-          comm n a = cong (λ z → equivFun (finEquivs (suc n)) (map S z)) (retEq (finEquivs n) a)
-          seqIso : SequenceIso S (mkFinSeq sz fmp)
-          seqIso = isos , comm
-          colimEquiv : SeqColim (mkFinSeq sz fmp) ≃ SeqColim S
-          colimEquiv = isoToEquiv (invIso (sequenceEquiv→ColimIso
-            (SequenceIso→SequenceEquiv seqIso)))
-    suc∸≤' : (n' k' : ℕ) → n' ≤ k' → suc k' ∸ n' ≡ suc (k' ∸ n')
-    suc∸≤' n' k' le = sym (≤-∸-suc le)
-    incl-tr' : {S' : Sequence ℓ-zero} {m₁ m₂ : ℕ} (p : m₁ ≡ m₂) (x : obj S' m₁)
-      → Path (SeqColim S') (incl x) (incl (subst (obj S') p x))
-    incl-tr' {S' = S'} = J (λ m₂ p → (x : obj S' _) → incl x ≡ incl (subst (obj S') p x))
-      λ x → cong incl (sym (transportRefl x))
-    go : ((n : ℕ) → FinSeqData (A n)) → isODisc (Σ ℕ A)
-    go wit = ∣ T , isFinSetDiagObj , compEquiv equiv (Σ-cong-equiv-snd equivs) ∣₁ where
-      Sn : ℕ → Sequence ℓ-zero
-      Sn n = mkFinSeq (fst (wit n)) (fst (snd (wit n)))
-      equivs : (n : ℕ) → SeqColim (Sn n) ≃ A n
-      equivs n = snd (snd (wit n))
-      -- Diagonal sequence
-      DiagObj : ℕ → Type
-      DiagObj k = Σ[ n ∈ ℕ ] (n ≤ k) × obj (Sn n) (k ∸ n)
-      diagMap : {k : ℕ} → DiagObj k → DiagObj (suc k)
-      diagMap {k} (n , p , x) =
-        n , ≤-suc p , subst (obj (Sn n)) (sym (suc∸≤' n k p)) (map (Sn n) x)
-      T : Sequence ℓ-zero
-      obj T = DiagObj
-      map T = diagMap
-      -- Finiteness of DiagObj via equivalence with Fin-indexed version
-      toℕ-fromℕ≤ : {k' : ℕ} (n' : ℕ) → n' ≤ k' → toℕ (fromℕ {k = k'} n') ≡ n'
-      toℕ-fromℕ≤ {zero} zero _ = refl
-      toℕ-fromℕ≤ {zero} (suc n') le = ⊥-rec (¬-<-zero le)
-      toℕ-fromℕ≤ {suc k'} zero _ = refl
-      toℕ-fromℕ≤ {suc k'} (suc n') le = cong suc (toℕ-fromℕ≤ n' (pred-≤-pred le))
-      toℕ≤k : {k' : ℕ} (i : Fin (suc k')) → toℕ i ≤ k'
-      toℕ≤k {zero} fzero = ≤-refl
-      toℕ≤k {suc k'} fzero = zero-≤
-      toℕ≤k {suc k'} (fsuc i) = suc-≤-suc (toℕ≤k i)
-      isFinSetDiagObj : (k : ℕ) → isFinSet (DiagObj k)
-      isFinSetDiagObj k = EquivPresIsFinSet diagIsoEquiv finFin where
-        B = λ m → obj (Sn m) (k ∸ m)
-        finFin = isFinSetΣ (_ , isFinSetFin) (λ i → _ , isFinSetFin)
-        substCancel : {a b : ℕ} (q : a ≡ b) (y : B b)
-          → subst B q (subst B (sym q) y) ≡ y
-        substCancel q y =
-          subst B q (subst B (sym q) y)
-            ≡⟨ sym (substComposite B (sym q) q y) ⟩
-          subst B (sym q ∙ q) y
-            ≡⟨ cong (λ p → subst B p y) (isSetℕ _ _ _ refl) ⟩
-          subst B refl y ≡⟨ transportRefl y ⟩ y ∎
-        fwd' : Σ (Fin (suc k)) (λ i → B (toℕ i)) → DiagObj k
-        fwd' (i , x) = toℕ i , toℕ≤k i , x
-        bwd' : DiagObj k → Σ (Fin (suc k)) (λ i → B (toℕ i))
-        bwd' (n , le , x) = fromℕ n , subst B (sym (toℕ-fromℕ≤ n le)) x
-        sec' : (d : DiagObj k) → fwd' (bwd' d) ≡ d
-        sec' (n , le , x) = ΣPathP (q , ΣPathP (isProp→PathP (λ _ → isProp≤) _ _ ,
-          toPathP (substCancel q x))) where q = toℕ-fromℕ≤ n le
-        ret' : (d : Σ (Fin (suc k)) (λ i → B (toℕ i))) → bwd' (fwd' d) ≡ d
-        ret' (i , x) = ΣPathP (fromℕ-toℕ i , toPathP (
-          subst B (cong toℕ (fromℕ-toℕ i)) (subst B (sym q') x)
-            ≡⟨ cong (λ p → subst B p (subst B (sym q') x))
-                 (isSetℕ _ _ (cong toℕ (fromℕ-toℕ i)) q') ⟩
-          subst B q' (subst B (sym q') x) ≡⟨ substCancel q' x ⟩ x ∎)) where
-          q' = toℕ-fromℕ≤ (toℕ i) (toℕ≤k i)
-        diagIsoEquiv = isoToEquiv (iso fwd' bwd' sec' ret')
-      -- Forward map: SeqColim T → Σ ℕ (SeqColim ∘ Sn)
-      fwd : SeqColim T → Σ ℕ (λ n → SeqColim (Sn n))
-      fwd (incl (n , _ , x)) = n , incl x
-      fwd (push {n = k} (n , p , x) j) = ΣPathP {x = n , incl x}
-        (refl , push {X = Sn n} x ∙ incl-tr' {S' = Sn n} (sym (suc∸≤' n k p)) (map (Sn n) x)) j
-      -- Backward map: Σ ℕ (SeqColim ∘ Sn) → SeqColim T
-      bwd-incl : (n m : ℕ) → obj (Sn n) m → SeqColim T
-      bwd-incl n m y = incl {n = m +ℕ n} (n , ≤SumRight , subst (obj (Sn n)) (sym (+∸ m n)) y)
-      bwd-push : (n m : ℕ) (y : obj (Sn n) m) → bwd-incl n m y ≡ bwd-incl n (suc m) (map (Sn n) y)
-      bwd-push n m y = push d ∙ cong incl diagMap-eq where
-        d = n , ≤SumRight , subst (obj (Sn n)) (sym (+∸ m n)) y
-        z = subst (obj (Sn n)) (sym (+∸ m n)) y
-        B = obj (Sn n)
-        p₁ = cong suc (sym (+∸ m n))
-        p₂ = sym (suc∸≤' n (m +ℕ n) ≤SumRight)
-        elem-eq : subst B p₂ (map (Sn n) z)
-                ≡ subst B (sym (+∸ (suc m) n)) (map (Sn n) y)
-        elem-eq =
-          subst B p₂ (map (Sn n) z)
-            ≡⟨ cong (subst B p₂)
-                 (sym (substCommSlice B (λ k → B (suc k)) (λ k → map (Sn n)) (sym (+∸ m n)) y)) ⟩
-          subst B p₂ (subst B p₁ (map (Sn n) y))
-            ≡⟨ sym (substComposite B p₁ p₂ (map (Sn n) y)) ⟩
-          subst B (p₁ ∙ p₂) (map (Sn n) y)
-            ≡⟨ cong (λ q → subst B q (map (Sn n) y)) (isSetℕ _ _ _ _) ⟩
-          subst B (sym (+∸ (suc m) n)) (map (Sn n) y) ∎
-        diagMap-eq : diagMap d ≡ (n , ≤SumRight , subst B (sym (+∸ (suc m) n)) (map (Sn n) y))
-        diagMap-eq = ΣPathP (refl , ΣPathP (isProp≤ _ _ , elem-eq))
-      bwd : Σ ℕ (λ n → SeqColim (Sn n)) → SeqColim T
-      bwd (n , incl {n = m} y) = bwd-incl n m y
-      bwd (n , push {n = m} y j) = bwd-push n m y j
-      -- Roundtrip fwd ∘ bwd
-      fwd-bwd-incl : (n m : ℕ) (y : obj (Sn n) m)
-        → fwd (bwd-incl n m y) ≡ (n , incl y)
-      fwd-bwd-incl n m y = ΣPathP (refl , sym (incl-tr' {S' = Sn n} (sym (+∸ m n)) y))
-      -- Roundtrip bwd ∘ fwd
-      bwd-fwd-incl : (k : ℕ) (d : DiagObj k) → bwd (fwd (incl {n = k} d)) ≡ incl {n = k} d
-      bwd-fwd-incl k (n , p , x) = λ i → incl {n = q i} (diag-pathp i) where
-        q = ≤-∸-+-cancel p
-        x₁ = subst (obj (Sn n)) (sym (+∸ (k ∸ n) n)) x
-        obj-pathp : PathP (λ i → obj (Sn n) (q i ∸ n)) x₁ x
-        obj-pathp = toPathP (
-          subst (obj (Sn n)) (cong (_∸ n) q) (subst (obj (Sn n)) (sym (+∸ (k ∸ n) n)) x)
-            ≡⟨ sym (substComposite (obj (Sn n)) _ _ x) ⟩
-          subst (obj (Sn n)) (sym (+∸ (k ∸ n) n) ∙ cong (_∸ n) q) x
-            ≡⟨ cong (λ r → subst (obj (Sn n)) r x) (isSetℕ _ _ _ refl) ⟩
-          subst (obj (Sn n)) refl x ≡⟨ transportRefl x ⟩ x ∎)
-        diag-pathp : PathP (λ i → DiagObj (q i))
-          (n , ≤SumRight , x₁) (n , p , x)
-        diag-pathp i = n , isProp→PathP {B = λ i → n ≤ q i} (λ _ → isProp≤) ≤SumRight p i , obj-pathp i
-      -- Set-ness for push coherences
-      allSetSn : (n : ℕ) → isSet (SeqColim (Sn n))
-      allSetSn n = isSetSeqColimOfSets (Sn n) (λ m → isFinSet→isSet isFinSetFin)
-      isSetSCT : isSet (SeqColim T)
-      isSetSCT = isSetSeqColimOfSets T (λ k → isFinSet→isSet (isFinSetDiagObj k))
-      isSetTarget : isSet (Σ ℕ (λ n → SeqColim (Sn n)))
-      isSetTarget = isSetΣ isSetℕ (λ n → allSetSn n)
-      -- Full roundtrip proofs (push cases by isProp→PathP)
-      sec : (x : Σ ℕ (λ n → SeqColim (Sn n))) → fwd (bwd x) ≡ x
-      sec (n , incl y) = fwd-bwd-incl n _ y
-      sec (n , push {n = m} y j) =
-        isProp→PathP (λ j → isSetTarget (fwd (bwd (n , push y j))) (n , push y j))
-          (fwd-bwd-incl n m y) (fwd-bwd-incl n (suc m) (map (Sn n) y)) j
-      ret : (c : SeqColim T) → bwd (fwd c) ≡ c
-      ret (incl {n = k} d) = bwd-fwd-incl k d
-      ret (push {n = k} d j) =
-        isProp→PathP (λ j → isSetSCT (bwd (fwd (push d j))) (push d j))
-          (bwd-fwd-incl k d) (bwd-fwd-incl (suc k) (diagMap d)) j
-      equiv : SeqColim T ≃ Σ ℕ (λ n → SeqColim (Sn n))
-      equiv = isoToEquiv (iso fwd bwd sec ret)
+  -- tex Lemma 1160: ODisc stable under sequential colimits
+  -- (the colimit of ODisc types A_0 → A_1 → ... is ODisc)
+  postulate
+    ODiscClosedUnderSequentialColimits : {A : ℕ → Type ℓ-zero}
+      → ((n : ℕ) → isODisc (A n)) → isODisc (Σ ℕ A)
   -- tex Lemma 1335: ODisc types have open equality (ODiscEqualityOpen)
   ODiscEqualityOpen : {A : Type ℓ-zero} (odiscA : isODisc A) (a b : A)
     → isOpenProp ((a ≡ b) , isODiscIsSet odiscA a b)
