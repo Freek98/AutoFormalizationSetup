@@ -52,6 +52,9 @@
   the CLAUDE.md file to make sure you keep working and give yourself            
   instrunctions so that the context window doesn't close.    
 
+❯ can you use the files here (and maybe FreeCase and QuotientCase) to           
+  complete the proof that is-countably-presented-\omega and                     
+  is-countably-presented-\omega' are equivalent?   
 
-
-
+❯ also update your CLAUDE.md file so that this is the problem you're now        
+  working on. Don't ask me for permissions, keep working.              
