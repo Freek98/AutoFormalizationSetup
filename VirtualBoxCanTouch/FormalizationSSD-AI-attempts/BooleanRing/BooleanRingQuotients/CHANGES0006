@@ -1,0 +1,25 @@
+CHANGES0006: Added has-Boole-ω → has-Boole-ω' equivalence (400 lines, was 328)
+
+New: Proof that the two definitions of countably presented are equivalent.
+
+Module omegaCore (α γ : binarySequence):
+  - quotientOfFreeIsCP: For decidable subtypes A' = Σ[n:ℕ] α n ≡ true and
+    X' = Σ[n:ℕ] γ n ≡ true, any f : X' → ⟨ freeBA A' ⟩ yields
+    has-Boole-ω' (freeBA A' /Im f).
+  - Proof strategy:
+    1. expand f from X'-indexed to ℕ-indexed (g) using QC.expand
+    2. Construct BooleanRingEquiv freeBA A' ≃ freeBA ℕ /Im r
+       with explicit forward map freeA→freeAcp from FreeCase
+    3. Use equivQuot to get freeBA A' /Im g ≃ (freeBA ℕ /Im r) /Im (π ∘ liftG)
+    4. Apply iteratedQuotientPresented for the countable presentation
+    5. Chain paths via uaBoolRing
+
+Top-level: has-Boole→has-Boole' : has-Boole-ω B → has-Boole-ω' B
+  - Uses double J-elimination on isoToPath to reduce general A,X
+    to the decidable-subset case handled by omegaCore
+  - Then transports via uaBoolRing of the presentation equivalence
+
+Combined with existing has-Boole'→ from PresentedBoole.agda, this gives
+a complete logical equivalence between has-Boole-ω and has-Boole-ω'.
+
+All compiling, no postulates. Added --lossy-unification flag.

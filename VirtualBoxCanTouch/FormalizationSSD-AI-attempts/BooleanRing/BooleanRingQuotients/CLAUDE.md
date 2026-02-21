@@ -1,12 +1,19 @@
 # Rules for Working 
-1. I want you to finish some proofs. 
-2. I need the result that if a Boolean algebra B is countably presented, and I have a map f : N \to B, then the quotient of B over f is also countably presented. 
-3. The definition of countably presented lies in Axioms/StoneDuality. 
-4. The definition of quotients lie in the files in this directory and the cubical library. 
-5. You should check if some functions already exist in cubical library somewhere. If they do, clean them up. 
-6. You should continue working untill you have formulated this proof in a file called countablypresentedQuotient.agda. 
-7. Do not ask for permissions. If you run out of context, go back to this file. 
-8. You are not allowed to import anything from a file that contains postulates. There are no postulates allowed in this formalization. 
+1. I want you to finish some proofs.
+2. Current goal: prove that has-Boole-ω and has-Boole-ω' are equivalent (the hard direction: has-Boole-ω → has-Boole-ω').
+3. The definition of countably presented lies in CountablyPresentedBooleanRings/PresentedBoole.agda.
+4. The definition of quotients lie in the files in this directory and the cubical library.
+5. Key existing infrastructure:
+   - countablypresentedQuotient.agda: proves countably presented BAs are closed under quotients (with lift condition)
+   - QuotientCase.agda: expand module (reindex from decidable subset to ℕ), sum module (iterated quotients)
+   - FreeCase.agda: freeBA A is countably presented when A has countability structure
+6. Strategy for has-Boole-ω → has-Boole-ω': Given A,X with countability structures and f : X → ⟨ freeBA A ⟩ with B ≃ freeBA A /Im f:
+   a. Use expand to reindex f from X (≅ Σ[n:ℕ] α n ≡ true) to g : ℕ → ⟨ freeBA A ⟩, getting freeBA A /Im f ≃ freeBA A /Im g
+   b. Use replacementFreeOnCountable to get freeBA A ≃ freeBA ℕ /Im r
+   c. Use countablyPresentedQuotient to get (freeBA ℕ /Im r) /Im (π ∘ g) is countably presented
+   d. Chain equivalences to get B is countably presented
+7. Do not ask for permissions. If you run out of context, go back to this file.
+8. You are not allowed to import anything from a file that contains postulates. There are no postulates allowed in this formalization.
 
 ## STRICT PROHIBITIONS
 
