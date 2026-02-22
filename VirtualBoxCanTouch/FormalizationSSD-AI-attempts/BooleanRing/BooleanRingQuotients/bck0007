@@ -174,15 +174,13 @@ module omegaCore (α γ : binarySequence) where
     has-Boole-ω' (freeBA A' QB./Im f)
   quotientOfFreeIsCP f = subst has-Boole-ω' (sym chainPath) step5 where
     g : ℕ → ⟨ freeBA A' ⟩
-    g = QC.expand.g (freeBA A') f
+    g = QC.expand.g {γ = γ} {ℓ = ℓ-zero} (freeBA A') f
 
     expandEquiv : BooleanRingEquiv (freeBA A' QB./Im g) (freeBA A' QB./Im f)
-    expandEquiv = QC.expand.claim (freeBA A') f
-    -- this should be freeA/fExpand≃freeA/f
+    expandEquiv = QC.expand.claim {γ} (freeBA A') f
   
     test : (freeBA ℕ QB./Im r) ≡ freeAcp α
     test = refl 
-    -- this should be freeA≃freeAcp
     fwdEquiv : BooleanRingEquiv (freeBA A') (freeBA ℕ QB./Im r)
 --    fwdEquiv = invBooleanRingEquiv (freeAcp α) (freeBA A') {! freeAcpfreeAα  !} -- (freeAcp≃freeA α)
     fwdEquiv .fst .fst = fst (freeA→freeAcp α)
@@ -198,21 +196,31 @@ module omegaCore (α γ : binarySequence) where
     liftG = fst (freeA→freeℕ α) ∘ g
 
     quotEquiv : BooleanRingEquiv (freeBA A' QB./Im g)
-      ( (freeAcp α) QB./Im (fst (freeA→freeAcp α) ∘ g))
+      ((freeBA ℕ QB./Im r) QB./Im (fst (freeA→freeAcp α) ∘ g))
     quotEquiv = equivQuot.equivQuotient fwdEquiv g
-    -- this is freeA/fExpand≃freeAcp/efExpand
 
     step5 : has-Boole-ω' ((freeBA ℕ QB./Im r) QB./Im (fst QB.quotientImageHom ∘ liftG))
     step5 = iteratedQuotientPresented r liftG
 
     chainPath : freeBA A' QB./Im f ≡
       (freeBA ℕ QB./Im r) QB./Im (fst QB.quotientImageHom ∘ liftG)
-    chainPath = sym (uaBoolRing expandEquiv) ∙ (uaBoolRing quotEquiv)
+    chainPath = sym (uaBoolRing expandEquiv) ∙ uaBoolRing quotEquiv
 
 has-Boole→has-Boole' : (B : BooleanRing ℓ-zero) → has-Boole-ω B → has-Boole-ω' B
-has-Boole→has-Boole' B (A , (α , σA) , X , (γ , σX) , f , eB) =
-  subst has-Boole-ω' (sym (uaBoolRing eB)) quotientCP where
+has-Boole→has-Boole' B bω = subst has-Boole-ω' (sym (uaBoolRing eB)) quotientCP where
+  A   = fst bω
+  csA = fst (snd bω)
+  α   = fst csA
+  σA  = snd csA
+  X   = fst (snd (snd bω))
+  csX = fst (snd (snd (snd bω)))
+  γ   = fst csX
+  σX  = snd csX
+  f   = fst (snd (snd (snd (snd bω))))
+  eB  = snd (snd (snd (snd (snd bω))))
+
   A' = Σ[ n ∈ ℕ ] α n ≡ true
+  X' = Σ[ n ∈ ℕ ] γ n ≡ true
 
   quotientCP : has-Boole-ω' (freeBA A QB./Im f)
   quotientCP =

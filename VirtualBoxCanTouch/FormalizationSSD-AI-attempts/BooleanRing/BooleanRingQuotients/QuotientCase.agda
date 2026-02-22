@@ -86,7 +86,7 @@ module equ {ℓ : Level} (A : CommRing ℓ) {X : Type ℓ} (f : X → ⟨ A ⟩)
   equalquot : (B : CommRing ℓ) → (p : A ≡ B) → quot B p ≡ A IQ./Im f
   equalquot B = J (λ B p → quot B p ≡ A IQ./Im f) $ cong (λ g → A IQ./Im g) (transportRefl f)
 
-module expand {γ : binarySequence} {ℓ : Level} (A : BooleanRing ℓ-zero) where
+module expand {γ : binarySequence} (A : BooleanRing ℓ-zero) where
   X = Σ[ n ∈ ℕ ] γ n ≡ true 
   module _ (f : X → ⟨ A ⟩) where 
     open BooleanRingStr ⦃...⦄ 

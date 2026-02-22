@@ -1,0 +1,18 @@
+Refactored reindexEquiv and equivQuotient to work over CommRings (was: BooleanRings)
+
+Created new file: CommRingReindex.agda (187 lines)
+  - reindexCR module: if σ : Iso X Y, then R /Im f ≅ R /Im (f ∘ Iso.inv σ) for any CommRing R
+  - equivQuotCR module: if R ≅ S then R /Im h ≅ S /Im (e ∘ h) for CommRings R, S
+  - Uses Cubical.Algebra.CommRing.Quotient.ImageQuotient directly (no Boolean wrapper)
+  - Uses Boole.EquivHelper.isoToCommRingEquiv for building CommRingEquiv
+
+Modified: countablypresentedQuotient.agda (237 lines, was 400)
+  - reindex module now delegates to reindexCR.reindexEquivCR via opaque/unfolding
+  - equivQuot module now delegates to equivQuotCR.equivQuotientCR via opaque/unfolding
+  - Removed Boole.EquivHelper import (no longer needed here)
+  - Added CommRingReindex import
+  - All downstream code (mainTheorem, omegaCore, etc.) unchanged and still compiles
+
+Line count decrease justified: 163 lines of Boolean-specific proof were moved to
+CommRingReindex.agda (187 lines). Total across both files: 424 (was 400).
+No theorems or definitions were lost.
