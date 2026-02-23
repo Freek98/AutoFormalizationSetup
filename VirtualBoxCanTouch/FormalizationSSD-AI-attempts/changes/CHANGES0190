@@ -1,0 +1,19 @@
+Backup 0190: Added anti-equivalence of Booleω and Stone
+
+Changes to SSD/Library/StoneDuality.agda:
+- Added new module (parameterized by SD : StoneDualityAxiom) with:
+  - StoneCat: the category of Stone spaces, defined as ImageFunctor.Image SpFunctor
+    (objects: Booleω, morphisms: maps between spectra Sp C → Sp B)
+  - SpRestricted: Functor BooleωCat StoneCat (Sp restricted to its image)
+  - Sp-isEquivalence: isEquivalence SpRestricted
+    (SpRestricted is fully faithful and bijective on objects, hence a categorical equivalence)
+  - Sp-AntiEquivalence: BooleωCat ≃ᶜ StoneCat
+    (the anti-equivalence between the category of countably presented Boolean algebras
+    and the category of Stone spaces)
+- Removed commented-out StoneCat attempts (lines 653-680 of previous version)
+
+New file SSD/StoneDuality/StoneDualitySummary.agda:
+- Summary file re-exporting all Stone duality results
+- Includes all new anti-equivalence results
+
+All files compile. SSD/All.agda passes.

@@ -1,0 +1,2 @@
+  ❯ note the adjunction is only an equivalence when restricted to countably     
+    presented Boolean rings, this is the difficulty        

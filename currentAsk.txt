@@ -58,3 +58,17 @@
 
 ❯ also update your CLAUDE.md file so that this is the problem you're now        
   working on. Don't ask me for permissions, keep working.              
+
+❯ I would like a summary on all the work that has been done on the category of  
+  countably presented Boolean algebras. This should include the definition of   
+  the category Boole\omega, the definition of the category of Stone spaces,     
+  and a module over Stone duality saying there is an anti-equivalence between   
+  Stone and Boole\omega, whose sides are Sp and taking decidable subsets.   
+
+  Sorry when I say summary, I mean an agda file with all results. 
+
+❯ Does it contain a proof that the adjunction is actually an equivalence        
+  adjuntion? If not, please add it.
+
+❯ note the adjunction is only an equivalence when restricted to countably     
+  presented Boolean rings, this is the difficulty        
