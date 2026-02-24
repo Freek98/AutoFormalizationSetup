@@ -1,0 +1,30 @@
+Backup 0191: Added 2^ as inverse functor of the Sp adjoint equivalence
+
+Changes to SSD/Library/StoneDuality.agda (678 → 813 lines, +135):
+- Added 2^Restricted : Functor StoneCat BooleωCat
+  (via adjunctionFact.restrictRightAdjoint, using the Sp⊣2^ adjunction)
+- Added 2^Restricted' : Functor StoneCat BooleωCat
+  (direct construction via inverting fully faithful SpFunctor.F-hom)
+  - F-ob: identity (both categories have objects = Booleω)
+  - F-hom: invEq of SpFunctor.F-hom equivalence
+  - F-id: via retEq
+  - F-seq: via secEq + retEq
+- Added Sp-AdjointEquivalence : AdjointEquivalence BooleωCat StoneCat
+  - fun = SpRestricted (Sp restricted to its image)
+  - inv = 2^Restricted' (inverse via fully faithful)
+  - η = identity natural isomorphism (unit is id, naturality by retEq)
+  - ε = identity natural isomorphism (counit is id, naturality by secEq)
+  - Triangle identities: trivial (both reduce to F-id after ⋆IdR/⋆IdL)
+- Updated TODO comments to reflect completed items
+
+Changes to SSD/StoneDuality/StoneDualitySummary.agda:
+- Re-exports 2^Restricted, 2^Restricted', Sp-AdjointEquivalence
+- Added AdjointEquivalence import
+
+Mathematical content:
+The inverse of the Sp anti-equivalence is the 2^ functor restricted to Stone spaces.
+On objects both functors are identity (both StoneCat and BooleωCat have objects = Booleω).
+On morphisms, given f : Sp C → Sp B, the inverse functor produces the unique
+BoolHom B C such that Sp(BoolHom) = f. This is exactly the 2^ action: precompose by f.
+
+All files compile. StoneDuality.agda passes full verification.
