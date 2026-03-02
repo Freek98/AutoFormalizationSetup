@@ -79,4 +79,12 @@ I want you to finish a proof of the following: If i'm given a Boolean Ring (but 
    all the other algebraic structures used in the definitions (like            
   isCommRing). Could you also proof the same subalgebra thing for those         
   structures and factor this proof trough those.                                
+
+
+❯ Hej I have just synced the library I'm building to here. Make sure            
+  everything works. When you're done with that, finish the proof in NfinCofin   
+  that NfinCofinBA is countably presented. When you're done with that, change   
+  your own work (I think it's in part 2) to use this version for LLPO. Keep     
+  working, don't ask for permissions, I'll be away.  
+
                                                        

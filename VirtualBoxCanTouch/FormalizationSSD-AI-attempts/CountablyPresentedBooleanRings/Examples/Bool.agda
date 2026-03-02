@@ -4,6 +4,7 @@ module CountablyPresentedBooleanRings.Examples.Bool where
 {- The goal of this module is to show that the standard Booleans form a countably presented Boolean algebra-}
 
 
+open import BooleanRing.BooleanRingMaps
 open import Cubical.Data.Sigma
 open import Cubical.Data.Sum
 open import Cubical.Data.Bool hiding ( _≤_ ; _≥_ ) renaming ( _≟_ to _=B_)
@@ -18,8 +19,6 @@ open <-Reasoning
 open import Cubical.Foundations.Structure
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Function
-open import Cubical.Functions.Surjection
-open import Cubical.Foundations.Powerset
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.Equiv
 
@@ -38,7 +37,7 @@ import BooleanRing.FreeBooleanRing.FreeBool as FB
 open  import BooleanRing.FreeBooleanRing.SurjectiveTerms
 open  import BooleanRing.FreeBooleanRing.freeBATerms
 
-open import QuotientBool as QB
+open import BooleanRing.BooleanRingQuotients.QuotientBool as QB
 --open import NaturalNumbersProperties.NBijection
 import Cubical.HITs.SetQuotients as SQ
 import Cubical.Algebra.CommRing.Quotient.ImageQuotient as IQ
@@ -50,10 +49,10 @@ open import Cubical.Tactics.CommRingSolver
 
 open import Cubical.Algebra.CommRing.Polynomials.Typevariate.UniversalProperty as UP
 open import Cubical.Algebra.CommRing.Polynomials.Typevariate.Base
-open import WLPO
+open import BasicDefinitions
 open import CommRingQuotients.EmptyQuotient
-open import CountablyPresentedBooleanRings.PresentedBoole
-open import CountablyPresentedBooleanRings.Examples.FreeCase
+open import CountablyPresentedBooleanRings.Definitions
+open import CountablyPresentedBooleanRings.EquivalenceOfCountablyPresentedDefinitions
 open import BooleanRing.BoolRingUnivalence
 
 open import Cubical.Algebra.CommRing.Univalence 
@@ -87,9 +86,6 @@ module _ {ℓ : Level} (B : BooleanRing ℓ) where
     false ≡⟨ (sym $ pres0 fHom) ⟩ 
     f 𝟘   ≡⟨ cong f p ⟩ f 𝟙 ≡⟨ pres1 fHom ⟩ 
     true  ∎
-
---invBooleanRingEquiv : {ℓ : Level} → {A B : BooleanRing ℓ} → BooleanRingEquiv A B → BooleanRingEquiv B A 
---invBooleanRingEquiv {ℓ} {A} {B} = invCommRingEquiv (A .fst , BooleanRing→CommRing A .snd) _
 
 free→2 : {A : Type} → BoolHom (freeBA A)  BoolBR
 free→2 {A} = (Iso.fun $ freeBA-universal-property A BoolBR) λ _ → false 
@@ -164,11 +160,11 @@ module _ where
     (λ (t , πt=b) → subst (λ a → (a ≡ 𝟘) ⊎ (a ≡ 𝟙)) πt=b (max2free⊥Helper t)) 
     (snd includeBATermsSurj b)
 
-  free⊥≅2 : BooleanRingEquiv free⊥ BoolBR 
-  free⊥≅2 = invBooleanRingEquiv BoolBR free⊥ (BoolBRCharacterisation free⊥ freeNonTriv max2free⊥) 
+  2≃free⊥ : BooleanRingEquiv BoolBR free⊥ 
+  2≃free⊥ = (BoolBRCharacterisation free⊥ freeNonTriv max2free⊥)
   
   free⊥=2 : free⊥ ≡ BoolBR
-  free⊥=2 = uaBoolRing free⊥≅2 
+  free⊥=2 = sym (uaBoolRing 2≃free⊥)
 
 ⊥ind : {A : Type} → {b : ⊥} →  (a : A) → ex-falso b ≡ a
 ⊥ind {b = ()} 
@@ -177,7 +173,7 @@ count⊥ : has-Countability-structure ⊥
 count⊥ = ((λ n → false) , iso ex-falso (λ (n , f=t) → false≢true f=t) (λ b → ⊥ind b) ⊥.elim)  
 
 is-cp-free⊥ : has-Boole-ω' free⊥
-is-cp-free⊥ = replacementFreeOnCountable ⊥ count⊥
+is-cp-free⊥ = free-on-countable-has-freeℕ-presentation ⊥ count⊥
 
 is-cp-2 : has-Boole-ω' BoolBR
 is-cp-2 = subst has-Boole-ω' free⊥=2 is-cp-free⊥ 

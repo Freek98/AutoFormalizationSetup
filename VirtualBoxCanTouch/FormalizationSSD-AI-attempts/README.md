@@ -1,5 +1,7 @@
-This repository contains unfinished work in formalizing our SSD paper. 
-We have given this repository as a starting point for autoformalization in Josef's fork. 
+The goal of this repository is to formalize the SSD paper (https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.TYPES.2024.3). 
+It is supposed to act like the human-read version for formalization work that has been in parts done by an AI. 
 
-Note that the current version of this repo only works in the ImageQuotientResults branch of the Cubical library. 
-I hope to also factor out some of the results that generalize to the cubical library. 
+Matching to the paper: 
+- Definition 1.2 is called is-countable 
+- Definition 1.3 is called is-countably-presented 
+- Remark 1.4 is called is-countably-presented-equivalence

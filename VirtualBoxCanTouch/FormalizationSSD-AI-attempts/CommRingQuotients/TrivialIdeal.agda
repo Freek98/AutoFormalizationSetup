@@ -49,7 +49,7 @@ module _ {ℓ : Level} (R : CommRing ℓ) (I : IdealsIn R) where
 
   open IsCommRingHom (snd π)
   
-  trivialQuotient→1∈I : (_≡_ {A = ⟨ R / I ⟩} 1r 0r ) → 1r ∈ fst I 
+  trivialQuotient→1∈I : _≡_ {A = ⟨ R / I ⟩} 1r 0r → 1r ∈ fst I 
   trivialQuotient→1∈I p = 
     transport (cong (λ a → a ∈ fst I ) q) (quotientFiber 1r 0r p')  where
       p' : π $cr 1r ≡ π  $cr 0r

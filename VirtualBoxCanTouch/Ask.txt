@@ -1,8 +1,7 @@
+❯ Hej I have just synced the library I'm building to here. Make sure            
+  everything works. When you're done with that, finish the proof in NfinCofin   
+  that NfinCofinBA is countably presented. When you're done with that, change   
+  your own work (I think it's in part 2) to use this version for LLPO. Keep     
+  working, don't ask for permissions, I'll be away.  
 
-I want you to finish a proof of the following: If i'm given a Boolean Ring (but this fact should also hold for all the algebraic definitions (CommRing, Ring, monoid, etc) below it), and a proposition-valued predicate on the underlying type (a subset in this case), then if that subset is closed under + , -, 0 , 1, \cdot, it defines a subBooleanRing.
-
-❯ great, perfect. While you're at it, the same construction should work for     
-   all the other algebraic structures used in the definitions (like            
-  isCommRing). Could you also proof the same subalgebra thing for those         
-  structures and factor this proof trough those.                                
                                                        

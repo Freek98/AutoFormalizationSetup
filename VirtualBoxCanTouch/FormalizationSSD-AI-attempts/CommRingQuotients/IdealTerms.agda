@@ -30,7 +30,7 @@ open  import BooleanRing.FreeBooleanRing.FreeBool
 open  import BooleanRing.FreeBooleanRing.SurjectiveTerms
 open  import BooleanRing.FreeBooleanRing.freeBATerms
 
-open import QuotientBool
+open import BooleanRing.BooleanRingQuotients.QuotientBool
 import Cubical.HITs.SetQuotients as SQ
 import Cubical.Algebra.CommRing.Quotient.ImageQuotient as IQ
 open import Cubical.Algebra.CommRing.Ideal
@@ -39,7 +39,7 @@ open import Cubical.Algebra.Ring.Kernel as RK
 open import Cubical.Algebra.CommRing.Quotient.Base
 open import Cubical.Tactics.CommRingSolver
 
-open import WLPO 
+open import BasicDefinitions 
 
 module _ {ℓ : Level} (R : CommRing ℓ) {X : Type ℓ} (f : X → ⟨ R ⟩)  where
   open CommRingStr ⦃...⦄

@@ -1,23 +1,7 @@
 {-# OPTIONS --cubical --guardedness #-}
 module Axioms.StoneDuality where
---TODO check whether Voevodsky agrees with the name univalent category as 
---opposed to use precategory for the cubical category definition
---and category for the univalent version. 
-
--- Also todo : - finish 2^ restricted as Functor Stone → Booleω
---             - Sp is embedding 
---             - Stone agrees with the image of Booleω 
---             - All of this in general version. 
---             - Finish ¬ WLPO, MP
---              
---              check chech cohomology of our paper and Hugo
---  Also look what it means given finite approximation (coboundary, cocycle)
---  Look up cyclic cohomology
---  Felix' lecture notes on some German course (Thierry will send mail). 
-
---import Cat.Functor.Adjoint.Reflective
---Naim advised me to use --no-load-primitives
-open import CountablyPresentedBooleanRings.PresentedBoole 
+open import BooleanRing.BooleanRingMaps
+open import CountablyPresentedBooleanRings.Definitions 
 open import Cubical.Data.Sigma
 open import Cubical.Foundations.Univalence
 open import Cubical.Data.Sum
@@ -34,7 +18,6 @@ open import Cubical.Data.Nat.Bijections.Sum
 open import Cubical.Foundations.Structure
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Function
-open import Cubical.Functions.Surjection
 open import Cubical.Functions.Embedding
 open import Cubical.Foundations.Powerset
 open import Cubical.Foundations.Isomorphism renaming (isIso to isRealIso ; compIso to compRealIso)
@@ -226,7 +209,7 @@ module adjunctionFact
       compose : Iso.fun (adjIso x (F .F-ob y)) ∘ compη x y ≡ F .F-hom {x = x} {y = y}
       compose = funExt λ f →  
         F ⟪ f   ⋆⟨ C ⟩ (η ⟦ y ⟧)⟫      ⋆⟨ D ⟩ (ε ⟦ F ⟅ y ⟆ ⟧) 
-          ≡⟨ cong (λ h → h ⋆⟨ D ⟩ (ε ⟦ F ⟅ y ⟆ ⟧)) (F .F-seq f (η ⟦ y ⟧)) ⟩
+          ≡⟨ cong (λ h → h ⋆⟨ D ⟩ _) (F .F-seq f (η ⟦ y ⟧)) ⟩ 
         F ⟪ f ⟫ ⋆⟨ D ⟩ F ⟪ η ⟦ y ⟧ ⟫   ⋆⟨ D ⟩ (ε ⟦ F ⟅ y ⟆ ⟧) 
           ≡⟨ D .⋆Assoc _ _ _ ⟩ 
         F ⟪ f ⟫ ⋆⟨ D ⟩ ((F ⟪ η ⟦ y ⟧ ⟫)⋆⟨ D ⟩ (ε ⟦ F ⟅ y ⟆ ⟧) )
@@ -273,11 +256,6 @@ module adjunctionFact
     ηIso≃εIso .AdjointEquivalence.ε .nIso                (d , εdIso)    = isIsoΣPropCat* D εIsIso εdIso
     ηIso≃εIso .AdjointEquivalence.triangleIdentities .Δ₁ (c , _)        = Δ₁ triangleIdentities c
     ηIso≃εIso .AdjointEquivalence.triangleIdentities .Δ₂ (d , _)        = Δ₂ triangleIdentities d
---  module _ {ℓP : Level} (P : C .ob → hProp ℓP) (ηIsoOnP : ((c : C .ob) → ⟨ P c ⟩ → ⟨ ηIsIso c ⟩)) where
-
-  module _ {ℓE ℓE' : Level} {E : Category ℓE ℓE'} 
-    (Hrest : Functor E ηIsoSubCat) (HfullyFaithful : isFullyFaithful Hrest) where
-      
 
   module _ {ℓE ℓE' : Level} {E : Category ℓE ℓE'} 
     (H : Functor E C) (HfullyFaithful : isFullyFaithful H) 
@@ -650,8 +628,8 @@ module _ (SD : StoneDualityAxiom) where
   isPropHasStoneStr : (S : Set) → isProp (hasStoneStr S)
   isPropHasStoneStr S = isEmbedding→hasPropFibers (SpEmbedding SD) S 
 
---StoneCat : Category (ℓ-suc ℓ-zero) ℓ-zero 
---StoneCat = ImageFunctor.Image SpFunctor  
+StoneCat : Category (ℓ-suc ℓ-zero) ℓ-zero 
+StoneCat = ImageFunctor.Image SpFunctor  
 
 Stone : Type (ℓ-suc ℓ-zero)
 Stone = TypeWithStr ℓ-zero hasStoneStr
