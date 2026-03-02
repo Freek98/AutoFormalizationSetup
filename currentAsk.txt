@@ -86,5 +86,6 @@ I want you to finish a proof of the following: If i'm given a Boolean Ring (but 
   that NfinCofinBA is countably presented. When you're done with that, change   
   your own work (I think it's in part 2) to use this version for LLPO. Keep     
   working, don't ask for permissions, I'll be away.  
+  -- note from me, there should only be one extension of this proof. 
 
                                                        
