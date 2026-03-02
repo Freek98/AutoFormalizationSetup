@@ -43,6 +43,37 @@ module PathConnectedContractibleTC where
   isContPathConnectedFrom : (X : Type ℓ-zero) → X → Type ℓ-zero
   isContPathConnectedFrom X x = (y : X) → ContinuousPath x y
 
+  open import Cubical.Foundations.Function using (_∘_)
+
+  -- tex Lemma 3035: If X is continuously path-connected from x₀ and Y is I-local,
+  -- then any f : X → Y is constant (f(x) = f(x₀) for all x).
+  path-connected→const : {X Y : Type ℓ-zero}
+    → (x₀ : X)
+    → isContPathConnectedFrom X x₀
+    → ((g : UnitInterval → Y) → (a b : UnitInterval) → g a ≡ g b)
+    → (f : X → Y) → (x : X) → f x ≡ f x₀
+  path-connected→const {X} {Y} x₀ paths Y-I-local f x =
+    let (h , h0≡x₀ , h1≡x) = paths x
+        fh-const : f (h 1I) ≡ f (h 0I)
+        fh-const = Y-I-local (f ∘ h) 1I 0I
+    in f x
+         ≡⟨ cong f (sym h1≡x) ⟩
+       f (h 1I)
+         ≡⟨ fh-const ⟩
+       f (h 0I)
+         ≡⟨ cong f h0≡x₀ ⟩
+       f x₀ ∎
+
+  -- Corollary: path-connected types have trivial functions to I-local targets
+  -- (i.e., any f : X → Y with X path-connected and Y I-local is homotopic to const f(x₀))
+  path-connected→I-contractible : {X Y : Type ℓ-zero}
+    → (x₀ : X)
+    → isContPathConnectedFrom X x₀
+    → ((g : UnitInterval → Y) → (a b : UnitInterval) → g a ≡ g b)
+    → (f : X → Y) → f ≡ (λ _ → f x₀)
+  path-connected→I-contractible x₀ paths Y-loc f =
+    funExt (λ x → path-connected→const x₀ paths Y-loc f x)
+
 -- tex Theorem 475: ¬WLPO from Stone Duality
 module NotWLPOTC where
   import WLPO as WLPOmod

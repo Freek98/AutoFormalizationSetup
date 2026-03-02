@@ -8,7 +8,7 @@ open import Cubical.Algebra.BooleanRing
 open import Cubical.Algebra.CommRing
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Structure
-open import Cubical.Foundations.Equiv using (_≃_; invEq; propBiimpl→Equiv; compEquiv; secEq)
+open import Cubical.Foundations.Equiv using (_≃_; invEq; propBiimpl→Equiv; compEquiv; secEq; isEquiv)
 open import Cubical.Foundations.Univalence using (ua)
 open import Cubical.Data.Sigma
 open import Cubical.Data.Nat using (ℕ)
@@ -24,6 +24,7 @@ open import Axioms.StoneDuality using (Booleω; Sp)
 open import Cubical.Data.Empty renaming (rec to ex-falso)
 open import CountablyPresentedBooleanRings.PresentedBoole using (idBoolHom; has-Boole-ω')
 
+-- tex Lemma 251 (ClosedPropAsSpectrum)
 module ClosedPropAsSpectrum where
   open import Cubical.Algebra.CommRing.Quotient.ImageQuotient
 
@@ -220,6 +221,7 @@ module ODiscInfrastructure where
     using (TermsOf_[_]; Tvar; Tconst; _+T_; -T_; _·T_)
   open import CountablyPresentedBooleanRings.PresentedBoole
     using (has-Boole-ω'; idBoolHom; isPropIsBoolRingHom)
+  open import BooleanRing.BoolRingUnivalence using (IsBoolRingHom)
   open import Axioms.StoneDuality using (SDHomVersion; evaluationMap)
   open import Cubical.Foundations.Isomorphism using (Iso; iso; isoToEquiv)
   open import Cubical.Foundations.Function using (_∘_; idfun)
@@ -982,7 +984,7 @@ module ODiscAxioms where
   open import Cubical.Foundations.Isomorphism using (Iso; iso; invIso; isoToEquiv)
   open import Cubical.Foundations.Equiv using (idIsEquiv; idEquiv; equivFun; invEq; retEq; secEq; equivToIso; invEquiv)
   open import Cubical.Foundations.HLevels using (isOfHLevelRespectEquiv; isPropIsSet)
-  open import Cubical.Data.SumFin.Base using (Fin; fzero; fsuc; toℕ; fromℕ)
+  open import Cubical.Data.SumFin.Base using (Fin; fzero; fsuc; toℕ; fromℕ; toℕ-injective)
   open import Cubical.Data.Nat.Base using (zero; suc; _∸_)
   open import Agda.Builtin.Nat renaming (_+_ to _+ℕ_) hiding (_<_; _-_)
   open import Cubical.Data.Bool.Base using (_or_; _≟_; Dec→Bool)
@@ -1186,11 +1188,6 @@ module ODiscAxioms where
       colimEquiv = isoToEquiv (iso fwd bwd
         (λ { (a , incl x) → refl ; (a , push x i) → refl })
         (λ { (incl _) → refl ; (push _ _) → refl }))
-  -- tex Lemma 1160: sequential colimits of ODisc types are ODisc
-  -- Requires colimCompact + lemDecompositionOfColimitMorphisms (tex line 933) + dependent choice
-  postulate
-    ODiscColimOfODisc : (S : Sequence ℓ-zero)
-      → ((n : ℕ) → isODisc (obj S n)) → isODisc (SeqColim S)
   -- freeBA(Fin k) is finite (uses SD)
   open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator; inducedBAHom;
     inducedBAHomUnique; evalBAInduce)
@@ -1199,7 +1196,7 @@ module ODiscAxioms where
   import Cubical.Data.Fin as DF
   open import Cubical.Foundations.Equiv using (fiber)
   open import Cubical.Data.Nat using (max) renaming (_+_ to _+ℕ_)
-  open import Cubical.Data.Nat.Order using (_<_; _≤_; <Dec; ¬m+n<m; ¬m<m; ¬-<-zero; ≤-refl; ≤-trans; ≤-sucℕ; ≤-split; pred-≤-pred; isProp≤; left-≤-max; right-≤-max; suc-≤-suc)
+  open import Cubical.Data.Nat.Order using (_<_; _≤_; <Dec; ¬m+n<m; ¬m<m; ¬-<-zero; zero-≤; ≤-refl; ≤-trans; ≤-suc; ≤-sucℕ; ≤-split; pred-≤-pred; isProp≤; left-≤-max; right-≤-max; suc-≤-suc; ≤SumLeft; ≤SumRight)
   open import Cubical.Data.Nat.Order.Inductive using (<→<ᵗ; isProp<ᵗ; <ᵗ→<)
   open import Cubical.Relation.Nullary using (Dec; yes; no)
   open import Cubical.Algebra.CommRing.Properties using (_∘cr_; invCommRingEquiv)
@@ -1214,7 +1211,7 @@ module ODiscAxioms where
   open import Cubical.Data.Bool.Properties using (Dec≃DecBool)
   import Cubical.Data.Sum as ⊎
   open import Cubical.Functions.Surjection using (isSurjection; isEmbedding×isSurjection→isEquiv)
-  open import Cubical.Functions.Embedding using (injEmbedding)
+  open import Cubical.Functions.Embedding using (injEmbedding; isEmbedding; isEquiv→isEmbedding)
   open import Cubical.HITs.SetQuotients using (elimProp2)
   -- colimCompact: maps from finite types into sequential colimits factor through a stage
   -- Building block for tex Lemma 1160 (ODiscColimOfODisc)
@@ -1321,6 +1318,548 @@ module ODiscAxioms where
     colimSeparation : {n m : ℕ} (a : obj S' n) (b : obj S' m) → incl a ≡ incl b
       → ∥ Σ[ N ∈ ℕ ] Σ[ le₁ ∈ n ≤ N ] Σ[ le₂ ∈ m ≤ N ] (liftTo le₁ a ≡ liftTo le₂ b) ∥₁
     colimSeparation a b p = effective isPropEvEq isEquivRelEvEq _ _ (cong fwd p)
+  -- isSetSeqColim is provided by isSetSeqColimOfSets above (line 1140, via SCSet.result)
+  -- Subsequence equivalence: monotone unbounded reindexing preserves sequential colimit
+  subSeqEquiv : (S' : Sequence ℓ-zero) (ℓ' : ℕ → ℕ)
+    → (setStages : (n : ℕ) → isSet (obj S' n))
+    → (mono : (k : ℕ) → ℓ' k ≤ ℓ' (suc k))
+    → (grow : (k : ℕ) → k ≤ ℓ' k)
+    → let open ColimCompactHelpers S'
+          SubS : Sequence ℓ-zero
+          SubS = record { obj = λ k → obj S' (ℓ' k)
+                        ; map = λ {k} → liftTo (mono k) }
+      in SeqColim SubS ≃ SeqColim S'
+  subSeqEquiv S' ℓ' setStages mono grow = isoToEquiv (iso fwd bwd fwd-bwd bwd-fwd)
+    where
+    open ColimCompactHelpers S' using (liftTo; inclLift; liftTo-isProp; liftTo-comp)
+    SubS : Sequence ℓ-zero
+    SubS = record { obj = λ k → obj S' (ℓ' k) ; map = λ {k} → liftTo (mono k) }
+    module CHS = ColimCompactHelpers SubS
+    -- liftTo in SubS corresponds to liftTo in S' (up to liftTo-isProp)
+    subLift-is-lift : {k m : ℕ} (le : k ≤ m) (x : obj S' (ℓ' k))
+      → Σ[ le' ∈ ℓ' k ≤ ℓ' m ] (CHS.liftTo le x ≡ liftTo le' x)
+    -- Iterating SubS transitions d times = liftTo in S' (with some composed le)
+    iterSub-eq : (d : ℕ) {k : ℕ} (x : obj S' (ℓ' k))
+      → Σ[ le' ∈ ℓ' k ≤ ℓ' (d +ℕ k) ] (CHS.iterMap d x ≡ liftTo le' x)
+    iterSub-eq zero x = ≤-refl , sym (transportRefl x)
+    iterSub-eq (suc d) {k} x =
+      let (le-prev , eq-prev) = iterSub-eq d x
+      in ≤-trans le-prev (mono (d +ℕ k)) ,
+         (cong (liftTo (mono (d +ℕ k))) eq-prev
+          ∙ liftTo-comp le-prev (mono (d +ℕ k)) x
+          ∙ liftTo-isProp _ _ x)
+    subLift-is-lift {k} {m} (d , p) x =
+      J (λ m' p' → Σ[ le' ∈ ℓ' k ≤ ℓ' m' ] (CHS.liftTo (d , p') x ≡ liftTo le' x))
+        (let (le' , eq) = iterSub-eq d x
+         in le' , transportRefl _ ∙ eq)
+        p
+    fwd : SeqColim SubS → SeqColim S'
+    fwd (incl {k} x) = incl x
+    fwd (push {k} x i) = inclLift (mono k) x i
+    bwd : SeqColim S' → SeqColim SubS
+    bwd (incl {n} y) = incl (liftTo (grow n) y)
+    bwd (push {n} y i) = path i where
+      mapAsLift : {n : ℕ} (y : obj S' n) → map S' y ≡ liftTo (1 , refl) y
+      mapAsLift y = sym (transportRefl (map S' y))
+      step1 : liftTo (mono n) (liftTo (grow n) y) ≡ liftTo (grow (suc n)) (map S' y)
+      step1 =
+        liftTo-comp (grow n) (mono n) y
+        ∙ liftTo-isProp _ _ y
+        ∙ sym (liftTo-comp (1 , refl) (grow (suc n)) y)
+        ∙ cong (liftTo (grow (suc n))) (sym (mapAsLift y))
+      path : Path (SeqColim SubS) (incl (liftTo (grow n) y))
+                                   (incl (liftTo (grow (suc n)) (map S' y)))
+      path = push (liftTo (grow n) y) ∙ cong (incl {n = suc n}) step1
+    fwd-bwd : (z : SeqColim S') → fwd (bwd z) ≡ z
+    fwd-bwd = SeqColim→Prop (λ _ → isSetSeqColimOfSets S' setStages _ _) go where
+      go : (n : ℕ) (x : obj S' n) → fwd (bwd (incl x)) ≡ incl x
+      go n x = sym (inclLift (grow n) x)
+    bwd-fwd : (z : SeqColim SubS) → bwd (fwd z) ≡ z
+    bwd-fwd = SeqColim→Prop (λ _ → isSetSeqColimOfSets SubS (λ n → setStages (ℓ' n)) _ _) go where
+      go : (k : ℕ) (x : obj SubS k) → bwd (fwd (incl x)) ≡ incl x
+      -- bwd (fwd (incl{k} x)) = bwd (incl{ℓ'k} x) = incl{ℓ'k}_SubS (liftTo_S' (grow (ℓ'k)) x)
+      -- Need: incl{ℓ'k}_SubS (liftTo_S' (grow (ℓ'k)) x) ≡ incl{k}_SubS x
+      -- Via: CHS.inclLift (grow k) x : incl{k} x ≡ incl{ℓ'k} (CHS.liftTo (grow k) x)
+      -- And: liftTo (grow (ℓ'k)) x ≡ CHS.liftTo (grow k) x (via subLift-is-lift)
+      go k x =
+        let (le' , eq) = subLift-is-lift (grow k) x
+        in cong (incl {n = ℓ' k}) (liftTo-isProp (grow (ℓ' k)) le' x ∙ sym eq)
+           ∙ sym (CHS.inclLift (grow k) x)
+  -- tex Lemma 933: A map between colimits of finite sets decomposes as colimit of maps
+  open import Cubical.Data.FinSet.FiniteChoice as FC using ()
+  -- Output record for lemDecompColimMorphisms
+  record DecompData (B C : Sequence ℓ-zero) (f : SeqColim B → SeqColim C) : Type ℓ-zero where
+    field
+      lvl : ℕ → ℕ
+      fMap : (k : ℕ) → obj B k → obj C (lvl k)
+      fOk : (k : ℕ) (x : obj B k) → incl (fMap k x) ≡ f (incl x)
+      lvlMono : (k : ℕ) → lvl k ≤ lvl (suc k)
+      lvlGrow : (k : ℕ) → k ≤ lvl k
+      fCompat : (k : ℕ) (x : obj B k) →
+        ColimCompactHelpers.liftTo C (lvlMono k) (fMap k x) ≡ fMap (suc k) (map B x)
+  lemDecompColimMorphisms : (B C : Sequence ℓ-zero)
+    → ((k : ℕ) → isFinSet (obj B k))
+    → ((k : ℕ) → isSet (obj C k))
+    → (f : SeqColim B → SeqColim C)
+    → ∥ DecompData B C f ∥₁
+  lemDecompColimMorphisms B C finB setC f =
+    PT.rec squash₁ step0 (colimCompact C _ (finB 0) (f ∘ incl))
+    where
+    open ColimCompactHelpers C
+    open ColimSep C setC using (colimSeparation)
+    -- maxFin: compute max of a function over Fin c
+    maxFin : (c : ℕ) → (Fin c → ℕ) → ℕ
+    maxFin zero _ = 0
+    maxFin (suc c) h = max (h fzero) (maxFin c (h ∘ fsuc))
+    maxFin-le : (c : ℕ) (h : Fin c → ℕ) (i : Fin c) → h i ≤ maxFin c h
+    maxFin-le (suc c) h fzero = left-≤-max {h fzero}
+    maxFin-le (suc c) h (fsuc i) =
+      ≤-trans (maxFin-le c (h ∘ fsuc) i) (right-≤-max {maxFin c (h ∘ fsuc)} {h fzero})
+    -- Factor f ∘ incl at stage 0, then use dep. choice for remaining stages
+    step0 : Σ[ N₀ ∈ ℕ ] Σ[ g₀ ∈ (obj B 0 → obj C N₀) ]
+            ((x : obj B 0) → incl (g₀ x) ≡ f (incl x))
+          → ∥ DecompData B C f ∥₁
+    step0 init₀ = PT.rec squash₁ (λ x → ∣ extract x ∣₁)
+      (dependentChoice-axiom PD pdProj pdSurj pd₀) where
+      PD : ℕ → Type ℓ-zero
+      pdData : {k : ℕ} → PD k → Σ[ N ∈ ℕ ] Σ[ g ∈ (obj B k → obj C N) ]
+               ((x : obj B k) → incl (g x) ≡ f (incl x))
+      PD zero = ℕ
+      PD (suc k) = Σ[ prev ∈ PD k ]
+        let Np = fst (pdData prev) ; gp = fst (snd (pdData prev)) in
+        Σ[ N ∈ ℕ ] Σ[ le ∈ Np ≤ N ] Σ[ _ ∈ suc k ≤ N ]
+        Σ[ g ∈ (obj B (suc k) → obj C N) ]
+        ((x : obj B (suc k)) → incl (g x) ≡ f (incl x)) ×
+        ((x : obj B k) → liftTo le (gp x) ≡ g (map B x))
+      pdData {zero} _ = init₀
+      pdData {suc _} (_ , N , _ , _ , g , ok , _) = N , g , ok
+      pdProj : (k : ℕ) → PD (suc k) → PD k
+      pdProj _ (prev , _) = prev
+      pdSurj : (k : ℕ) (y : PD k) → ∥ Σ[ x ∈ PD (suc k) ] pdProj k x ≡ y ∥₁
+      pdSurj k y = PT.rec squash₁ combine
+        (colimCompact C _ (finB (suc k)) (f ∘ incl)) where
+        Ny = fst (pdData y) ; gy = fst (snd (pdData y)) ; oky = snd (snd (pdData y))
+        combine : Σ[ N' ∈ ℕ ] Σ[ g' ∈ (obj B (suc k) → obj C N') ]
+                  ((x : obj B (suc k)) → incl (g' x) ≡ f (incl x))
+                → ∥ Σ[ x ∈ PD (suc k) ] pdProj k x ≡ y ∥₁
+        combine (N' , g' , ok') = PT.rec squash₁ step2
+          (FC.choice (_ , finB k) _ sepWit) where
+          agree : (x : obj B k) → incl (gy x) ≡ incl (g' (map B x))
+          agree x = oky x ∙ cong f (push x) ∙ sym (ok' (map B x))
+          sepWit : (x : obj B k) →
+            ∥ Σ[ M ∈ ℕ ] Σ[ le₁ ∈ Ny ≤ M ] Σ[ le₂ ∈ N' ≤ M ]
+              (liftTo le₁ (gy x) ≡ liftTo le₂ (g' (map B x))) ∥₁
+          sepWit x = colimSeparation (gy x) (g' (map B x)) (agree x)
+          step2 : ((x : obj B k) → Σ[ M ∈ ℕ ] Σ[ le₁ ∈ Ny ≤ M ] Σ[ le₂ ∈ N' ≤ M ]
+                   (liftTo le₁ (gy x) ≡ liftTo le₂ (g' (map B x))))
+                → ∥ Σ[ x ∈ PD (suc k) ] pdProj k x ≡ y ∥₁
+          step2 wit = PT.rec squash₁ (λ eq → ∣ mkPD eq , refl ∣₁) (snd (finB k)) where
+            M : obj B k → ℕ
+            M x = fst (wit x)
+            mkPD : obj B k ≃ Fin (fst (finB k)) → PD (suc k)
+            mkPD eq = (y , N , le , leSucK , gN , okN , compat) where
+              c = fst (finB k)
+              mFin : Fin c → ℕ
+              mFin i = M (invEq eq i)
+              Nmax = max (suc k) (max Ny (max N' (maxFin c mFin)))
+              N = Nmax
+              leSucK : suc k ≤ N
+              leSucK = left-≤-max {suc k} {max Ny (max N' (maxFin c mFin))}
+              le : Ny ≤ N
+              le = ≤-trans (left-≤-max {Ny} {max N' (maxFin c mFin)})
+                           (right-≤-max {max Ny (max N' (maxFin c mFin))} {suc k})
+              leN' : N' ≤ N
+              leN' = ≤-trans (left-≤-max {N'} {maxFin c mFin})
+                     (≤-trans (right-≤-max {max N' (maxFin c mFin)} {Ny})
+                              (right-≤-max {max Ny (max N' (maxFin c mFin))} {suc k}))
+              leM : (x : obj B k) → M x ≤ N
+              leM x = ≤-trans
+                (subst (λ z → M z ≤ maxFin c mFin) (retEq eq x)
+                  (maxFin-le c mFin (equivFun eq x)))
+                (≤-trans (right-≤-max {maxFin c mFin} {N'})
+                  (≤-trans (right-≤-max {max N' (maxFin c mFin)} {Ny})
+                           (right-≤-max {max Ny (max N' (maxFin c mFin))} {suc k})))
+              gN : obj B (suc k) → obj C N
+              gN x = liftTo leN' (g' x)
+              okN : (x : obj B (suc k)) → incl (gN x) ≡ f (incl x)
+              okN x = sym (inclLift leN' (g' x)) ∙ ok' x
+              compat : (x : obj B k) → liftTo le (gy x) ≡ gN (map B x)
+              compat x =
+                let (Mx , le₁ , le₂ , p) = wit x
+                    mle : Mx ≤ N
+                    mle = leM x
+                in
+                liftTo le (gy x)
+                  ≡⟨ liftTo-isProp le (≤-trans le₁ mle) (gy x) ⟩
+                liftTo (≤-trans le₁ mle) (gy x)
+                  ≡⟨ sym (liftTo-comp le₁ mle (gy x)) ⟩
+                liftTo mle (liftTo le₁ (gy x))
+                  ≡⟨ cong (liftTo mle) p ⟩
+                liftTo mle (liftTo le₂ (g' (map B x)))
+                  ≡⟨ liftTo-comp le₂ mle (g' (map B x)) ⟩
+                liftTo (≤-trans le₂ mle) (g' (map B x))
+                  ≡⟨ liftTo-isProp (≤-trans le₂ mle) leN' (g' (map B x)) ⟩
+                liftTo leN' (g' (map B x)) ∎
+      pd₀ : PD 0
+      pd₀ = 0
+      extract : Σ[ s ∈ SeqLimit PD pdProj ] seqLim-proj₀ PD pdProj s ≡ pd₀
+              → DecompData B C f
+      extract ((p , compat) , _) = record
+        { lvl = lvl ; fMap = fMap ; fOk = fOk
+        ; lvlMono = lvlMono ; lvlGrow = lvlGrow ; fCompat = fCompat'
+        } where
+        lvl : ℕ → ℕ
+        lvl k = fst (pdData (p k))
+        fMap : (k : ℕ) → obj B k → obj C (lvl k)
+        fMap k = fst (snd (pdData (p k)))
+        fOk : (k : ℕ) (x : obj B k) → incl (fMap k x) ≡ f (incl x)
+        fOk k = snd (snd (pdData (p k)))
+        lvlGrow : (k : ℕ) → k ≤ lvl k
+        lvlGrow zero = zero-≤
+        lvlGrow (suc k) = fst (snd (snd (snd (p (suc k)))))
+        prev : (k : ℕ) → PD k
+        prev k = fst (p (suc k))
+        rawLe : (k : ℕ) → fst (pdData (prev k)) ≤ lvl (suc k)
+        rawLe k = fst (snd (snd (p (suc k))))
+        rawCompat : (k : ℕ) (x : obj B k) →
+          liftTo (rawLe k) (fst (snd (pdData (prev k))) x) ≡ fMap (suc k) (map B x)
+        rawCompat k = snd (snd (snd (snd (snd (snd (p (suc k)))))))
+        -- lvlMono and fCompat' by transport along compat k
+        monoAndCompat : (k : ℕ) → Σ[ le ∈ lvl k ≤ lvl (suc k) ]
+          ((x : obj B k) → liftTo le (fMap k x) ≡ fMap (suc k) (map B x))
+        monoAndCompat k = subst (λ pk → Σ[ le ∈ fst (pdData pk) ≤ lvl (suc k) ]
+            ((x : obj B k) → liftTo le (fst (snd (pdData pk)) x) ≡ fMap (suc k) (map B x)))
+          (compat k) (rawLe k , rawCompat k)
+        lvlMono : (k : ℕ) → lvl k ≤ lvl (suc k)
+        lvlMono k = fst (monoAndCompat k)
+        fCompat' : (k : ℕ) (x : obj B k) →
+          liftTo (lvlMono k) (fMap k x) ≡ fMap (suc k) (map B x)
+        fCompat' k x = snd (monoAndCompat k) x
+  -- tex Lemma 1160: sequential colimits of ODisc types are ODisc
+  -- Uses lemDecompColimMorphisms + dependent choice to build quarter-plane diagonal
+  ODiscColimOfODisc : (S₀ : Sequence ℓ-zero)
+    → ((n : ℕ) → isODisc (obj S₀ n)) → isODisc (SeqColim S₀)
+  ODiscColimOfODisc S₀ odiscN =
+    PT.rec squash₁ go (countableChoice₁ _ odiscN) where
+    go : ((n : ℕ) → Σ[ T ∈ Sequence ℓ-zero ]
+           ((k : ℕ) → isFinSet (obj T k)) × (SeqColim T ≃ obj S₀ n))
+       → isODisc (SeqColim S₀)
+    go w = PT.rec squash₁ buildDiag (dependentChoice-axiom QP qpProj qpSurj qp₀) where
+      T : ℕ → Sequence ℓ-zero
+      T n = fst (w n)
+      finT : (n k : ℕ) → isFinSet (obj (T n) k)
+      finT n = fst (snd (w n))
+      eT : (n : ℕ) → SeqColim (T n) ≃ obj S₀ n
+      eT n = snd (snd (w n))
+      ψ : (n : ℕ) → SeqColim (T n) → SeqColim (T (suc n))
+      ψ n c = invEq (eT (suc n)) (map S₀ (equivFun (eT n) c))
+      setT : (n k : ℕ) → isSet (obj (T n) k)
+      setT n k = isFinSet→isSet (finT n k)
+        where open import Cubical.Data.FinSet.Base using (isFinSet→isSet)
+      -- Quarter-plane data at step n: decomposition of ψ(n-1) into level-wise maps
+      QP : ℕ → Type ℓ-zero
+      qpSeq : {n : ℕ} → QP n → Sequence ℓ-zero
+      qpFin : {n : ℕ} (q : QP n) → (k : ℕ) → isFinSet (obj (qpSeq q) k)
+      qpEquiv : {n : ℕ} (q : QP n) → SeqColim (qpSeq q) ≃ obj S₀ n
+      transition : {n : ℕ} (q : QP n) → SeqColim (qpSeq q) → SeqColim (T (suc n))
+      QP zero = ℕ
+      QP (suc n) = Σ[ prev ∈ QP n ] DecompData (qpSeq prev) (T (suc n)) (transition prev)
+      qpSeq {zero} _ = T 0
+      qpSeq {suc n} (_ , dd) = record
+        { obj = λ k → obj (T (suc n)) (DecompData.lvl dd k)
+        ; map = λ {k} → ColimCompactHelpers.liftTo (T (suc n)) (DecompData.lvlMono dd k)
+        }
+      qpFin {zero} _ = finT 0
+      qpFin {suc n} (_ , dd) k = finT (suc n) (DecompData.lvl dd k)
+      qpEquiv {zero} _ = eT 0
+      qpEquiv {suc n} (_ , dd) = compEquiv
+        (subSeqEquiv (T (suc n)) (DecompData.lvl dd) (setT (suc n))
+          (DecompData.lvlMono dd) (DecompData.lvlGrow dd))
+        (eT (suc n))
+      transition q = invEq (eT _) ∘ map S₀ ∘ equivFun (qpEquiv q)
+      qpProj : (n : ℕ) → QP (suc n) → QP n
+      qpProj _ (prev , _) = prev
+      qpSurj : (n : ℕ) (y : QP n) → ∥ Σ[ x ∈ QP (suc n) ] qpProj n x ≡ y ∥₁
+      qpSurj n y = PT.map (λ dd → (y , dd) , refl)
+        (lemDecompColimMorphisms (qpSeq y) (T (suc n))
+          (qpFin y) (setT (suc n)) (transition y))
+      qp₀ : QP 0
+      qp₀ = 0
+      buildDiag : Σ[ s ∈ SeqLimit QP qpProj ] seqLim-proj₀ QP qpProj s ≡ qp₀
+                → isODisc (SeqColim S₀)
+      buildDiag ((q , qcompat) , _) = ∣ D , finD , diagEquiv ∣₁ where
+        dd : (n : ℕ) → DecompData (qpSeq (fst (q (suc n)))) (T (suc n)) (transition (fst (q (suc n))))
+        dd n = snd (q (suc n))
+        -- Vertical map: row n, col k → row (suc n), col k
+        vMap : (n k : ℕ) → obj (qpSeq (q n)) k → obj (qpSeq (q (suc n))) k
+        vMap n k = DecompData.fMap (dd n) k ∘ subst (λ qn → obj (qpSeq qn) k) (sym (qcompat n))
+        -- Diagonal sequence
+        D : Sequence ℓ-zero
+        D = record
+          { obj = λ n → obj (qpSeq (q n)) n
+          ; map = λ {n} x → vMap n (suc n) (map (qpSeq (q n)) x)
+          }
+        finD : (n : ℕ) → isFinSet (obj D n)
+        finD n = qpFin (q n) n
+        -- Key helper: qpEquiv is compatible with row transitions via fOk
+        module _ (n : ℕ) (x : obj D n) where
+          private
+            qn = q n ; qsn = q (suc n)
+            qn' = fst qsn
+            ddn = dd n
+            y = map (qpSeq qn) x
+            y' = subst (λ qn₀ → obj (qpSeq qn₀) (suc n)) (sym (qcompat n)) y
+          fwdD-coh : equivFun (qpEquiv qsn) (incl {n = suc n} (map D x))
+                   ≡ map S₀ (equivFun (qpEquiv qn) (incl x))
+          fwdD-coh =
+            -- Step 1: subSeqEquiv fwd on incl = incl, so qpEquiv qsn on incl = eT on incl
+            cong (equivFun (eT (suc n))) refl
+            -- Step 2: fOk gives incl (fMap y') ≡ transition qn' (incl y') in SeqColim T(suc n)
+            ∙ cong (equivFun (eT (suc n))) (DecompData.fOk ddn (suc n) y')
+            -- Step 3: equivFun eT ∘ transition = map S₀ ∘ equivFun qpEquiv (by secEq)
+            ∙ secEq (eT (suc n)) _
+            -- Step 4: relate qpEquiv qn' (incl y') to qpEquiv qn (incl y) via qcompat
+            ∙ cong (map S₀) step4
+            -- Step 5: equivFun qpEquiv qn (incl y) ≡ equivFun qpEquiv qn (incl x) via push
+            ∙ cong (map S₀) (sym (cong (equivFun (qpEquiv qn)) (push x)))
+            where
+            P = λ r → obj (qpSeq r) (suc n)
+            yPathP : PathP (λ i → P (qcompat n i)) y' y
+            yPathP = symP (transport-filler (cong P (sym (qcompat n))) y)
+            step4 : equivFun (qpEquiv qn') (incl y') ≡ equivFun (qpEquiv qn) (incl y)
+            step4 i = equivFun (qpEquiv (qcompat n i)) (incl (yPathP i))
+        -- Forward: diagonal → SeqColim S₀
+        fwdD : SeqColim D → SeqColim S₀
+        fwdD (incl {n} x) = incl (equivFun (qpEquiv (q n)) (incl x))
+        fwdD (push {n} x i) = (push (equivFun (qpEquiv (q n)) (incl x))
+                               ∙ cong incl (sym (fwdD-coh n x))) i
+        -- Column iteration: push from row n to row (d+n) at column k
+        colIter : (d : ℕ) {n : ℕ} (k : ℕ)
+          → obj (qpSeq (q n)) k → obj (qpSeq (q (d +ℕ n))) k
+        colIter zero k x = x
+        colIter (suc d) {n} k x = vMap (d +ℕ n) k (colIter d k x)
+        open ColimCompactHelpers using (liftTo; inclLift; inStage)
+        -- hv-swap₁: horizontal and vertical maps commute (one step)
+        -- map (qpSeq (q (suc n))) (vMap n k v) ≡ vMap n (suc k) (map (qpSeq (q n)) v)
+        hv-swap₁ : (n k : ℕ) (v : obj (qpSeq (q n)) k)
+          → map (qpSeq (q (suc n))) (vMap n k v) ≡ vMap n (suc k) (map (qpSeq (q n)) v)
+        hv-swap₁ n k v =
+          DecompData.fCompat (dd n) k v'
+          ∙ cong (DecompData.fMap (dd n) (suc k)) mapConn
+          where
+          v' = subst (λ qn → obj (qpSeq qn) k) (sym (qcompat n)) v
+          P' = λ r → obj (qpSeq r) (suc k)
+          -- mapConn: map (qpSeq prev) v' ≡ subst P' (sym qcompat) (map (qpSeq (q n)) v)
+          -- follows from naturality of map w.r.t. transport along qcompat
+          vPathP : PathP (λ i → obj (qpSeq (qcompat n i)) k) v' v
+          vPathP = symP (transport-filler (cong (λ r → obj (qpSeq r) k) (sym (qcompat n))) v)
+          mapPathP : PathP (λ i → P' (qcompat n i))
+                       (map (qpSeq (fst (q (suc n)))) v')
+                       (map (qpSeq (q n)) v)
+          mapPathP i = map (qpSeq (qcompat n i)) (vPathP i)
+          mapConn : map (qpSeq (fst (q (suc n)))) v'
+                  ≡ subst P' (sym (qcompat n)) (map (qpSeq (q n)) v)
+          mapConn = fromPathP≡ mapPathP
+            where
+            fromPathP≡ : PathP (λ i → P' (qcompat n i))
+                           (map (qpSeq (fst (q (suc n)))) v')
+                           (map (qpSeq (q n)) v)
+              → map (qpSeq (fst (q (suc n)))) v'
+                ≡ subst P' (sym (qcompat n)) (map (qpSeq (q n)) v)
+            fromPathP≡ pp = sym (fromPathP (symP pp))
+        -- multi-vmap-commute: d vertical steps commute with 1 horizontal step
+        -- map (qpSeq (q (d+N))) (colIter d k w) ≡ colIter d (suc k) (map (qpSeq (q N)) w)
+        multi-vmap-commute : (d : ℕ) {N : ℕ} (k : ℕ) (w : obj (qpSeq (q N)) k)
+          → map (qpSeq (q (d +ℕ N))) {k} (colIter d k w)
+          ≡ colIter d {N} (suc k) (map (qpSeq (q N)) w)
+        multi-vmap-commute zero k w = refl
+        multi-vmap-commute (suc d) {N} k w =
+          hv-swap₁ (d +ℕ N) k (colIter d k w)
+          ∙ cong (vMap (d +ℕ N) (suc k)) (multi-vmap-commute d k w)
+        -- diag-eq-hv: diagonal iteration = horizontal then vertical
+        diag-eq-hv : (d : ℕ) {N : ℕ} (z : obj D N)
+          → ColimCompactHelpers.iterMap D d z
+          ≡ colIter d (d +ℕ N) (ColimCompactHelpers.iterMap (qpSeq (q N)) d z)
+        diag-eq-hv zero z = refl
+        diag-eq-hv (suc d) {N} z =
+          cong (vMap (d +ℕ N) (suc (d +ℕ N)))
+               (cong (map (qpSeq (q (d +ℕ N)))) (diag-eq-hv d z)
+                ∙ multi-vmap-commute d (d +ℕ N) (ColimCompactHelpers.iterMap (qpSeq (q N)) d z))
+        -- Vertical coherence: vMap is compatible with qpEquiv
+        vert-coh : (n k : ℕ) (x : obj (qpSeq (q n)) k)
+          → equivFun (qpEquiv (q (suc n))) (incl {n = k} (vMap n k x))
+          ≡ map S₀ (equivFun (qpEquiv (q n)) (incl {n = k} x))
+        vert-coh n k x =
+            cong (equivFun (eT (suc n))) refl
+            ∙ cong (equivFun (eT (suc n))) (DecompData.fOk ddn k x')
+            ∙ secEq (eT (suc n)) _
+            ∙ cong (map S₀) step4
+          where
+          qn = q n ; qsn = q (suc n)
+          qn' = fst qsn
+          ddn = dd n
+          x' = subst (λ qn₀ → obj (qpSeq qn₀) k) (sym (qcompat n)) x
+          P = λ r → obj (qpSeq r) k
+          xPathP : PathP (λ i → P (qcompat n i)) x' x
+          xPathP = symP (transport-filler (cong P (sym (qcompat n))) x)
+          step4 : equivFun (qpEquiv qn') (incl x') ≡ equivFun (qpEquiv qn) (incl x)
+          step4 i = equivFun (qpEquiv (qcompat n i)) (incl (xPathP i))
+        -- colIter coherence: iterating vertical maps, fwdD composes through
+        colIter-coh : (d : ℕ) {n : ℕ} (k : ℕ) (x : obj (qpSeq (q n)) k)
+          → Path (SeqColim S₀)
+              (incl (equivFun (qpEquiv (q (d +ℕ n))) (incl (colIter d k x))))
+              (incl (equivFun (qpEquiv (q n)) (incl x)))
+        colIter-coh zero k x = refl
+        colIter-coh (suc d) {n} k x =
+            cong incl (vert-coh (d +ℕ n) k (colIter d k x))
+            ∙ sym (push (equivFun (qpEquiv (q (d +ℕ n))) (incl (colIter d k x))))
+            ∙ colIter-coh d k x
+        -- Embed (row n, col k) → diagonal at stage (d+n)
+        toDiag : (n : ℕ) {d : ℕ} (k : ℕ) (kle : k ≤ d +ℕ n)
+          → obj (qpSeq (q n)) k → obj D (d +ℕ n)
+        toDiag n {d} k kle z = colIter d (d +ℕ n) (liftTo (qpSeq (q n)) kle z)
+        -- fwdD on toDiag gives incl of the original element
+        fwdD-toDiag : (n : ℕ) {d : ℕ} (k : ℕ) (kle : k ≤ d +ℕ n)
+          (z : obj (qpSeq (q n)) k)
+          → Path (SeqColim S₀)
+              (incl (equivFun (qpEquiv (q (d +ℕ n))) (incl (toDiag n k kle z))))
+              (incl (equivFun (qpEquiv (q n)) (incl z)))
+        fwdD-toDiag n {d} k kle z = step1 ∙ step2 where
+          zLift = liftTo (qpSeq (q n)) kle z
+          fwdN : SeqColim (qpSeq (q n)) → SeqColim S₀
+          fwdN s = incl {X = S₀} {n = n} (equivFun (qpEquiv (q n)) s)
+          step1 = colIter-coh d (d +ℕ n) zLift
+          step2 : fwdN (incl {X = qpSeq (q n)} {n = d +ℕ n} zLift)
+                ≡ fwdN (incl {X = qpSeq (q n)} {n = k} z)
+          step2 = cong fwdN (sym (inclLift (qpSeq (q n)) kle z))
+        diagEquiv : SeqColim D ≃ SeqColim S₀
+        diagEquiv = fwdD , isEmbedding×isSurjection→isEquiv (fwdD-emb , fwdD-surj) where
+          isSetS₀ : isSet (SeqColim S₀)
+          isSetS₀ = isSetSeqColimOfSets S₀ λ n →
+            isODiscIsSet (odiscN n)
+          isSetD : isSet (SeqColim D)
+          isSetD = isSetSeqColimOfSets D λ n →
+            isFinSet→isSet (finD n) where
+            open import Cubical.Data.FinSet.Base using (isFinSet→isSet)
+          -- Surjection: every element of SeqColim S₀ has a preimage
+          fwdD-surj : isSurjection fwdD
+          fwdD-surj = SeqColim→Prop (λ _ → squash₁) fwdD-surj-incl where
+            fwdD-surj-incl : (n : ℕ) (y : obj S₀ n)
+              → ∥ fiber fwdD (incl y) ∥₁
+            fwdD-surj-incl n y = PT.rec squash₁ step
+              (inStage (qpSeq (q n)) (invEq (qpEquiv (q n)) y)) where
+              step : Σ[ k ∈ ℕ ] Σ[ z ∈ obj (qpSeq (q n)) k ] (incl z ≡ invEq (qpEquiv (q n)) y)
+                → ∥ fiber fwdD (incl y) ∥₁
+              step (k , z , p) = ∣ incl {X = D} {n = k +ℕ n} (toDiag n k ≤SumLeft z) , path ∣₁ where
+                path : fwdD (incl (toDiag n k ≤SumLeft z)) ≡ incl y
+                path =
+                  fwdD-toDiag n k ≤SumLeft z
+                  ∙ cong incl (cong (equivFun (qpEquiv (q n))) p
+                              ∙ secEq (qpEquiv (q n)) y)
+          -- fwdD-nat: fwdD commutes with diagonal iteration and S₀ transition
+          open ColimCompactHelpers D renaming (iterMap to iterMapD; liftTo to liftToD; inclLift to inclLiftD)
+          open ColimCompactHelpers S₀ renaming (iterMap to iterMapS₀; liftTo to liftToS₀)
+          open ColimSep S₀ (λ n → isODiscIsSet (odiscN n)) using (colimSeparation)
+          fwdD-nat : (d : ℕ) {n : ℕ} (x : obj D n)
+            → equivFun (qpEquiv (q (d +ℕ n))) (incl (iterMapD d x))
+            ≡ iterMapS₀ d (equivFun (qpEquiv (q n)) (incl x))
+          fwdD-nat zero x = refl
+          fwdD-nat (suc d) {n} x =
+            fwdD-coh (d +ℕ n) (iterMapD d x)
+            ∙ cong (map S₀) (fwdD-nat d x)
+          -- Embedding: fwdD is injective
+          -- Key: from row-colimit equality, use colimSeparation + diag-eq-hv
+          -- to derive diagonal-colimit equality
+          fwdD-emb : isEmbedding fwdD
+          fwdD-emb = injEmbedding isSetS₀ fwdD-inj where
+            open ColimCompactHelpers D using () renaming (inclIter to inclIterD)
+            liftToS₀-via-nat : (d : ℕ) {n : ℕ} (x : obj D n)
+              → liftToS₀ (d , refl) (equivFun (qpEquiv (q n)) (incl {X = qpSeq (q n)} x))
+              ≡ equivFun (qpEquiv (q (d +ℕ n))) (incl {X = qpSeq (q (d +ℕ n))} (liftToD (d , refl) x))
+            liftToS₀-via-nat d {n} x =
+              transportRefl _
+              ∙ sym (fwdD-nat d x)
+              ∙ cong (equivFun (qpEquiv (q (d +ℕ n))) ∘ incl) (sym (transportRefl (iterMapD d x)))
+            -- rowEq→diagEq: from incl z₁ ≡ incl z₂ in row-N colimit,
+            -- derive incl z₁ ≡ incl z₂ in diagonal colimit via
+            -- colimSeparation on row → cong colIter → diag-eq-hv → inclIter
+            rowEq→diagEq : {N : ℕ} (z₁ z₂ : obj D N)
+              → incl {X = qpSeq (q N)} {n = N} z₁ ≡ incl {n = N} z₂
+              → incl {X = D} {n = N} z₁ ≡ incl {X = D} {n = N} z₂
+            rowEq→diagEq {N} z₁ z₂ eqColim = PT.rec (isSetD _ _) step
+              (rowSep z₁ z₂ eqColim) where
+              open import Cubical.Data.FinSet.Base using (isFinSet→isSet)
+              open ColimSep (qpSeq (q N)) (λ k → isFinSet→isSet (qpFin (q N) k))
+                renaming (colimSeparation to rowSep)
+              open ColimCompactHelpers (qpSeq (q N)) using (liftTo-isProp) renaming (liftTo to liftToRow)
+              step : Σ[ M ∈ ℕ ] Σ[ le₁ ∈ N ≤ M ] Σ[ le₂ ∈ N ≤ M ]
+                  (liftToRow le₁ z₁ ≡ liftToRow le₂ z₂)
+                → incl {X = D} {n = N} z₁ ≡ incl {X = D} {n = N} z₂
+              step (M , le₁ , le₂ , eqM) =
+                let le = le₁
+                    eqM' : liftToRow le z₁ ≡ liftToRow le z₂
+                    eqM' = eqM ∙ cong (λ l → liftToRow l z₂) (isProp≤ le₂ le)
+                in J (λ M' p₁ →
+                    (eqR : ColimCompactHelpers.liftTo (qpSeq (q N)) (fst le , p₁) z₁
+                         ≡ ColimCompactHelpers.liftTo (qpSeq (q N)) (fst le , p₁) z₂)
+                    → incl {X = D} {n = N} z₁ ≡ incl {X = D} {n = N} z₂)
+                  (λ eqR →
+                    let d = fst le
+                        iterRow = ColimCompactHelpers.iterMap (qpSeq (q N))
+                        eqW : iterRow d z₁ ≡ iterRow d z₂
+                        eqW = sym (transportRefl (iterRow d z₁)) ∙ eqR ∙ transportRefl (iterRow d z₂)
+                        eqV : ColimCompactHelpers.iterMap D d z₁
+                            ≡ ColimCompactHelpers.iterMap D d z₂
+                        eqV = diag-eq-hv d {N} z₁
+                            ∙ cong (colIter d (d +ℕ N)) eqW
+                            ∙ sym (diag-eq-hv d {N} z₂)
+                    in inclIterD d z₁
+                       ∙ cong (incl {X = D} {n = d +ℕ N}) eqV
+                       ∙ sym (inclIterD d z₂))
+                  (snd le) eqM'
+            incl-inj : (n₁ n₂ : ℕ) (x₁ : obj D n₁) (x₂ : obj D n₂)
+              → fwdD (incl x₁) ≡ fwdD (incl x₂) → incl {X = D} x₁ ≡ incl x₂
+            incl-inj n₁ n₂ x₁ x₂ p = PT.rec (isSetD _ _) go'
+              (colimSeparation y₁ y₂ p) where
+              y₁ = equivFun (qpEquiv (q n₁)) (incl {X = qpSeq (q n₁)} x₁)
+              y₂ = equivFun (qpEquiv (q n₂)) (incl {X = qpSeq (q n₂)} x₂)
+              -- Generalized liftToS₀-via-nat for any ≤ proof (not just refl)
+              liftToS₀-via-nat-gen : {n N : ℕ} (le : n ≤ N) (x : obj D n)
+                → liftToS₀ le (equivFun (qpEquiv (q n)) (incl {X = qpSeq (q n)} x))
+                ≡ equivFun (qpEquiv (q N)) (incl {X = qpSeq (q N)} (liftToD le x))
+              liftToS₀-via-nat-gen (d , p) x =
+                J (λ N' p' →
+                    liftToS₀ (d , p') (equivFun (qpEquiv (q _)) (incl x))
+                  ≡ equivFun (qpEquiv (q N')) (incl (liftToD (d , p') x)))
+                  (liftToS₀-via-nat d x) p
+              go' : Σ[ N ∈ ℕ ] Σ[ le₁ ∈ n₁ ≤ N ] Σ[ le₂ ∈ n₂ ≤ N ]
+                   (liftToS₀ le₁ y₁ ≡ liftToS₀ le₂ y₂)
+                 → incl {X = D} {n = n₁} x₁ ≡ incl {n = n₂} x₂
+              go' (N , le₁ , le₂ , eqN) =
+                inclLiftD le₁ x₁
+                ∙ rowEq→diagEq {N} z₁ z₂ eqColim
+                ∙ sym (inclLiftD le₂ x₂)
+                where
+                z₁ : obj D N
+                z₁ = liftToD le₁ x₁
+                z₂ : obj D N
+                z₂ = liftToD le₂ x₂
+                eqZ : equivFun (qpEquiv (q N)) (incl {X = qpSeq (q N)} z₁)
+                    ≡ equivFun (qpEquiv (q N)) (incl z₂)
+                eqZ = sym (liftToS₀-via-nat-gen le₁ x₁)
+                    ∙ eqN
+                    ∙ liftToS₀-via-nat-gen le₂ x₂
+                eqColim : incl {X = qpSeq (q N)} z₁ ≡ incl z₂
+                eqColim = invEq (_ , isEquiv→isEmbedding (snd (qpEquiv (q N))) _ _) eqZ
+            fwdD-inj : ∀{d₁ d₂} → fwdD d₁ ≡ fwdD d₂ → d₁ ≡ d₂
+            fwdD-inj {d₁} {d₂} = SeqColim→Prop {C = D}
+              {B = λ d₁ → (d₂ : SeqColim D) → fwdD d₁ ≡ fwdD d₂ → d₁ ≡ d₂}
+              (λ d₁ → isPropΠ λ d₂ → isPropΠ λ _ → isSetD d₁ d₂)
+              (λ n₁ x₁ → SeqColim→Prop {C = D}
+                {B = λ d₂ → fwdD (incl x₁) ≡ fwdD d₂ → incl x₁ ≡ d₂}
+                (λ d₂ → isPropΠ λ _ → isSetD _ d₂)
+                (λ n₂ x₂ → incl-inj n₁ n₂ x₁ x₂))
+              d₁ d₂
   isFinSet-freeBA-Fin : (k : ℕ) → isFinSet ⟨ freeBA (DF.Fin k) ⟩
   isFinSet-freeBA-Fin k = EquivPresIsFinSet (invEquiv total-equiv) isFinSetTarget where
     open import Cubical.Foundations.Equiv.Properties using (preCompEquiv)
@@ -1527,16 +2066,66 @@ module ODiscAxioms where
           ... | no ¬p = no (λ gI → ¬p (fwd gI))
         result : isFinSet ⟨ B' QB./Im g ⟩
         result = isFinSetQuot (⟨ B' ⟩ , finB) idealRel equivR decR
+  -- Ring-structured ODisc decomposition data for a quotient of freeBA ℕ
+  ODiscRingDecompSeq : (BN : ℕ → BooleanRing ℓ-zero)
+    → ((n : ℕ) → ⟨ BN n ⟩ → ⟨ BN (suc n) ⟩) → Sequence ℓ-zero
+  obj (ODiscRingDecompSeq BN mapBN) n = ⟨ BN n ⟩
+  map (ODiscRingDecompSeq BN mapBN) = mapBN _
+  record ODiscRingDecomp (Q : BooleanRing ℓ-zero) : Type (ℓ-suc ℓ-zero) where
+    field
+      BN : ℕ → BooleanRing ℓ-zero
+      isFinSetBN : (n : ℕ) → isFinSet ⟨ BN n ⟩
+      mapBN : (n : ℕ) → ⟨ BN n ⟩ → ⟨ BN (suc n) ⟩
+      mapBNHom : (n : ℕ) → BoolHom (BN n) (BN (suc n))
+      mapBN≡ : (n : ℕ) → mapBN n ≡ fst (mapBNHom n)
+      fwdHom : (n : ℕ) → BoolHom (BN n) Q
+      fwd-compat : (n : ℕ) (x : ⟨ BN n ⟩)
+        → fst (fwdHom n) x ≡ fst (fwdHom (suc n)) (mapBN n x)
+      colimEquiv : SeqColim (ODiscRingDecompSeq BN mapBN) ≃ ⟨ Q ⟩
+      colimEquiv-incl : (n : ℕ) (x : ⟨ BN n ⟩)
+        → equivFun colimEquiv (incl x) ≡ fst (fwdHom n) x
+    seqB : Sequence ℓ-zero
+    seqB = ODiscRingDecompSeq BN mapBN
+    -- Compose mapBNHom d times: BoolHom (BN n) (BN (d + n))
+    iterMapHom : (d : ℕ) {n : ℕ} → BoolHom (BN n) (BN (d +ℕ n))
+    iterMapHom zero {n} = idBoolHom (BN n)
+    iterMapHom (suc d) {n} = mapBNHom (d +ℕ n) ∘cr iterMapHom d
+    -- iterMapHom agrees with iterMap on underlying functions
+    iterMapHom≡iterMap : (d : ℕ) {n : ℕ} (x : ⟨ BN n ⟩)
+      → fst (iterMapHom d {n}) x ≡ ColimCompactHelpers.iterMap seqB d x
+    iterMapHom≡iterMap zero x = refl
+    iterMapHom≡iterMap (suc d) {n} x =
+      cong (fst (mapBNHom (d +ℕ n))) (iterMapHom≡iterMap d x)
+      ∙ sym (funExt⁻ (mapBN≡ (d +ℕ n)) (ColimCompactHelpers.iterMap seqB d x))
+    -- liftToHom: ring hom from BN n to BN N for n ≤ N
+    liftToHom : {n N : ℕ} → n ≤ N → BoolHom (BN n) (BN N)
+    liftToHom {n} {N} (d , p) = subst (λ m → BoolHom (BN n) (BN m)) p (iterMapHom d)
+    -- fwdHom factors through levels via iterMapHom
+    fwd-compat-hom : (d : ℕ) {n : ℕ} (x : ⟨ BN n ⟩)
+      → fst (fwdHom n) x ≡ fst (fwdHom (d +ℕ n)) (fst (iterMapHom d) x)
+    fwd-compat-hom zero x = refl
+    fwd-compat-hom (suc d) {n} x =
+      fst (fwdHom n) x
+        ≡⟨ fwd-compat-hom d x ⟩
+      fst (fwdHom (d +ℕ n)) (fst (iterMapHom d) x)
+        ≡⟨ fwd-compat (d +ℕ n) (fst (iterMapHom d) x) ⟩
+      fst (fwdHom (suc (d +ℕ n))) (mapBN (d +ℕ n) (fst (iterMapHom d) x))
+        ≡⟨ cong (fst (fwdHom (suc d +ℕ n))) (funExt⁻ (mapBN≡ (d +ℕ n)) (fst (iterMapHom d) x)) ⟩
+      fst (fwdHom (suc d +ℕ n)) (fst (mapBNHom (d +ℕ n)) (fst (iterMapHom d) x)) ∎
   -- tex Lemma 1396 (core): proved from ODiscColimOfODisc + countableChoice + genBound
-  quotientFreeBA-isODisc : (f : ℕ → ⟨ freeBA ℕ ⟩) → isODisc ⟨ freeBA ℕ QB./Im f ⟩
-  quotientFreeBA-isODisc f =
-    PT.rec (isProp-isODisc _) go
-      (countableChoice _ (λ k → ODiscInfrastructure.genBound (f k)))
+  quotientFreeBA-ringDecomp : (f : ℕ → ⟨ freeBA ℕ ⟩)
+    → ∥ ODiscRingDecomp (freeBA ℕ QB./Im f) ∥₁
+  quotientFreeBA-ringDecomp f =
+    PT.map go (countableChoice _ (λ k → ODiscInfrastructure.genBound (f k)))
     where
       open ODiscInfrastructure using (ι-inc; π-proj; ιπι-retract; π-on-gen-below)
       go : ((k : ℕ) → Σ[ m ∈ ℕ ] fiber (fst (ι-inc m)) (f k))
-         → isODisc ⟨ freeBA ℕ QB./Im f ⟩
-      go choice = isODisc-equiv colimEquiv ∣ seqB , isFinSetBN , idEquiv _ ∣₁ where
+         → ODiscRingDecomp (freeBA ℕ QB./Im f)
+      go choice = record
+        { BN = BN ; isFinSetBN = isFinSetBN ; mapBN = mapBN
+        ; mapBNHom = mapBNHom ; mapBN≡ = λ _ → refl
+        ; fwdHom = fwdHom ; fwd-compat = fwd-compat ; colimEquiv = colimEquiv
+        ; colimEquiv-incl = λ _ _ → refl } where
         -- M(n): monotone function bounding generators in first n+1 relations
         M : ℕ → ℕ
         M zero = max (suc zero) (fst (choice zero))
@@ -1558,9 +2147,9 @@ module ODiscAxioms where
         choice-le zero = right-≤-max {m = suc zero}
         choice-le (suc i) = right-≤-max {m = suc (M i)}
         -- Map: BN(n) → BN(n+1) via πQ ∘ π-proj(M(n+1)) ∘ ι-inc(M(n))
-        mapBN : (n : ℕ) → ⟨ BN n ⟩ → ⟨ BN (suc n) ⟩
-        mapBN n = fst (QB.inducedHom {B = freeBA (DF.Fin (M n))} {f = relN n}
-          (BN (suc n)) g gfx=0) where
+        mapBNHom : (n : ℕ) → BoolHom (BN n) (BN (suc n))
+        mapBNHom n = QB.inducedHom {B = freeBA (DF.Fin (M n))} {f = relN n}
+          (BN (suc n)) g gfx=0 where
           g : BoolHom (freeBA (DF.Fin (M n))) (BN (suc n))
           g = QB.quotientImageHom ∘cr π-proj (M (suc n)) ∘cr ι-inc (M n)
           gfx=0 : (j : DF.Fin (suc n))
@@ -1583,6 +2172,8 @@ module ODiscAxioms where
                 cong (fst (ι-inc (M n)) ∘ fst (π-proj (M n))) (sym eq_k)
                 ∙ funExt⁻ (cong fst (ιπι-retract m_k (M n) le_k)) x_k
                 ∙ eq_k
+        mapBN : (n : ℕ) → ⟨ BN n ⟩ → ⟨ BN (suc n) ⟩
+        mapBN n = fst (mapBNHom n)
         seqB : Sequence ℓ-zero
         obj seqB n = ⟨ BN n ⟩
         map seqB = mapBN _
@@ -1873,12 +2464,337 @@ module ODiscAxioms where
           isEmbedding×isSurjection→isEquiv
             (injEmbedding (BooleanRingStr.is-set (snd Q))
               (λ {c₁} {c₂} → fwd-inj c₁ c₂) , fwd-surj)
+  quotientFreeBA-isODisc : (f : ℕ → ⟨ freeBA ℕ ⟩) → isODisc ⟨ freeBA ℕ QB./Im f ⟩
+  quotientFreeBA-isODisc f = PT.rec (isProp-isODisc _) extract (quotientFreeBA-ringDecomp f)
+    where
+    extract : ODiscRingDecomp (freeBA ℕ QB./Im f) → isODisc ⟨ freeBA ℕ QB./Im f ⟩
+    extract rd = isODisc-equiv (ODiscRingDecomp.colimEquiv rd)
+      ∣ ODiscRingDecomp.seqB rd , ODiscRingDecomp.isFinSetBN rd , idEquiv _ ∣₁
   -- tex Lemma 1396
   BooleIsODisc : (B : Booleω) → isODisc ⟨ fst B ⟩
   BooleIsODisc B = PT.rec (isProp-isODisc _) go (snd B) where
     go : has-Boole-ω' (fst B) → isODisc ⟨ fst B ⟩
     go (f , bEquiv) =
       isODisc-equiv (invEquiv (fst bEquiv)) (quotientFreeBA-isODisc f)
+  -- Ring decomposition for a general Booleω algebra
+  BooleωRingDecomp : (B : Booleω) → ∥ ODiscRingDecomp (fst B) ∥₁
+  BooleωRingDecomp B = PT.rec squash₁ go (snd B) where
+    go : has-Boole-ω' (fst B) → ∥ ODiscRingDecomp (fst B) ∥₁
+    go (f , bEquiv) = PT.map transport-rd (quotientFreeBA-ringDecomp f)
+      where
+      Q = freeBA ℕ QB./Im f
+      e⁻¹Hom : BoolHom Q (fst B)
+      e⁻¹Hom = invEq (fst bEquiv) , isCommRingHomInv bEquiv
+        where open import Cubical.Algebra.CommRing.Properties using (isCommRingHomInv)
+      transport-rd : ODiscRingDecomp Q → ODiscRingDecomp (fst B)
+      transport-rd rd = record
+        { BN = ODiscRingDecomp.BN rd
+        ; isFinSetBN = ODiscRingDecomp.isFinSetBN rd
+        ; mapBN = ODiscRingDecomp.mapBN rd
+        ; mapBNHom = ODiscRingDecomp.mapBNHom rd
+        ; mapBN≡ = ODiscRingDecomp.mapBN≡ rd
+        ; fwdHom = λ n → e⁻¹Hom ∘cr ODiscRingDecomp.fwdHom rd n
+        ; fwd-compat = λ n x →
+          fst e⁻¹Hom (fst (ODiscRingDecomp.fwdHom rd n) x)
+            ≡⟨ cong (fst e⁻¹Hom) (ODiscRingDecomp.fwd-compat rd n x) ⟩
+          fst e⁻¹Hom (fst (ODiscRingDecomp.fwdHom rd (suc n)) (ODiscRingDecomp.mapBN rd n x)) ∎
+        ; colimEquiv = compEquiv (ODiscRingDecomp.colimEquiv rd) (invEquiv (fst bEquiv))
+        ; colimEquiv-incl = λ n x →
+          cong (invEq (fst bEquiv)) (ODiscRingDecomp.colimEquiv-incl rd n x)
+        }
+  -- Spectrum projection: Sp(B) → Sp(BN n) via fwdHom
+  -- Given a ring decomposition, each stage BN(n) gives a finite approximation of |B|.
+  -- The spectrum projection Sp(B) → Sp(BN n) is: φ ↦ φ ∘ fwdHom(n).
+  -- Sp(BN n) is finite since BN n has finite carrier.
+  open import Axioms.StoneDuality using (SpGeneralBooleanRing)
+  SpProjection : {Q : BooleanRing ℓ-zero} (rd : ODiscRingDecomp Q) (n : ℕ)
+    → SpGeneralBooleanRing Q → SpGeneralBooleanRing (ODiscRingDecomp.BN rd n)
+  SpProjection rd n φ = φ ∘cr ODiscRingDecomp.fwdHom rd n
+  -- tex Lemma 1558 (ScottFiniteCodomain):
+  -- A BoolHom from a finite ring F to B factors through some stage BN(N).
+  -- This gives: Sp(B) → Fin(k) factors through Sp(BN(N)) for some N.
+  BoolHomFromFiniteFactors : {Q : BooleanRing ℓ-zero} (rd : ODiscRingDecomp Q)
+    (F : BooleanRing ℓ-zero) (finF : isFinSet ⟨ F ⟩)
+    (h : BoolHom F Q)
+    → ∥ Σ[ N ∈ ℕ ] Σ[ g ∈ (⟨ F ⟩ → ⟨ ODiscRingDecomp.BN rd N ⟩) ]
+        ((x : ⟨ F ⟩) → equivFun (ODiscRingDecomp.colimEquiv rd) (incl (g x))
+                       ≡ fst h x) ∥₁
+  BoolHomFromFiniteFactors rd F finF h =
+    PT.map (λ (N , g , ok) → N , g , λ x →
+      equivFun (ODiscRingDecomp.colimEquiv rd) (incl (g x))
+        ≡⟨ cong (equivFun (ODiscRingDecomp.colimEquiv rd)) (ok x) ⟩
+      equivFun (ODiscRingDecomp.colimEquiv rd)
+        (invEq (ODiscRingDecomp.colimEquiv rd) (fst h x))
+        ≡⟨ secEq (ODiscRingDecomp.colimEquiv rd) (fst h x) ⟩
+      fst h x ∎)
+    (colimCompact (ODiscRingDecomp.seqB rd) ⟨ F ⟩ finF
+      (λ x → invEq (ODiscRingDecomp.colimEquiv rd) (fst h x)))
+
+  -- Fiber of a DecompData map at level k
+  -- Given dd : DecompData B C f with both B and C finite stages,
+  -- the fiber of fMap k over s' is finite.
+  module DecompFibers (B C : Sequence ℓ-zero)
+      (finB : (k : ℕ) → isFinSet (obj B k))
+      (finC : (k : ℕ) → isFinSet (obj C k))
+      (f : SeqColim B → SeqColim C)
+      (dd : DecompData B C f) where
+    open DecompData dd
+    open import Cubical.Data.FinSet.Base using (isFinSet→isSet)
+    open import Cubical.Data.FinSet.Properties using (isFinSet→Discrete)
+
+    -- Fiber of fMap k over s' ∈ obj C (lvl k)
+    DecompFiber : (k : ℕ) → obj C (lvl k) → Type ℓ-zero
+    DecompFiber k s' = Σ[ e ∈ obj B k ] fMap k e ≡ s'
+
+    -- Fibers are finite (fiber of map between finite sets)
+    isFinSetDecompFiber : (k : ℕ) (s' : obj C (lvl k))
+      → isFinSet (DecompFiber k s')
+    isFinSetDecompFiber k s' =
+      isFinSetFiber (_ , finB k) (_ , finC (lvl k)) (fMap k) s'
+      where open import Cubical.Data.FinSet.Constructors using (isFinSetFiber)
+
+  -- Sp(B) is finite when B has finite carrier
+  -- SpGeneralBooleanRing B = BoolHom B BoolBR ⊂ (⟨B⟩ → Bool)
+  -- The hom condition is a prop, and decidable over finite domain with discrete codomain.
+  -- Hence BoolHom B BoolBR = Σ (⟨B⟩ → Bool) IsBoolRingHom is a subset of a finite set
+  -- cut out by a decidable prop, hence finite.
+  isFinSetSpFinRing : (B : BooleanRing ℓ-zero) → isFinSet ⟨ B ⟩
+    → isFinSet (SpGeneralBooleanRing B)
+  isFinSetSpFinRing B finB =
+    isFinSetΣ (_ , isFinSet→ (_ , finB) (_ , isFinSetBool))
+      (λ f → _ , isFinSetHomCond f)
+    where
+    open import Cubical.Data.FinSet.Constructors
+      using (isFinSetΣ; isFinSet→; isFinSetΠ; isFinSetΠ2; isFinSet≡)
+    open import Cubical.Data.FinSet.Properties using (isFinSetBool; EquivPresIsFinSet)
+    open import Cubical.Data.FinSet.Base using (FinSet)
+    open import Cubical.Algebra.CommRing.Base using (IsCommRingHom; IsCommRingHomIsoΣ)
+    RS = BooleanRingStr→CommRingStr (snd B)
+    SS = BooleanRingStr→CommRingStr (snd BoolBR)
+    open CommRingStr RS renaming
+      (0r to 0B; 1r to 1B; _+_ to _+B_; _·_ to _·B_; -_ to -B_)
+    open CommRingStr SS renaming
+      (0r to 0T; 1r to 1T; _+_ to _+T_; _·_ to _·T_; -_ to -T_)
+    BFS = (_ , finB) -- ⟨ B ⟩ as FinSet
+    BoolFS = (_ , isFinSetBool) -- Bool as FinSet
+    isFinSetHomCond : (f : ⟨ B ⟩ → Bool) → isFinSet (IsCommRingHom RS f SS)
+    isFinSetHomCond f = EquivPresIsFinSet (invEquiv (isoToEquiv IsCommRingHomIsoΣ)) finΣ where
+      eq≡ : Bool → Bool → FinSet ℓ-zero
+      eq≡ a b = (a ≡ b) , isFinSet≡ BoolFS a b
+      F4 : FinSet ℓ-zero
+      F4 = _ , isFinSetΠ BFS (λ x → eq≡ (f (-B x)) (-T (f x)))
+      F3 : FinSet ℓ-zero
+      F3 = _ , isFinSetΣ (_ , isFinSetΠ2 BFS (λ _ → BFS)
+               (λ x y → eq≡ (f (x ·B y)) (f x ·T f y))) (λ _ → F4)
+      F2 : FinSet ℓ-zero
+      F2 = _ , isFinSetΣ (_ , isFinSetΠ2 BFS (λ _ → BFS)
+               (λ x y → eq≡ (f (x +B y)) (f x +T f y))) (λ _ → F3)
+      F1 : FinSet ℓ-zero
+      F1 = _ , isFinSetΣ (eq≡ (f 1B) 1T) (λ _ → F2)
+      finΣ : isFinSet _
+      finΣ = isFinSetΣ (eq≡ (f 0B) 0T) (λ _ → F1)
+
+  -- Finite partition of Stone space by finitely many elements
+  -- Given B : Booleω and d : Fin k → ⟨ fst B ⟩, the map
+  -- Sp(B) → (Fin k → Bool) given by h ↦ (i ↦ fst h (d i))
+  -- partitions Sp(B) into ≤ 2^k clopen parts.
+  StoneFinitePartition : (B : Booleω) (k : ℕ) (d : Fin k → ⟨ fst B ⟩)
+    → Sp B → (Fin k → Bool)
+  StoneFinitePartition B k d h i = fst h (d i)
+
+  isFinSet-BoolFin : (k : ℕ) → isFinSet (Fin k → Bool)
+  isFinSet-BoolFin k = isFinSet→ (_ , isFinSetFin) (_ , isFinSetBool)
+    where open import Cubical.Data.FinSet.Constructors using (isFinSet→)
+
+  -- tex Lemma 1558 (ScottFiniteCodomain):
+  -- Functions from Sp(B) to a finite set factor through some SpProjection level.
+  -- Proof: SDHomVersion converts f into finitely many ring elements,
+  -- colimCompact factors them through level N, colimEquiv-incl connects to SpProjection.
+  ScottFiniteCodomain : (B : Booleω) (rd : ODiscRingDecomp (fst B))
+    (F : Type ℓ-zero) (finF : isFinSet F) (isSetF : isSet F)
+    → (f : Sp B → F)
+    → ∥ Σ[ N ∈ ℕ ] Σ[ f' ∈ (SpGeneralBooleanRing (ODiscRingDecomp.BN rd N) → F) ]
+        ((x : Sp B) → f x ≡ f' (SpProjection rd N x)) ∥₁
+  ScottFiniteCodomain B rd F finF isSetF f = PT.rec2 squash₁ go (snd finF) step1 where
+    open ODiscRingDecomp rd
+    open SDDecToElemModule
+    open import Cubical.Data.FinSet.Properties using (isFinSet→Discrete)
+    open import Cubical.Data.FinSet.Base using (isFinSet→isSet)
+    open import Cubical.Data.Bool using (true≢false)
+    Q = fst B
+    k = fst finF
+    discF : (a b : F) → Dec (a ≡ b)
+    discF = isFinSet→Discrete finF
+    D : F → Sp B → Bool
+    D c φ = Dec→Bool (discF (f φ) c)
+    e : F → ⟨ Q ⟩
+    e c = elemFromDecPred sd-axiom B (D c)
+    e-ok : (c : F) (φ : Sp B) → fst φ (e c) ≡ D c φ
+    e-ok c = decPred-elem-correspondence sd-axiom B (D c)
+    e-in-colim : F → SeqColim seqB
+    e-in-colim c = invEq colimEquiv (e c)
+    step1 : ∥ Σ[ N ∈ ℕ ] Σ[ d ∈ (F → ⟨ BN N ⟩) ]
+              ((c : F) → incl (d c) ≡ e-in-colim c) ∥₁
+    step1 = colimCompact seqB F finF e-in-colim
+    D-true→eq : (φ : Sp B) (c : F) → D c φ ≡ true → f φ ≡ c
+    D-true→eq φ c h with discF (f φ) c
+    ... | yes p = p
+    ... | no _ = ex-falso (true≢false (sym h))
+    D-self : (φ : Sp B) → D (f φ) φ ≡ true
+    D-self φ with discF (f φ) (f φ)
+    ... | yes _ = refl
+    ... | no ¬p = ex-falso (¬p refl)
+    -- Finite search: find first element where P is true, or return default.
+    -- Defined via Bool case-split helper for transparency in proofs.
+    caseBool : {A : Type ℓ-zero} → Bool → A → A → A
+    caseBool true  x _ = x
+    caseBool false _ y = y
+    finSearch : {A : Type ℓ-zero} (n : ℕ) (enum : Fin n → A) (P : A → Bool) → A → A
+    finSearch zero _ _ def = def
+    finSearch (suc n) enum P def =
+      caseBool (P (enum fzero)) (enum fzero) (finSearch n (enum ∘ fsuc) P def)
+    -- Correctness: if some j has P(enum j) = true, then P(finSearch ...) = true.
+    -- Proof: case-split on P(enum fzero) as a Bool value.
+    finSearch-ok : {A : Type ℓ-zero} (n : ℕ) (enum : Fin n → A) (P : A → Bool) (def : A)
+      → Σ[ j ∈ Fin n ] P (enum j) ≡ true
+      → P (finSearch n enum P def) ≡ true
+    finSearch-ok zero _ _ _ (j , _) = ex-falso j
+    finSearch-ok {A} (suc n) enum P def wit =
+      helper (P (enum fzero)) refl where
+      helper : (b : Bool) → P (enum fzero) ≡ b
+        → P (caseBool b (enum fzero) (finSearch n (enum ∘ fsuc) P def)) ≡ true
+      helper true p = p
+      helper false p = finSearch-ok n (enum ∘ fsuc) P def (shrink wit p) where
+        shrink : Σ[ j ∈ Fin (suc n) ] P (enum j) ≡ true → P (enum fzero) ≡ false
+          → Σ[ j ∈ Fin n ] P (enum (fsuc j)) ≡ true
+        shrink (fzero , h) q = ex-falso (true≢false (sym h ∙ q))
+        shrink (fsuc j , h) _ = j , h
+    -- Helper: iterMap on seqB preserves 0
+    iterMap-pres0 : (d n : ℕ)
+      → ColimCompactHelpers.iterMap seqB d (BooleanRingStr.𝟘 (snd (BN n)))
+        ≡ BooleanRingStr.𝟘 (snd (BN (d +ℕ n)))
+    iterMap-pres0 zero n = refl
+    iterMap-pres0 (suc d) n =
+      cong (mapBN (d +ℕ n)) (iterMap-pres0 d n)
+      ∙ funExt⁻ (mapBN≡ (d +ℕ n)) (BooleanRingStr.𝟘 (snd (BN (d +ℕ n))))
+      ∙ IsCommRingHom.pres0 (snd (mapBNHom (d +ℕ n)))
+    -- Helper: iterMap on seqB preserves 1
+    iterMap-pres1 : (d n : ℕ)
+      → ColimCompactHelpers.iterMap seqB d (BooleanRingStr.𝟙 (snd (BN n)))
+        ≡ BooleanRingStr.𝟙 (snd (BN (d +ℕ n)))
+    iterMap-pres1 zero n = refl
+    iterMap-pres1 (suc d) n =
+      cong (mapBN (d +ℕ n)) (iterMap-pres1 d n)
+      ∙ funExt⁻ (mapBN≡ (d +ℕ n)) (BooleanRingStr.𝟙 (snd (BN (d +ℕ n))))
+      ∙ IsCommRingHom.pres1 (snd (mapBNHom (d +ℕ n)))
+    -- Helper: liftTo on seqB preserves 0
+    open ColimCompactHelpers seqB using (liftTo)
+    liftTo-pres0 : {n N : ℕ} (le : n ≤ N)
+      → liftTo le (BooleanRingStr.𝟘 (snd (BN n))) ≡ BooleanRingStr.𝟘 (snd (BN N))
+    liftTo-pres0 {n} (d , p) = J (λ N' p' → subst (obj seqB) p' (ColimCompactHelpers.iterMap seqB d (BooleanRingStr.𝟘 (snd (BN n))))
+        ≡ BooleanRingStr.𝟘 (snd (BN N')))
+      (transportRefl _ ∙ iterMap-pres0 d n) p
+    -- Helper: liftTo on seqB preserves 1
+    liftTo-pres1 : {n N : ℕ} (le : n ≤ N)
+      → liftTo le (BooleanRingStr.𝟙 (snd (BN n))) ≡ BooleanRingStr.𝟙 (snd (BN N))
+    liftTo-pres1 {n} (d , p) = J (λ N' p' → subst (obj seqB) p' (ColimCompactHelpers.iterMap seqB d (BooleanRingStr.𝟙 (snd (BN n))))
+        ≡ BooleanRingStr.𝟙 (snd (BN N')))
+      (transportRefl _ ∙ iterMap-pres1 d n) p
+    go : F ≃ Fin k
+       → Σ[ N ∈ ℕ ] Σ[ d ∈ (F → ⟨ BN N ⟩) ] ((c : F) → incl (d c) ≡ e-in-colim c)
+       → ∥ Σ[ N ∈ ℕ ] Σ[ f' ∈ (SpGeneralBooleanRing (BN N) → F) ]
+           ((x : Sp B) → f x ≡ f' (SpProjection rd N x)) ∥₁
+    go eq (N , d , d-ok) = go-inner k eq N d d-ok where
+      go-inner : (k' : ℕ) → F ≃ Fin k' → (N : ℕ) → (d : F → ⟨ BN N ⟩)
+        → ((c : F) → incl (d c) ≡ e-in-colim c)
+        → ∥ Σ[ N ∈ ℕ ] Σ[ f' ∈ (SpGeneralBooleanRing (BN N) → F) ]
+            ((x : Sp B) → f x ≡ f' (SpProjection rd N x)) ∥₁
+      -- k' = 0: F ≃ Fin 0 = ⊥, so Sp B is empty, find level where 0=1 in BN
+      go-inner zero eq₀ N₀ _ _ = PT.rec squash₁ handle sep where
+        spEmpty : Sp B → ⊥
+        spEmpty φ = equivFun eq₀ (f φ)
+        open BooleanRingStr (snd (fst B)) renaming (𝟘 to 𝟘Q ; 𝟙 to 𝟙Q)
+        0≡1-Q : 𝟘Q ≡ 𝟙Q
+        0≡1-Q = SpectrumEmptyImpliesTrivial.0≡1-in-B sd-axiom B (λ φ → ex-falso (spEmpty φ))
+        fwd-eq : equivFun colimEquiv (incl (BooleanRingStr.𝟘 (snd (BN 0))))
+               ≡ equivFun colimEquiv (incl (BooleanRingStr.𝟙 (snd (BN 0))))
+        fwd-eq =
+          equivFun colimEquiv (incl (BooleanRingStr.𝟘 (snd (BN 0))))
+            ≡⟨ colimEquiv-incl 0 _ ⟩
+          fst (fwdHom 0) (BooleanRingStr.𝟘 (snd (BN 0)))
+            ≡⟨ IsCommRingHom.pres0 (snd (fwdHom 0)) ⟩
+          𝟘Q ≡⟨ 0≡1-Q ⟩
+          𝟙Q
+            ≡⟨ sym (IsCommRingHom.pres1 (snd (fwdHom 0))) ⟩
+          fst (fwdHom 0) (BooleanRingStr.𝟙 (snd (BN 0)))
+            ≡⟨ sym (colimEquiv-incl 0 _) ⟩
+          equivFun colimEquiv (incl (BooleanRingStr.𝟙 (snd (BN 0)))) ∎
+        incl0≡incl1 : Path (SeqColim seqB) (incl (BooleanRingStr.𝟘 (snd (BN 0)))) (incl (BooleanRingStr.𝟙 (snd (BN 0))))
+        incl0≡incl1 = sym (retEq colimEquiv _) ∙ cong (invEq colimEquiv) fwd-eq ∙ retEq colimEquiv _
+        setStages : (n : ℕ) → isSet (obj seqB n)
+        setStages n = isFinSet→isSet (isFinSetBN n)
+        sep : ∥ Σ[ M ∈ ℕ ] Σ[ le₁ ∈ 0 ≤ M ] Σ[ le₂ ∈ 0 ≤ M ]
+              (liftTo le₁ (BooleanRingStr.𝟘 (snd (BN 0))) ≡ liftTo le₂ (BooleanRingStr.𝟙 (snd (BN 0)))) ∥₁
+        sep = ColimSep.colimSeparation seqB setStages _ _ incl0≡incl1
+        handle : Σ[ M ∈ ℕ ] Σ[ le₁ ∈ 0 ≤ M ] Σ[ le₂ ∈ 0 ≤ M ]
+              (liftTo le₁ (BooleanRingStr.𝟘 (snd (BN 0))) ≡ liftTo le₂ (BooleanRingStr.𝟙 (snd (BN 0))))
+          → ∥ Σ[ N ∈ ℕ ] Σ[ f' ∈ (SpGeneralBooleanRing (BN N) → F) ]
+              ((x : Sp B) → f x ≡ f' (SpProjection rd N x)) ∥₁
+        handle (M , le₁ , le₂ , p) = ∣ M , f'₀ , (λ x → ex-falso (spEmpty x)) ∣₁ where
+          0≡1-BNM : BooleanRingStr.𝟘 (snd (BN M)) ≡ BooleanRingStr.𝟙 (snd (BN M))
+          0≡1-BNM = sym (liftTo-pres0 le₁) ∙ p ∙ liftTo-pres1 le₂
+          ¬SpBNM : SpGeneralBooleanRing (BN M) → ⊥
+          ¬SpBNM ψ = true≢false (sym (IsCommRingHom.pres1 (snd ψ))
+            ∙ cong (fst ψ) (sym 0≡1-BNM) ∙ IsCommRingHom.pres0 (snd ψ))
+          f'₀ : SpGeneralBooleanRing (BN M) → F
+          f'₀ ψ = ex-falso (¬SpBNM ψ)
+      -- k' ≥ 1: use invEq eq fzero as default for finSearch
+      go-inner (suc k') eq₊ N₀ d d-ok = ∣ N₀ , f'₀ , f-ok ∣₁ where
+        defF : F
+        defF = invEq eq₊ fzero
+        fwd-d : (c : F) → fst (fwdHom N₀) (d c) ≡ e c
+        fwd-d c =
+          fst (fwdHom N₀) (d c)
+            ≡⟨ sym (colimEquiv-incl N₀ (d c)) ⟩
+          equivFun colimEquiv (incl (d c))
+            ≡⟨ cong (equivFun colimEquiv) (d-ok c) ⟩
+          equivFun colimEquiv (e-in-colim c)
+            ≡⟨ secEq colimEquiv (e c) ⟩
+          e c ∎
+        sp-d : (c : F) (φ : Sp B) → fst (SpProjection rd N₀ φ) (d c) ≡ D c φ
+        sp-d c φ =
+          fst (SpProjection rd N₀ φ) (d c)
+            ≡⟨ cong (fst φ) (fwd-d c) ⟩
+          fst φ (e c)
+            ≡⟨ e-ok c φ ⟩
+          D c φ ∎
+        f'₀ : SpGeneralBooleanRing (BN N₀) → F
+        f'₀ ψ = finSearch (suc k') (invEq eq₊) (λ c → fst ψ (d c)) defF
+        f-ok : (x : Sp B) → f x ≡ f'₀ (SpProjection rd N₀ x)
+        f-ok φ = D-true→eq φ (f'₀ ψ) sp-d-result where
+          ψ = SpProjection rd N₀ φ
+          P = λ c → fst ψ (d c)
+          wit : Σ[ j ∈ Fin (suc k') ] P (invEq eq₊ j) ≡ true
+          wit = equivFun eq₊ (f φ)
+              , (P (invEq eq₊ (equivFun eq₊ (f φ)))
+                  ≡⟨ cong (λ c → fst ψ (d c)) (retEq eq₊ (f φ)) ⟩
+                 fst ψ (d (f φ))
+                  ≡⟨ sp-d (f φ) φ ⟩
+                 D (f φ) φ
+                  ≡⟨ D-self φ ⟩
+                 true ∎)
+          search-ok : P (f'₀ ψ) ≡ true
+          search-ok = finSearch-ok (suc k') (invEq eq₊) P defF wit
+          sp-d-result : D (f'₀ ψ) φ ≡ true
+          sp-d-result =
+            D (f'₀ ψ) φ
+              ≡⟨ sym (sp-d (f'₀ ψ) φ) ⟩
+            P (f'₀ ψ)
+              ≡⟨ search-ok ⟩
+            true ∎
+  -- tex Lemma 1568 (MapsStoneToNareBounded):
+  -- Proved in Part09 (MapsStoneToNareBoundedModule) using Stone interface.
+
   -- tex Lemma 1184
   OdiscSigma : {A : Type ℓ-zero} {B : A → Type ℓ-zero}
     → isODisc A → ((a : A) → isODisc (B a)) → isODisc (Σ A B)
@@ -2289,6 +3205,19 @@ module ODiscAxioms where
     → isOpenProp ((a ≡ b) , isODiscIsSet odiscA a b)
   ODiscEqualityOpen odiscA a b =
     ODiscPropIsOpen ((a ≡ b) , isODiscIsSet odiscA a b) (OdiscPath odiscA a b)
+  -- tex Lemma 1335 (OdiscQuotientCountableByOpen, forward direction):
+  -- If B is ODisc, then B is a quotient of Σ_{n:ℕ} B_n (countable) by an open relation.
+  -- The surjection is incl, and the kernel is open by ODiscEqualityOpen.
+  ODiscIsOpenQuotientOfCountable : {B : Type ℓ-zero} (odiscB : isODisc B)
+    → ∥ Σ[ S ∈ Sequence ℓ-zero ] Σ[ finS ∈ ((n : ℕ) → isFinSet (obj S n)) ]
+        Σ[ e ∈ (SeqColim S ≃ B) ]
+        ((x y : SeqColim S) → isOpenProp ((equivFun e x ≡ equivFun e y) , isODiscIsSet odiscB _ _)) ∥₁
+  ODiscIsOpenQuotientOfCountable odiscB = PT.map
+    (λ { (S , finS , e) → S , finS , e ,
+      λ x y → ODiscEqualityOpen odiscB (equivFun e x) (equivFun e y) })
+    odiscB
+    where open import Cubical.Foundations.Equiv using (equivFun)
+
   -- tex Corollary 1441: ODisc Boolean algebras are countably presented (Boole)
   freeBAℕ-isODisc : isODisc ⟨ freeBA ℕ ⟩
   freeBAℕ-isODisc = BooleIsODisc (freeBA ℕ , ∣ replacementFreeOnCountable ℕ countℕ ∣₁)
@@ -2450,9 +3379,59 @@ module ODiscAxioms where
   --   Fin(k)^S is colimit of Fin(k)^{S_n}.
   -- tex Corollary 1590 (scott-continuity):
   --   ℕ^S is the sequential colimit of ℕ^{S_n} for S = lim S_n.
-  -- (These require sequential colimit/limit infrastructure beyond current formalization;
-  --  the key consequences are captured by ODiscClosedUnderSequentialColimits and
-  --  ImageStoneMapDecidableIntersection below.)
+  -- tex Lemma 1520: Finite sets are Stone
+  module FiniteIsStoneModule where
+    open import Axioms.StoneDuality using (hasStoneStr; 2^; isPropHasStoneStr; SDHomVersion)
+    open import Cubical.Data.FinSet.Constructors using (isFinSet→)
+    open import Cubical.Data.FinSet.Properties using (isFinSetBool)
+    open import Cubical.Data.FinSet.Base using (card; isFinSet→isSet)
+    open import Cubical.Data.FinSet.Cardinality using (cardEquiv; cardInj; card→)
+    open import Cubical.Data.Fin.Properties using (Fin-inj)
+    open import Cubical.Data.Nat using (_^_)
+    open import Cubical.Data.Nat.Properties using (inj-sm·)
+
+    FiniteBooleω : (F : Type ℓ-zero) → isFinSet F → Booleω
+    FiniteBooleω F finF = 2^ F , ODiscBAareBoole (2^ F)
+      (ODiscFinSet (isFinSet→ (_ , finF) (_ , isFinSetBool)))
+
+    open import Cubical.Data.Nat.Properties using (inj-sm·; injSuc; znots)
+    open import Cubical.Data.Nat using (+-suc) renaming (_+_ to _+ℕ_)
+    private
+      2^-positive : (n : ℕ) → Σ[ k ∈ ℕ ] 2 ^ n ≡ suc k
+      2^-positive zero = 0 , refl
+      2^-positive (suc n) with 2^-positive n
+      ... | k , q = k +ℕ suc (k +ℕ 0) , cong₂ _+ℕ_ q (cong (_+ℕ 0) q)
+      1≢2^suc : (n : ℕ) → ¬ (1 ≡ 2 ^ suc n)
+      1≢2^suc n p with 2^-positive n
+      ... | k , q = znots (injSuc (p ∙ cong₂ _+ℕ_ q (cong (_+ℕ 0) q)) ∙ +-suc k (k +ℕ 0))
+    ^-inj-2 : (n m : ℕ) → 2 ^ n ≡ 2 ^ m → n ≡ m
+    ^-inj-2 zero zero _ = refl
+    ^-inj-2 zero (suc m) p = ex-falso (1≢2^suc m p)
+    ^-inj-2 (suc n) zero p = ex-falso (1≢2^suc n (sym p))
+    ^-inj-2 (suc n) (suc m) p = cong suc (^-inj-2 n m (inj-sm· {1} p))
+
+    FiniteIsStone : (F : Type ℓ-zero) → isFinSet F → hasStoneStr F
+    FiniteIsStone F finF = PT.rec (isPropHasStoneStr sd-axiom _) go mereEquiv where
+      BF = FiniteBooleω F finF
+      FFS : Σ _ isFinSet
+      FFS = F , finF
+      fin2F : isFinSet (F → Bool)
+      fin2F = isFinSet→ FFS (_ , isFinSetBool)
+      SpFS : Σ _ isFinSet
+      SpFS = Sp BF , isFinSetSpFinRing (2^ F) fin2F
+      fin2Sp : isFinSet (Sp BF → Bool)
+      fin2Sp = isFinSet→ SpFS (_ , isFinSetBool)
+      sdEquiv : (F → Bool) ≃ (Sp BF → Bool)
+      sdEquiv = fst (SDHomVersion sd-axiom BF)
+      card-eq : card FFS ≡ card SpFS
+      card-eq = ^-inj-2 (card FFS) (card SpFS)
+        (sym (card→ FFS (_ , isFinSetBool))
+         ∙ cardEquiv (_ , fin2F) (_ , fin2Sp) ∣ sdEquiv ∣₁
+         ∙ card→ SpFS (_ , isFinSetBool))
+      mereEquiv : ∥ F ≃ Sp BF ∥₁
+      mereEquiv = cardInj {X = FFS} {Y = SpFS} card-eq
+      go : F ≃ Sp BF → hasStoneStr F
+      go e = BF , sym (ua e)
   -- Derived: transport isODisc along equality
   isODisc-path : {A B : Type ℓ-zero} → A ≡ B → isODisc A → isODisc B
   isODisc-path p = transport (cong isODisc p)
@@ -2473,10 +3452,712 @@ module ODiscAxioms where
     openDependentSums (V t) (λ v → W (t , v)) (Vopen t) (λ v → Wopen (t , v))
   -- tex Remark 1475 (BooleEpiMono consequence):
   -- Image of a map between spectra is a countable intersection of decidable subsets.
-  -- Follows from OdiscSigma, OdiscPath, BooleIsODisc, ODiscSurjFromN, ODiscBAareBoole,
-  -- and SurjectionsAreFormalSurjections, but the formal derivation requires constructing
-  -- the BoolHom dual of a spectrum map (SpIsAntiEquivalence infrastructure).
-  postulate
-    ImageStoneMapDecidableIntersection : (B C : Booleω) (f : Sp C → Sp B)
+  ImageStoneMapDecidableIntersection : (B C : Booleω) (f : Sp C → Sp B)
+    → ∥ Σ[ d ∈ (ℕ → ⟨ fst B ⟩) ]
+        ((x : Sp B) → (∥ Σ[ c ∈ Sp C ] f c ≡ x ∥₁) ↔ ((n : ℕ) → fst x (d n) ≡ false)) ∥₁
+  ImageStoneMapDecidableIntersection B C f = PT.rec squash₁ step1 kerEnum where
+    open import Axioms.StoneDuality using (SDHomVersion; evaluationMap; 2^)
+    open BooleanRingStr
+    open import CountablyPresentedBooleanRings.PresentedBoole using (BooleanEquivToHom; BooleanEquivToHomInv; BooleanEquivRightInv)
+    -- Step 0: Get dual BoolHom g : B → C from f : Sp C → Sp B
+    -- g = eC⁻¹ ∘ precomp(f) ∘ eB where eB, eC are SD evaluation equivs
+    eB : BooleanRingEquiv (fst B) (2^ (Sp B))
+    eB = SDHomVersion sd-axiom B
+    eC : BooleanRingEquiv (fst C) (2^ (Sp C))
+    eC = SDHomVersion sd-axiom C
+    precompF : BoolHom (2^ (Sp B)) (2^ (Sp C))
+    precompF .fst φ c = φ (f c)
+    precompF .snd .IsCommRingHom.pres0 = refl
+    precompF .snd .IsCommRingHom.pres1 = refl
+    precompF .snd .IsCommRingHom.pres+ _ _ = refl
+    precompF .snd .IsCommRingHom.pres· _ _ = refl
+    precompF .snd .IsCommRingHom.pres- _ = refl
+    eCinv : BoolHom (2^ (Sp C)) (fst C)
+    eCinv = BooleanEquivToHomInv (fst C) (2^ (Sp C)) eC
+    eBhom : BoolHom (fst B) (2^ (Sp B))
+    eBhom = BooleanEquivToHom (fst B) (2^ (Sp B)) eB
+    g : BoolHom (fst B) (fst C)
+    g = eCinv ∘cr precompF ∘cr eBhom
+    -- g-spec: for all c : Sp C, c ∘cr g ≡ f c
+    -- Key: fst c (fst g b) = fst c (invEq eC (eB(b) ∘ f))
+    --     = (eB(b) ∘ f)(c)  [by roundtrip: eC(eC⁻¹(φ)) = φ, hence fst h (eC⁻¹(φ)) = φ(h)]
+    --     = eB(b)(f c) = fst (f c) b
+    g-spec : (c : Sp C) → c ∘cr g ≡ f c
+    g-spec c = CommRingHom≡ (funExt λ b →
+      fst c (fst g b)
+        ≡⟨ cong (fst c) refl ⟩
+      fst c (fst eCinv (fst precompF (evaluationMap B b)))
+        ≡⟨ refl ⟩
+      fst c (fst eCinv (λ c' → evaluationMap B b (f c')))
+        ≡⟨ refl ⟩
+      fst c (invEq (fst eC) (λ c' → fst (f c') b))
+        ≡⟨ cong (λ φ → φ c) (secEq (fst eC) (λ c' → fst (f c') b)) ⟩
+      fst (f c) b ∎)
+    -- Step 1: Kernel of g is ODisc, enumerate it
+    0C : ⟨ fst C ⟩
+    0C = 𝟘 (snd (fst C))
+    KerG : Type ℓ-zero
+    KerG = Σ[ b ∈ ⟨ fst B ⟩ ] fst g b ≡ 0C
+    odiscKer : isODisc KerG
+    odiscKer = OdiscSigma (BooleIsODisc B) (λ b → OdiscPath (BooleIsODisc C) (fst g b) 0C)
+    kerEnum : ∥ Σ[ e ∈ (ℕ → KerG) ] ((k : KerG) → ∥ Σ[ n ∈ ℕ ] e n ≡ k ∥₁) ∥₁
+    kerEnum = ODiscSurjFromN odiscKer ∣ 𝟘 (snd (fst B)) , IsCommRingHom.pres0 (snd g) ∣₁
+    -- Main construction given enumeration
+    step1 : Σ[ e ∈ (ℕ → KerG) ] ((k : KerG) → ∥ Σ[ n ∈ ℕ ] e n ≡ k ∥₁)
       → ∥ Σ[ d ∈ (ℕ → ⟨ fst B ⟩) ]
           ((x : Sp B) → (∥ Σ[ c ∈ Sp C ] f c ≡ x ∥₁) ↔ ((n : ℕ) → fst x (d n) ≡ false)) ∥₁
+    step1 (e , surjE) = ∣ d , (λ x → forward x , backward x) ∣₁
+      where
+      d : ℕ → ⟨ fst B ⟩
+      d n = fst (e n)
+      d-inKer : (n : ℕ) → fst g (d n) ≡ 0C
+      d-inKer n = snd (e n)
+      d-surjKer : (b : ⟨ fst B ⟩) → fst g b ≡ 0C → ∥ Σ[ n ∈ ℕ ] d n ≡ b ∥₁
+      d-surjKer b gb=0 = PT.map (λ { (n , p) → n , cong fst p }) (surjE (b , gb=0))
+      forward : (x : Sp B) → ∥ Σ[ c ∈ Sp C ] f c ≡ x ∥₁ → (n : ℕ) → fst x (d n) ≡ false
+      forward x inImg n = PT.rec (isSetBool _ _) go inImg where
+        go : Σ[ c ∈ Sp C ] f c ≡ x → fst x (d n) ≡ false
+        go (c , fc≡x) =
+          fst x (d n)
+            ≡⟨ cong (λ h → fst h (d n)) (sym fc≡x) ⟩
+          fst (f c) (d n)
+            ≡⟨ cong (λ h → fst h (d n)) (sym (g-spec c)) ⟩
+          fst c (fst g (d n))
+            ≡⟨ cong (fst c) (d-inKer n) ⟩
+          fst c 0C
+            ≡⟨ IsCommRingHom.pres0 (snd c) ⟩
+          false ∎
+      -- Backward: if ∀n. x(d n) = false, then x ∈ Image(f)
+      B/d : BooleanRing ℓ-zero
+      B/d = fst B QB./Im d
+      π : BoolHom (fst B) B/d
+      π = QB.quotientImageHom
+      isSetQ : isSet ⟨ B/d ⟩
+      isSetQ = BooleanRingStr.is-set (snd B/d)
+      ḡ : BoolHom B/d (fst C)
+      ḡ = QB.inducedHom (fst C) g d-inKer
+      ḡ∘π≡g : ḡ ∘cr π ≡ g
+      ḡ∘π≡g = QB.evalInduce (fst C)
+      -- char2-eq: a + b = 0 → a = b in any BooleanRing
+      char2-eq : {B' : BooleanRing ℓ-zero} (a b : ⟨ B' ⟩)
+        → BooleanRingStr._+_ (snd B') a b ≡ BooleanRingStr.𝟘 (snd B')
+        → a ≡ b
+      char2-eq {B'} a b p =
+        a ≡⟨ sym (BooleanRingStr.+IdR (snd B') a) ⟩
+        (a +Q BooleanRingStr.𝟘 (snd B'))
+          ≡⟨ cong (a +Q_) (sym (BooleanAlgebraStr.characteristic2 B' {b})) ⟩
+        (a +Q (b +Q b))
+          ≡⟨ BooleanRingStr.+Assoc (snd B') a b b ⟩
+        ((a +Q b) +Q b)
+          ≡⟨ cong (_+Q b) p ⟩
+        (BooleanRingStr.𝟘 (snd B') +Q b)
+          ≡⟨ BooleanRingStr.+IdL (snd B') b ⟩
+        b ∎ where _+Q_ = BooleanRingStr._+_ (snd B')
+      -- a = b → a + b = 0 in any BooleanRing
+      eq→sum0 : {B' : BooleanRing ℓ-zero} (a b : ⟨ B' ⟩)
+        → a ≡ b → BooleanRingStr._+_ (snd B') a b ≡ BooleanRingStr.𝟘 (snd B')
+      eq→sum0 {B'} a b p = cong (BooleanRingStr._+_ (snd B') a) (sym p)
+        ∙ BooleanAlgebraStr.characteristic2 B'
+      -- π-kills-ker: elements in Ker(g) map to 0 under π
+      π-kills-gen : (n : ℕ) → fst π (d n) ≡ BooleanRingStr.𝟘 (snd B/d)
+      π-kills-gen n = QB.zeroOnImage n
+      π-kills-ker : (b : ⟨ fst B ⟩) → fst g b ≡ 0C → fst π b ≡ BooleanRingStr.𝟘 (snd B/d)
+      π-kills-ker b gb=0 = PT.rec (isSetQ _ _) go (d-surjKer b gb=0) where
+        go : Σ[ n ∈ ℕ ] d n ≡ b → fst π b ≡ BooleanRingStr.𝟘 (snd B/d)
+        go (n , dn≡b) = subst (λ z → fst π z ≡ BooleanRingStr.𝟘 (snd B/d)) dn≡b (π-kills-gen n)
+      -- ḡ is injective: uses epi property of π + π-kills-ker
+      ḡ-inj : (q₁ q₂ : ⟨ B/d ⟩) → fst ḡ q₁ ≡ fst ḡ q₂ → q₁ ≡ q₂
+      ḡ-inj q₁ q₂ eq = PT.rec2 (isSetQ _ _) go
+        (QB.quotientImageHomSurjective q₁) (QB.quotientImageHomSurjective q₂) where
+        go : Σ[ b₁ ∈ ⟨ fst B ⟩ ] fst π b₁ ≡ q₁
+           → Σ[ b₂ ∈ ⟨ fst B ⟩ ] fst π b₂ ≡ q₂ → q₁ ≡ q₂
+        go (b₁ , πb₁≡q₁) (b₂ , πb₂≡q₂) =
+          sym πb₁≡q₁ ∙ char2-eq {B/d} (fst π b₁) (fst π b₂) πsum≡0 ∙ πb₂≡q₂
+          where
+          _+B_ = BooleanRingStr._+_ (snd (fst B))
+          _+C_ = BooleanRingStr._+_ (snd (fst C))
+          gb₁≡gb₂ : fst g b₁ ≡ fst g b₂
+          gb₁≡gb₂ =
+            fst g b₁ ≡⟨ sym (cong (λ h → fst h b₁) ḡ∘π≡g) ⟩
+            fst ḡ (fst π b₁) ≡⟨ cong (fst ḡ) πb₁≡q₁ ⟩
+            fst ḡ q₁ ≡⟨ eq ⟩
+            fst ḡ q₂ ≡⟨ cong (fst ḡ) (sym πb₂≡q₂) ⟩
+            fst ḡ (fst π b₂) ≡⟨ cong (λ h → fst h b₂) ḡ∘π≡g ⟩
+            fst g b₂ ∎
+          gsum≡0 : fst g (b₁ +B b₂) ≡ 0C
+          gsum≡0 =
+            fst g (b₁ +B b₂)
+              ≡⟨ IsCommRingHom.pres+ (snd g) b₁ b₂ ⟩
+            (fst g b₁ +C fst g b₂)
+              ≡⟨ eq→sum0 {fst C} (fst g b₁) (fst g b₂) gb₁≡gb₂ ⟩
+            0C ∎
+          πsum≡0 : BooleanRingStr._+_ (snd B/d) (fst π b₁) (fst π b₂)
+                 ≡ BooleanRingStr.𝟘 (snd B/d)
+          πsum≡0 =
+            BooleanRingStr._+_ (snd B/d) (fst π b₁) (fst π b₂)
+              ≡⟨ sym (IsCommRingHom.pres+ (snd π) b₁ b₂) ⟩
+            fst π (b₁ +B b₂)
+              ≡⟨ π-kills-ker (b₁ +B b₂) gsum≡0 ⟩
+            BooleanRingStr.𝟘 (snd B/d) ∎
+      backward : (x : Sp B) → ((n : ℕ) → fst x (d n) ≡ false) → ∥ Σ[ c ∈ Sp C ] f c ≡ x ∥₁
+      backward x allZero = PT.rec squash₁ bwd-step (quotientBySeqHasBooleω B d) where
+        x̄ : BoolHom B/d BoolBR
+        x̄ = QB.inducedHom BoolBR x allZero
+        x̄∘π≡x : x̄ ∘cr π ≡ x
+        x̄∘π≡x = QB.evalInduce BoolBR
+        bwd-step : has-Boole-ω' B/d → ∥ Σ[ c ∈ Sp C ] f c ≡ x ∥₁
+        bwd-step booleQ = PT.map finish (injective→Sp-surjective Q-Booleω C ḡ ḡ-inj x̄)
+          where
+          Q-Booleω : Booleω
+          Q-Booleω = B/d , ∣ booleQ ∣₁
+          finish : Σ[ c ∈ Sp C ] c ∘cr ḡ ≡ x̄ → Σ[ c ∈ Sp C ] f c ≡ x
+          finish (c , c∘ḡ≡x̄) = c , fc≡x where
+            fc≡x : f c ≡ x
+            fc≡x =
+              f c
+                ≡⟨ sym (g-spec c) ⟩
+              c ∘cr g
+                ≡⟨ cong (c ∘cr_) (sym ḡ∘π≡g) ⟩
+              c ∘cr (ḡ ∘cr π)
+                ≡⟨ CommRingHom≡ refl ⟩
+              (c ∘cr ḡ) ∘cr π
+                ≡⟨ cong (_∘cr π) c∘ḡ≡x̄ ⟩
+              x̄ ∘cr π
+                ≡⟨ x̄∘π≡x ⟩
+              x ∎
+  -- tex Lemma 1335 (OdiscQuotientCountableByOpen, backward direction):
+  -- If D = SeqColim S with finite stages and R is an open prop-valued equiv rel on D,
+  -- then D/R is ODisc.
+  -- Strategy: Use global α (from countableChoice) and bounded witness relations RnK n.
+  -- iterTC gives decidable equiv rel from RnK n. Quotient sequence has finite stages.
+  -- Transition map uses: α is global, so k≤n implies k≤n+1.
+  module Lemma1335Backward
+    (S : Sequence ℓ-zero) (finS : (n : ℕ) → isFinSet (obj S n))
+    (R : SeqColim S → SeqColim S → Type ℓ-zero)
+    (propR : (x y : SeqColim S) → isProp (R x y))
+    (eqR : BinaryRelation.isEquivRel R)
+    (openR : (x y : SeqColim S) → isOpenProp ((R x y) , propR x y))
+    where
+    open import Cubical.HITs.SetQuotients as SQ using (_/_; [_]; eq/; squash/; elimProp; rec)
+    open import Cubical.Data.FinSet.FiniteChoice as FC using (choice)
+    open import Cubical.Data.FinSet.Constructors using (isFinSetΣ)
+    open import Cubical.Data.FinSet.Base using (isFinSet→isSet; FinSet; card)
+    open import Cubical.Data.FinSet.Cardinality as FSC using (pigeonHole')
+    open import Cubical.Data.FinSet.Properties using (isFinSetFin)
+    open import Cubical.Induction.WellFounded as WF using (WellFounded; module WFI)
+    open import Cubical.Data.Bool.Properties using (Dec≃DecBool)
+    open import Cubical.Foundations.Function using (_∘_; case_return_of_)
+    open import Cubical.Foundations.HLevels using (isProp×)
+    open import Cubical.Relation.Nullary.DecidablePropositions using (isDecProp; isDecProp→Dec)
+    open import Cubical.Data.FinSet.Quotients using (isFinSetQuot)
+    import Cubical.Data.Sum as ⊎
+    open import Cubical.Data.Nat.Order using (_<_; _≤_; _>_; <Dec; ≤-refl; ≤-suc; ≤-trans; zero-≤; suc-≤-suc; pred-≤-pred; ≤-antisym; <-asym'; ¬-<-zero; ≤SumLeft; <-+k; <-weaken; ≤-∸-+-cancel; <-wellfounded)
+    open BinaryRelation.isEquivRel eqR renaming (reflexive to reflR; symmetric to symR; transitive to transR)
+    private
+      D = SeqColim S
+      B = D / R
+      setB : isSet B
+      setB = squash/
+      Rn : (n : ℕ) → obj S n → obj S n → Type ℓ-zero
+      Rn n x y = R (incl x) (incl y)
+      propRn : (n : ℕ) (x y : obj S n) → isProp (Rn n x y)
+      propRn n x y = propR (incl x) (incl y)
+      eqRn : (n : ℕ) → BinaryRelation.isEquivRel (Rn n)
+      eqRn n = BinaryRelation.equivRel
+        (λ x → reflR (incl x))
+        (λ x y → symR (incl x) (incl y))
+        (λ x y z → transR (incl x) (incl y) (incl z))
+      Rn-map : (n : ℕ) (x y : obj S n) → Rn n x y → Rn (suc n) (map S x) (map S y)
+      Rn-map n x y r = subst2 R (push x) (push y) r
+      -- Extract witnesses: for each pair in finite D_n × D_n, get open witness α
+      WitnessData : (n : ℕ) → Type ℓ-zero
+      WitnessData n = (x y : obj S n) → isOpenWitness ((Rn n x y) , propRn n x y)
+      getWitnesses : (n : ℕ) → ∥ WitnessData n ∥₁
+      getWitnesses n = PT.rec squash₁ (λ wit → ∣ (λ x y → wit (x , y)) ∣₁)
+        (FC.choice (_ , isFinSetΣ (_ , finS n) (λ _ → _ , finS n))
+          _ (λ { (x , y) → openR (incl x) (incl y) }))
+    -- Direct construction using allWit (without needing coherent α).
+    -- Key idea: RnK' searches for witnesses at ALL previous levels m ≤ n,
+    -- not just level n. This makes the push from level n to suc n trivial:
+    -- the same (m, x', y', j) witness works at the higher level.
+    module WithAllWitnesses (allWit : (n : ℕ) → WitnessData n) where
+      open ColimCompactHelpers S using (liftTo; liftTo-isProp; liftTo-comp; inclLift; iterMap; inclIter)
+      open import Cubical.Data.Empty using (isProp⊥)
+      open import Cubical.Data.Nat.Properties using (+-comm)
+      -- Decide ∥ Σ A P ∥₁ for finite A with decidable P
+      decTruncΣ : (F : FinSet ℓ-zero) (P : fst F → Type ℓ-zero)
+        → ((x : fst F) → Dec (P x))
+        → Dec ∥ Σ (fst F) P ∥₁
+      decTruncΣ (A , k , e) P decP = PT.rec (isPropDec squash₁) go e where
+        open import Cubical.Relation.Nullary.Properties using (isPropDec)
+        searchFin : (k₀ : ℕ) (Q : Fin k₀ → Type ℓ-zero)
+          → ((i : Fin k₀) → Dec (Q i))
+          → Dec (Σ[ i ∈ Fin k₀ ] Q i)
+        searchFin zero Q dec = no λ ()
+        searchFin (suc k₀) Q dec with dec fzero
+        ... | yes p = yes (fzero , p)
+        ... | no ¬p with searchFin k₀ (Q ∘ fsuc) (dec ∘ fsuc)
+        ... | yes (i , q) = yes (fsuc i , q)
+        ... | no ¬rest = no λ { (fzero , q) → ¬p q ; (fsuc i , q) → ¬rest (i , q) }
+        go : A ≃ Fin k → Dec ∥ Σ A P ∥₁
+        go eq with searchFin k (P ∘ invEq eq) (λ i → decP (invEq eq i))
+        ... | yes (i , p) = yes ∣ invEq eq i , p ∣₁
+        ... | no ¬ex = no (PT.rec isProp⊥ contra) where
+          contra : Σ A P → ⊥
+          contra (x , p) = ¬ex (equivFun eq x , subst P (sym (retEq eq x)) p)
+      -- Bounded witness relation: searches all levels m ≤ n for a witness
+      -- with bound j ≤ k at level m. No cross-level coherence needed.
+      -- Truncated to ensure decidability.
+      RnK'Raw : (n k : ℕ) → obj S n → obj S n → Type ℓ-zero
+      RnK'Raw n k x y = Σ[ j ∈ ℕ ] Σ[ _ ∈ j ≤ k ]
+        Σ[ m ∈ ℕ ] Σ[ le ∈ (m ≤ n) ]
+        Σ[ x' ∈ obj S m ] Σ[ y' ∈ obj S m ]
+        (liftTo le x' ≡ x) × (liftTo le y' ≡ y) ×
+        (fst (allWit m x' y') j ≡ true)
+      RnK' : (n k : ℕ) → obj S n → obj S n → Type ℓ-zero
+      RnK' n k x y = ∥ RnK'Raw n k x y ∥₁
+      propRnK' : (n k : ℕ) (x y : obj S n) → isProp (RnK' n k x y)
+      propRnK' _ _ _ _ = squash₁
+      -- Decidability of RnK' via bounded search over j, m, x', y'
+      decRnK' : (n k : ℕ) (x y : obj S n) → Dec (RnK' n k x y)
+      decRnK' n k x y = searchJ k where
+        open import Cubical.Relation.Nullary using (Discrete)
+        discN : (n' : ℕ) → Discrete (obj S n')
+        discN n' = isFinSet→Discrete (finS n')
+        FA : (n' : ℕ) → FinSet ℓ-zero
+        FA n' = obj S n' , finS n'
+        -- For fixed j, m, le: decide ∥ ∃ x' ∥ ∃ y' ... ∥₁ ∥₁
+        decLevel : (j m : ℕ) (le : m ≤ n) → Dec ∥ Σ[ x' ∈ obj S m ]
+          ∥ Σ[ y' ∈ obj S m ]
+            (liftTo le x' ≡ x) × (liftTo le y' ≡ y) × (fst (allWit m x' y') j ≡ true) ∥₁ ∥₁
+        decLevel j m le = decTruncΣ (FA m) _ λ x' → decTruncΣ (FA m) _ λ y' →
+          decPair (discN n (liftTo le x') x)
+            (decPair (discN n (liftTo le y') y)
+              (fst (allWit m x' y') j ≟ true))
+          where
+          decPair : {P Q : Type ℓ-zero} → Dec P → Dec Q → Dec (P × Q)
+          decPair (yes p) (yes q) = yes (p , q)
+          decPair (yes _) (no ¬q) = no (¬q ∘ snd)
+          decPair (no ¬p) _ = no (¬p ∘ fst)
+        -- Flatten ∥ Σ x' ∥ Σ y' P ∥₁ ∥₁ to ∥ Σ x' Σ y' P ∥₁
+        flattenTrunc : {A : Type} {B : A → Type} {C : (a : A) → B a → Type}
+          → ∥ Σ[ a ∈ A ] ∥ Σ[ b ∈ B a ] C a b ∥₁ ∥₁ → ∥ Σ[ a ∈ A ] Σ[ b ∈ B a ] C a b ∥₁
+        flattenTrunc = PT.rec squash₁ λ (a , t) → PT.map (λ (b , c) → a , b , c) t
+        unflattenTrunc : {A : Type} {B : A → Type} {C : (a : A) → B a → Type}
+          → ∥ Σ[ a ∈ A ] Σ[ b ∈ B a ] C a b ∥₁ → ∥ Σ[ a ∈ A ] ∥ Σ[ b ∈ B a ] C a b ∥₁ ∥₁
+        unflattenTrunc = PT.map λ (a , b , c) → a , ∣ b , c ∣₁
+        -- decLevel gives Dec ∥ Σ x' ∥ Σ y' P ∥₁ ∥₁, flatten to get Dec ∥ Σ x' Σ y' P ∥₁
+        decLevel' : (j m : ℕ) (le : m ≤ n) → Dec ∥ Σ[ x' ∈ obj S m ] Σ[ y' ∈ obj S m ]
+          (liftTo le x' ≡ x) × (liftTo le y' ≡ y) × (fst (allWit m x' y') j ≡ true) ∥₁
+        decLevel' j m le with decLevel j m le
+        ... | yes w = yes (flattenTrunc w)
+        ... | no ¬w = no (¬w ∘ unflattenTrunc)
+        -- LevelWit j = the inner Σ for a given j
+        LevelWit : ℕ → Type ℓ-zero
+        LevelWit j = Σ[ m ∈ ℕ ] Σ[ le ∈ (m ≤ n) ]
+          Σ[ x' ∈ obj S m ] Σ[ y' ∈ obj S m ]
+          (liftTo le x' ≡ x) × (liftTo le y' ≡ y) × (fst (allWit m x' y') j ≡ true)
+        -- Search over m from 0 to n' ≤ n. Type bounded by n'.
+        BoundedLevelWit : ℕ → ℕ → Type ℓ-zero
+        BoundedLevelWit j n' = Σ[ m ∈ ℕ ] ((m ≤ n') × (Σ[ le ∈ (m ≤ n) ]
+          Σ[ x' ∈ obj S m ] Σ[ y' ∈ obj S m ]
+          (liftTo le x' ≡ x) × (liftTo le y' ≡ y) × (fst (allWit m x' y') j ≡ true)))
+        bounded→level : {j n' : ℕ} → BoundedLevelWit j n' → LevelWit j
+        bounded→level (m , _ , le , rest) = m , le , rest
+        level→bounded : {j : ℕ} → LevelWit j → BoundedLevelWit j n
+        level→bounded (m , le , rest) = m , le , le , rest
+        searchM : (j : ℕ) → (n' : ℕ) → n' ≤ n → Dec ∥ BoundedLevelWit j n' ∥₁
+        searchM j zero le with decLevel' j zero le
+        ... | yes w = yes (PT.map (λ (x' , y' , rest) → zero , ≤-refl , le , x' , y' , rest) w)
+        ... | no ¬w = no (PT.rec isProp⊥ helper) where
+          helper : BoundedLevelWit j zero → ⊥
+          helper (zero , _ , le' , x' , y' , rest) = ¬w ∣ x' , y' ,
+              subst (λ l → liftTo l x' ≡ x) (isProp≤ le' le) (fst rest) ,
+              subst (λ l → liftTo l y' ≡ y) (isProp≤ le' le) (fst (snd rest)) ,
+              snd (snd rest) ∣₁
+          helper (suc m , m≤0 , _) = ¬-<-zero m≤0
+        searchM j (suc n') le with decLevel' j (suc n') le | searchM j n' (≤-trans (≤-suc ≤-refl) le)
+        ... | yes w | _ = yes (PT.map (λ (x' , y' , rest) → suc n' , ≤-refl , le , x' , y' , rest) w)
+        ... | no _ | yes w = yes (PT.map (λ (m , m≤n' , rest) → m , ≤-suc m≤n' , rest) w)
+        ... | no ¬here | no ¬below = no (PT.rec isProp⊥ helper) where
+          helper : BoundedLevelWit j (suc n') → ⊥
+          helper (m , m≤sn' , le' , x' , y' , rest) with ≤-split m≤sn'
+          ... | ⊎.inl m<sn' =
+            let le'' = ≤-trans (pred-≤-pred m<sn') (≤-trans (≤-suc ≤-refl) le)
+            in ¬below ∣ m , pred-≤-pred m<sn' , le'' , x' , y' ,
+              subst (λ l → liftTo l x' ≡ x) (isProp≤ le' le'') (fst rest) ,
+              subst (λ l → liftTo l y' ≡ y) (isProp≤ le' le'') (fst (snd rest)) , snd (snd rest) ∣₁
+          ... | ⊎.inr m≡sn' = subst (λ m₀ → (le₀ : m₀ ≤ n)
+              → (x₀ : obj S m₀) (y₀ : obj S m₀)
+              → (liftTo le₀ x₀ ≡ x) × (liftTo le₀ y₀ ≡ y) × (fst (allWit m₀ x₀ y₀) j ≡ true) → ⊥)
+            (sym m≡sn') (λ le₀ x₀ y₀ rest₀ → ¬here ∣ x₀ , y₀ ,
+              subst (λ l → liftTo l x₀ ≡ x) (isProp≤ le₀ le) (fst rest₀) ,
+              subst (λ l → liftTo l y₀ ≡ y) (isProp≤ le₀ le) (fst (snd rest₀)) , snd (snd rest₀) ∣₁)
+            le' x' y' rest
+        -- Search over j from 0 to k'
+        searchJ : (k' : ℕ) → Dec (RnK' n k' x y)
+        searchJ zero with searchM zero n ≤-refl
+        ... | yes w = yes (PT.map (λ bw → zero , ≤-refl , bounded→level bw) w)
+        ... | no ¬w = no (PT.rec isProp⊥ λ { (zero , _ , rest) → ¬w ∣ level→bounded (rest) ∣₁
+          ; (suc j , le , _) → ¬-<-zero le })
+        searchJ (suc k') with searchJ k' | searchM (suc k') n ≤-refl
+        ... | yes w | _ = yes (PT.map (λ (j , le , rest) → j , ≤-suc le , rest) w)
+        ... | no _ | yes w = yes (PT.map (λ bw → suc k' , ≤-refl , bounded→level bw) w)
+        ... | no ¬prev | no ¬new = no (PT.rec isProp⊥ λ { (j , le , rest) →
+          case ≤-split le return (λ _ → ⊥) of λ
+            { (⊎.inl j<sk) → ¬prev ∣ j , pred-≤-pred j<sk , rest ∣₁
+            ; (⊎.inr j≡sk) → ¬new ∣ level→bounded (subst LevelWit j≡sk rest) ∣₁
+            }})
+      RnK'→Rn : (n k : ℕ) (x y : obj S n) → RnK' n k x y → Rn n x y
+      RnK'→Rn n k x y = PT.rec (propRn n x y) λ
+        (j , _ , m , le , x' , y' , lx , ly , wit) →
+        subst2 (Rn n) lx ly (liftRn m n le x' y' (snd (snd (allWit m x' y')) (j , wit)))
+        where
+        liftRn : (m n : ℕ) (le : m ≤ n) (a b : obj S m) → Rn m a b → Rn n (liftTo le a) (liftTo le b)
+        liftRn m n le a b r = subst2 R (inclLift le a) (inclLift le b) r
+      -- Monotonicity: RnK' n k ⊆ RnK' n (suc k)
+      RnK'-mono : (n k : ℕ) (x y : obj S n) → RnK' n k x y → RnK' n (suc k) x y
+      RnK'-mono n k x y = PT.map λ (j , le , rest) → j , ≤-suc le , rest
+      liftTo-suc : {m' n' : ℕ} (le' : m' ≤ n') (z : obj S m')
+        → liftTo (≤-suc le') z ≡ map S (liftTo le' z)
+      liftTo-suc {m'} le' z =
+        liftTo (≤-suc le') z
+          ≡⟨ liftTo-isProp (≤-suc le') (≤-trans le' (1 , refl)) z ⟩
+        liftTo (≤-trans le' (1 , refl)) z
+          ≡⟨ sym (liftTo-comp le' (1 , refl) z) ⟩
+        liftTo (1 , refl) (liftTo le' z)
+          ≡⟨ transportRefl (map S (liftTo le' z)) ⟩
+        map S (liftTo le' z) ∎
+      -- Push: RnK' n k x y → RnK' (suc n) k (map S x) (map S y)
+      -- Same witness (m, x', y', j), just with m ≤ suc n and adjusted liftTo
+      RnK'-push : (n k : ℕ) (x y : obj S n) → RnK' n k x y → RnK' (suc n) k (map S x) (map S y)
+      RnK'-push n k x y = PT.map λ (j , jle , m , le , x' , y' , lx , ly , wit) →
+        j , jle , m , ≤-suc le , x' , y' ,
+        liftTo-suc le x' ∙ cong (map S) lx ,
+        liftTo-suc le y' ∙ cong (map S) ly , wit
+      -- The rest of the construction follows WithGlobalWitnesses
+      -- but using RnK'/decRnK' instead of RnK/decRnK
+      module DecTC' (n : ℕ) where
+        private
+          An = obj S n
+          finAn = finS n
+          FA : FinSet ℓ-zero
+          FA = An , finAn
+          setAn = isFinSet→isSet finAn
+          discAn = isFinSet→Discrete finAn where
+            open import Cubical.Data.FinSet.Properties using (isFinSet→Discrete)
+        iterTC : (R₀ : An → An → Type ℓ-zero) (decR₀ : (x y : An) → Dec (R₀ x y))
+          → (k : ℕ) → Σ[ T ∈ (An → An → Type ℓ-zero) ]
+              ((x y : An) → isProp (T x y)) × ((x y : An) → Dec (T x y))
+              × ((x y : An) → R₀ x y → T x y) × ((x y : An) → (x ≡ y) → T x y)
+              × ((x y : An) → T x y → T y x)
+        iterTC R₀ decR₀ zero = T₀ , propT₀ , decT₀ , inclR , inclEq , symT₀ where
+          open ⊎ using (_⊎_)
+          T₀ : An → An → Type
+          T₀ x y = ∥ ((x ≡ y) ⊎ (R₀ x y ⊎ R₀ y x)) ∥₁
+          propT₀ : (x y : An) → isProp (T₀ x y)
+          propT₀ _ _ = squash₁
+          decT₀ : (x y : An) → Dec (T₀ x y)
+          decT₀ x y with discAn x y
+          ... | yes p = yes ∣ ⊎.inl p ∣₁
+          ... | no ¬p with decR₀ x y
+          ... | yes r = yes ∣ ⊎.inr (⊎.inl r) ∣₁
+          ... | no ¬r with decR₀ y x
+          ... | yes r' = yes ∣ ⊎.inr (⊎.inr r') ∣₁
+          ... | no ¬r' = no (PT.rec isProp⊥ λ { (⊎.inl p) → ¬p p
+                                                ; (⊎.inr (⊎.inl r)) → ¬r r
+                                                ; (⊎.inr (⊎.inr r')) → ¬r' r' })
+          inclR : (x y : An) → R₀ x y → T₀ x y
+          inclR x y r = ∣ ⊎.inr (⊎.inl r) ∣₁
+          inclEq : (x y : An) → x ≡ y → T₀ x y
+          inclEq x y p = ∣ ⊎.inl p ∣₁
+          symT₀ : (x y : An) → T₀ x y → T₀ y x
+          symT₀ x y = PT.map λ { (⊎.inl p) → ⊎.inl (sym p)
+                                ; (⊎.inr (⊎.inl r)) → ⊎.inr (⊎.inr r)
+                                ; (⊎.inr (⊎.inr r)) → ⊎.inr (⊎.inl r) }
+        iterTC R₀ decR₀ (suc k) = Tk1 , propTk1 , decTk1 , inclR' , inclEq' , symTk1 where
+          prev = iterTC R₀ decR₀ k
+          Tk = fst prev
+          propTk = fst (snd prev)
+          decTk = fst (snd (snd prev))
+          inclRk = fst (snd (snd (snd prev)))
+          inclEqk = fst (snd (snd (snd (snd prev))))
+          symTk = snd (snd (snd (snd (snd prev))))
+          open ⊎ using (_⊎_)
+          Tk1 : An → An → Type
+          Tk1 x y = ∥ Tk x y ⊎ (Σ[ z ∈ An ] Tk x z × Tk z y) ∥₁
+          propTk1 : (x y : An) → isProp (Tk1 x y)
+          propTk1 _ _ = squash₁
+          isDecPropPair : {P Q : Type} → Dec P → isProp P → Dec Q → isProp Q → isDecProp (P × Q)
+          isDecPropPair {P} {Q} dp pp dq pq = let d = decPQ dp dq in
+            Dec→Bool d , Dec≃DecBool (isProp× pp pq) d where
+            decPQ : Dec P → Dec Q → Dec (P × Q)
+            decPQ (yes p) (yes q) = yes (p , q)
+            decPQ (yes _) (no ¬q) = no (¬q ∘ snd)
+            decPQ (no ¬p) _       = no (¬p ∘ fst)
+          decExists : (x y : An) → Dec (∥ Σ[ z ∈ An ] Tk x z × Tk z y ∥₁)
+          decExists x y = decTruncΣ FA _ λ z →
+            decPairTk (decTk x z) (decTk z y) where
+            decPairTk : {P Q : Type} → Dec P → Dec Q → Dec (P × Q)
+            decPairTk (yes p) (yes q) = yes (p , q)
+            decPairTk (yes _) (no ¬q) = no (¬q ∘ snd)
+            decPairTk (no ¬p) _ = no (¬p ∘ fst)
+          decTk1 : (x y : An) → Dec (Tk1 x y)
+          decTk1 x y with decTk x y
+          ... | yes t = yes ∣ ⊎.inl t ∣₁
+          ... | no ¬t with decExists x y
+          ... | yes ∣ez∣ = yes (PT.map (λ (z , txz , tzy) → ⊎.inr (z , txz , tzy)) ∣ez∣)
+          ... | no ¬ez = no (PT.rec isProp⊥ λ
+              { (⊎.inl t) → ¬t t
+              ; (⊎.inr (z , txz , tzy)) → ¬ez ∣ z , txz , tzy ∣₁ })
+          inclR' : (x y : An) → R₀ x y → Tk1 x y
+          inclR' x y r = ∣ ⊎.inl (inclRk x y r) ∣₁
+          inclEq' : (x y : An) → x ≡ y → Tk1 x y
+          inclEq' x y p = ∣ ⊎.inl (inclEqk x y p) ∣₁
+          symTk1 : (x y : An) → Tk1 x y → Tk1 y x
+          symTk1 x y = PT.map λ { (⊎.inl t) → ⊎.inl (symTk x y t)
+            ; (⊎.inr (z , txz , tzy)) → ⊎.inr (z , symTk z y tzy , symTk x z txz) }
+        m = fst finAn
+        tcData = iterTC (RnK' n n) (decRnK' n n) m
+        TC = fst tcData
+        propTC = fst (snd tcData)
+        decTC = fst (snd (snd tcData))
+        inclRnK' = fst (snd (snd (snd tcData)))
+        inclEq = fst (snd (snd (snd (snd tcData))))
+        symTC = snd (snd (snd (snd (snd tcData))))
+        open import Cubical.Data.Nat.Properties using (+-zero; +-suc; +-comm)
+        TCmono : ∀ k (x y : An) → fst (iterTC (RnK' n n) (decRnK' n n) k) x y
+          → fst (iterTC (RnK' n n) (decRnK' n n) (suc k)) x y
+        TCmono k x y t = ∣ ⊎.inl t ∣₁
+        TCmonoN : ∀ k j (x y : An) → fst (iterTC (RnK' n n) (decRnK' n n) k) x y
+          → fst (iterTC (RnK' n n) (decRnK' n n) (k +ℕ j)) x y
+        TCmonoN k zero x y t = subst (λ j → fst (iterTC (RnK' n n) (decRnK' n n) j) x y) (sym (+-zero k)) t
+        TCmonoN k (suc j) x y t = subst (λ j → fst (iterTC (RnK' n n) (decRnK' n n) j) x y) (sym (+-suc k j)) (TCmono (k +ℕ j) x y (TCmonoN k j x y t))
+        T₀' = fst (iterTC (RnK' n n) (decRnK' n n) 0)
+        propT₀' = fst (snd (iterTC (RnK' n n) (decRnK' n n) 0))
+        inclEqT₀' = fst (snd (snd (snd (snd (iterTC (RnK' n n) (decRnK' n n) 0)))))
+        T₀'⊆TC : ∀ (x y : An) → T₀' x y → TC x y
+        T₀'⊆TC x y t = TCmonoN 0 m x y t
+        Chain' : An → An → ℕ → Type
+        Chain' x y zero = x ≡ y
+        Chain' x y (suc k) = Σ[ z ∈ An ] T₀' x z × Chain' z y k
+        chainToTC' : ∀ k (x y : An) → Chain' x y k → fst (iterTC (RnK' n n) (decRnK' n n) k) x y
+        chainToTC' zero x y p = inclEqT₀' x y p
+        chainToTC' (suc k) x y (z , t0xz , chain-zy) =
+          ∣ ⊎.inr (z , TCmonoN 0 k x z t0xz , chainToTC' k z y chain-zy) ∣₁
+        chainConcat' : ∀ j₁ j₂ (x y z : An) → Chain' x y j₁ → Chain' y z j₂ → Chain' x z (j₁ +ℕ j₂)
+        chainConcat' zero j₂ x y z p c₂ = subst (λ w → Chain' w z j₂) (sym p) c₂
+        chainConcat' (suc j₁) j₂ x y z (w , t0xw , c₁) c₂ = w , t0xw , chainConcat' j₁ j₂ w y z c₁ c₂
+        tcToChain' : ∀ k (x y : An) → fst (iterTC (RnK' n n) (decRnK' n n) k) x y → ∥ Σ[ j ∈ ℕ ] Chain' x y j ∥₁
+        tcToChain' zero x y t0 = ∣ 1 , (y , t0 , refl) ∣₁
+        tcToChain' (suc k) x y = PT.rec squash₁ λ
+          { (⊎.inl t) → tcToChain' k x y t
+          ; (⊎.inr (z , txz , tzy)) → PT.rec squash₁
+              (λ { (j₁ , c₁) → PT.map
+                (λ { (j₂ , c₂) → j₁ +ℕ j₂ , chainConcat' j₁ j₂ x z y c₁ c₂ })
+                (tcToChain' k z y tzy) })
+              (tcToChain' k x z txz) }
+        cv' : ∀ k (x y : An) → Chain' x y k → Fin (suc k) → An
+        cv' zero x y _ fzero = x
+        cv' (suc k) x y _ fzero = x
+        cv' (suc k) x y (z , _ , rest) (fsuc i) = cv' k z y rest i
+        cvTake' : ∀ k (x y : An) (c : Chain' x y k) (i : Fin (suc k))
+          → Chain' x (cv' k x y c i) (toℕ i)
+        cvTake' zero x y c fzero = refl
+        cvTake' (suc k) x y c fzero = refl
+        cvTake' (suc k) x y (z , t , rest) (fsuc i) = z , t , cvTake' k z y rest i
+        cvDrop' : ∀ k (x y : An) (c : Chain' x y k) (i : Fin (suc k))
+          → Chain' (cv' k x y c i) y (k ∸ toℕ i)
+        cvDrop' zero x y c fzero = c
+        cvDrop' (suc k) x y c fzero = c
+        cvDrop' (suc k) x y (z , _ , rest) (fsuc i) = cvDrop' k z y rest i
+        toℕ<' : ∀ {n₀} (i : Fin n₀) → toℕ i < n₀
+        toℕ<' {suc n₀} fzero = suc-≤-suc zero-≤
+        toℕ<' {suc n₀} (fsuc i) = suc-≤-suc (toℕ<' i)
+        +-∸-<' : ∀ a b k → a < b → b ≤ k → a +ℕ (k ∸ b) < k
+        +-∸-<' a b k a<b b≤k =
+          let eq : (k ∸ b) +ℕ b ≡ k
+              eq = ≤-∸-+-cancel b≤k
+              step : a +ℕ (k ∸ b) < b +ℕ (k ∸ b)
+              step = <-+k {k = k ∸ b} a<b
+          in subst (a +ℕ (k ∸ b) <_) (+-comm b (k ∸ b) ∙ eq) step
+        splice' : ∀ k (x y : An) (c : Chain' x y k) (i j : Fin (suc k))
+          → toℕ i < toℕ j → cv' k x y c i ≡ cv' k x y c j
+          → Σ[ k' ∈ ℕ ] (k' < k) × Chain' x y k'
+        splice' k x y c i j ti<tj eq =
+          let tk = cvTake' k x y c i
+              dk = cvDrop' k x y c j
+              dk' = subst (λ v → Chain' v y (k ∸ toℕ j)) (sym eq) dk
+              k' = toℕ i +ℕ (k ∸ toℕ j)
+          in k' , +-∸-<' (toℕ i) (toℕ j) k ti<tj (pred-≤-pred (toℕ<' j))
+               , chainConcat' (toℕ i) (k ∸ toℕ j) x (cv' k x y c i) y tk dk'
+        shortenChain' : ∀ k (x y : An) → Chain' x y k → ∥ Σ[ j ∈ ℕ ] (j ≤ m) × Chain' x y j ∥₁
+        shortenChain' = WFI.induction <-wellfounded go where
+          go : ∀ k → (∀ k' → k' < k → (x y : An) → Chain' x y k' → ∥ Σ[ j ∈ ℕ ] (j ≤ m) × Chain' x y j ∥₁)
+            → (x y : An) → Chain' x y k → ∥ Σ[ j ∈ ℕ ] (j ≤ m) × Chain' x y j ∥₁
+          go k ih x y c with <Dec m k
+          ... | no m≮k = ∣ k , <-asym' m≮k , c ∣₁
+          ... | yes m<k =
+            let FX : FinSet ℓ-zero
+                FX = Fin (suc k) , isFinSetFin
+                sk>m : card FX > card FA
+                sk>m = suc-≤-suc (<-weaken m<k)
+            in PT.rec squash₁
+              (λ { (i , j , i≠j , vi≡vj) →
+                case <Dec (toℕ i) (toℕ j) return (λ _ → ∥ _ ∥₁) of λ
+                  { (yes ti<tj) →
+                      let (k' , k'<k , c') = splice' k x y c i j ti<tj vi≡vj
+                      in ih k' k'<k x y c'
+                  ; (no ti≮tj) →
+                      case <Dec (toℕ j) (toℕ i) return (λ _ → ∥ _ ∥₁) of λ
+                        { (yes tj<ti) →
+                            let (k' , k'<k , c') = splice' k x y c j i tj<ti (sym vi≡vj)
+                            in ih k' k'<k x y c'
+                        ; (no tj≮ti) →
+                            ⊥-rec (i≠j (toℕ-injective (≤-antisym (<-asym' tj≮ti) (<-asym' ti≮tj))))
+                        }
+                  } })
+              (FSC.pigeonHole' {X = FX} {Y = FA} (cv' k x y c) sk>m)
+        transTC' : (x y z : An) → TC x y → TC y z → TC x z
+        transTC' x y z txy tyz =
+          let tc-suc : fst (iterTC (RnK' n n) (decRnK' n n) (suc m)) x z
+              tc-suc = ∣ ⊎.inr (y , txy , tyz) ∣₁
+          in PT.rec (propTC x z)
+            (λ { (j , c) → PT.rec (propTC x z)
+              (λ { (j' , j'≤m , c') →
+                  let step1 = chainToTC' j' x z c'
+                      step2 = TCmonoN j' (m ∸ j') x z step1
+                      eq : j' +ℕ (m ∸ j') ≡ m
+                      eq = +-comm j' (m ∸ j') ∙ ≤-∸-+-cancel j'≤m
+                  in subst (λ k' → fst (iterTC (RnK' n n) (decRnK' n n) k') x z) eq step2 })
+              (shortenChain' j x z c) })
+            (tcToChain' (suc m) x z tc-suc)
+        eqTC' : BinaryRelation.isEquivRel TC
+        eqTC' = BinaryRelation.equivRel (λ x → inclEq x x refl) (λ x y → symTC x y) transTC'
+        decPropTC' : (x y : An) → isDecProp (TC x y)
+        decPropTC' x y = Dec→Bool (decTC x y) , Dec≃DecBool (propTC x y) (decTC x y)
+        finBn' : isFinSet (An / TC)
+        finBn' = isFinSetQuot FA TC eqTC' decPropTC'
+        TC→Rn : (x y : An) → TC x y → Rn n x y
+        TC→Rn x y = go m x y where
+          baseRnK'→Rn : (x y : An) → RnK' n n x y → Rn n x y
+          baseRnK'→Rn x y = RnK'→Rn n n x y
+          go : (k : ℕ) → (x y : An) → fst (iterTC (RnK' n n) (decRnK' n n) k) x y → Rn n x y
+          go zero x y = PT.rec (propRn n x y) λ
+            { (⊎.inl p) → subst (Rn n x) p (BinaryRelation.isEquivRel.reflexive (eqRn n) x)
+            ; (⊎.inr (⊎.inl r)) → baseRnK'→Rn x y r
+            ; (⊎.inr (⊎.inr r)) → BinaryRelation.isEquivRel.symmetric (eqRn n) y x (baseRnK'→Rn y x r) }
+          go (suc k) x y = PT.rec (propRn n x y) λ
+            { (⊎.inl t) → go k x y t
+            ; (⊎.inr (z , txz , tzy)) → BinaryRelation.isEquivRel.transitive (eqRn n) x z y
+                (go k x z txz) (go k z y tzy) }
+      -- Stage quotient sequence
+      BnSeq : Sequence ℓ-zero
+      obj BnSeq n = obj S n / DecTC'.TC n
+      map BnSeq {n} = SQ.rec squash/ (λ x → [ map S x ]) mapResp where
+        mapRnK' : (x y : obj S n) → RnK' n n x y → DecTC'.TC (suc n) (map S x) (map S y)
+        mapRnK' x y rnk = DecTC'.inclRnK' (suc n) (map S x) (map S y)
+          (RnK'-mono (suc n) n (map S x) (map S y) (RnK'-push n n x y rnk))
+        mapTC : (x y : obj S n) → DecTC'.TC n x y → DecTC'.TC (suc n) (map S x) (map S y)
+        mapTC x y = go (fst (finS n)) x y where
+          go : (k : ℕ) (x y : obj S n) → fst (DecTC'.iterTC n (RnK' n n) (decRnK' n n) k) x y
+            → DecTC'.TC (suc n) (map S x) (map S y)
+          go zero x y = PT.rec (DecTC'.propTC (suc n) (map S x) (map S y)) λ
+            { (⊎.inl p) → DecTC'.inclEq (suc n) (map S x) (map S y) (cong (map S) p)
+            ; (⊎.inr (⊎.inl r)) → mapRnK' x y r
+            ; (⊎.inr (⊎.inr r)) → DecTC'.symTC (suc n) (map S y) (map S x) (mapRnK' y x r) }
+          go (suc k) x y = PT.rec (DecTC'.propTC (suc n) (map S x) (map S y)) λ
+            { (⊎.inl t) → go k x y t
+            ; (⊎.inr (z , txz , tzy)) →
+                DecTC'.transTC' (suc n) (map S x) (map S z) (map S y)
+                  (go k x z txz) (go k z y tzy) }
+        mapResp : (x y : obj S n) → DecTC'.TC n x y → [ map S x ] ≡ [ map S y ]
+        mapResp x y tc = eq/ _ _ (mapTC x y tc)
+      finBnSeq : (n : ℕ) → isFinSet (obj BnSeq n)
+      finBnSeq = DecTC'.finBn'
+      -- Forward: SeqColim BnSeq → B
+      fwdBn : SeqColim BnSeq → B
+      fwdBn (incl {n} q) = SQ.rec setB (λ x → [ incl x ])
+        (λ x y tc → eq/ _ _ (DecTC'.TC→Rn n x y tc)) q
+      fwdBn (push {n} q i) = SQ.elimProp
+        {P = λ q → fwdBn (incl q) ≡ fwdBn (incl (map BnSeq q))}
+        (λ _ → setB _ _)
+        (λ x → eq/ _ _ (subst (λ z → R (incl x) z) (push x) (reflR (incl x)))) q i
+      -- Backward: B → SeqColim BnSeq
+      bwdD : D → SeqColim BnSeq
+      bwdD (incl {n} x) = incl {n = n} [ x ]
+      bwdD (push {n} x i) = push {n = n} [ x ] i
+      iterMapBn : ∀ {n} (k : ℕ) → obj BnSeq n → obj BnSeq (k +ℕ n)
+      iterMapBn zero q = q
+      iterMapBn {n} (suc k) q = map BnSeq {n = k +ℕ n} (iterMapBn k q)
+      iterPushBn : (n k : ℕ) (q : obj BnSeq n)
+        → Path (SeqColim BnSeq) (incl {n = n} q) (incl {n = k +ℕ n} (iterMapBn k q))
+      iterPushBn n zero q = refl
+      iterPushBn n (suc k) q = iterPushBn n k q ∙ push {n = k +ℕ n} (iterMapBn k q)
+      iterMapBn-rep : ∀ {n} (k : ℕ) (x : obj S n)
+        → iterMapBn {n} k [ x ] ≡ [ iterMap k x ]
+      iterMapBn-rep zero x = refl
+      iterMapBn-rep {n} (suc k) x =
+        map BnSeq {n = k +ℕ n} (iterMapBn k [ x ])
+          ≡⟨ cong (map BnSeq {n = k +ℕ n}) (iterMapBn-rep k x) ⟩
+        map BnSeq {n = k +ℕ n} [ iterMap k x ]
+          ≡⟨ refl ⟩
+        [ map S (iterMap k x) ] ∎
+      bwdR-same : (n : ℕ) (x y : obj S n) → Rn n x y
+        → Path (SeqColim BnSeq) (incl {n = n} [ x ]) (incl {n = n} [ y ])
+      bwdR-same n x y r = let (k , p) = fst (snd (allWit n x y)) r in
+        let rnk' : RnK' (k +ℕ n) (k +ℕ n) (iterMap k x) (iterMap k y)
+            rnk' = ∣ k , ≤SumLeft , n , ≤SumRight , x , y ,
+              liftTo-isProp ≤SumRight (k , refl) x ∙ transportRefl (iterMap k x) ,
+              liftTo-isProp ≤SumRight (k , refl) y ∙ transportRefl (iterMap k y) , p ∣₁
+        in incl {n = n} [ x ]
+          ≡⟨ iterPushBn n k [ x ] ⟩
+        incl {n = k +ℕ n} (iterMapBn k [ x ])
+          ≡⟨ cong (incl {n = k +ℕ n}) (iterMapBn-rep k x ∙ eq/ _ _ (DecTC'.inclRnK' (k +ℕ n) _ _ rnk') ∙ sym (iterMapBn-rep k y)) ⟩
+        incl {n = k +ℕ n} (iterMapBn k [ y ])
+          ≡⟨ sym (iterPushBn n k [ y ]) ⟩
+        incl {n = n} [ y ] ∎
+      bwdR : (d₁ d₂ : D) → R d₁ d₂ → bwdD d₁ ≡ bwdD d₂
+      bwdR = SeqColim→Prop {B = λ d₁ → (d₂ : D) → R d₁ d₂ → bwdD d₁ ≡ bwdD d₂}
+        (λ d₁ → isPropΠ λ d₂ → isPropΠ λ _ → isSetSeqColimOfSets BnSeq (λ _ → squash/) _ _)
+        (λ n₁ x₁ → SeqColim→Prop
+          {B = λ d₂ → R (incl x₁) d₂ → bwdD (incl x₁) ≡ bwdD d₂}
+          (λ d₂ → isPropΠ λ _ → isSetSeqColimOfSets BnSeq (λ _ → squash/) _ _)
+          (λ n₂ x₂ r → bwdR-incl n₁ n₂ x₁ x₂ r))
+        where
+        bwdR-incl : (n₁ n₂ : ℕ) (x₁ : obj S n₁) (x₂ : obj S n₂)
+          → R (incl x₁) (incl x₂) → bwdD (incl x₁) ≡ bwdD (incl x₂)
+        bwdR-incl n₁ n₂ x₁ x₂ r = let
+            m = n₁ +ℕ n₂
+            x₁' = iterMap n₂ x₁
+            x₂' = iterMap n₁ x₂
+            x₁'' : obj S m
+            x₁'' = subst (obj S) (+-comm n₂ n₁) x₁'
+            path₁ : Path D (incl {n = n₁} x₁) (incl {n = m} x₁'')
+            path₁ = inclIter n₂ x₁
+              ∙ (λ i → incl {n = +-comm n₂ n₁ i} (subst-filler (obj S) (+-comm n₂ n₁) x₁' i))
+            path₂ : Path D (incl {n = n₂} x₂) (incl {n = m} x₂')
+            path₂ = inclIter n₁ x₂
+            rm : Rn m x₁'' x₂'
+            rm = subst2 R path₁ path₂ r
+          in cong bwdD path₁ ∙ bwdR-same m x₁'' x₂' rm ∙ sym (cong bwdD path₂)
+      bwdBn : B → SeqColim BnSeq
+      bwdBn = SQ.rec (isSetSeqColimOfSets BnSeq (λ _ → squash/)) bwdD bwdR
+      -- Round-trip proofs
+      fwd-bwd : (b : B) → fwdBn (bwdBn b) ≡ b
+      fwd-bwd = SQ.elimProp (λ _ → setB _ _) (λ d → fwdBwdD d) where
+        fwdBwdD : (d : D) → fwdBn (bwdD d) ≡ [ d ]
+        fwdBwdD (incl x) = refl
+        fwdBwdD (push {n} x i) = isProp→PathP (λ i → setB (fwdBn (bwdD (push x i))) [ push x i ]) refl refl i
+      bwd-fwd : (c : SeqColim BnSeq) → bwdBn (fwdBn c) ≡ c
+      bwd-fwd = SeqColim→Prop (λ _ → isSetSeqColimOfSets BnSeq (λ _ → squash/) _ _) bwdFwdIncl where
+        bwdFwdIncl : (n : ℕ) (q : obj BnSeq n) → bwdBn (fwdBn (incl q)) ≡ incl q
+        bwdFwdIncl n = SQ.elimProp (λ _ → isSetSeqColimOfSets BnSeq (λ _ → squash/) _ _) (λ x → refl)
+      equivBn : SeqColim BnSeq ≃ B
+      equivBn = isoToEquiv (iso fwdBn bwdBn fwd-bwd bwd-fwd)
+
+    result : isODisc B
+    result = PT.rec squash₁
+      (λ allWit → let open WithAllWitnesses allWit in
+        isODisc-equiv equivBn (ODiscColimOfODisc BnSeq (λ n → ODiscFinSet (finBnSeq n))))
+      (countableChoice WitnessData getWitnesses)

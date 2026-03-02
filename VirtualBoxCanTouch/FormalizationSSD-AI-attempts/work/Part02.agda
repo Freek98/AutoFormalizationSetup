@@ -71,27 +71,28 @@ Sp-Bool-inhabited = ∣ idBoolHom BoolBR ∣₁
 
 -- Dependent Choice axiom (tex Axiom 355, axDependentChoice)
 
-SeqLimit : (E : ℕ → Type ℓ-zero) → ((n : ℕ) → E (suc n) → E n) → Type ℓ-zero
+SeqLimit : {ℓ : Level} → (E : ℕ → Type ℓ) → ((n : ℕ) → E (suc n) → E n) → Type ℓ
 SeqLimit E p = Σ[ f ∈ ((n : ℕ) → E n) ] ((n : ℕ) → p n (f (suc n)) ≡ f n)
 
-seqLim-proj₀ : (E : ℕ → Type ℓ-zero) (p : (n : ℕ) → E (suc n) → E n)
+seqLim-proj₀ : {ℓ : Level} → (E : ℕ → Type ℓ) (p : (n : ℕ) → E (suc n) → E n)
              → SeqLimit E p → E 0
 seqLim-proj₀ E p (f , _) = f 0
 
-DependentChoiceAxiom : Type (ℓ-suc ℓ-zero)
-DependentChoiceAxiom = (E : ℕ → Type ℓ-zero) (p : (n : ℕ) → E (suc n) → E n)
+DependentChoiceAxiom : {ℓ : Level} → Type (ℓ-suc ℓ)
+DependentChoiceAxiom {ℓ} = (E : ℕ → Type ℓ) (p : (n : ℕ) → E (suc n) → E n)
   → ((n : ℕ) → (y : E n) → ∥ Σ[ x ∈ E (suc n) ] p n x ≡ y ∥₁)
   → (e₀ : E 0) → ∥ Σ[ s ∈ SeqLimit E p ] seqLim-proj₀ E p s ≡ e₀ ∥₁
 
 postulate
-  dependentChoice-axiom : DependentChoiceAxiom
+  dependentChoice-axiom : DependentChoiceAxiom {ℓ-zero}
+  dependentChoice-axiom₁ : DependentChoiceAxiom {ℓ-suc ℓ-zero}
 
-CountableChoiceAxiom : Type (ℓ-suc ℓ-zero)
-CountableChoiceAxiom = (A : ℕ → Type ℓ-zero)
+CountableChoiceAxiom : {ℓ : Level} → Type (ℓ-suc ℓ)
+CountableChoiceAxiom {ℓ} = (A : ℕ → Type ℓ)
   → ((n : ℕ) → ∥ A n ∥₁)
   → ∥ ((n : ℕ) → A n) ∥₁
 
-countableChoice : CountableChoiceAxiom
+countableChoice : CountableChoiceAxiom {ℓ-zero}
 countableChoice A witnesses = PT.map (λ { ((f , _) , _) n → snd (f (suc n)) })
     (dependentChoice-axiom E p p-surj tt)
   where
@@ -104,6 +105,22 @@ countableChoice A witnesses = PT.map (λ { ((f , _) , _) n → snd (f (suc n)) }
 
   p-surj : (n : ℕ) → (y : E n) → ∥ Σ[ x ∈ E (suc n) ] p n x ≡ y ∥₁
   p-surj n y = PT.map (λ a → (y , a) , refl) (witnesses n)
+
+countableChoice₁ : CountableChoiceAxiom {ℓ-suc ℓ-zero}
+countableChoice₁ A witnesses = PT.map (λ { ((f , _) , _) n → snd (f (suc n)) })
+    (dependentChoice-axiom₁ E p p-surj (lift tt))
+  where
+  E : ℕ → Type (ℓ-suc ℓ-zero)
+  E zero = Lift {j = ℓ-suc ℓ-zero} Unit
+  E (suc n) = E n × A n
+  p : (n : ℕ) → E (suc n) → E n
+  p n (e , _) = e
+  p-surj : (n : ℕ) → (y : E n) → ∥ Σ[ x ∈ E (suc n) ] p n x ≡ y ∥₁
+  p-surj n y = PT.map (λ a → (y , a) , refl) (witnesses n)
+
+-- BoolQuotientEquiv: quotient by sum ≡ iterated quotient (CommRing level)
+-- Proved in QuotientConclusions.sumWhenRestricted for the nested QuotientBool,
+-- but the two QuotientBool modules have incompatible opaque /Im definitions.
 
 -- If B is Booleω, then B/d is Booleω for any sequence d (tex: Rule 2 separation)
 
@@ -352,7 +369,7 @@ quotientPreservesBooleω α = quotientBySeqHasBooleω Bool-Booleω α
 2/α-Booleω α = (BoolBR QB./Im α) , quotientPreservesBooleω α
 
 mp-from-SD : StoneDualityAxiom → MarkovPrinciple
-mp-from-SD SD α α≠0 = MarkovLib.extract' α (MarkovLib.∃αn α (trivialQuotient→1∈I BoolCR (IQ.genIdeal BoolCR α) (sym 0≡1-CR)))
+mp-from-SD SD α α≠0 = MarkovLib.extractFirstHitInBinarySequence.extract α (MarkovLib.∃αn α (trivialQuotient→1∈I BoolCR (IQ.genIdeal BoolCR α) (sym 0≡1-CR)))
   where
   open import Axioms.StoneDuality using (evaluationMap)
   open import CommRingQuotients.TrivialIdeal using (trivialQuotient→1∈I)
@@ -369,6 +386,10 @@ mp-from-SD SD α α≠0 = MarkovLib.extract' α (MarkovLib.∃αn α (trivialQuo
     0≡1-CR : CommRingStr.0r (snd (BoolCR IQ./Im α)) ≡ CommRingStr.1r (snd (BoolCR IQ./Im α))
     0≡1-CR = 0≡1-BR
 
+-- tex Remark 375 (SpIsAntiEquivalence): Sp defines a dual equivalence of Boole and Stone.
+-- This is captured by sd-axiom (StoneDuality), SDHomVersion, and SpFullyFaithful.
+-- tex Remark 160 (BooleAsCQuotient): Any countably presented algebra is 2[N]/(r_n).
+-- This is captured by has-Boole-ω' (quotient of freeBA ℕ).
 postulate
   sd-axiom : StoneDualityAxiom
 
@@ -522,6 +543,7 @@ firstTrue-false-but-original-true α (suc n) ft-sn=f α-sn=t with α zero | insp
   let (m , m<n , αsm=t) = firstTrue-false-but-original-true (α ∘ suc) n ft-sn=f α-sn=t
   in suc m , suc-≤-suc m<n , αsm=t
 
+-- tex Lemma 691 (closed stable under countable conjunctions)
 closedCountableIntersection : (P : ℕ → hProp ℓ-zero)
                             → ((n : ℕ) → isClosedProp (P n))
                             → isClosedProp (((n : ℕ) → ⟨ P n ⟩) , isPropΠ (λ n → snd (P n)))
@@ -555,6 +577,7 @@ closedCountableIntersection P αs =
           ≡⟨ allβFalse (cantorPair n k) ⟩
         false ∎
 
+-- tex Lemma 691 (open stable under countable disjunctions)
 openCountableUnion : (P : ℕ → hProp ℓ-zero)
                    → ((n : ℕ) → isOpenProp (P n))
                    → isOpenProp (∥ Σ[ n ∈ ℕ ] ⟨ P n ⟩ ∥₁ , squash₁)
@@ -593,7 +616,7 @@ openCountableUnion P αs = PT.rec squash₁ go (countableChoice _ αs)
                 true ∎
           in false≢true (sym (allFalse k) ∙ βk=t)
 
--- (ClopenDecidable from tex Corollary 774)
+-- tex Corollary 774 (ClopenDecidable)
 
 clopenIsDecidable : (P : hProp ℓ-zero) → isOpenProp P → isClosedProp P → Dec ⟨ P ⟩
 clopenIsDecidable P Popen Pclosed = PT.rec (isPropDec (snd P)) go Pclosed
@@ -608,7 +631,7 @@ clopenIsDecidable P Popen Pclosed = PT.rec (isPropDec (snd P)) go Pclosed
          (openIsStable mp P∨¬P-trunc P∨¬P-trunc-open
            (λ k → k ∣ inr (λ p → k ∣ inl p ∣₁) ∣₁)))
 
--- (ImplicationOpenClosed from tex Lemma 857)
+-- tex Lemma 857 (ImplicationOpenClosed)
 
 implicationOpenClosed : (P Q : hProp ℓ-zero) → isOpenProp P → isClosedProp Q
                       → isClosedProp ((⟨ P ⟩ → ⟨ Q ⟩) , isPropΠ (λ _ → snd Q))
@@ -654,7 +677,7 @@ implicationClosedOpen P Q Pclosed Qopen =
   backward = PT.rec (isPropΠ (λ _ → snd Q))
     (λ { (⊎.inl ¬p) p → ex-falso (¬p p) ; (⊎.inr q) _ → q })
 
--- (ClosedMarkov from tex Lemma 807)
+-- tex Lemma 807 (ClosedMarkov)
 closedMarkovTex : (P : ℕ → hProp ℓ-zero) → ((n : ℕ) → isClosedProp (P n))
                 → (¬ ((n : ℕ) → ⟨ P n ⟩)) ↔ ∥ Σ[ n ∈ ℕ ] (¬ ⟨ P n ⟩) ∥₁
 closedMarkovTex P Pclosed = PT.rec isPropResult go (countableChoice _ Pclosed)

@@ -134,6 +134,7 @@ module StoneEqualityClosedModule where
     (λ pres → SpEqualityClosed-from-presentation B pres s t)
     presB
 
+  -- tex Lemma 1636 (StoneEqualityClosed)
   StoneEqualityClosed : (S : Stone) → (s t : fst S)
     → isClosedProp ((s ≡ t) , hasStoneStr→isSet S s t)
   StoneEqualityClosed (X , B , path) s t = closedEquiv

@@ -1232,6 +1232,7 @@ module ConnectedComponentModule where
     bool-eq-eq false true  p = p
     bool-eq-eq false false _ = refl
 
+  -- tex Lemma 2144 (ConnectedComponentClosedInCompactHausdorff)
   ConnectedComponentClosedInCompactHausdorff : (X : CHaus) (x : fst X)
     → ∥ Σ[ D ∈ (ℕ → DecSubsetCHaus X) ]
         ((y : fst X) → fst (ConnectedComponent X x y)
@@ -1305,6 +1306,7 @@ module ConnectedComponentModule where
             Φt≡E : fst Φ t ≡ E
             Φt≡E = cong (invEq (fst equiv)) qt≡q ∙ retEq (fst equiv) E
 
+  -- tex Lemma 2156 (ConnectedComponentSubOpenHasDecidableInbetween)
   ConnectedComponentSubOpenHasDecidableInbetween : (X : CHaus) (x : fst X)
     → (U : fst X → hProp ℓ-zero) → ((y : fst X) → isOpenProp (U y))
     → ((y : fst X) → fst (ConnectedComponent X x y) → fst (U y))

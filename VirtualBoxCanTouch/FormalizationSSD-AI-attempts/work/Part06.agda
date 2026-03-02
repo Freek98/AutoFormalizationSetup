@@ -170,6 +170,7 @@ closedDeMorgan P Q Pclosed Qclosed ¬¬P∧¬Q = PT.rec2 squash₁ go Pclosed Qc
     helper (inl allEvensF) = ∣ inl (allEvensF-implies-P allEvensF) ∣₁
     helper (inr allOddsF) = ∣ inr (allOddsF-implies-Q allOddsF) ∣₁
 
+-- tex Lemma 691 (closed stable under finite disjunctions)
 closedOr : (P Q : hProp ℓ-zero) → isClosedProp P → isClosedProp Q
          → isClosedProp (∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁ , squash₁)
 closedOr P Q Pclosed Qclosed = PT.rec2 squash₁ go Pclosed Qclosed

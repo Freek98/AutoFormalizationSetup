@@ -32,7 +32,7 @@ open  import BooleanRing.FreeBooleanRing.FreeBool
 open  import BooleanRing.FreeBooleanRing.SurjectiveTerms
 open  import BooleanRing.FreeBooleanRing.freeBATerms
 
-open import BooleanRing.BooleanRingQuotients.QuotientBool as QB
+open import QuotientBool as QB
 import Cubical.HITs.SetQuotients as SQ
 import Cubical.Algebra.CommRing.Quotient.ImageQuotient as IQ
 open import Cubical.Algebra.CommRing.Ideal
