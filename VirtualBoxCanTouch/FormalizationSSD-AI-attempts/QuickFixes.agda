@@ -93,51 +93,29 @@ module _ {ℓ ℓ' ℓ'' ℓ''' : Level} {A : Type ℓ} {B : Type ℓ'}
   IsoΣ .sec (b , bp) = Σ≡Prop BPprop (sec iso b)
   IsoΣ .ret  (a , ap) = Σ≡Prop APprop (ret  iso a) 
 
-module _ where
-  open BooleanRingStr
-  open IsBooleanRing
-  open IsCommRing
-  open IsRing
-  open IsAbGroup
-  open IsMonoid
-  open IsSemigroup
-  pointWiseStructure : { ℓ ℓ' : Level} (A : Type ℓ) (B : A → Type ℓ') → 
-      ((a : A) → BooleanRingStr (B a)) → BooleanRingStr ((a : A) → B a)
-  pointWiseStructure A B f .𝟘 = 𝟘 ∘ f 
-  pointWiseStructure A B f .𝟙 = 𝟙 ∘ f 
-  pointWiseStructure A B f ._+_ x y a = (_+_ (f a)) (x a) (y a) 
-  pointWiseStructure A B f ._·_ x y a = (_·_ (f a)) (x a) (y a) 
-  pointWiseStructure A B f .-_ x a    = (-_ (f a))  (x a) 
-  pointWiseStructure A B f .isBooleanRing .isCommRing .isRing .+IsAbGroup .isGroup .IsGroup.isMonoid .isSemigroup .is-set = 
-    isSetΠ λ a → is-set (f a)
-  pointWiseStructure A B f .isBooleanRing .isCommRing .isRing .+IsAbGroup .isGroup .IsGroup.isMonoid .isSemigroup .·Assoc x y z = 
-    funExt λ a → +Assoc (f a) (x a) (y a) (z a)
-  pointWiseStructure A B f .isBooleanRing .isCommRing .isRing .+IsAbGroup .isGroup .IsGroup.isMonoid .·IdR x = 
-    funExt λ a → +IdR (f a) (x a)
-  pointWiseStructure A B f .isBooleanRing .isCommRing .isRing .+IsAbGroup .isGroup .IsGroup.isMonoid .·IdL x = 
-    funExt λ a → +IdL (f a) (x a)
-  pointWiseStructure A B f .isBooleanRing .isCommRing .isRing .+IsAbGroup .isGroup .IsGroup.·InvR x = 
-    funExt λ a → +InvR (f a) (x a)
-  pointWiseStructure A B f .isBooleanRing .isCommRing .isRing .+IsAbGroup .isGroup .IsGroup.·InvL x = 
-    funExt λ a → +InvL (f a) (x a)
-  pointWiseStructure A B f .isBooleanRing .isCommRing .isRing .+IsAbGroup .IsAbGroup.+Comm x y = 
-    funExt λ a → +Comm (f a) (x a) (y a) 
-  pointWiseStructure A B f .isBooleanRing .isCommRing .isRing .·IsMonoid .isSemigroup .is-set = 
-    isSetΠ λ a → is-set (f a)
-  pointWiseStructure A B f .isBooleanRing .isCommRing .isRing .·IsMonoid .isSemigroup .·Assoc x y z = 
-    funExt λ a → ·Assoc (f a) (x a) (y a) (z a)
-  pointWiseStructure A B f .isBooleanRing .isCommRing .isRing .·IsMonoid .·IdR x = 
-    funExt λ a → ·IdR (f a) (x a)
-  pointWiseStructure A B f .isBooleanRing .isCommRing .isRing .·IsMonoid .·IdL x = 
-    funExt λ a → ·IdL (f a) (x a)
-  pointWiseStructure A B f .isBooleanRing .isCommRing .isRing .·DistR+ x y z = 
-    funExt λ a → ·DistR+ (f a) (x a) (y a) (z a)
-  pointWiseStructure A B f .isBooleanRing .isCommRing .isRing .·DistL+ x y z = 
-    funExt λ a → ·DistL+ (f a) (x a) (y a) (z a)
-  pointWiseStructure A B f .isBooleanRing .isCommRing .·Comm x y = 
-    funExt λ a → ·Comm (f a) (x a) (y a)
-  pointWiseStructure A B f .isBooleanRing .·Idem x = 
-    funExt λ a → ·Idem (f a) (x a) 
+open import Cubical.Algebra.CommRing.Instances.Pointwise using (pointwiseRing)
+
+-- Pointwise BooleanRing structure, factored through the library's pointwiseRing for CommRing.
+-- The CommRing part comes from the library; we only add ·Idem.
+pointwiseBooleanRing : {ℓ ℓ' : Level} (X : Type ℓ) (B : BooleanRing ℓ') → BooleanRing _
+pointwiseBooleanRing X B = idemCommRing→BR (pointwiseRing X (BooleanRing→CommRing B))
+  λ f → funExt λ x → IsBooleanRing.·Idem (BooleanRingStr.isBooleanRing (str B)) (f x)
+
+-- Dependent pointwise BooleanRing, factored through idemCommRing→BR + makeIsCommRing.
+pointWiseStructure : {ℓ ℓ' : Level} (A : Type ℓ) (B : A → Type ℓ') →
+    ((a : A) → BooleanRingStr (B a)) → BooleanRingStr ((a : A) → B a)
+pointWiseStructure A B f = str (idemCommRing→BR
+  (_ , commringstr _ _ _ _ _ (makeIsCommRing
+    (isSetΠ λ a → BooleanRingStr.is-set (f a))
+    (λ x y z → funExt λ a → BooleanRingStr.+Assoc (f a) (x a) (y a) (z a))
+    (λ x → funExt λ a → BooleanRingStr.+IdR (f a) (x a))
+    (λ x → funExt λ a → BooleanRingStr.+InvR (f a) (x a))
+    (λ x y → funExt λ a → BooleanRingStr.+Comm (f a) (x a) (y a))
+    (λ x y z → funExt λ a → BooleanRingStr.·Assoc (f a) (x a) (y a) (z a))
+    (λ x → funExt λ a → BooleanRingStr.·IdR (f a) (x a))
+    (λ x y z → funExt λ a → BooleanRingStr.·DistR+ (f a) (x a) (y a) (z a))
+    (λ x y → funExt λ a → BooleanRingStr.·Comm (f a) (x a) (y a))))
+  (λ x → funExt λ a → BooleanRingStr.·Idem (f a) (x a)))
 
 mkBooleanRingEquiv : {ℓ ℓ' : Level} → (A : BooleanRing ℓ) → (B : BooleanRing ℓ') → 
                      (f : BoolHom A B) → isEquiv (fst f) → BooleanRingEquiv A B 
