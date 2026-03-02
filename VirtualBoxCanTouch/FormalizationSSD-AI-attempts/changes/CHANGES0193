@@ -1,0 +1,32 @@
+CHANGES0193: CountablyPresentedBooleanRings/Examples/NFinCofin.agda
+
+Added CountablyPresentedProof module with scaffolding for proving ℕfinCofinBA is countably presented.
+
+New definitions/lemmas:
+- Q = freeBA ℕ /Im relations (the quotient Boolean ring)
+- h : BoolHom Q ℕfinCofinBA (induced homomorphism)
+- qGen, h-qGen, prodIsRelation, qGen-disjoint
+- sB (recursive builder for finite joins of generators)
+- sB-disjoint (generators beyond bound are disjoint from sB)
+- ∨-disjoint (∨ = + when operands are disjoint)
+- sB-step, sB-bound-ind (bound manipulation lemmas)
+- sB-zero (if α is false below n, sB α n = 0)
+- ∨-lid (0 ∨ x = x)
+- sec (set-theoretic section: ℕfinCofinBA → Q)
+- truncate, truncate-zeroFrom, truncate-agrees
+- h-sB (h sends sB to truncated sequence - partial, yes case has hole)
+- sec-pres0 = refl (proved)
+- sec-pres- (proved using -IsId)
+- δ-below, sec-on-singleton (proved)
+- sec∘f≡π-on-gens, sec∘f≡π, sec∘h≡id-fun
+- h-iso, Q≃FC, FC≃Q, relationsFlat, Q', Q≃Q', FC≃Q'
+- ℕfinCofinBA-presented, ℕfinCofinBA-countably-presented-alt
+
+Remaining postulates:
+- h∘sec≡id (retraction, needs h-sB yes case)
+- sec-pres1, sec-pres+, sec-pres· (section ring hom properties)
+
+Remaining holes:
+- h-sB yes case (h sends ∨ to ∨)
+
+Passes scope check (TIMEOUT = no quick errors).

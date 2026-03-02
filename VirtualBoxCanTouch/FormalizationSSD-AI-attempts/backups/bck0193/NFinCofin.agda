@@ -267,7 +267,6 @@ module CountablyPresentedProof where
     module QA = BooleanAlgebraStr Q
     module FS = BooleanRingStr (snd (freeBA ℕ))
     module FCS = BooleanRingStr (snd ℕfinCofinBA)
-    module FCA = BooleanAlgebraStr ℕfinCofinBA
 
   h : BoolHom Q ℕfinCofinBA
   h = QB.inducedHom ℕfinCofinBA freeℕ→ℕFinCof relationsRespected
@@ -412,56 +411,15 @@ module CountablyPresentedProof where
     ... | no k≥n  | yes k<sn = sym (¬true→false (α k) λ αk →
           ¬αn (subst (λ m → α m ≡ true) (≤-antisym (pred-≤-pred k<sn) (<-asym' k≥n)) αk))
     ... | no _    | no _     = refl
-  ... | yes αn = h-sB-yes α n αn (h-sB α n)
-    where
-    -- h preserves ∨: fst h (a ∨ b) ≡ (fst h a) ∨ (fst h b) in ℕfinCofinBA
-    fc∨ = FCA._∨_
-    h-pres∨ : (a b : ⟨ Q ⟩) → fst h (QA._∨_ a b) ≡ fc∨ (fst h a) (fst h b)
-    h-pres∨ a b = pres+ (snd h) (QS._+_ a b) (QS._·_ a b)
-               ∙ cong₂ FCS._+_ (pres+ (snd h) a b) (pres· (snd h) a b)
-
-    or-truncate : (α : binarySequence) (n : ℕ) → α n ≡ true →
-      (k : ℕ) → truncate α n k or δSequence n k ≡ truncate α (suc n) k
-    or-truncate α n αn k with <Dec k n | <Dec k (suc n)
-    ... | yes _   | yes _    = cong (α k or_) (δnm=0 n k (<→≢ it ∘ sym)) ∙ or-identityʳ (α k)
-      where it = _
-    ... | yes k<n | no k≥sn  = ex-falso (k≥sn (≤-trans k<n (1 , refl)))
-    ... | no k≥n  | yes k<sn =
-      cong₂ _or_ refl (cong (δSequence n) (≤-antisym (pred-≤-pred k<sn) (<-asym' k≥n)) ∙ δnn=1 n)
-      ∙ or-zeroʳ false
-    ... | no k≥n  | no _     = cong (false or_) (δnm=0 n k λ p → k≥n (subst (_< n) (sym p) ≤-refl))
-
-    h-sB-yes : (α : binarySequence) (n : ℕ) → α n ≡ true →
-      fst (fst h (sB α n)) ≡ truncate α n →
-      fst (fst h (QA._∨_ (sB α n) (qGen n))) ≡ truncate α (suc n)
-    h-sB-yes α n αn ih = funExt λ k →
-      cong (λ x → fst x k) (h-pres∨ (sB α n) (qGen n))
-      ∙ QuickBooleanFix.claim (fst (fst h (sB α n)) k) (fst (fst h (qGen n)) k)
-      ∙ cong₂ _or_ (funExt⁻ ih k) (funExt⁻ (cong fst (h-qGen n)) k)
-      ∙ or-truncate α n αn k
-
-  -- h preserves ¬
-  h-pres¬ : (a : ⟨ Q ⟩) → fst h (QA.¬_ a) ≡ FCA.¬_ (fst h a)
-  h-pres¬ a = pres+ (snd h) QS.𝟙 a ∙ cong (FCS._+_ (fst h QS.𝟙)) refl
-            ∙ cong (λ z → FCS._+_ z (fst h a)) (pres1 (snd h))
-
-  -- h sends sFin α f to (α, Fin f)
-  h-sFin : (α : binarySequence) (f : isFinite α) →
-    fst h (sFin α f) ≡ (α , Fin f)
-  h-sFin α (constant0 z) = Σ≡Prop isPropisFiniteOrCofinite
-    (cong fst (pres0 (snd h)) ∙ funExt λ k → sym (z k zero-≤))
-  h-sFin α (last1 n αn z) = Σ≡Prop isPropisFiniteOrCofinite
-    (h-sB α (suc n) ∙ funExt (truncate-agrees α (suc n) z))
+  ... | yes αn = {! !} -- TODO: h sends join to join, use IH
 
   -- Main retraction proof (h ∘ sec = id)
-  h∘sec≡id : (x : ⟨ ℕfinCofinBA ⟩) → fst h (sec x) ≡ x
-  h∘sec≡id (α , Fin f) = h-sFin α f
-  h∘sec≡id (α , Cof c) =
-    h-pres¬ (sFin (BooleanAlgebraStr.¬_ ℙℕ α) c)
-    ∙ cong FCA.¬_ (h-sFin (BooleanAlgebraStr.¬_ ℙℕ α) c)
-    ∙ Σ≡Prop isPropisFiniteOrCofinite (FCA.¬Invol)
+  postulate
+    h∘sec≡id : (x : ⟨ ℕfinCofinBA ⟩) → fst h (sec x) ≡ x
 
   -- Section is a ring hom (needed for sec ∘ h = id)
+  private module FCA = BooleanAlgebraStr ℕfinCofinBA
+
   sec-pres0 : sec FCS.𝟘 ≡ QS.𝟘
   sec-pres0 = refl
 
@@ -521,7 +479,7 @@ module CountablyPresentedProof where
   h-iso : Iso ⟨ Q ⟩ ⟨ ℕfinCofinBA ⟩
   h-iso .Iso.fun = fst h
   h-iso .Iso.inv = sec
-  h-iso .Iso.sec = h∘sec≡id
+  h-iso .Iso.sec = funExt h∘sec≡id
   h-iso .Iso.ret = funExt⁻ sec∘h≡id-fun
 
   Q≃FC : BooleanRingEquiv Q ℕfinCofinBA

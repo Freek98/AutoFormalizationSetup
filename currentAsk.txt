@@ -89,3 +89,10 @@ I want you to finish a proof of the following: If i'm given a Boolean Ring (but 
   -- note from me, there should only be one extension of this proof. 
 
                                                        
+❯ No stop, I see you're using postulates. This is not allowed. Change your own  
+  instructions so you never use postulates. Also, the function                  
+  FiniteOrCofiniteBA \to FreeBA N / relations should terminate. A finite set    
+  should be sent to the disjunctions of it's finitely many generators. A        
+  cofinite set should be sent to the conjunction of the negations of the        
+  corresponding list.                                                           
+───────────────────────       
