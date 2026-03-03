@@ -1,3 +1,0 @@
-  ❯ Can your proof of yesterday include a proof that the inverse of the           
-  adjoint equivalence of the spectrum is the 2^ functor from Stone to           
-  Boole\omega?

@@ -1,5 +1,4 @@
 {-# OPTIONS --cubical --guardedness #-}
--- Note from Freek: I think the AI didn't add that much yesterday. 
 module CountablyPresentedBooleanRings.Examples.NFinCofin where
 open import CountablyPresentedBooleanRings.Definitions
 open import CountablyPresentedBooleanRings.Examples.Bool
@@ -15,7 +14,6 @@ open import Cubical.Data.Nat renaming (_·_ to _·ℕ_ ; _+_ to _+ℕ_)
 open import Cubical.Foundations.Prelude hiding (_∨_ ; _∧_)
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Function
-open import Cubical.Foundations.Isomorphism
 open import Cubical.Algebra.BooleanRing
 open import Cubical.Algebra.CommRing.Base
 open import Cubical.Algebra.CommRing.Instances.Bool
@@ -218,647 +216,59 @@ module PresentationℕfinCofin where
 
   freeℕ→ℕFinCof : BoolHom (freeBA ℕ) ℕfinCofinBA
   freeℕ→ℕFinCof = inducedBAHom ℕ ℕfinCofinBA singleton
-
-
-
-  open BooleanAlgebraStr ⦃...⦄
-  instance 
-    _ = freeBA ℕ
-    _ = ℕfinCofinBA
-  open BooleanRingStr ⦃...⦄
-  instance
-    _ = snd $ freeBA ℕ
-    _ = snd ℕfinCofinBA
-  relationHelper : (n m : ℕ) → Dec (n ≡ m) → ⟨ freeBA ℕ ⟩
-  relationHelper _ _ (yes _) = 𝟘
-  relationHelper n m (no ¬p) = generator n · generator m 
-
-  relations : ℕ × ℕ → ⟨ freeBA ℕ ⟩
-  relations (n , m) = relationHelper n m (discreteℕ n m)
   
-  open IsCommRingHom (snd freeℕ→ℕFinCof)
-  relationHelperRespected : (n m : ℕ) → (d : Dec (n ≡ m)) → freeℕ→ℕFinCof $cr (relationHelper n m d) ≡ 𝟘
-  relationHelperRespected n m (yes p) = pres0
-  relationHelperRespected n m (no ¬p) = 
-    freeℕ→ℕFinCof $cr (generator n · generator m)
-      ≡⟨ pres· (generator n) (generator m) ⟩ 
-    (freeℕ→ℕFinCof $cr generator n) · (freeℕ→ℕFinCof $cr generator m)   
-      ≡⟨ cong₂ _·_ (funExt⁻ (evalBAInduce ℕ ℕfinCofinBA singleton) n)  (funExt⁻ (evalBAInduce ℕ ℕfinCofinBA singleton) m) ⟩ 
-    (singleton n) · (singleton m)
-      ≡⟨ Σ≡Prop isPropisFiniteOrCofinite (funExt (δn∧δm=0 n m ¬p)) ⟩ 
-    𝟘 ∎ 
-
-  relationsRespected : ∀(p : ℕ × ℕ) → freeℕ→ℕFinCof $cr (relations p) ≡ 𝟘
-  relationsRespected (n , m) = relationHelperRespected n m (discreteℕ n m)
-
-open import BooleanRing.FreeBooleanRing.freeBATerms using (equalityFromEqualityOnGenerators)
-open import Cubical.Data.Nat.Bijections.Product using (ℕ×ℕ≅ℕ)
-open import Cubical.Algebra.CommRing using (compCommRingEquiv ; _∘cr_ ; _∘cre_)
-
-module CountablyPresentedProof where
-  open ℕFinCofin
-  open PresentationℕfinCofin
-  open IsCommRingHom
-
-  Q : BooleanRing ℓ-zero
-  Q = freeBA ℕ QB./Im relations
-
-  private
-    module QS = BooleanRingStr (snd Q)
-    module QA = BooleanAlgebraStr Q
-    module FS = BooleanRingStr (snd (freeBA ℕ))
-    module FCS = BooleanRingStr (snd ℕfinCofinBA)
-    module FCA = BooleanAlgebraStr ℕfinCofinBA
-
-  h : BoolHom Q ℕfinCofinBA
-  h = QB.inducedHom ℕfinCofinBA freeℕ→ℕFinCof relationsRespected
-
-  h∘π≡f : h ∘cr QB.quotientImageHom ≡ freeℕ→ℕFinCof
-  h∘π≡f = QB.evalInduce ℕfinCofinBA
-
-  qGen : ℕ → ⟨ Q ⟩
-  qGen n = QB.quotientImageHom $cr generator n
-
-  h-qGen : (n : ℕ) → fst h (qGen n) ≡ singleton n
-  h-qGen n = cong (λ f → f $cr generator n) h∘π≡f
-           ∙ funExt⁻ (evalBAInduce ℕ ℕfinCofinBA singleton) n
-
-  prodIsRelation : (n m : ℕ) → (n ≡ m → ⊥) →
-    FS._·_ (generator n) (generator m) ≡ relations (n , m)
-  prodIsRelation n m n≢m with discreteℕ n m
-  ... | yes p = ex-falso (n≢m p)
-  ... | no _  = refl
-
-  qGen-disjoint : (n m : ℕ) → (n ≡ m → ⊥) → QS._·_ (qGen n) (qGen m) ≡ QS.𝟘
-  qGen-disjoint n m n≢m =
-    sym (pres· (snd QB.quotientImageHom) (generator n) (generator m))
-    ∙ cong (fst QB.quotientImageHom) (prodIsRelation n m n≢m)
-    ∙ QB.zeroOnImage (n , m)
-
-  -- Build finite join of generators in Q
-  sB : binarySequence → ℕ → ⟨ Q ⟩
-  sB α zero = QS.𝟘
-  sB α (suc n) with α n =B true
-  ... | yes _ = QA._∨_ (sB α n) (qGen n)
-  ... | no _  = sB α n
-
-  -- Disjointness: sB α n is disjoint from qGen m when m ≥ n
-  sB-disjoint : (α : binarySequence) (n m : ℕ) → m ≥ n →
-    QS._·_ (sB α n) (qGen m) ≡ QS.𝟘
-  sB-disjoint α zero m _ =
-    solve! (BooleanRing→CommRing Q)
-  sB-disjoint α (suc n) m m≥sn with α n =B true
-  ... | no _ = sB-disjoint α n m (≤-trans (1 , refl) m≥sn)
-  ... | yes _ =
-    QS._·_ (QA._∨_ (sB α n) (qGen n)) (qGen m)
-      ≡⟨ solve! (BooleanRing→CommRing Q) ⟩
-    QS._+_ (QS._+_ (QS._·_ (sB α n) (qGen m))
-                     (QS._·_ (qGen n) (qGen m)))
-            (QS._·_ (QS._·_ (sB α n) (qGen n)) (qGen m))
-      ≡⟨ cong₂ QS._+_
-           (cong₂ QS._+_
-             (sB-disjoint α n m (≤-trans (1 , refl) m≥sn))
-             (qGen-disjoint n m λ p → ¬m<m (subst (suc n ≤_) (sym p) m≥sn)))
-           (cong (λ z → QS._·_ z (qGen m))
-             (sB-disjoint α n n ≤-refl)) ⟩
-    QS._+_ (QS._+_ QS.𝟘 QS.𝟘) (QS._·_ QS.𝟘 (qGen m))
-      ≡⟨ solve! (BooleanRing→CommRing Q) ⟩
-    QS.𝟘 ∎
-    where ¬m≤n : m ≤ n → ⊥
-          ¬m≤n m≤n = ¬m<m (≤-trans m≥sn m≤n)
-
-  -- ∨ simplifies when disjoint
-  ∨-disjoint : (x y : ⟨ Q ⟩) → QS._·_ x y ≡ QS.𝟘 →
-    QA._∨_ x y ≡ QS._+_ x y
-  ∨-disjoint x y xy=0 =
-    QA._∨_ x y
-      ≡⟨⟩
-    QS._+_ (QS._+_ x y) (QS._·_ x y)
-      ≡⟨ cong (QS._+_ (QS._+_ x y)) xy=0 ⟩
-    QS._+_ (QS._+_ x y) QS.𝟘
-      ≡⟨ QS.+IdR _ ⟩
-    QS._+_ x y ∎
-
-  -- sB step: when α n = false, sB doesn't change at suc n
-  sB-step : (α : binarySequence) (n : ℕ) → α n ≡ false → sB α (suc n) ≡ sB α n
-  sB-step α n αn=false with α n =B true
-  ... | yes αn=true = ex-falso (true≢false (sym αn=true ∙ αn=false))
-  ... | no _ = refl
-
-  -- Bound independence: if α is zero from m ≤ n, then sB α n = sB α m
-  sB-bound-ind : (α : binarySequence) (m n : ℕ) → n ≥ m →
-    isZeroFrom m α → sB α n ≡ sB α m
-  sB-bound-ind α zero zero _ _ = refl
-  sB-bound-ind α (suc m') zero n≥m _ = ex-falso (¬-<-zero n≥m)
-  sB-bound-ind α m (suc n) n≥m α≥m=0 = case ≤-split n≥m of λ
-    { (inl m<sn) →
-        sB-step α n (α≥m=0 n (pred-≤-pred m<sn))
-        ∙ sB-bound-ind α m n (pred-≤-pred m<sn) α≥m=0
-    ; (inr m≡sn) → cong (sB α) (sym m≡sn)
-    }
-
-  -- If α is false below n, then sB α n = 0
-  sB-zero : (α : binarySequence) (n : ℕ) →
-    ((k : ℕ) → k < n → α k ≡ false) → sB α n ≡ QS.𝟘
-  sB-zero α zero _ = refl
-  sB-zero α (suc n) allFalse with α n =B true
-  ... | yes αn = ex-falso (true≢false (sym αn ∙ allFalse n ≤-refl))
-  ... | no _ = sB-zero α n λ k k<n → allFalse k (≤-trans k<n (1 , refl))
-
-  -- 0 ∨ x = x in Q
-  ∨-lid : (x : ⟨ Q ⟩) → QA._∨_ QS.𝟘 x ≡ x
-  ∨-lid x = solve! (BooleanRing→CommRing Q)
-
-  -- Section for finite elements
-  sFin : (α : binarySequence) → isFinite α → ⟨ Q ⟩
-  sFin α (constant0 _)     = QS.𝟘
-  sFin α (last1 n _ α>n=0) = sB α (suc n)
-
-  -- Full section
-  sec : ⟨ ℕfinCofinBA ⟩ → ⟨ Q ⟩
-  sec (α , Fin f) = sFin α f
-  sec (α , Cof c) = QA.¬_ (sFin (BooleanAlgebraStr.¬_ ℙℕ α) c)
-
-  -- h ∘ sec = id (retraction)
-  -- Key: h sends sB α n to α truncated to [0,n)
-  open BooleanAlgebraStr ℙℕ using () renaming (_∨_ to _∨ℕ_ ; ¬_ to ¬ℕ_)
-
-  truncate : binarySequence → ℕ → binarySequence
-  truncate α n k with <Dec k n
-  ... | yes _ = α k
-  ... | no _  = false
-
-  truncate-zeroFrom : (α : binarySequence) (n : ℕ) → isZeroFrom n (truncate α n)
-  truncate-zeroFrom α n k k≥n with <Dec k n
-  ... | yes k<n = ex-falso (¬m<m (≤-trans k<n k≥n))
-  ... | no _    = refl
-
-  truncate-agrees : (α : binarySequence) (n : ℕ) → isZeroFrom n α →
-    (k : ℕ) → truncate α n k ≡ α k
-  truncate-agrees α n α≥n=0 k with <Dec k n
-  ... | yes _ = refl
-  ... | no k≮n = sym (α≥n=0 k (<-asym' k≮n))
-
-  -- h sends sB to truncated sequence
-  h-sB : (α : binarySequence) (n : ℕ) →
-    fst (fst h (sB α n)) ≡ truncate α n
-  h-sB α zero = funExt λ k →
-    cong (λ x → fst x k) (pres0 (snd h))
-  h-sB α (suc n) with α n =B true
-  ... | no ¬αn = funExt λ k → funExt⁻ (h-sB α n) k ∙ go k where
-    go : (k : ℕ) → truncate α n k ≡ truncate α (suc n) k
-    go k with <Dec k n | <Dec k (suc n)
-    ... | yes _   | yes _    = refl
-    ... | yes k<n | no k≥sn  = ex-falso (k≥sn (≤-trans k<n (1 , refl)))
-    ... | no k≥n  | yes k<sn = sym (¬true→false (α k) λ αk →
-          ¬αn (subst (λ m → α m ≡ true) (≤-antisym (pred-≤-pred k<sn) (<-asym' k≥n)) αk))
-    ... | no _    | no _     = refl
-  ... | yes αn = h-sB-yes α n αn (h-sB α n)
-    where
-    -- h preserves ∨: fst h (a ∨ b) ≡ (fst h a) ∨ (fst h b) in ℕfinCofinBA
-    fc∨ = FCA._∨_
-    h-pres∨ : (a b : ⟨ Q ⟩) → fst h (QA._∨_ a b) ≡ fc∨ (fst h a) (fst h b)
-    h-pres∨ a b = pres+ (snd h) (QS._+_ a b) (QS._·_ a b)
-               ∙ cong₂ FCS._+_ (pres+ (snd h) a b) (pres· (snd h) a b)
-
-    or-truncate : (α : binarySequence) (n : ℕ) → α n ≡ true →
-      (k : ℕ) → truncate α n k or δSequence n k ≡ truncate α (suc n) k
-    or-truncate α n αn k with <Dec k n | <Dec k (suc n)
-    ... | yes k<n | yes _    = cong (α k or_) (δnm=0 n k (<→≢ k<n ∘ sym)) ∙ or-identityʳ (α k)
-    ... | yes k<n | no k≥sn  = ex-falso (k≥sn (≤-trans k<n (1 , refl)))
-    ... | no k≥n  | yes k<sn =
-      let k≡n = ≤-antisym (pred-≤-pred k<sn) (<-asym' k≥n)
-      in cong₂ _or_ refl (cong (δSequence n) k≡n ∙ δnn=1 n)
-         ∙ sym αn ∙ cong α (sym k≡n)
-    ... | no k≥n  | no k≥sn  = cong (false or_) (δnm=0 n k λ p → k≥sn (subst (_< suc n) p ≤-refl))
-
-    h-sB-yes : (α : binarySequence) (n : ℕ) → α n ≡ true →
-      fst (fst h (sB α n)) ≡ truncate α n →
-      fst (fst h (QA._∨_ (sB α n) (qGen n))) ≡ truncate α (suc n)
-    h-sB-yes α n αn ih = funExt λ k →
-      cong (λ x → fst x k) (h-pres∨ (sB α n) (qGen n))
-      ∙ QuickBooleanFix.claim (fst (fst h (sB α n)) k) (fst (fst h (qGen n)) k)
-      ∙ cong₂ _or_ (funExt⁻ ih k) (funExt⁻ (cong fst (h-qGen n)) k)
-      ∙ or-truncate α n αn k
-
-  -- h preserves ¬
-  h-pres¬ : (a : ⟨ Q ⟩) → fst h (QA.¬_ a) ≡ FCA.¬_ (fst h a)
-  h-pres¬ a = pres+ (snd h) QS.𝟙 a ∙ cong (FCS._+_ (fst h QS.𝟙)) refl
-            ∙ cong (λ z → FCS._+_ z (fst h a)) (pres1 (snd h))
-
-  -- h sends sFin α f to (α, Fin f)
-  h-sFin : (α : binarySequence) (f : isFinite α) →
-    fst h (sFin α f) ≡ (α , Fin f)
-  h-sFin α (constant0 z) = Σ≡Prop isPropisFiniteOrCofinite
-    (cong fst (pres0 (snd h)) ∙ funExt λ k → sym (z k zero-≤))
-  h-sFin α (last1 n αn z) = Σ≡Prop isPropisFiniteOrCofinite
-    (h-sB α (suc n) ∙ funExt (truncate-agrees α (suc n) z))
-
-  -- Main retraction proof (h ∘ sec = id)
-  h∘sec≡id : (x : ⟨ ℕfinCofinBA ⟩) → fst h (sec x) ≡ x
-  h∘sec≡id (α , Fin f) = h-sFin α f
-  h∘sec≡id (α , Cof c) =
-    h-pres¬ (sFin (BooleanAlgebraStr.¬_ ℙℕ α) c)
-    ∙ cong FCA.¬_ (h-sFin (BooleanAlgebraStr.¬_ ℙℕ α) c)
-    ∙ Σ≡Prop isPropisFiniteOrCofinite (funExt (λ k → notnot (α k)))
-
-  -- Section is a ring hom (needed for sec ∘ h = id)
-  sec-pres0 : sec FCS.𝟘 ≡ QS.𝟘
-  sec-pres0 = refl
-
-  sec-pres- : (x : ⟨ ℕfinCofinBA ⟩) → sec (FCS.-_ x) ≡ QS.-_ (sec x)
-  sec-pres- x = cong sec (sym (FCA.-IsId {x = x})) ∙ QA.-IsId {x = sec x}
-
-  -- sB step: when α n = true, sB increases
-  sB-true : (α : binarySequence) (n : ℕ) → α n ≡ true →
-    sB α (suc n) ≡ QA._∨_ (sB α n) (qGen n)
-  sB-true α n αn with α n =B true
-  ... | yes _ = refl
-  ... | no ¬p = ex-falso (¬p αn)
-
-  -- sB distributes over AND (pointwise ·)
-  sB-pres· : (α β : binarySequence) (n : ℕ) →
-    QS._·_ (sB α n) (sB β n) ≡ sB (λ k → α k and β k) n
-  sB-pres· α β zero = solve! (BooleanRing→CommRing Q)
-  sB-pres· α β (suc n) with α n =B true | β n =B true
-  ... | no ¬αn | no ¬βn =
-    sB-pres· α β n
-    ∙ sym (sB-step (λ k → α k and β k) n
-            (cong₂ _and_ (¬true→false (α n) ¬αn) (¬true→false (β n) ¬βn)))
-  ... | no ¬αn | yes βn =
-    let a = sB α n ; b = sB β n ; g = qGen n
-        αn = ¬true→false (α n) ¬αn
-    in
-    cong (QS._·_ a) (∨-disjoint b g (sB-disjoint β n n ≤-refl))
-    ∙ (QS._·_ a (QS._+_ b g)
-        ≡⟨ solve! (BooleanRing→CommRing Q) ⟩
-      QS._+_ (QS._·_ a b) (QS._·_ a g)
-        ≡⟨ cong₂ QS._+_ (sB-pres· α β n) (sB-disjoint α n n ≤-refl) ⟩
-      QS._+_ (sB (λ k → α k and β k) n) QS.𝟘
-        ≡⟨ QS.+IdR _ ⟩
-      sB (λ k → α k and β k) n ∎)
-    ∙ sym (sB-step (λ k → α k and β k) n (cong₂ _and_ αn refl))
-  ... | yes αn | no ¬βn =
-    let a = sB α n ; b = sB β n ; g = qGen n
-        βn = ¬true→false (β n) ¬βn
-    in
-    cong (λ z → QS._·_ z b) (∨-disjoint a g (sB-disjoint α n n ≤-refl))
-    ∙ (QS._·_ (QS._+_ a g) b
-        ≡⟨ solve! (BooleanRing→CommRing Q) ⟩
-      QS._+_ (QS._·_ a b) (QS._·_ g b)
-        ≡⟨ cong₂ QS._+_ (sB-pres· α β n) (QS.·Comm g b ∙ sB-disjoint β n n ≤-refl) ⟩
-      QS._+_ (sB (λ k → α k and β k) n) QS.𝟘
-        ≡⟨ QS.+IdR _ ⟩
-      sB (λ k → α k and β k) n ∎)
-    ∙ sym (sB-step (λ k → α k and β k) n (cong₂ _and_ αn βn))
-  ... | yes αn | yes βn =
-    let a = sB α n ; b = sB β n ; g = qGen n
-        c = sB (λ k → α k and β k) n
-        ag=0 = sB-disjoint α n n ≤-refl
-        bg=0 = sB-disjoint β n n ≤-refl
-        cg=0 = sB-disjoint (λ k → α k and β k) n n ≤-refl
-    in
-    cong₂ QS._·_ (∨-disjoint a g ag=0) (∨-disjoint b g bg=0)
-    ∙ (QS._·_ (QS._+_ a g) (QS._+_ b g)
-        ≡⟨ solve! (BooleanRing→CommRing Q) ⟩
-      QS._+_ (QS._+_ (QS._·_ a b) (QS._·_ a g))
-              (QS._+_ (QS._·_ g b) (QS._·_ g g))
-        ≡⟨ cong₂ QS._+_
-             (cong₂ QS._+_ (sB-pres· α β n) ag=0 ∙ QS.+IdR c)
-             (cong₂ QS._+_ (QS.·Comm g b ∙ bg=0) QA.∧Idem ∙ QS.+IdL g) ⟩
-      QS._+_ c g ∎)
-    ∙ sym (∨-disjoint c g cg=0)
-    ∙ sym (sB-true (λ k → α k and β k) n (cong₂ _and_ αn βn))
-
-  -- sB distributes over XOR (pointwise +)
-  sB-pres+ : (α β : binarySequence) (n : ℕ) →
-    QS._+_ (sB α n) (sB β n) ≡ sB (λ k → α k ⊕ β k) n
-  sB-pres+ α β zero = solve! (BooleanRing→CommRing Q)
-  sB-pres+ α β (suc n) with α n =B true | β n =B true
-  ... | no ¬αn | no ¬βn =
-    sB-pres+ α β n
-    ∙ sym (sB-step (λ k → α k ⊕ β k) n
-            (cong₂ _⊕_ (¬true→false (α n) ¬αn) (¬true→false (β n) ¬βn)))
-  ... | no ¬αn | yes βn =
-    let a = sB α n ; b = sB β n ; g = qGen n
-        c = sB (λ k → α k ⊕ β k) n
-        αn = ¬true→false (α n) ¬αn
-    in
-    cong (QS._+_ a) (∨-disjoint b g (sB-disjoint β n n ≤-refl))
-    ∙ QS.+Assoc a b g
-    ∙ cong (λ z → QS._+_ z g) (sB-pres+ α β n)
-    ∙ sym (∨-disjoint c g (sB-disjoint (λ k → α k ⊕ β k) n n ≤-refl))
-    ∙ sym (sB-true (λ k → α k ⊕ β k) n (cong₂ _⊕_ αn βn))
-  ... | yes αn | no ¬βn =
-    let a = sB α n ; b = sB β n ; g = qGen n
-        c = sB (λ k → α k ⊕ β k) n
-        βn = ¬true→false (β n) ¬βn
-    in
-    cong (λ z → QS._+_ z b) (∨-disjoint a g (sB-disjoint α n n ≤-refl))
-    ∙ (QS._+_ (QS._+_ a g) b
-        ≡⟨ solve! (BooleanRing→CommRing Q) ⟩
-      QS._+_ (QS._+_ a b) g ∎)
-    ∙ cong (λ z → QS._+_ z g) (sB-pres+ α β n)
-    ∙ sym (∨-disjoint c g (sB-disjoint (λ k → α k ⊕ β k) n n ≤-refl))
-    ∙ sym (sB-true (λ k → α k ⊕ β k) n (cong₂ _⊕_ αn βn))
-  ... | yes αn | yes βn =
-    let a = sB α n ; b = sB β n ; g = qGen n
-        ag=0 = sB-disjoint α n n ≤-refl
-        bg=0 = sB-disjoint β n n ≤-refl
-    in
-    cong₂ QS._+_ (∨-disjoint a g ag=0) (∨-disjoint b g bg=0)
-    ∙ (QS._+_ (QS._+_ a g) (QS._+_ b g)
-        ≡⟨ solve! (BooleanRing→CommRing Q) ⟩
-      QS._+_ (QS._+_ a b) (QS._+_ g g)
-        ≡⟨ cong₂ QS._+_ (sB-pres+ α β n) QA.characteristic2 ⟩
-      QS._+_ (sB (λ k → α k ⊕ β k) n) QS.𝟘
-        ≡⟨ QS.+IdR _ ⟩
-      sB (λ k → α k ⊕ β k) n ∎)
-    ∙ sym (sB-step (λ k → α k ⊕ β k) n (cong₂ _⊕_ αn βn))
-
-  -- Equating sB at two different bounds (both are bounds for γ)
-  sB-zeroFrom-eq : (γ : binarySequence) (m n : ℕ) →
-    isZeroFrom m γ → isZeroFrom n γ → sB γ m ≡ sB γ n
-  sB-zeroFrom-eq γ m n zm zn with m =ℕ n
-  ... | lt m<n = sym (sB-bound-ind γ m n (<-weaken m<n) zm)
-  ... | eq m≡n = cong (sB γ) m≡n
-  ... | gt m>n = sB-bound-ind γ n m (<-weaken m>n) zn
-
-  -- Finiteness of AND
-  and-zeroFrom : (α β : binarySequence) (n : ℕ) → isZeroFrom n α → isZeroFrom n (λ k → α k and β k)
-  and-zeroFrom α β n zα k k≥n = cong (λ x → x and β k) (zα k k≥n)
-
-  -- sec-pres1: sec preserves 1
-  sec-pres1 : sec FCS.𝟙 ≡ QS.𝟙
-  sec-pres1 = QS.+IdR QS.𝟙
-
-  -- sFin invariance: since isFinite is a prop, sFin is independent of proof
-  sFin-irrel : (α : binarySequence) (f₁ f₂ : isFinite α) → sFin α f₁ ≡ sFin α f₂
-  sFin-irrel α f₁ f₂ = cong (sFin α) (isPropIsFinite α f₁ f₂)
-
-  -- sFin along a path between sequences (both proofs are just finite)
-  sFin-path : (α β : binarySequence) (p : α ≡ β) (fα : isFinite α) (fβ : isFinite β) →
-    sFin α fα ≡ sFin β fβ
-  sFin-path α β p fα fβ i = sFin (p i) (isProp→PathP (λ i → isPropIsFinite (p i)) fα fβ i)
-
-  -- sFin at a given bound matches sB
-  sFin-last1 : (α : binarySequence) (n : ℕ) (αn : α n ≡ true) (z : isZeroFrom (suc n) α) →
-    sFin α (last1 n αn z) ≡ sB α (suc n)
-  sFin-last1 _ _ _ _ = refl
-
-  -- Compute sFin via any bound: pattern match on the isFinite proof directly
-  sFin-via-bound : (α : binarySequence) (f : isFinite α) (n : ℕ) (z : isZeroFrom n α) →
-    sFin α f ≡ sB α n
-  sFin-via-bound α (constant0 z0) n zn = sB-zeroFrom-eq α 0 n z0 zn
-  sFin-via-bound α (last1 m αm zm) n zn = sB-zeroFrom-eq α (suc m) n zm zn
-
-  -- sec-pres· for two finite elements
-  sFin-pres· : (α β : binarySequence) (fα : isFinite α) (fβ : isFinite β)
-    (f·  : isFinite (λ k → α k and β k)) →
-    sFin (λ k → α k and β k) f· ≡ QS._·_ (sFin α fα) (sFin β fβ)
-  sFin-pres· α β fα fβ f· =
-    let (nα , zα) = finite→Bounded α fα
-        (nβ , zβ) = finite→Bounded β fβ
-        n = max nα nβ
-        zα' : isZeroFrom n α
-        zα' k k≥n = zα k (≤-trans (left-≤-max {n = nβ}) k≥n)
-        zβ' : isZeroFrom n β
-        zβ' k k≥n = zβ k (≤-trans (right-≤-max {m = nα}) k≥n)
-        z· : isZeroFrom n (λ k → α k and β k)
-        z· = and-zeroFrom α β n zα'
-    in sFin-via-bound (λ k → α k and β k) f· n z·
-     ∙ sym (sB-pres· α β n)
-     ∙ cong₂ QS._·_ (sym (sFin-via-bound α fα n zα'))
-                     (sym (sFin-via-bound β fβ n zβ'))
-
-  -- sFin distributes over XOR
-  sFin-pres+ : (α β : binarySequence) (fα : isFinite α) (fβ : isFinite β)
-    (f+ : isFinite (λ k → α k ⊕ β k)) →
-    sFin (λ k → α k ⊕ β k) f+ ≡ QS._+_ (sFin α fα) (sFin β fβ)
-  sFin-pres+ α β fα fβ f+ =
-    let (nα , zα) = finite→Bounded α fα
-        (nβ , zβ) = finite→Bounded β fβ
-        n = max nα nβ
-        zα' : isZeroFrom n α
-        zα' k k≥n = zα k (≤-trans (left-≤-max {n = nβ}) k≥n)
-        zβ' : isZeroFrom n β
-        zβ' k k≥n = zβ k (≤-trans (right-≤-max {m = nα}) k≥n)
-        z+ : isZeroFrom n (λ k → α k ⊕ β k)
-        z+ k k≥n = cong₂ _⊕_ (zα' k k≥n) (zβ' k k≥n)
-    in sFin-via-bound (λ k → α k ⊕ β k) f+ n z+
-     ∙ sym (sB-pres+ α β n)
-     ∙ cong₂ QS._+_ (sym (sFin-via-bound α fα n zα'))
-                     (sym (sFin-via-bound β fβ n zβ'))
-
-  -- Pointwise: α ⊕ (α and ¬β) = α and β
-  xor-and-not : (a b : Bool) → a ⊕ (a and not b) ≡ a and b
-  xor-and-not false false = refl
-  xor-and-not false true  = refl
-  xor-and-not true  false = refl
-  xor-and-not true  true  = refl
-
-  -- ¬β finiteness from cofiniteness of β
-  ¬-fin : (β : binarySequence) → isCofinite β → isFinite (BooleanAlgebraStr.¬_ ℙℕ β)
-  ¬-fin β cβ = cβ
-
-  -- α ∧ ¬β is finite when α is finite
-  and-not-fin : (α β : binarySequence) → isFinite α → isFinite (λ k → α k and not (β k))
-  and-not-fin α β fα = intersectionWithFiniteIsFinite α (BooleanAlgebraStr.¬_ ℙℕ β) fα
-
-  -- sec only depends on fst and Fin/Cof tag, not the proof details
-  sec-irrel : (α : binarySequence) (p q : isFiniteOrCofinite α) → sec (α , p) ≡ sec (α , q)
-  sec-irrel α p q = cong (sec ∘ (α ,_)) (isPropisFiniteOrCofinite α p q)
-
-  -- Pointwise Bool lemmas for XOR
-  not-xor-not : (a b : Bool) → not a ⊕ not b ≡ a ⊕ b
-  not-xor-not false false = refl
-  not-xor-not false true  = refl
-  not-xor-not true  false = refl
-  not-xor-not true  true  = refl
-
-  not-xor-r : (a b : Bool) → not (a ⊕ b) ≡ a ⊕ not b
-  not-xor-r false false = refl
-  not-xor-r false true  = refl
-  not-xor-r true  false = refl
-  not-xor-r true  true  = refl
-
-  -- Finiteness of XOR from bounds
-  xor-zeroFrom : (α β : binarySequence) (n : ℕ) →
-    isZeroFrom n α → isZeroFrom n β → isZeroFrom n (λ k → α k ⊕ β k)
-  xor-zeroFrom α β n zα zβ k k≥n = cong₂ _⊕_ (zα k k≥n) (zβ k k≥n)
-
-  xor-fin : (α β : binarySequence) → isFinite α → isFinite β → isFinite (λ k → α k ⊕ β k)
-  xor-fin α β fα fβ =
-    let (nα , zα) = finite→Bounded α fα
-        (nβ , zβ) = finite→Bounded β fβ
-        n = max nα nβ
-    in bounded→Finite _ n (xor-zeroFrom α β n
-         (λ k k≥n → zα k (≤-trans (left-≤-max {n = nβ}) k≥n))
-         (λ k k≥n → zβ k (≤-trans (right-≤-max {m = nα}) k≥n)))
-
-  -- De Morgan identity pointwise
-  dm-pw : (a b : Bool) → not (a and b) ≡ (not a ⊕ not b) ⊕ (not a and not b)
-  dm-pw false false = refl
-  dm-pw false true  = refl
-  dm-pw true  false = refl
-  dm-pw true  true  = refl
-
-  -- sec-pres·: sec preserves multiplication
-  sec-pres· : (x y : ⟨ ℕfinCofinBA ⟩) → sec (FCS._·_ x y) ≡ QS._·_ (sec x) (sec y)
-  sec-pres· (α , Fin fα) (β , Fin fβ) =
-    sFin-pres· α β fα fβ (intersectionWithFiniteIsFinite α β fα)
-  sec-pres· (α , Fin fα) (β , Cof cβ) =
-    -- sFin(α∧β) = sFin(α⊕(α∧¬β)) = a + a·b = a·(1+b) where a = sFin α, b = sFin ¬β
-    let ¬β = BooleanAlgebraStr.¬_ ℙℕ β
-        f· = intersectionWithFiniteIsFinite α β fα
-        f∧¬ = and-not-fin α β fα
-        f⊕ : isFinite (λ k → α k ⊕ (α k and not (β k)))
-        f⊕ = subst isFinite (sym (funExt (λ k → xor-and-not (α k) (β k)))) f·
-    in sFin-path _ _ (funExt λ k → sym (xor-and-not (α k) (β k))) f· f⊕
-     ∙ sFin-pres+ α (λ k → α k and not (β k)) fα f∧¬ f⊕
-     ∙ cong (QS._+_ (sFin α fα)) (sFin-pres· α ¬β fα cβ f∧¬)
-     ∙ sym (QS.·DistR+ (sFin α fα) QS.𝟙 (sFin ¬β cβ)
-            ∙ cong (λ z → QS._+_ z (QS._·_ (sFin α fα) (sFin ¬β cβ))) (QS.·IdR (sFin α fα)))
-  sec-pres· (α , Cof cα) (β , Fin fβ) =
-    cong sec (FCS.·Comm (α , Cof cα) (β , Fin fβ))
-    ∙ sec-pres· (β , Fin fβ) (α , Cof cα)
-    ∙ QS.·Comm (sec (β , Fin fβ)) (sec (α , Cof cα))
-  sec-pres· (α , Cof cα) (β , Cof cβ) =
-    let ¬α = BooleanAlgebraStr.¬_ ℙℕ α
-        ¬β = BooleanAlgebraStr.¬_ ℙℕ β
-        f⊕ = xor-fin ¬α ¬β cα cβ
-        f∧ = intersectionWithFiniteIsFinite ¬α ¬β cα
-        dm = funExt (λ k → dm-pw (α k) (β k))
-        c' : isFinite (λ k → not (α k and β k))
-        c' = subst isFinite (sym $ BooleanAlgebraStr.DeMorgan¬∧ ℙℕ {x = α} {y = β})
-               (finiteClosedByUnion ¬α ¬β cα cβ)
-        fvee : isFinite (λ k → (not (α k) ⊕ not (β k)) ⊕ (not (α k) and not (β k)))
-        fvee = subst isFinite dm c'
-    in cong QA.¬_ (sFin-path _ _ dm c' fvee
-       ∙ sFin-pres+ (λ k → not (α k) ⊕ not (β k)) (λ k → not (α k) and not (β k)) f⊕ f∧ fvee
-       ∙ cong₂ QS._+_ (sFin-pres+ ¬α ¬β cα cβ f⊕) (sFin-pres· ¬α ¬β cα cβ f∧))
-     ∙ QA.DeMorgan¬∨
-
-  -- sec-pres+: sec preserves addition
-  -- Key: fst (FCS._+_ x y) = λ k → fst x k ⊕ fst y k (definitionally)
-  -- so sec (FCS._+_ x y) = sec (λ k → α k ⊕ β k , some-proof)
-  -- use sec-irrel to replace some-proof with a known Fin/Cof
-  sec-pres+ : (x y : ⟨ ℕfinCofinBA ⟩) → sec (FCS._+_ x y) ≡ QS._+_ (sec x) (sec y)
-  sec-pres+ (α , Fin fα) (β , Fin fβ) =
-    let f⊕ = xor-fin α β fα fβ
-    in sec-irrel _ (snd (FCS._+_ (α , Fin fα) (β , Fin fβ))) (Fin f⊕)
-     ∙ sFin-pres+ α β fα fβ f⊕
-  sec-pres+ (α , Fin fα) (β , Cof cβ) =
-    -- α⊕β is cofinite: ¬(α⊕β) = α⊕¬β (pointwise), which is finite
-    let ¬β = BooleanAlgebraStr.¬_ ℙℕ β
-        f¬⊕ : isFinite (λ k → α k ⊕ not (β k))
-        f¬⊕ = xor-fin α ¬β fα cβ
-        c⊕ : isCofinite (λ k → α k ⊕ β k)
-        c⊕ = subst isFinite (funExt λ k → sym (not-xor-r (α k) (β k))) f¬⊕
-        p¬ : (λ k → not (α k ⊕ β k)) ≡ (λ k → α k ⊕ not (β k))
-        p¬ = funExt λ k → not-xor-r (α k) (β k)
-    in sec-irrel _ (snd (FCS._+_ (α , Fin fα) (β , Cof cβ))) (Cof c⊕)
-     ∙ cong QA.¬_ (sFin-path _ _ p¬ c⊕ f¬⊕ ∙ sFin-pres+ α ¬β fα cβ f¬⊕)
-     ∙ sym (QS.+Assoc (sFin α fα) QS.𝟙 (sFin ¬β cβ)
-            ∙ cong (λ z → QS._+_ z (sFin ¬β cβ)) (QS.+Comm (sFin α fα) QS.𝟙)
-            ∙ sym (QS.+Assoc QS.𝟙 (sFin α fα) (sFin ¬β cβ)))
-  sec-pres+ (α , Cof cα) (β , Fin fβ) =
-    cong sec (FCS.+Comm (α , Cof cα) (β , Fin fβ))
-    ∙ sec-pres+ (β , Fin fβ) (α , Cof cα)
-    ∙ QS.+Comm (sec (β , Fin fβ)) (sec (α , Cof cα))
-  sec-pres+ (α , Cof cα) (β , Cof cβ) =
-    -- α⊕β is finite: not(α)⊕not(β) = α⊕β, and ¬α,¬β are finite
-    let ¬α = BooleanAlgebraStr.¬_ ℙℕ α
-        ¬β = BooleanAlgebraStr.¬_ ℙℕ β
-        a = sFin ¬α cα
-        b = sFin ¬β cβ
-        f¬⊕¬ : isFinite (λ k → not (α k) ⊕ not (β k))
-        f¬⊕¬ = xor-fin ¬α ¬β cα cβ
-        f⊕ : isFinite (λ k → α k ⊕ β k)
-        f⊕ = subst isFinite (funExt λ k → not-xor-not (α k) (β k)) f¬⊕¬
-        p : (λ k → α k ⊕ β k) ≡ (λ k → not (α k) ⊕ not (β k))
-        p = sym (funExt λ k → not-xor-not (α k) (β k))
-    in sec-irrel _ (snd (FCS._+_ (α , Cof cα) (β , Cof cβ))) (Fin f⊕)
-     ∙ sFin-path _ _ p f⊕ f¬⊕¬
-     ∙ sFin-pres+ ¬α ¬β cα cβ f¬⊕¬
-     ∙ sym (sym (QS.+Assoc QS.𝟙 a (QS._+_ QS.𝟙 b))
-            ∙ cong (QS._+_ QS.𝟙) (QS.+Assoc a QS.𝟙 b
-                ∙ cong (λ z → QS._+_ z b) (QS.+Comm a QS.𝟙)
-                ∙ sym (QS.+Assoc QS.𝟙 a b))
-            ∙ QS.+Assoc QS.𝟙 QS.𝟙 (QS._+_ a b)
-            ∙ cong (λ z → QS._+_ z (QS._+_ a b)) QA.characteristic2
-            ∙ QS.+IdL (QS._+_ a b))
-
-  secHom : BoolHom ℕfinCofinBA Q
-  fst secHom = sec
-  snd secHom .pres0 = sec-pres0
-  snd secHom .pres1 = sec-pres1
-  snd secHom .pres+ = sec-pres+
-  snd secHom .pres· = sec-pres·
-  snd secHom .pres- = sec-pres-
-
-  -- sec ∘ h = id via generators
-  δ-below : (n k : ℕ) → k < n → δSequence n k ≡ false
-  δ-below n k k<n = δnm=0 n k (<→≢ k<n ∘ sym)
-
-  sec-on-singleton : (n : ℕ) → sec (singleton n) ≡ qGen n
-  sec-on-singleton n = go n
-    where
-    go : (n : ℕ) → sB (δSequence n) (suc n) ≡ qGen n
-    go n with δSequence n n =B true
-    ... | yes _ = cong (λ z → QA._∨_ z (qGen n))
-                    (sB-zero (δSequence n) n (δ-below n))
-                  ∙ ∨-lid (qGen n)
-    ... | no ¬p = ex-falso (¬p (δnn=1 n))
-
-  -- sec ∘ freeℕ→ℕFinCof = quotientImageHom (by universal property)
-  sec∘f≡π-on-gens : (n : ℕ) →
-    (secHom ∘cr freeℕ→ℕFinCof) $cr generator n ≡ QB.quotientImageHom $cr generator n
-  sec∘f≡π-on-gens n =
-    sec (fst freeℕ→ℕFinCof (generator n))
-      ≡⟨ cong sec (funExt⁻ (evalBAInduce ℕ ℕfinCofinBA singleton) n) ⟩
-    sec (singleton n)
-      ≡⟨ sec-on-singleton n ⟩
-    qGen n ∎
-
-  sec∘f≡π : secHom ∘cr freeℕ→ℕFinCof ≡ QB.quotientImageHom
-  sec∘f≡π = equalityFromEqualityOnGenerators Q _ _ sec∘f≡π-on-gens
-
-  sec∘h≡id-fun : fst secHom ∘ fst h ≡ idfun ⟨ Q ⟩
-  sec∘h≡id-fun = QB.quotientImageHomEpi (⟨ Q ⟩ , QS.is-set)
-    (cong fst (cong (secHom ∘cr_) h∘π≡f ∙ sec∘f≡π))
-
-  h-iso : Iso ⟨ Q ⟩ ⟨ ℕfinCofinBA ⟩
-  h-iso .Iso.fun = fst h
-  h-iso .Iso.inv = sec
-  h-iso .Iso.sec = h∘sec≡id
-  h-iso .Iso.ret = funExt⁻ sec∘h≡id-fun
-
-  Q≃FC : BooleanRingEquiv Q ℕfinCofinBA
-  Q≃FC .fst .fst = fst h
-  Q≃FC .fst .snd = isoToIsEquiv h-iso
-  Q≃FC .snd = snd h
-
-  FC≃Q : BooleanRingEquiv ℕfinCofinBA Q
-  FC≃Q = invBooleanRingEquiv Q ℕfinCofinBA Q≃FC
-
-  relationsFlat : ℕ → ⟨ freeBA ℕ ⟩
-  relationsFlat n = relations (Iso.inv ℕ×ℕ≅ℕ n)
-
-  Q' : BooleanRing ℓ-zero
-  Q' = freeBA ℕ QB./Im relationsFlat
-
-  Q≃Q' : BooleanRingEquiv Q Q'
-  Q≃Q' = reindexwithEquiv ℕ×ℕ≅ℕ relations
-
-  FC≃Q' : BooleanRingEquiv ℕfinCofinBA Q'
-  FC≃Q' = compCommRingEquiv {A = BooleanRing→CommRing ℕfinCofinBA}
-                             {B = BooleanRing→CommRing Q}
-                             {C = BooleanRing→CommRing Q'} FC≃Q Q≃Q'
-
-  ℕfinCofinBA-presented : has-quotient-of-freeℕ-presentation ℕfinCofinBA
-  ℕfinCofinBA-presented = relationsFlat , FC≃Q'
-
-  ℕfinCofinBA-countably-presented-alt : is-countably-presented-alt ℕfinCofinBA
-  ℕfinCofinBA-countably-presented-alt = ∣ ℕfinCofinBA-presented ∣₁
+  module Relations where
+    open BooleanAlgebraStr ⦃...⦄
+    instance 
+      _ = freeBA ℕ
+      _ = ℕfinCofinBA
+    open BooleanRingStr ⦃...⦄
+    instance
+      _ = snd $ freeBA ℕ
+      _ = snd ℕfinCofinBA
+    relationHelper : (n m : ℕ) → Dec (n ≡ m) → ⟨ freeBA ℕ ⟩
+    relationHelper _ _ (yes _) = 𝟘
+    relationHelper n m (no ¬p) = generator n · generator m 
+  
+    relations : ℕ × ℕ → ⟨ freeBA ℕ ⟩
+    relations (n , m) = relationHelper n m (discreteℕ n m)
+    
+    open IsCommRingHom (snd freeℕ→ℕFinCof)
+    relationHelperRespected : (n m : ℕ) → (d : Dec (n ≡ m)) → freeℕ→ℕFinCof $cr (relationHelper n m d) ≡ 𝟘
+    relationHelperRespected n m (yes p) = pres0
+    relationHelperRespected n m (no ¬p) = 
+      freeℕ→ℕFinCof $cr (generator n · generator m)
+        ≡⟨ pres· (generator n) (generator m) ⟩ 
+      (freeℕ→ℕFinCof $cr generator n) · (freeℕ→ℕFinCof $cr generator m)   
+        ≡⟨ cong₂ _·_ (funExt⁻ (evalBAInduce ℕ ℕfinCofinBA singleton) n)  (funExt⁻ (evalBAInduce ℕ ℕfinCofinBA singleton) m) ⟩ 
+      (singleton n) · (singleton m)
+        ≡⟨ Σ≡Prop isPropisFiniteOrCofinite (funExt (δn∧δm=0 n m ¬p)) ⟩ 
+      𝟘 ∎ 
+  
+    relationsRespected : ∀(p : ℕ × ℕ) → freeℕ→ℕFinCof $cr (relations p) ≡ 𝟘 
+    relationsRespected (n , m) = relationHelperRespected n m (discreteℕ n m)
+    
+    presentation : BooleanRing ℓ-zero
+    presentation = (freeBA ℕ) QB./Im relations
+
+    presentation→ℕFinCof : BoolHom presentation ℕfinCofinBA 
+    presentation→ℕFinCof = inducedHom ℕfinCofinBA freeℕ→ℕFinCof relationsRespected 
+  
+  module FinCofinℕ→freeBAℕ where
+    open BooleanAlgebraStr (freeBA ℕ) 
+    open BooleanRingStr (snd $ freeBA ℕ) 
+    singleEntry : (α : binarySequence) → (m : ℕ) → ⟨ freeBA ℕ ⟩
+    singleEntry α m = if α m then generator m else 𝟘 
+  
+    embedUpTo : (α : binarySequence) → (m : ℕ) → ⟨ freeBA ℕ ⟩
+    embedUpTo α zero = singleEntry α 0 
+    embedUpTo α (suc m) = embedUpTo α m ∨ singleEntry α (suc m) 
+    
+    Finite→FreeℕMap : (α : binarySequence) → isFinite α → ⟨ freeBA ℕ ⟩
+    Finite→FreeℕMap α (constant0 _) = 𝟘
+    Finite→FreeℕMap α (last1 n _ _) = embedUpTo α n 
+
+    ℕFinCof→FreeℕMap : ⟨ ℕfinCofinBA ⟩ → ⟨ freeBA ℕ ⟩
+    ℕFinCof→FreeℕMap (α , Fin αf) = Finite→FreeℕMap α αf
+    ℕFinCof→FreeℕMap (α , Cof αc) = ¬ Finite→FreeℕMap (bitFlip α) αc 
 
