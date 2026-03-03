@@ -1,0 +1,17 @@
+CHANGES0213: Eliminated mapD-ineq postulate via constrained DC encoding
+
+1. Fixed extractFromDC type signature: replaced `_` with named parameter `g0`
+   (metavariable scope issue with anonymous `_`)
+
+2. Constrained DC encoding now fully works:
+   - CState/cExtract: interleaved mutual declarations storing GridRow + constraint
+   - gridStep returns ∥ Σ[ row ] (fst row ≡ nextR gr) ∥₁
+   - cSurj builds CState(suc n) with refl constraint
+   - extractFromDC recovers rows + constraint proof from SeqLimit
+   - mapD-ineq: real proof via subst + funExt⁻(constr j) + ≤-trans(runMax-≥, runMax-mono)
+
+3. Two postulates remain in ODiscColimOfODisc:
+   - fwd-surj : isSurjection fwd
+   - fwd-inj : {a b : SeqColim D} → fwd a ≡ fwd b → a ≡ b
+
+Result: Part07.agda compiles (2628 lines, up from 2607 in bck0212).

@@ -1,5 +1,4 @@
 {-# OPTIONS --cubical --guardedness #-}
--- Note from Freek: I think the AI didn't add that much yesterday. 
 module CountablyPresentedBooleanRings.Examples.NFinCofin where
 open import CountablyPresentedBooleanRings.Definitions
 open import CountablyPresentedBooleanRings.Examples.Bool

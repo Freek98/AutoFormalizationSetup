@@ -1,0 +1,27 @@
+CHANGES0212: ODiscColimOfODisc partial proof structure (compiles with 3 postulates)
+
+1. Moved ColimCompactHelpers/colimCompactFin/colimCompact/ColimSep before ODiscColimOfODisc
+   (they were defined after but used before — scope error)
+
+2. Lifted mkFinSeq/FinSeqData/isODisc→FinSeqData to ODiscAxioms module level
+   (were inside ODiscClosedUnderSequentialColimits where clause, not visible to ODiscColimOfODisc)
+
+3. Replaced ODiscColimOfODisc postulate with partial proof:
+   - Setup: Tn (inner sequences), eqn (equivalences), szn (sizes), φn (transitions)
+   - Grid construction via dependent choice (GridRow, gridStep, gridRow0, DCState)
+   - Diagonal sequence D with D_j = Fin(szn j (Rn j j))
+   - Forward map fwd : SeqColim D → SeqColim S (fully proven, including push case)
+   - Equivalence via isEmbedding×isSurjection→isEquiv
+
+4. Three postulates remain:
+   - mapD-ineq : (j : ℕ) → Mn j j ≤ Rn (suc j) (suc j)
+     [Needs constrained DC encoding so R_{n+1} = nextR(rows_n)]
+   - fwd-surj : isSurjection fwd
+     [Needs R to grow ≥ identity, or lemDecompositionOfColimitMorphisms]
+   - fwd-inj : fwd a ≡ fwd b → a ≡ b
+     [Needs colimSeparation on both S and D sides]
+
+5. Fixed right-≤-max implicit argument order ({f (suc j)} {runMax f j}, not {runMax f j})
+
+Result: Part07.agda compiles cleanly. Line count increase from 2482 to 2607 is from
+lifted definitions + new proof structure (no useful code was removed).

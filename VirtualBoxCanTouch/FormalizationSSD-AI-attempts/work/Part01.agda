@@ -22,7 +22,7 @@ open import Cubical.Algebra.BooleanRing
 import QuotientBool as QB
 import Cubical.Data.Sum as ⊎
 
-open import BooleanRing.BooleanRingQuotients.QuotientConclusions using (BoolQuotientEquiv) public
+open import BooleanRing.BooleanRingQuotients.QuotientConclusions renaming (quotientEquivBool to BoolQuotientEquiv) public
 
 binarySequence : Type₀
 binarySequence = ℕ → Bool

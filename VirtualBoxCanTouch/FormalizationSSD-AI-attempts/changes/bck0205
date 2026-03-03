@@ -1,5 +1,4 @@
 {-# OPTIONS --cubical --guardedness #-}
--- Note from Freek: I think the AI didn't add that much yesterday. 
 module CountablyPresentedBooleanRings.Examples.NFinCofin where
 open import CountablyPresentedBooleanRings.Definitions
 open import CountablyPresentedBooleanRings.Examples.Bool
@@ -827,6 +826,14 @@ module CountablyPresentedProof where
   sec∘h≡id-fun : fst secHom ∘ fst h ≡ idfun ⟨ Q ⟩
   sec∘h≡id-fun = QB.quotientImageHomEpi (⟨ Q ⟩ , QS.is-set)
     (cong fst (cong (secHom ∘cr_) h∘π≡f ∙ sec∘f≡π))
+
+  -- Package as BooleanRingEquiv
+  compBoolRingEquiv : {A B C : BooleanRing ℓ-zero} →
+    BooleanRingEquiv A B → BooleanRingEquiv B C → BooleanRingEquiv A C
+  compBoolRingEquiv {A} {B} {C} f g =
+    compCommRingEquiv {A = BooleanRing→CommRing A}
+                      {B = BooleanRing→CommRing B}
+                      {C = BooleanRing→CommRing C} f g
 
   h-iso : Iso ⟨ Q ⟩ ⟨ ℕfinCofinBA ⟩
   h-iso .Iso.fun = fst h

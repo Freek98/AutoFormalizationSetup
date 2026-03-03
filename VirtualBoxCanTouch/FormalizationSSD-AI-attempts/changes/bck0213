@@ -1193,8 +1193,8 @@ module ODiscAxioms where
   open import CountablyPresentedBooleanRings.Examples.FreeCase using (replacementFreeOnCountable)
   import Cubical.Data.Fin as DF
   open import Cubical.Foundations.Equiv using (fiber)
-  open import Cubical.Data.Nat using (max; predℕ; maxSuc) renaming (_+_ to _+ℕ_)
-  open import Cubical.Data.Nat.Order using (_<_; _≤_; <Dec; ¬m+n<m; ¬m<m; ¬-<-zero; ≤-refl; ≤-trans; ≤-sucℕ; ≤-split; pred-≤-pred; isProp≤; left-≤-max; right-≤-max; suc-≤-suc; zero-≤)
+  open import Cubical.Data.Nat using (max) renaming (_+_ to _+ℕ_)
+  open import Cubical.Data.Nat.Order using (_<_; _≤_; <Dec; ¬m+n<m; ¬m<m; ¬-<-zero; ≤-refl; ≤-trans; ≤-sucℕ; ≤-split; pred-≤-pred; isProp≤; left-≤-max; right-≤-max; suc-≤-suc)
   open import Cubical.Data.Nat.Order.Inductive using (<→<ᵗ; isProp<ᵗ; <ᵗ→<)
   open import Cubical.Relation.Nullary using (Dec; yes; no)
   open import Cubical.Algebra.CommRing.Properties using (_∘cr_; invCommRingEquiv)
@@ -1380,7 +1380,7 @@ module ODiscAxioms where
       runMax-mono f j = left-≤-max {runMax f j}
       -- Extract R_{n+1} from GridRow n
       nextR : {n : ℕ} → GridRow n → ℕ → ℕ
-      nextR (R , d) j = max j (runMax (λ j' → fst (d j')) j)
+      nextR (R , d) j = runMax (λ j' → fst (d j')) j
       -- Step: extend from row n to row n+1
       gridStep : (n : ℕ) (gr : GridRow n) → ∥ Σ[ row ∈ GridRow (suc n) ] (fst row ≡ nextR gr) ∥₁
       gridStep n (R , d) = PT.map build (countableChoice _ factor) where
@@ -1418,30 +1418,27 @@ module ODiscAxioms where
       ConstrainedGridData : Type
       ConstrainedGridData = Σ[ rows ∈ ((n : ℕ) → GridRow n) ]
         ((n : ℕ) → fst (rows (suc n)) ≡ nextR (rows n))
-        × ((j : ℕ) → fst (rows 0) j ≡ j)
-      extractFromDC : (g0 : GridRow 0) → fst g0 ≡ (λ j → j)
-        → Σ[ s ∈ SeqLimit CState cProj ] seqLim-proj₀ CState cProj s ≡ g0
-        → ConstrainedGridData
-      extractFromDC g0 g0-id ((f , compat) , base) = rows , constr , base-id where
-        rows : (n : ℕ) → GridRow n
-        rows n = cExtract n (f n)
-        constr : (n : ℕ) → fst (rows (suc n)) ≡ nextR (rows n)
-        constr n = snd (snd (f (suc n))) ∙ cong (λ z → nextR (cExtract n z)) (compat n)
-        base-id : (j : ℕ) → fst (rows 0) j ≡ j
-        base-id j = funExt⁻ (cong fst base ∙ g0-id) j
       gridData : ∥ ConstrainedGridData ∥₁
-      gridData = PT.rec squash₁ go₀
-        (countableChoice _ λ j → colimCompact (Tn 1) (Fin (szn 0 j))
-          isFinSetFin (λ x → φn 0 (incl x)))
+      gridData = PT.rec squash₁
+        (λ gr0 → PT.map (extractFromDC gr0)
+          (dependentChoice-axiom CState cProj cSurj gr0))
+        gridRow0
        where
-        go₀ : _ → ∥ ConstrainedGridData ∥₁
-        go₀ d₀ = PT.map (extractFromDC gr0 refl)
-          (dependentChoice-axiom CState cProj cSurj gr0)
-          where gr0 : GridRow 0
-                gr0 = ((λ j → j) , d₀)
+        extractFromDC : (g0 : GridRow 0)
+          → Σ[ s ∈ SeqLimit CState cProj ] seqLim-proj₀ CState cProj s ≡ g0
+          → ConstrainedGridData
+        extractFromDC g0 ((f , compat) , base) = rows , constr where
+          rows : (n : ℕ) → GridRow n
+          rows n = cExtract n (f n)
+          -- f(suc n) : CState(suc n) = Σ prev (Σ row (fst row ≡ nextR(cExtract n prev)))
+          -- snd(snd(f(suc n))) : fst(row) ≡ nextR(cExtract n (fst(f(suc n))))
+          -- compat n : fst(f(suc n)) ≡ f n
+          -- Together: fst(rows(suc n)) = fst(row) ≡ nextR(cExtract n (fst(...))) ≡ nextR(cExtract n (f n)) = nextR(rows n)
+          constr : (n : ℕ) → fst (rows (suc n)) ≡ nextR (rows n)
+          constr n = snd (snd (f (suc n))) ∙ cong (λ z → nextR (cExtract n z)) (compat n)
       -- Main construction from constrained grid data
       go₂ : ConstrainedGridData → isODisc (SeqColim S)
-      go₂ (rows , constr , base-id) = ∣ D , finD , equivD ∣₁ where
+      go₂ (rows , constr) = ∣ D , finD , equivD ∣₁ where
         Rn : ℕ → ℕ → ℕ
         Rn n = fst (rows n)
         Mn : (n j : ℕ) → ℕ
@@ -1456,9 +1453,8 @@ module ODiscAxioms where
         -- So Rn(suc j)(suc j) ≥ runMax(Mn j)(j) ≥ Mn j j
         mapD-ineq : (j : ℕ) → Mn j j ≤ Rn (suc j) (suc j)
         mapD-ineq j = subst (Mn j j ≤_) (sym (funExt⁻ (constr j) (suc j)))
-          (≤-trans (≤-trans (runMax-≥ (λ j' → Mn j j') j)
-                            (runMax-mono (λ j' → Mn j j') j))
-                   (right-≤-max {runMax (λ j' → Mn j j') (suc j)} {suc j}))
+          (≤-trans (runMax-≥ (λ j' → Mn j j') j)
+                   (runMax-mono (λ j' → Mn j j') j))
         -- Diagonal: D_j = Fin(szn j (Rn j j))
         D : Sequence ℓ-zero
         obj D j = Fin (szn j (Rn j j))
@@ -1489,90 +1485,11 @@ module ODiscAxioms where
         isSetS = isSetSeqColimOfSets S (λ n → isODiscIsSet (odiscAll n))
         isSetD : isSet (SeqColim D)
         isSetD = isSetSeqColimOfSets D (λ j → isFinSet→isSet isFinSetFin)
-        -- Helper: max least upper bound
-        max-lub : {a b c : ℕ} → a ≤ c → b ≤ c → max a b ≤ c
-        max-lub {zero} {zero} _ _ = zero-≤
-        max-lub {zero} {suc b} _ q = q
-        max-lub {suc a} {zero} p _ = p
-        max-lub {suc a} {suc b} {suc c} p q =
-          subst (_≤ suc c) (sym (maxSuc a b))
-            (suc-≤-suc (max-lub (pred-≤-pred p) (pred-≤-pred q)))
-        -- Helper: Mn n j ≤ Rn(suc n)(j) (grid maps land before next row's R)
-        Mn-le-nextR : (n j : ℕ) → Mn n j ≤ Rn (suc n) j
-        Mn-le-nextR n j = subst (Mn n j ≤_) (sym (funExt⁻ (constr n) j))
-          (≤-trans (runMax-≥ (λ j' → Mn n j') j) (right-≤-max {runMax (λ j' → Mn n j') j} {j}))
-        -- Helper: runMax is monotone (≤ version, by induction on distance)
-        runMax-mono-≤ : (f : ℕ → ℕ) {j₁ j₂ : ℕ} → j₁ ≤ j₂ → runMax f j₁ ≤ runMax f j₂
-        runMax-mono-≤ f {j₁} (zero , p) = subst (runMax f j₁ ≤_) (cong (runMax f) p) ≤-refl
-        runMax-mono-≤ f {j₁} (suc d , p) =
-          ≤-trans (runMax-mono-≤ f {j₁} (d , cong predℕ p))
-                  (runMax-mono f (d +ℕ j₁))
-        -- Helper: Rn n is monotone
-        Rn-mono : (n : ℕ) {j₁ j₂ : ℕ} → j₁ ≤ j₂ → Rn n j₁ ≤ Rn n j₂
-        -- Helper: j ≤ Rn n j (R exceeds identity)
-        Rn-ge-id : (n j : ℕ) → j ≤ Rn n j
-        Rn-ge-id zero j = subst (j ≤_) (sym (base-id j)) ≤-refl
-        Rn-ge-id (suc n) j = subst (j ≤_) (sym (funExt⁻ (constr n) j))
-          (left-≤-max {j} {runMax (λ j' → Mn n j') j})
-        Rn-mono zero {j₁} {j₂} le = subst2 _≤_ (sym (base-id j₁)) (sym (base-id j₂)) le
-        Rn-mono (suc n) {j₁} {j₂} le =
-          subst2 _≤_ (sym (funExt⁻ (constr n) j₁)) (sym (funExt⁻ (constr n) j₂))
-            (max-lub {j₁} {runMax (λ j' → Mn n j') j₁} {max j₂ (runMax (λ j' → Mn n j') j₂)}
-              (≤-trans le (left-≤-max {j₂}))
-              (≤-trans (runMax-mono-≤ (λ j' → Mn n j') le) (right-≤-max {runMax _ j₂} {j₂})))
-        -- Grid trace: iterate grid maps along column m₀ from outer n to outer (n+k)
-        -- Produces element at inner stage Rn(n+k)(m₀) with path to φn iterated
-        open ColimCompactHelpers
-        gridElem : (n₀ m₀ : ℕ) → Fin (szn n₀ (Rn n₀ m₀))
-          → (k : ℕ) → Fin (szn (k +ℕ n₀) (Rn (k +ℕ n₀) m₀))
-        gridElem n₀ m₀ t zero = t
-        gridElem n₀ m₀ t (suc k) =
-          liftTo (Tn (suc (k +ℕ n₀))) (Mn-le-nextR (k +ℕ n₀) m₀)
-            (gn (k +ℕ n₀) m₀ (gridElem n₀ m₀ t k))
-        -- Path: incl(gridElem k) ≡ φn^k(incl t) in SeqColim(Tn(n₀+k))
-        gridElem-path : (n₀ m₀ : ℕ) (t : Fin (szn n₀ (Rn n₀ m₀)))
-          → (k : ℕ) → Path (SeqColim (Tn (k +ℕ n₀)))
-              (incl (gridElem n₀ m₀ t k))
-              (invEq (eqn (k +ℕ n₀)) (iterMap S k (equivFun (eqn n₀) (incl t))))
-        gridElem-path n₀ m₀ t zero = sym (retEq (eqn n₀) (incl t))
-        gridElem-path n₀ m₀ t (suc k) =
-          inclLift (Tn (suc (k +ℕ n₀))) (Mn-le-nextR (k +ℕ n₀) m₀)
-            (gn (k +ℕ n₀) m₀ (gridElem n₀ m₀ t k))
-          ∙ sym (gn-compat (k +ℕ n₀) m₀ (gridElem n₀ m₀ t k))
-          ∙ cong (φn (k +ℕ n₀)) (gridElem-path n₀ m₀ t k)
-          ∙ cong (λ z → invEq (eqn (suc (k +ℕ n₀))) (map S z))
-              (secEq (eqn (k +ℕ n₀)) (iterMap S k (equivFun (eqn n₀) (incl t))))
-        -- Surjectivity: use grid trace + Rn-mono to show fwd covers all of SeqColim S
-        fwd-surj : isSurjection fwd
-        fwd-surj = SeqColim→Prop (λ _ → squash₁) fwd-surj-incl where
-          fwd-surj-incl : (n : ℕ) (s : obj S n) → ∥ fiber fwd (incl s) ∥₁
-          fwd-surj-incl n s = PT.rec squash₁ go (inStage (Tn n) (invEq (eqn n) s)) where
-            go : Σ[ m₀ ∈ ℕ ] Σ[ t₀ ∈ Fin (szn n m₀) ] (incl t₀ ≡ invEq (eqn n) s) → _
-            go (m₀ , t₀ , p₀) = ∣ incl {n = j'} x , path ∣₁ where
-              k = m₀
-              j' = k +ℕ n
-              t₀' : Fin (szn n (Rn n m₀))
-              t₀' = liftTo (Tn n) (Rn-ge-id n m₀) t₀
-              t₀'-path : incl t₀ ≡ incl t₀'
-              t₀'-path = inclLift (Tn n) (Rn-ge-id n m₀) t₀
-              ge : Rn j' m₀ ≤ Rn j' j'
-              ge = Rn-mono j' (right-≤-max {m₀} {n})
-              traced : Fin (szn j' (Rn j' m₀))
-              traced = gridElem n m₀ t₀' k
-              x : obj D j'
-              x = liftTo (Tn j') ge traced
-              path : fwd (incl {n = j'} x) ≡ incl s
-              path =
-                cong (λ z → incl (equivFun (eqn j') z))
-                  (sym (inclLift (Tn j') ge traced)
-                   ∙ gridElem-path n m₀ t₀' k
-                   ∙ cong (invEq (eqn j')) (cong (iterMap S k)
-                       (cong (equivFun (eqn n)) (sym t₀'-path ∙ p₀)
-                        ∙ secEq (eqn n) s)))
-                ∙ cong incl (secEq (eqn j') (iterMap S k s))
-                ∙ sym (inclIter S k s)
-        -- Injectivity: uses colimSeparation on S side to get eventual equality,
-        -- then colimSeparation on D side via grid maps
+        -- Equivalence via surjection + injection (both sets)
+        -- Surjectivity: for y at stage n of S, invEq gives element of colim T_n at some
+        -- inner stage m. If m ≤ Rn n n, lift to D_n. Otherwise go to later diagonal stage.
+        postulate fwd-surj : isSurjection fwd
+        -- Injectivity: uses colimSeparation on the S side, then on the D side
         postulate fwd-inj : {a b : SeqColim D} → fwd a ≡ fwd b → a ≡ b
         fwd-emb : isEmbedding fwd
         fwd-emb = injEmbedding isSetS fwd-inj

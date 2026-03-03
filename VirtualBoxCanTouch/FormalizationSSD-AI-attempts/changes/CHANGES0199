@@ -1,0 +1,16 @@
+CHANGES0199: CountablyPresentedBooleanRings/Examples/NFinCofin.agda
+
+Fixed three type errors found during full verification:
+
+1. or-truncate line 433: subst direction was wrong (sym p vs p)
+   Fixed in bck0197.
+
+2. h∘sec≡id line 463: FCA.¬Invol has sigma-type path, Σ≡Prop needs
+   first-component path. Used `funExt (λ k → notnot (α k))` instead.
+   Fixed in bck0198.
+
+3. sB-zeroFrom-eq line 583: m<n has type `m < n` (= suc m ≤ n) but
+   sB-bound-ind expects `n ≥ m` (= m ≤ n). Used `<-weaken` to convert.
+   Fixed in bck0199.
+
+Running full verification (90min timeout).

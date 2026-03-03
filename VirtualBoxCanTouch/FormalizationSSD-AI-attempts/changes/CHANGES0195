@@ -1,0 +1,8 @@
+CHANGES0195: CountablyPresentedBooleanRings/Examples/NFinCofin.agda
+
+Fixed type error in or-truncate (line 429-431):
+- Old proof used `or-zeroʳ false` (gives false or false ≡ false) which was incorrect
+- New proof: `sym αn ∙ cong α (sym k≡n)` to go from true to α k
+- This handles the case k ≥ n, k < suc n (so k = n) where α n = true
+
+Running full verification.

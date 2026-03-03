@@ -1,0 +1,23 @@
+CHANGES0205: CountablyPresentedBooleanRings/Examples/NFinCofin.agda
+
+Fixed last remaining unsolved metas at FC≃Q' (line 862):
+
+1. Root cause: compBoolRingEquiv {A} {B} {C} f g requires Agda to infer
+   BooleanRing implicits A, B, C from types of f and g. Since IsBooleanRing
+   has no-eta-equality, the isBooleanRing field in those metas can't be solved.
+
+2. Fix: Bypass compBoolRingEquiv entirely. Call compCommRingEquiv directly
+   with explicit concrete CommRing args:
+   - Old: FC≃Q' = compBoolRingEquiv FC≃Q Q≃Q'
+   - New: FC≃Q' = compCommRingEquiv {A = BooleanRing→CommRing ℕfinCofinBA}
+                                     {B = BooleanRing→CommRing Q}
+                                     {C = BooleanRing→CommRing Q'} FC≃Q Q≃Q'
+
+   This avoids creating BooleanRing metas entirely. compCommRingEquiv only
+   needs CommRing implicits, which are provided as fully-evaluated values.
+
+3. Key insight: BoolRingEquiv A B and CommRingEquiv (BooleanRing→CommRing A)
+   (BooleanRing→CommRing B) are definitionally the same type, so FC≃Q and
+   Q≃Q' can be passed directly without conversion.
+
+Running full verification (90min timeout).

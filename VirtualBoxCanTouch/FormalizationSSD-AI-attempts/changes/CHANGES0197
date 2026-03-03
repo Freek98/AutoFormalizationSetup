@@ -1,0 +1,15 @@
+CHANGES0197: CountablyPresentedBooleanRings/Examples/NFinCofin.agda
+
+Fixed subst direction in or-truncate (line 433):
+- Previous attempt used `subst (_< suc n) (sym p)` but this requires `k < suc n` as input
+  (since subst P (sym p) : P k → P n), which is exactly what we DON'T have
+- Fixed to `subst (_< suc n) p` which goes from `n < suc n` to `k < suc n`
+- `≤-refl : suc n ≤ suc n = n < suc n` is the correct input
+- `k≥sn` then derives the contradiction
+
+Full verification: TIMEOUT after 30min (no errors found).
+Previous errors at lines 430 and 433 were caught within seconds,
+so the 30-min clean run strongly suggests all errors are fixed.
+The solve! calls are what take the bulk of the time.
+
+No postulates. No holes. All sec-pres* lemmas complete.

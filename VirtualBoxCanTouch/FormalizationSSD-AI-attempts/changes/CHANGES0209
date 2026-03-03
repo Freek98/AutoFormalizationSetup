@@ -1,0 +1,29 @@
+CHANGES0209: work/test-boole-odisc.agda + Axioms/StoneDuality.agda
+
+1. Fixed unsolved metas in Axioms/StoneDuality.agda (line 212):
+   - Replaced `_` with explicit `(ε ⟦ F ⟅ y ⟆ ⟧)` in cong lambda
+   - Root cause: higher-order unification couldn't solve constant function meta
+   - StoneDuality.agda now compiles cleanly
+
+2. Uncommented FreeBAFinFinite module in test-boole-odisc.agda:
+   - Restored StoneDuality import (was blocked by unsolved metas)
+   - Restored freeBA-Fin-Booleω : Booleω definition
+   - Uncommented entire FreeBAFinFinite module
+
+3. Proved isFinSetTarget (previously postulated):
+   - isFinSet ((Fin n → Bool) → Bool) via two applications of isFinSet→
+   - Imported isFinSet→ from Cubical.Data.FinSet.Constructors
+   - Built FinSet pairs: FinBool, FinOurFin, FinFinBool
+
+4. Fixed module import mismatch:
+   - Root QuotientBool vs BooleanRing.BooleanRingQuotients.QuotientBool created
+     type-level mismatch for has-Boole-ω' (different _/Im_ definitions)
+   - Switched to: import BooleanRing.BooleanRingQuotients.QuotientBool as QB
+   - Switched to: CountablyPresentedBooleanRings.Definitions for has-Boole-ω'
+   - Switched to: BooleanRing.BooleanRingMaps for BooleanRingEquiv, idBoolHom
+   - These match what Axioms.StoneDuality uses, so Booleω types align
+
+5. Cleaned up stale .agdai files in source directories (41 files)
+
+Result: ZERO postulates in test-boole-odisc.agda. File compiles.
+Line count: 353 → 360 (+7 lines for FinSet helpers)

@@ -1,0 +1,10 @@
+CHANGES0196: CountablyPresentedBooleanRings/Examples/NFinCofin.agda
+
+Fixed second type error in or-truncate (line 433):
+- Old proof used `k≥n (subst (_< n) (sym p) ≤-refl)` which tried to construct
+  `n < n` from `≤-refl : n ≤ n` — type mismatch (suc k != n)
+- New proof: `k≥sn (subst (_< suc n) (sym p) ≤-refl)` which correctly uses
+  `≤-refl : suc n ≤ suc n` (= `n < suc n`) and derives contradiction with `k≥sn`
+- Named the previously anonymous pattern `no _` as `no k≥sn`
+
+Running full verification.

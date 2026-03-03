@@ -1,0 +1,11 @@
+CHANGES0198: CountablyPresentedBooleanRings/Examples/NFinCofin.agda
+
+Fixed h∘sec≡id Cof case (line 463):
+- `FCA.¬Invol` has type in the sigma type `Σ (ℕ → Bool) isFiniteOrCofinite`
+  but `Σ≡Prop` expects a path in the first component `ℕ → Bool`
+- `¬Invol` from ℙℕ is not in scope inside `CountablyPresentedProof`
+  (it was opened in `ℕFinCofin` without `public`)
+- Fixed: use `funExt (λ k → notnot (α k))` directly
+  (`notnot` from Cubical.Data.Bool: `not (not x) ≡ x`)
+
+Running full verification (90min timeout).

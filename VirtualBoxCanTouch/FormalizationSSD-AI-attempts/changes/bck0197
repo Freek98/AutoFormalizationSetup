@@ -1,5 +1,4 @@
 {-# OPTIONS --cubical --guardedness #-}
--- Note from Freek: I think the AI didn't add that much yesterday. 
 module CountablyPresentedBooleanRings.Examples.NFinCofin where
 open import CountablyPresentedBooleanRings.Definitions
 open import CountablyPresentedBooleanRings.Examples.Bool
@@ -424,7 +423,8 @@ module CountablyPresentedProof where
     or-truncate : (α : binarySequence) (n : ℕ) → α n ≡ true →
       (k : ℕ) → truncate α n k or δSequence n k ≡ truncate α (suc n) k
     or-truncate α n αn k with <Dec k n | <Dec k (suc n)
-    ... | yes k<n | yes _    = cong (α k or_) (δnm=0 n k (<→≢ k<n ∘ sym)) ∙ or-identityʳ (α k)
+    ... | yes _   | yes _    = cong (α k or_) (δnm=0 n k (<→≢ it ∘ sym)) ∙ or-identityʳ (α k)
+      where it = _
     ... | yes k<n | no k≥sn  = ex-falso (k≥sn (≤-trans k<n (1 , refl)))
     ... | no k≥n  | yes k<sn =
       let k≡n = ≤-antisym (pred-≤-pred k<sn) (<-asym' k≥n)
@@ -460,14 +460,14 @@ module CountablyPresentedProof where
   h∘sec≡id (α , Cof c) =
     h-pres¬ (sFin (BooleanAlgebraStr.¬_ ℙℕ α) c)
     ∙ cong FCA.¬_ (h-sFin (BooleanAlgebraStr.¬_ ℙℕ α) c)
-    ∙ Σ≡Prop isPropisFiniteOrCofinite (funExt (λ k → notnot (α k)))
+    ∙ Σ≡Prop isPropisFiniteOrCofinite (FCA.¬Invol)
 
   -- Section is a ring hom (needed for sec ∘ h = id)
   sec-pres0 : sec FCS.𝟘 ≡ QS.𝟘
   sec-pres0 = refl
 
   sec-pres- : (x : ⟨ ℕfinCofinBA ⟩) → sec (FCS.-_ x) ≡ QS.-_ (sec x)
-  sec-pres- x = cong sec (sym (FCA.-IsId {x = x})) ∙ QA.-IsId {x = sec x}
+  sec-pres- x = cong sec FCA.-IsId ∙ sym QA.-IsId
 
   -- sB step: when α n = true, sB increases
   sB-true : (α : binarySequence) (n : ℕ) → α n ≡ true →
@@ -580,9 +580,9 @@ module CountablyPresentedProof where
   sB-zeroFrom-eq : (γ : binarySequence) (m n : ℕ) →
     isZeroFrom m γ → isZeroFrom n γ → sB γ m ≡ sB γ n
   sB-zeroFrom-eq γ m n zm zn with m =ℕ n
-  ... | lt m<n = sym (sB-bound-ind γ m n (<-weaken m<n) zm)
+  ... | lt m<n = sym (sB-bound-ind γ m n m<n zm)
   ... | eq m≡n = cong (sB γ) m≡n
-  ... | gt m>n = sB-bound-ind γ n m (<-weaken m>n) zn
+  ... | gt m>n = sB-bound-ind γ n m m>n zn
 
   -- Finiteness of AND
   and-zeroFrom : (α β : binarySequence) (n : ℕ) → isZeroFrom n α → isZeroFrom n (λ k → α k and β k)
@@ -606,11 +606,21 @@ module CountablyPresentedProof where
     sFin α (last1 n αn z) ≡ sB α (suc n)
   sFin-last1 _ _ _ _ = refl
 
-  -- Compute sFin via any bound: pattern match on the isFinite proof directly
+  -- Compute sFin via any bound
   sFin-via-bound : (α : binarySequence) (f : isFinite α) (n : ℕ) (z : isZeroFrom n α) →
     sFin α f ≡ sB α n
-  sFin-via-bound α (constant0 z0) n zn = sB-zeroFrom-eq α 0 n z0 zn
-  sFin-via-bound α (last1 m αm zm) n zn = sB-zeroFrom-eq α (suc m) n zm zn
+  sFin-via-bound α f n zn = sFin-irrel α f (bounded→Finite α n zn)
+    ∙ go α n zn
+    where
+    go : (α : binarySequence) (n : ℕ) (z : isZeroFrom n α) →
+      sFin α (bounded→Finite α n z) ≡ sB α n
+    go α zero z = refl
+    go α (suc n) z with α n =B false
+    ... | yes αn=0 = go α n (λ k k≥n → case ≤-split k≥n of λ
+                      { (inl k>n) → z k k>n
+                      ; (inr k=n) → sym (cong α k=n) ∙ αn=0 })
+                   ∙ sym (sB-step α n αn=0)
+    ... | no αn≠0 = refl
 
   -- sec-pres· for two finite elements
   sFin-pres· : (α β : binarySequence) (fα : isFinite α) (fβ : isFinite β)
@@ -717,8 +727,7 @@ module CountablyPresentedProof where
     in sFin-path _ _ (funExt λ k → sym (xor-and-not (α k) (β k))) f· f⊕
      ∙ sFin-pres+ α (λ k → α k and not (β k)) fα f∧¬ f⊕
      ∙ cong (QS._+_ (sFin α fα)) (sFin-pres· α ¬β fα cβ f∧¬)
-     ∙ sym (QS.·DistR+ (sFin α fα) QS.𝟙 (sFin ¬β cβ)
-            ∙ cong (λ z → QS._+_ z (QS._·_ (sFin α fα) (sFin ¬β cβ))) (QS.·IdR (sFin α fα)))
+     ∙ solve! (BooleanRing→CommRing Q)
   sec-pres· (α , Cof cα) (β , Fin fβ) =
     cong sec (FCS.·Comm (α , Cof cα) (β , Fin fβ))
     ∙ sec-pres· (β , Fin fβ) (α , Cof cα)
@@ -733,11 +742,11 @@ module CountablyPresentedProof where
         c' = subst isFinite (sym $ BooleanAlgebraStr.DeMorgan¬∧ ℙℕ {x = α} {y = β})
                (finiteClosedByUnion ¬α ¬β cα cβ)
         fvee : isFinite (λ k → (not (α k) ⊕ not (β k)) ⊕ (not (α k) and not (β k)))
-        fvee = subst isFinite dm c'
+        fvee = subst isFinite (sym dm) c'
     in cong QA.¬_ (sFin-path _ _ dm c' fvee
        ∙ sFin-pres+ (λ k → not (α k) ⊕ not (β k)) (λ k → not (α k) and not (β k)) f⊕ f∧ fvee
        ∙ cong₂ QS._+_ (sFin-pres+ ¬α ¬β cα cβ f⊕) (sFin-pres· ¬α ¬β cα cβ f∧))
-     ∙ QA.DeMorgan¬∨
+     ∙ solve! (BooleanRing→CommRing Q)
 
   -- sec-pres+: sec preserves addition
   -- Key: fst (FCS._+_ x y) = λ k → fst x k ⊕ fst y k (definitionally)
@@ -759,9 +768,7 @@ module CountablyPresentedProof where
         p¬ = funExt λ k → not-xor-r (α k) (β k)
     in sec-irrel _ (snd (FCS._+_ (α , Fin fα) (β , Cof cβ))) (Cof c⊕)
      ∙ cong QA.¬_ (sFin-path _ _ p¬ c⊕ f¬⊕ ∙ sFin-pres+ α ¬β fα cβ f¬⊕)
-     ∙ sym (QS.+Assoc (sFin α fα) QS.𝟙 (sFin ¬β cβ)
-            ∙ cong (λ z → QS._+_ z (sFin ¬β cβ)) (QS.+Comm (sFin α fα) QS.𝟙)
-            ∙ sym (QS.+Assoc QS.𝟙 (sFin α fα) (sFin ¬β cβ)))
+     ∙ sym (solve! (BooleanRing→CommRing Q))
   sec-pres+ (α , Cof cα) (β , Fin fβ) =
     cong sec (FCS.+Comm (α , Cof cα) (β , Fin fβ))
     ∙ sec-pres+ (β , Fin fβ) (α , Cof cα)
@@ -775,19 +782,19 @@ module CountablyPresentedProof where
         f¬⊕¬ : isFinite (λ k → not (α k) ⊕ not (β k))
         f¬⊕¬ = xor-fin ¬α ¬β cα cβ
         f⊕ : isFinite (λ k → α k ⊕ β k)
-        f⊕ = subst isFinite (funExt λ k → not-xor-not (α k) (β k)) f¬⊕¬
+        f⊕ = subst isFinite (funExt λ k → sym (not-xor-not (α k) (β k))) f¬⊕¬
         p : (λ k → α k ⊕ β k) ≡ (λ k → not (α k) ⊕ not (β k))
         p = sym (funExt λ k → not-xor-not (α k) (β k))
     in sec-irrel _ (snd (FCS._+_ (α , Cof cα) (β , Cof cβ))) (Fin f⊕)
      ∙ sFin-path _ _ p f⊕ f¬⊕¬
      ∙ sFin-pres+ ¬α ¬β cα cβ f¬⊕¬
-     ∙ sym (sym (QS.+Assoc QS.𝟙 a (QS._+_ QS.𝟙 b))
-            ∙ cong (QS._+_ QS.𝟙) (QS.+Assoc a QS.𝟙 b
-                ∙ cong (λ z → QS._+_ z b) (QS.+Comm a QS.𝟙)
-                ∙ sym (QS.+Assoc QS.𝟙 a b))
-            ∙ QS.+Assoc QS.𝟙 QS.𝟙 (QS._+_ a b)
-            ∙ cong (λ z → QS._+_ z (QS._+_ a b)) QA.characteristic2
-            ∙ QS.+IdL (QS._+_ a b))
+     ∙ sym (QS._+_ (QA.¬_ a) (QA.¬_ b)
+              ≡⟨ solve! (BooleanRing→CommRing Q) ⟩
+            QS._+_ (QS._+_ a b) (QS._+_ QS.𝟙 QS.𝟙)
+              ≡⟨ cong (QS._+_ (QS._+_ a b)) QA.characteristic2 ⟩
+            QS._+_ (QS._+_ a b) QS.𝟘
+              ≡⟨ QS.+IdR _ ⟩
+            QS._+_ a b ∎)
 
   secHom : BoolHom ℕfinCofinBA Q
   fst secHom = sec
@@ -802,7 +809,8 @@ module CountablyPresentedProof where
   δ-below n k k<n = δnm=0 n k (<→≢ k<n ∘ sym)
 
   sec-on-singleton : (n : ℕ) → sec (singleton n) ≡ qGen n
-  sec-on-singleton n = go n
+  sec-on-singleton n = cong (sFin (δSequence n)) (isPropIsFinite (δSequence n) _ _)
+    ∙ go n
     where
     go : (n : ℕ) → sB (δSequence n) (suc n) ≡ qGen n
     go n with δSequence n n =B true
@@ -828,6 +836,11 @@ module CountablyPresentedProof where
   sec∘h≡id-fun = QB.quotientImageHomEpi (⟨ Q ⟩ , QS.is-set)
     (cong fst (cong (secHom ∘cr_) h∘π≡f ∙ sec∘f≡π))
 
+  -- Package as BooleanRingEquiv
+  compBoolRingEquiv : {A B C : BooleanRing ℓ-zero} →
+    BooleanRingEquiv A B → BooleanRingEquiv B C → BooleanRingEquiv A C
+  compBoolRingEquiv f g = compCommRingEquiv f g
+
   h-iso : Iso ⟨ Q ⟩ ⟨ ℕfinCofinBA ⟩
   h-iso .Iso.fun = fst h
   h-iso .Iso.inv = sec
@@ -852,9 +865,7 @@ module CountablyPresentedProof where
   Q≃Q' = reindexwithEquiv ℕ×ℕ≅ℕ relations
 
   FC≃Q' : BooleanRingEquiv ℕfinCofinBA Q'
-  FC≃Q' = compCommRingEquiv {A = BooleanRing→CommRing ℕfinCofinBA}
-                             {B = BooleanRing→CommRing Q}
-                             {C = BooleanRing→CommRing Q'} FC≃Q Q≃Q'
+  FC≃Q' = compBoolRingEquiv FC≃Q Q≃Q'
 
   ℕfinCofinBA-presented : has-quotient-of-freeℕ-presentation ℕfinCofinBA
   ℕfinCofinBA-presented = relationsFlat , FC≃Q'

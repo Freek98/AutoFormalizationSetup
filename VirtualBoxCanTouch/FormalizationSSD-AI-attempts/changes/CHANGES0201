@@ -1,0 +1,9 @@
+CHANGES0201: CountablyPresentedBooleanRings/Examples/NFinCofin.agda
+
+Fixed subst direction in sec-pres· Cof×Cof case (line 735):
+- `fvee = subst isFinite (sym dm) c'` was wrong direction
+- `dm : not(α∧β) ≡ (¬α⊕¬β)⊕(¬α∧¬β)` and c' : isFinite(not(α∧β))
+- Need to transport from isFinite(not(α∧β)) to isFinite((¬α⊕¬β)⊕(¬α∧¬β))
+- Fixed: `fvee = subst isFinite dm c'` (remove sym)
+
+Running full verification (90min timeout).

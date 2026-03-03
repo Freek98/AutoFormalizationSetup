@@ -1,0 +1,26 @@
+CHANGES0208: work/test-boole-odisc.agda
+
+Eliminated 3 out of 4 postulates in test-boole-odisc.agda. File compiles.
+
+1. Fixed unsolved metas at line 157 (isProp<ᵗ implicit args)
+   - Added explicit implicits: <→<ᵗ {fst i} {n} in roundtrip₁-on-gen
+
+2. Proved roundtrip₁ and roundtrip₂ (previously postulated):
+   - roundtrip₁: bwd-hom ∘ fwd-hom = id on freeBA(Fin n)
+     Strategy: inducedBAHomUnique shows both compositions agree on generators
+   - roundtrip₂: fwd-hom ∘ bwd-hom = id on Qn
+     Strategy: equalityFromEqualityOnGenerators + quotientImageHomEpi
+
+3. Proved lem in genBound (previously postulated):
+   - New lemma ιπ-on-gen: ι m ∘ π m acts as identity on generators k < m
+   - New lemma ιπ-on-term (opaque, unfolding includeBATermsSurj and generator):
+     proves ι m ∘ π m is identity on fst includeBATermsSurj t when maxGen t ≤ m
+     Proof by structural induction on terms, using pres0/pres1/pres+/pres-/pres·
+   - lem follows from ιπ-on-term t m ≤-refl ∙ πt≡x
+
+4. Added imports: ≤-trans, left-≤-max, right-≤-max from Cubical.Data.Nat.Order
+
+Remaining postulate: isFinSetTarget (inside commented-out FreeBAFinFinite module,
+blocked by pre-existing Axioms/StoneDuality.agda unsolved metas)
+
+Line count increase: 227 → 353 (+126 lines of new proofs, no work lost)

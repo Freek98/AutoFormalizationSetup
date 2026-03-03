@@ -1,0 +1,20 @@
+CHANGES0194: CountablyPresentedBooleanRings/Examples/NFinCofin.agda
+
+Replaced all postulates with actual proofs + no remaining holes.
+All sec-pres* lemmas now have complete proofs:
+
+New helpers:
+- sFin-path: transport sFin along a path between sequences
+- sec-irrel: sec depends only on Fin/Cof tag, not proof details
+- not-xor-not, not-xor-r, dm-pw: pointwise Bool identities for XOR/De Morgan
+- xor-zeroFrom, xor-fin: finiteness of XOR
+- sFin-pres+: sFin distributes over XOR (like sFin-pres· for AND)
+
+Completed proofs:
+- sec-pres· Fin×Fin: via sFin-pres· + common bound
+- sec-pres· Fin×Cof: via sFin-path (xor-and-not identity) + sFin-pres+ + sFin-pres· + ring algebra
+- sec-pres· Cof×Fin: via FCS.·Comm + Fin×Cof case
+- sec-pres· Cof×Cof: via sFin-path (De Morgan) + sFin-pres+ decomposition + ring algebra
+- sec-pres+ all 4 cases: Fin×Fin (sFin-pres+), Fin×Cof (sFin-path not-xor-r), Cof×Fin (FCS.+Comm), Cof×Cof (sFin-path not-xor-not + char2)
+
+No postulates. No holes. Passes scope check (TIMEOUT).

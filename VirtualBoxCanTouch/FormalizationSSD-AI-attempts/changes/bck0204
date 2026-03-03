@@ -1,5 +1,4 @@
 {-# OPTIONS --cubical --guardedness #-}
--- Note from Freek: I think the AI didn't add that much yesterday. 
 module CountablyPresentedBooleanRings.Examples.NFinCofin where
 open import CountablyPresentedBooleanRings.Definitions
 open import CountablyPresentedBooleanRings.Examples.Bool
@@ -828,6 +827,14 @@ module CountablyPresentedProof where
   sec∘h≡id-fun = QB.quotientImageHomEpi (⟨ Q ⟩ , QS.is-set)
     (cong fst (cong (secHom ∘cr_) h∘π≡f ∙ sec∘f≡π))
 
+  -- Package as BooleanRingEquiv
+  compBoolRingEquiv : {A B C : BooleanRing ℓ-zero} →
+    BooleanRingEquiv A B → BooleanRingEquiv B C → BooleanRingEquiv A C
+  compBoolRingEquiv {A} {B} {C} f g =
+    compCommRingEquiv {A = BooleanRing→CommRing A}
+                      {B = BooleanRing→CommRing B}
+                      {C = BooleanRing→CommRing C} f g
+
   h-iso : Iso ⟨ Q ⟩ ⟨ ℕfinCofinBA ⟩
   h-iso .Iso.fun = fst h
   h-iso .Iso.inv = sec
@@ -852,9 +859,7 @@ module CountablyPresentedProof where
   Q≃Q' = reindexwithEquiv ℕ×ℕ≅ℕ relations
 
   FC≃Q' : BooleanRingEquiv ℕfinCofinBA Q'
-  FC≃Q' = compCommRingEquiv {A = BooleanRing→CommRing ℕfinCofinBA}
-                             {B = BooleanRing→CommRing Q}
-                             {C = BooleanRing→CommRing Q'} FC≃Q Q≃Q'
+  FC≃Q' = compBoolRingEquiv FC≃Q Q≃Q'
 
   ℕfinCofinBA-presented : has-quotient-of-freeℕ-presentation ℕfinCofinBA
   ℕfinCofinBA-presented = relationsFlat , FC≃Q'

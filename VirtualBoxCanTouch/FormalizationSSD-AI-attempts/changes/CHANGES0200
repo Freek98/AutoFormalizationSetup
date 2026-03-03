@@ -1,0 +1,15 @@
+CHANGES0200: CountablyPresentedBooleanRings/Examples/NFinCofin.agda
+
+Simplified sFin-via-bound (line 610-614):
+- Old version used `go` helper that tried to match bounded→Finite's internal
+  reduction, which failed due to case/with mismatch
+- New version: pattern-match on the isFinite proof directly:
+  * constant0 z0 → sB-zeroFrom-eq α 0 n z0 zn
+  * last1 m αm zm → sB-zeroFrom-eq α (suc m) n zm zn
+- 10 lines shorter (removed go helper), cleaner, and avoids definitional equality issues
+
+Line count: 875 → 865 (-10 lines)
+Justification: removed broken go helper, replaced with direct pattern match.
+All theorems and definitions preserved, only the proof strategy changed.
+
+Running full verification (90min timeout).

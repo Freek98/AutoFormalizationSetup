@@ -1,0 +1,16 @@
+CHANGES0211: Fix compilation errors (QuotientBool unification + MarkovLib.extract')
+
+1. Fixed QuotientBool module duplication:
+   - Root QuotientBool.agda and BooleanRing/BooleanRingQuotients/QuotientBool.agda
+     were duplicate modules causing type mismatches (different _/Im_ definitions)
+   - Made root QuotientBool.agda re-export from the nested one (open ... public)
+   - Kept fromKernel/toKernel in root (used by Part07.agda)
+
+2. Fixed Part02.agda BoolQuotientEquiv usage:
+   - quotientEquivBool now returns BooleanRing path (not CommRing path)
+   - Applied `cong BooleanRing→CommRing` to convert for commRingPath→boolRingEquiv
+
+3. Fixed Part02.agda MarkovLib.extract' scope error:
+   - Renamed to MarkovLib.extractFirstHitInBinarySequence.extract
+
+Result: Part07.agda compiles cleanly with all fixes.

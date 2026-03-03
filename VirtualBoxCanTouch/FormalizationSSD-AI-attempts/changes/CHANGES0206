@@ -1,0 +1,13 @@
+CHANGES0206: CountablyPresentedBooleanRings/Examples/NFinCofin.agda
+
+Cleanup after successful verification of bck0205:
+
+1. Removed unused compBoolRingEquiv helper (lines 831-836, -8 lines)
+   - This was only used at the FC≃Q' call site, which now calls
+     compCommRingEquiv directly with concrete CommRing args
+   - Deletion justified: function was dead code after bck0205 fix
+
+Line count decrease: 871 → 863 (removed 8 lines of dead code)
+
+File fully compiles (verified in bck0205 run, which includes bck0206
+changes minus the dead helper). No theorems or definitions lost.

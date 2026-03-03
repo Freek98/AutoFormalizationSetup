@@ -1,0 +1,18 @@
+CHANGES0204: CountablyPresentedBooleanRings/Examples/NFinCofin.agda
+
+Fixed remaining unsolved metas from bck0203:
+
+1. sec-pres- (line 469): Added explicit implicit args
+   - Old: `cong sec (sym FCA.-IsId) ∙ QA.-IsId`
+   - New: `cong sec (sym (FCA.-IsId {x = x})) ∙ QA.-IsId {x = sec x}`
+   - Agda couldn't infer the implicit x in -IsId without explicit annotation
+
+2. compBoolRingEquiv (line 831-835): Added explicit CommRing args
+   - Old: `compBoolRingEquiv f g = compCommRingEquiv f g`
+   - New: Explicitly pass {A = BooleanRing→CommRing A} etc.
+   - The BooleanRing→CommRing coercion creates CommRingStr metas
+     when compCommRingEquiv tries to infer its implicit CommRing args.
+     This caused "blocked on _A.snd.isBooleanRing_5617" errors.
+   - Fix: by providing explicit CommRing args, avoid the meta creation.
+
+Running full verification (90min timeout).

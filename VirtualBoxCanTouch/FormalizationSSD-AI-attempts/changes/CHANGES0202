@@ -1,0 +1,11 @@
+CHANGES0202: CountablyPresentedBooleanRings/Examples/NFinCofin.agda
+
+Fixed subst direction in sec-pres+ Cof×Cof case (line 775):
+- `f⊕ = subst isFinite (funExt λ k → sym (not-xor-not ...)) f¬⊕¬`
+- not-xor-not gives ¬α⊕¬β ≡ α⊕β, so sym gives α⊕β ≡ ¬α⊕¬β
+- funExt with sym gives (α⊕β) ≡ (¬α⊕¬β) path
+- subst goes from isFinite(α⊕β) to isFinite(¬α⊕¬β)
+- But f¬⊕¬ : isFinite(¬α⊕¬β) needs transport TO α⊕β
+- Fixed: remove sym, use `not-xor-not` directly
+
+Running full verification (90min timeout).
