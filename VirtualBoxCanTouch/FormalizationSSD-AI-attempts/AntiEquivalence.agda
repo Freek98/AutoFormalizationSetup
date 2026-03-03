@@ -2,6 +2,7 @@
 module AntiEquivalence where
 -- So far, contains Lemma 1.12 of the paper. 
 open import Axioms.StoneDuality
+open import StoneSpaces.Spectrum
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Function
 open import Cubical.Foundations.Structure

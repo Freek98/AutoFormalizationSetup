@@ -122,7 +122,7 @@ module SubBoolRing
 
 module SubBooleanAlgebra (B : BooleanRing ℓ) (P : ⟨ B ⟩ → Type ℓ') (isPropP : ∀ x → isProp (P x)) where 
   open BooleanRingStr (snd B)
-  open BooleanAlgebraStr B
+  open BooleanAlgebraStr (snd B)
   record IsSubBooleanAlgebra : Type (ℓ-max ℓ ℓ') where
     field
       𝟘-cl : P 𝟘

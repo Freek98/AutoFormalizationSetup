@@ -43,7 +43,7 @@ module _ {ℓ' : Level} (B : BooleanRing ℓ') where
     isTrivial→isContr : isContr ⟨ B ⟩
     isTrivial→isContr .fst = 𝟘
     isTrivial→isContr .snd b = 𝟘  ≡⟨ sym ∧AnnihilR ⟩ (b · 𝟘) ≡⟨ cong (λ c → b · c) isTriv ⟩ b · 𝟙 ≡⟨ ∧IdR ⟩  b ∎  where 
-      open BooleanAlgebraStr B
+      open BooleanAlgebraStr (snd B)
 
     isTrivial→isEquivmapToTrivial : isEquiv (fst mapToTrivialBooleanRing)
     isTrivial→isEquivmapToTrivial .equiv-proof tt* = (𝟘 , pres0) , λ (b , fb=tt) → Σ≡Prop 

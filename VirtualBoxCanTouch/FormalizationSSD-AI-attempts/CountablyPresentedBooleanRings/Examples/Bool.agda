@@ -95,7 +95,7 @@ freeNonTriv {A} = map→2→nontriv (freeBA A) free→2
 
 private module _ {ℓ : Level} {B : BooleanRing ℓ} where
   open BooleanRingStr (snd B) 
-  open BooleanAlgebraStr B
+  open BooleanAlgebraStr (snd B)
   01+closed : (a b : ⟨ B ⟩) → (a ≡ 𝟘) ⊎ (a ≡ 𝟙) → (b ≡ 𝟘) ⊎ (b ≡ 𝟙) → (a + b ≡ 𝟘) ⊎ (a + b ≡ 𝟙)
   01+closed a b (inl a=0) (inl b=0) = inl $ 
     a + b ≡⟨ cong₂ (λ a b → a + b) a=0 b=0 ⟩ 

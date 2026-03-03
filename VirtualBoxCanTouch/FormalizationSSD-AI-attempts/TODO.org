@@ -2,5 +2,8 @@
 + StoneDuality currently contains a bunch of stuff on the Sp-decidable-subsets adjunction and anti-equivalence. This should move to a seperate file. The whole Category theory folder and everything in it is also in this field. I think it's most convenient to let the AI handle this, while I continue with the examples of countably presented Boolean rings.  
 + Countably presented Boolean rings should include Bool, 2/1, 2^Cantor space, B_infty
   + I'm working on B_infty. I now have NFinCofin, but not yet a proof that it agrees with the generated thing. 
+  + I gave some of that work to the AI, I gave the homomorphism and what should be it's inverse. I want it to finish the proof it's an equivalence. 
 + Note that the definition of a Spectrum should not be in Axioms/StoneDuality. This is annoying, as it should not depend on the axioms. So let's think about where to put it. 
+  + I made a new directory for Stone spaces. There's a lot more stuff in StoneDuality though. Some of it is indeed consequences of Stone duality (that should be in antiEquivalence I guess), but a lot is general category nonsense, and I'm affraid to clean it up, I have to open the CategoryTheory folder. 
 + So we should then factor out Sp and put it into a file on Stone spaces, then show that Cantor Space, N_infty, 1, all closed propositions (so each closed proposition is Stone, not the set of closed propositions) are Stone
++ One of the things that's annoying is that instances for BooleanAlgebraStr don't work well. I think they might work if you derive only the second part (right now both A and the Structure on A are part of the instances), I'll think about why. 

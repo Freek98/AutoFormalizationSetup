@@ -15,12 +15,10 @@ open import Cubical.HITs.PropositionalTruncation as PT
 open import Cubical.Algebra.CommRing
 open import Cubical.Algebra.BooleanRing
 open import Cubical.Algebra.BooleanRing.Instances.Bool
-open import Axioms.StoneDuality 
-open import Axioms.SurjectionsAreFormalSurjections
+open import StoneSpaces.Spectrum
 
 isSurjectiveSpMap : {B C : Booleω} → (Sp C → Sp B) → Type ℓ-zero
 isSurjectiveSpMap {B} {C} = isSurjection
-
 
 LocalChoiceAxiom : Type (ℓ-suc ℓ-zero)
 LocalChoiceAxiom = (B : Booleω) (P : Sp B → Type ℓ-zero)

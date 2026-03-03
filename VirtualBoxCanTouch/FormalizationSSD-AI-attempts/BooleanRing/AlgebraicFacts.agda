@@ -39,8 +39,3 @@ module _ {ℓ : Level} (B : BooleanRing ℓ) where
     (x + y) + 𝟘
       ≡⟨ +IdR (x + y) ⟩ 
     x + y ∎
-
-
-
-
-

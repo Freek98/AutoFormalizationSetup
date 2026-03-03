@@ -1,8 +1,9 @@
-{-# OPTIONS --cubical -WnoUselessAbstract  -WnoUnsupportedIndexedMatch -WnoInteractionMetaBoundaries --guardedness #-}
+{-# OPTIONS --cubical --guardedness #-}
 
 module OmnisciencePrinciples.Markov where 
 
 open import Axioms.StoneDuality
+open import StoneSpaces.Spectrum
 open import AntiEquivalence
 
 open import Cubical.Functions.Fixpoint

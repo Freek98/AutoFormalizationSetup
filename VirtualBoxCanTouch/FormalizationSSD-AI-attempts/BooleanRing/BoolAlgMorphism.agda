@@ -101,6 +101,38 @@ module _ (A : BooleanRing ℓ) (B : BooleanRing ℓ') (f : ⟨ A ⟩ → ⟨ B �
     asBoolHom : BoolHom A B
     asBoolHom = f , isBoolRingHom
 
+  module FromBoolHom
+    (h : IsCommRingHom (snd $ BooleanRing→CommRing A) f (snd (BooleanRing→CommRing B)))
+    where
+    open IsCommRingHom h
+
+    pres∧ : ∀ x y → f (x ∧ y) ≡ (f x) ∧ (f y)
+    pres∧ = pres·
+
+    pres¬ : ∀ x → f (¬ x) ≡ ¬ (f x)
+    pres¬ x =
+      f (¬ x)
+        ≡⟨⟩
+      f (𝟙 + x)
+        ≡⟨ pres+ 𝟙 x ⟩
+      f 𝟙 + f x
+        ≡⟨ cong (_+ f x) pres1 ⟩
+      𝟙 + f x
+        ≡⟨⟩
+      ¬ (f x) ∎
+
+    pres∨ : ∀ x y → f (x ∨ y) ≡ (f x) ∨ (f y)
+    pres∨ x y =
+      f (x ∨ y)
+        ≡⟨⟩
+      f ((x + y) + (x · y))
+        ≡⟨ pres+ (x + y) (x · y) ⟩
+      f (x + y) + f (x · y)
+        ≡⟨ cong₂ _+_ (pres+ x y) (pres· x y) ⟩
+      (f x + f y) + (f x · f y)
+        ≡⟨⟩
+      (f x) ∨ (f y) ∎
+
   module FromPres¬∨
     (pres¬ : ∀ x → f (¬ x) ≡ ¬ (f x))
     (pres∨ : ∀ x y → f (x ∨ y) ≡ (f x) ∨ (f y))

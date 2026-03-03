@@ -15,7 +15,7 @@ open import Cubical.HITs.PropositionalTruncation as PT
 open import Cubical.Algebra.CommRing
 open import Cubical.Algebra.BooleanRing
 open import Cubical.Algebra.BooleanRing.Instances.Bool
-open import Axioms.StoneDuality 
+open import StoneSpaces.Spectrum
 
 isInjectiveBoolHom : (B C : Booleω) → BoolHom (fst B) (fst C) → Type ℓ-zero
 isInjectiveBoolHom B C g = (x y : ⟨ fst B ⟩) → fst g x ≡ fst g y → x ≡ y
