@@ -1,0 +1,25 @@
+CHANGES0150 (from bck0149)
+
+Summary: Proved CHausFiniteIntersectionProperty (tex Lemma 1981), eliminating another postulate.
+
+Changes:
+1. Part11: Replaced postulate CHausFiniteIntersectionProperty with full proof.
+   - Proof follows tex: given CHaus X with closed C_n and empty ∩C_n:
+     (a) Reduce from CHaus to Stone via stoneCover
+     (b) Use closedFamilyChoice for each C_n on Stone S, combine with countableChoice
+     (c) For each (n,m), compute elem_{n,m} ∈ B via elemFromDecPred (Stone duality)
+     (d) Encode all (n,m) pairs as a single sequence d : ℕ → ⟨B⟩ using ℕ×ℕ≅ℕ bijection
+     (e) Show Sp(B/d) = ∅ (corresponds to ∩_n C_n = ∅)
+     (f) Get 0≡1 in B/d → 1∈ideal(d) → idealDecomp → idealBound gives N with finJoin d N = 1
+     (g) Compute K = max of first coordinates of decoded indices 0..N-1
+     (h) Show ∩_{n≤K} C_n = ∅ via: any point in the finite intersection
+         sends all d(k) for k<N to false, contradicting finJoin d N = 1
+
+   - New helper: allC extracts C_n(x) from finiteIntersectionClosed C k x for n ≤ k
+   - New infrastructure: idealBound, leq-suc/extend/max-left/max-right, boolhom-∨, finJoin-false
+     (duplicated from Part09's StoneSeparated proof, parameterized by the specific d)
+   - New imports: Cubical.Data.Nat.Bijections.Product (ℕ×ℕ≅ℕ), CommRingQuotients.IdealTerms,
+     Axioms.StoneDuality, various algebra modules
+
+Line count: 6627 (was 6330 in bck0149, +297 from new proof body replacing 6-line postulate)
+Full chain Part20 compiles: YES

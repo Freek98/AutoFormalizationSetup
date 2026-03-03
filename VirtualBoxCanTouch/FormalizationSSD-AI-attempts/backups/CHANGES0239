@@ -1,0 +1,14 @@
+bck0239: Fixed 4 tex annotations to standard format.
+
+Quick check: N/A (comment-only changes).
+
+Part02 changes (from bck0238):
+  - Line 611: "-- (ClopenDecidable from tex Corollary 774)" → "-- tex Corollary 774 (ClopenDecidable)"
+  - Line 626: "-- (ImplicationOpenClosed from tex Lemma 857)" → "-- tex Lemma 857 (ImplicationOpenClosed)"
+  - Line 672: "-- (ClosedMarkov from tex Lemma 807)" → "-- tex Lemma 807 (ClosedMarkov)"
+
+Part08 changes (from bck0238):
+  - Added "-- tex Lemma 1636 (StoneEqualityClosed)" before StoneEqualityClosed definition
+
+Postulate summary: No change from bck0238.
+Line counts: No change (comment-only edits).

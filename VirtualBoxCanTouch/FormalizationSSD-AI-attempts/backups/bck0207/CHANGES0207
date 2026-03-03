@@ -1,0 +1,26 @@
+bck0207: Added H¹-total-vanish and Ȟ¹-coefficient-vanish infrastructure.
+Full type-check: SUCCESS (verified through Part20).
+
+Part14 changes (from bck0206):
+  - ADDED H¹-total-vanish : (cover : CechCover) → H¹-vanishes (Σ X S_x)
+    Key step for eilenberg-exact: H¹(Σ S_x, ℤ) = 0 because Σ S_x is Stone.
+  - ADDED Ȟ¹-coefficient-vanish : Ȟ¹(X,S,ℤ^{S_x}) = 0
+    Key step for cech-exact: uses canonical-exact-cech-complex.
+  - Updated comments for eilenberg-exact and cech-exact sections.
+
+Remaining postulates in Part14: 2 (colimit-arg, cech-eilenberg-1-agree)
+
+Analysis of colimit-arg:
+  Proving colimit-arg requires:
+  1. finite-approximation-surjection-stone (tex 2843): decompose surjection T→S into
+     limits of finite surjections. Uses StoneSigmaClosed + ProFiniteMapsFactorization.
+  2. scott-continuity (tex 1590): ℤ^S = colim ℤ^{S_n}. Uses ScottFiniteCodomain.
+  3. colimit-of-exact-is-exact: sequential colimit preserves exactness.
+  Key missing infrastructure: ScottFiniteCodomain (products commute with colimits),
+  ProFiniteMapsFactorization (via decompositionBooleMaps), and the
+  "cocycle factors through finite level" argument.
+  Approaches via closedFamilyChoice/localChoice are fundamentally circular
+  (descent obstruction = the cocycle itself).
+
+Line count: 929 (bck0206) → 946 (bck0207), +17 lines.
+All new lines are proven code (no new postulates).

@@ -16,7 +16,7 @@ open import Cubical.Algebra.BooleanRing
 open import Cubical.Algebra.CommRing.Base
 
 open import Cubical.Data.Sum
-open import BooleanRing.BooleanRingQuotients.QuotientBool as QB
+open import QuotientBool as QB
 open import BooleanRing.BooleanRingQuotients.QuotientConclusions
 open import Cubical.Algebra.BooleanRing.Instances.Bool
 open import CountablyPresentedBooleanRings.EquivalenceOfCountablyPresentedDefinitions

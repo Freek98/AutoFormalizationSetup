@@ -1,0 +1,22 @@
+bck0220: Reduced 3 postulates to 1 in Part14's FiniteApproximationProof.
+Quick check: Part14 SUCCESS, Part19 SUCCESS, Part20 SUCCESS (full chain).
+
+Part14 changes (from bck0219 era, Part14 unchanged since bck0218):
+  - ADDED d₁∘d₀≡0 lemma to CechComplex module (lines 62-96):
+    Proves coboundaries are automatically cocycles (d₁(d₀(α)) = 0)
+    using abelian group laws: telescoping + self-cancellation.
+  - REPLACED 3 postulates (β'def, β-fac, β'-coc) with 1 postulate:
+    CocycleFactorsThroughELevel : Σ[ fE ∈ (E'N → ℤ) ]
+      ((x : S) (u v : T x) → β x u v ≡ fE(τxv.fst) - fE(τxu.fst))
+    This captures: the cocycle β factors through the E-level approximation
+    (tex Corollary 1590, scott-continuity).
+  - DERIVED the 3 old results from the 1 postulate:
+    β'def = d₀'(α') where α'(s',e') = fE(e')
+    β-fac directly from fE-ok
+    β'-coc from d₁∘d₀≡0 (automatic: coboundary is always cocycle)
+  - Net postulate change: 3 → 1 (-2 postulates)
+
+Line counts: Part14: 1231 (1188→1231, +43 lines).
+Increase justified: added proved d₁∘d₀≡0 lemma (+35 lines) and
+  derived definitions replacing postulates (+8 lines).
+Part07: 3360 (unchanged from bck0219).

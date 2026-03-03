@@ -1,0 +1,32 @@
+bck0223: Replaced finite-approximation postulate with FiniteApproximationProof module.
+Quick check: Part14 SUCCESS.
+
+Part14 changes (from bck0210/bck0222):
+  - ADDED d₁∘d₀≡0 to CechComplex module (lines 62-94):
+    Proof that coboundaries are automatically cocycles.
+  - ADDED ScottIntCodomain module (lines 538-599):
+    Factors ℤ-valued functions on Stone spaces through finite SpProjection levels.
+    Uses MapsStoneToNareBounded + ScottFiniteCodomain.
+  - ADDED FiniteApproximationProof module (lines 604-723):
+    Proves finite-approximation from:
+    - StoneSigmaClosed (E = Σ_x T(x) is Stone)
+    - BooleωRingDecomp (ring decompositions for S and E)
+    - ScottFiniteCodomain (factor q₀ : E → S'₀ through E-level)
+    - CocycleFactorsThroughELevel (INNER POSTULATE)
+    Structure: S' = Image(q'), T'(s') = fiber of q', β' = d₀(fE).
+    β'-cocycle from d₁∘d₀≡0.
+  - ELIMINATED finite-approximation POSTULATE.
+    Replaced with proved version modulo inner CocycleFactorsThroughELevel.
+  - ScottIntCodomain not yet used (available for future CocycleFactorsThroughELevel proof).
+
+Part07 changes: none (identical to bck0210).
+
+Postulate summary:
+  - Part14: CocycleFactorsThroughELevel (1, inner), cech-eilenberg-1-agree (1, unused)
+  - Net: finite-approximation (1 outer) replaced by CocycleFactorsThroughELevel (1 inner).
+    CocycleFactorsThroughELevel is more specific: it says the cocycle β factors
+    through the E-level approximation as a difference of a 0-cochain.
+
+Line counts: Part14: 1245 (1023→1245, +222 lines).
+Increase justified: d₁∘d₀≡0 (+33), ScottIntCodomain (+62), FiniteApproximationProof (+120).
+These replace the 6-line finite-approximation postulate with a mostly-proved version.

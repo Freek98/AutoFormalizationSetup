@@ -1,0 +1,28 @@
+bck0233: Fixed filterTrue-spec in Part04 FinCof→B∞ module.
+Quick check: Part04 SUCCESS (clean).
+
+Part04 changes (from bck0232/CHANGES0232):
+  - REFACTORED filterTrue: replaced `with f N` definition with `if f N then ... else ...`
+    for better definitional reduction in proofs.
+  - NEW filterTrue-suc: helper that rewrites `memberOf (if f N then ...) m` into
+    `(f N and decToBool (discreteℕ m N)) or memberOf (filterTrue f N) m`
+    (internal `with f N` gives refl for both branches).
+  - NEW and-true-right: (b : Bool) → b and true ≡ b
+  - FIXED filterTrue-spec: proved that `memberOf (filterTrue f N) m ≡ f m` for `m < N`.
+    Key insight: avoid `with f N` in filterTrue-spec itself; instead use filterTrue-suc
+    helper and work with `f N` symbolically. The `no ¬m<N` (m = N) case uses:
+    - cong to substitute m≡N in LHS
+    - fcSingleton-self for decToBool (discreteℕ N N) ≡ true
+    - and-true-right, filterTrue-outside, or-identityʳ for f N or false ≡ f N
+    - sym (cong f m≡N) at the end (works because f N is NOT with-abstracted)
+  - FIXED filterTrue-stable/filterFalse-stable: replaced `with f N` with
+    `cong (λ b → if b then ...) fN=false/true` using the `if` definition.
+  - Added imports: and-zeroʳ, or-identityʳ, ¬-<-zero from Cubical libraries.
+
+Line counts: Part04: 882 (862→882, +20 lines from bck0232 state).
+Increase justified: filterTrue-spec proof + helper lemmas for roundtrip.
+
+Next steps:
+  - Prove φ∘ψ = id roundtrip (needs filterTrue-spec + analogous filterFalse-spec for cofinite case)
+  - Prove ψ∘φ = id roundtrip
+  - Build full BooleanRingEquiv B∞ ≅ FinCofBR

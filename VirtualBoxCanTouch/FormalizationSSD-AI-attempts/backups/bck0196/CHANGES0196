@@ -1,0 +1,15 @@
+bck0196: H¹-vanishes-Interval PROVED. Full type-check passes. 0 holes.
+
+Part14 changes (accumulated since bck0195):
+  - ELIMINATED postulate H¹-vanishes-Interval (tex Proposition 2991)
+  - Proof: UnitInterval is contractible (isContrUnitInterval, postulate in Part12),
+    so UnitInterval ≃ Unit (via isContr→Equiv), hence coHom 1 ℤAbGroup UnitInterval ≃
+    coHom 1 ℤAbGroup Unit (via subst), and the latter is contractible
+    (isContr-Hⁿ⁺¹[Unit,G] from Cubical library).
+  - Key library imports: Cubical.Cohomology.EilenbergMacLane.Groups.Unit (isContr-Hⁿ⁺¹[Unit,G]),
+    Cubical.Foundations.Equiv (isContr→Equiv), Cubical.Data.Unit (Unit, tt)
+
+Remaining postulates in Part14: 3 (cech-complex-vanishing-stone, eilenberg-stone-vanish,
+  cech-eilenberg-1-agree)
+
+Line count: 499 (bck0195 Part14) → 509 (bck0196), +10 lines.

@@ -1,9 +1,11 @@
 {-# OPTIONS --cubical --guardedness #-}
 
-module work.Part05 where
+open import work.Part02Defs using (FoundationalAxioms)
 
-open import work.Part04 public
-open import work.Part05a using (char2-B∞ ; char2-B∞×B∞ ; normalFormExists-trunc) public
+module work.Part05 (fa : FoundationalAxioms) where
+
+open import work.Part04 fa public
+open import work.Part05a fa using (char2-B∞ ; char2-B∞×B∞ ; normalFormExists-trunc) public
 
 open import Cubical.Algebra.BooleanRing
 open import Cubical.Algebra.CommRing
@@ -13,7 +15,7 @@ open import Cubical.Foundations.Function using (_∘_)
 open import Cubical.Data.Sigma
 open import Cubical.Data.Nat renaming (_+_ to _+ℕ_ ; _·_ to _·ℕ_)
 open import Cubical.Data.Bool using (Bool; true; false; _⊕_; _and_; _or_; not; true≢false; false≢true)
-open import Cubical.Relation.Nullary using (¬_)
+open import Cubical.Relation.Nullary using (¬_; Dec; yes; no)
 import QuotientBool as QB
 open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator; inducedBAHom; evalBAInduce; inducedBAHomUnique)
 open import CountablyPresentedBooleanRings.PresentedBoole using (BooleanRingEquiv; has-Boole-ω')
@@ -28,7 +30,7 @@ open import Cubical.Data.Empty renaming (rec to ex-falso)
 open import Cubical.Data.Nat.Bijections.Sum using (ℕ⊎ℕ≅ℕ)
 open import Cubical.Functions.Embedding using (isEmbedding→Inj)
 open import Cubical.Data.Sum.Properties using (isEmbedding-inl; isEmbedding-inr)
-open import Cubical.Data.List using (List; []; _∷_; ¬cons≡nil)
+open import Cubical.Data.List using (List; []; _∷_; _++_; ¬cons≡nil)
 
 module B∞×B∞-Units where
   unit-left : ⟨ B∞×B∞ ⟩
@@ -899,12 +901,6 @@ g∞-nonzero n gn=0 =
         false ∎
   in true≢false (sym h-gn=t ∙ h-gn=f)
 
-xor-and-is-or : (a b : Bool) → (a ⊕ b) ⊕ (a and b) ≡ a or b
-xor-and-is-or false false = refl
-xor-and-is-or false true = refl
-xor-and-is-or true false = refl
-xor-and-is-or true true = refl
-
 h-pres-join-Bool : (h : Sp B∞-Booleω) (a b : ⟨ B∞ ⟩) →
   h $cr (a ∨∞ b) ≡ (h $cr a) or (h $cr b)
 h-pres-join-Bool h a b =
@@ -1219,6 +1215,7 @@ llpo-from-SD-aux h = PT.rec PT.squash₁ go (injective→Sp-surjective B∞-Bool
           ≡⟨ h'-right-true→left-false h' h'-right-true (g∞ k) ⟩
         false ∎
 
+-- tex Theorem 541, equation 544 (eqnLLPO), equation 555 (eqnLLPOProofMap)
 llpo-from-SD : LLPO
 llpo-from-SD α = PT.map transport-llpo (llpo-from-SD-aux h)
   where
@@ -1234,3 +1231,125 @@ llpo-from-SD α = PT.map transport-llpo (llpo-from-SD-aux h)
                    ((k : ℕ) → fst α (suc (2 ·ℕ k)) ≡ false)
   transport-llpo (⊎.inl evens) = ⊎.inl (λ k → sym (seq-eq (2 ·ℕ k)) ∙ evens k)
   transport-llpo (⊎.inr odds) = ⊎.inr (λ k → sym (seq-eq (suc (2 ·ℕ k))) ∙ odds k)
+
+-- tex Lemma 600: The map f : B∞ → B∞×B∞ does not have a retraction
+open import work.Part05a fa using (_∈?_; gen-notin-finJoin; meet-nf-correct) renaming (B∞-NormalForm to NF; joinForm to JF; meetNegForm to MNF)
+open import Cubical.Data.Nat.Order using (_<_; _≤_; ¬m<m; ≤-refl; ≤-suc; ≤-trans)
+
+sucSum : List ℕ → ℕ
+sucSum [] = 0
+sucSum (n ∷ ns) = suc n +ℕ sucSum ns
+
+sucSum-bound : (m : ℕ) (ns : List ℕ) → m ∈? ns ≡ true → m < sucSum ns
+sucSum-bound m [] prf = ex-falso (false≢true prf)
+sucSum-bound m (n ∷ ns) prf with discreteℕ m n
+... | yes m≡n = subst (_< suc n +ℕ sucSum ns) (sym m≡n)
+                  (sucSum ns , +-comm (sucSum ns) (suc n))
+... | no _ = let (k , kp) = sucSum-bound m ns prf
+             in suc n +ℕ k , sym (+-assoc (suc n) k (suc m)) ∙ cong (suc n +ℕ_) kp
+
+f-no-retraction : (r : BoolHom B∞×B∞ B∞) → ¬ ((x : ⟨ B∞ ⟩) → fst r (fst f x) ≡ x)
+f-no-retraction r retract = PT.rec2 isProp⊥ go
+    (normalFormExists-trunc r01) (normalFormExists-trunc r10)
+  where
+  r01 = fst r (𝟘∞ , 𝟙∞)
+  r10 = fst r (𝟙∞ , 𝟘∞)
+
+  r-on-gen-odd : (k : ℕ) → fst r (𝟘∞ , g∞ k) ≡ g∞ (suc (2 ·ℕ k))
+  r-on-gen-odd k =
+    fst r (𝟘∞ , g∞ k)
+      ≡⟨ cong (fst r) (sym (f-odd-gen k)) ⟩
+    fst r (fst f (g∞ (suc (2 ·ℕ k))))
+      ≡⟨ retract (g∞ (suc (2 ·ℕ k))) ⟩
+    g∞ (suc (2 ·ℕ k)) ∎
+
+  r-on-gen-even : (k : ℕ) → fst r (g∞ k , 𝟘∞) ≡ g∞ (2 ·ℕ k)
+  r-on-gen-even k =
+    fst r (g∞ k , 𝟘∞)
+      ≡⟨ cong (fst r) (sym (f-even-gen k)) ⟩
+    fst r (fst f (g∞ (2 ·ℕ k)))
+      ≡⟨ retract (g∞ (2 ·ℕ k)) ⟩
+    g∞ (2 ·ℕ k) ∎
+
+  odd-gen-below-r01 : (k : ℕ) → g∞ (suc (2 ·ℕ k)) ·∞ r01 ≡ g∞ (suc (2 ·ℕ k))
+  odd-gen-below-r01 k =
+    g∞ (suc (2 ·ℕ k)) ·∞ r01
+      ≡⟨ cong₂ _·∞_ (sym (r-on-gen-odd k)) refl ⟩
+    fst r (𝟘∞ , g∞ k) ·∞ fst r (𝟘∞ , 𝟙∞)
+      ≡⟨ sym (IsCommRingHom.pres· (snd r) (𝟘∞ , g∞ k) (𝟘∞ , 𝟙∞)) ⟩
+    fst r ((𝟘∞ , g∞ k) ·× (𝟘∞ , 𝟙∞))
+      ≡⟨ cong (fst r) (cong₂ _,_ (0∞-absorbs-left 𝟘∞) (BooleanRingStr.·IdR (snd B∞) (g∞ k))) ⟩
+    fst r (𝟘∞ , g∞ k)
+      ≡⟨ r-on-gen-odd k ⟩
+    g∞ (suc (2 ·ℕ k)) ∎
+
+  even-gen-below-r10 : (k : ℕ) → g∞ (2 ·ℕ k) ·∞ r10 ≡ g∞ (2 ·ℕ k)
+  even-gen-below-r10 k =
+    g∞ (2 ·ℕ k) ·∞ r10
+      ≡⟨ cong₂ _·∞_ (sym (r-on-gen-even k)) refl ⟩
+    fst r (g∞ k , 𝟘∞) ·∞ fst r (𝟙∞ , 𝟘∞)
+      ≡⟨ sym (IsCommRingHom.pres· (snd r) (g∞ k , 𝟘∞) (𝟙∞ , 𝟘∞)) ⟩
+    fst r ((g∞ k , 𝟘∞) ·× (𝟙∞ , 𝟘∞))
+      ≡⟨ cong (fst r) (cong₂ _,_ (BooleanRingStr.·IdR (snd B∞) (g∞ k)) (0∞-absorbs-left 𝟘∞)) ⟩
+    fst r (g∞ k , 𝟘∞)
+      ≡⟨ r-on-gen-even k ⟩
+    g∞ (2 ·ℕ k) ∎
+
+  r01·r10≡0 : r01 ·∞ r10 ≡ 𝟘∞
+  r01·r10≡0 =
+    r01 ·∞ r10
+      ≡⟨ sym (IsCommRingHom.pres· (snd r) (𝟘∞ , 𝟙∞) (𝟙∞ , 𝟘∞)) ⟩
+    fst r ((𝟘∞ , 𝟙∞) ·× (𝟙∞ , 𝟘∞))
+      ≡⟨ cong (fst r) (cong₂ _,_ (0∞-absorbs-left 𝟙∞) (0∞-absorbs-right 𝟙∞)) ⟩
+    fst r (𝟘∞ , 𝟘∞)
+      ≡⟨ IsCommRingHom.pres0 (snd r) ⟩
+    𝟘∞ ∎
+
+  n≤2n : (n : ℕ) → n ≤ 2 ·ℕ n
+  n≤2n n = n +ℕ 0 , +-comm (n +ℕ 0) n
+
+  above-sucSum-not-in : (m : ℕ) (ns : List ℕ) → sucSum ns ≤ m → m ∈? ns ≡ false
+  above-sucSum-not-in m ns S≤m with m ∈? ns in eq'
+  ... | false = refl
+  ... | true = ex-falso (¬m<m {m}
+    (≤-trans (sucSum-bound m ns (builtin→Path-Bool eq')) S≤m))
+
+  go : (Σ NF λ nf₁ → ⟦ nf₁ ⟧nf ≡ r01) → (Σ NF λ nf₂ → ⟦ nf₂ ⟧nf ≡ r10) → ⊥
+  go (MNF ms₁ , eq₁) (MNF ms₂ , eq₂) = finMeetNeg∞-nonzero (ms₁ ++ ms₂) prod=0
+    where
+    prod=0 : finMeetNeg∞ (ms₁ ++ ms₂) ≡ 𝟘∞
+    prod=0 =
+      finMeetNeg∞ (ms₁ ++ ms₂)
+        ≡⟨ meet-nf-correct (MNF ms₁) (MNF ms₂) ⟩
+      finMeetNeg∞ ms₁ ·∞ finMeetNeg∞ ms₂
+        ≡⟨ cong₂ _·∞_ eq₁ eq₂ ⟩
+      r01 ·∞ r10
+        ≡⟨ r01·r10≡0 ⟩
+      𝟘∞ ∎
+  go (JF ns , eq) _ = g∞-nonzero (suc (2 ·ℕ k)) gen=0
+    where
+    k = sucSum ns
+    gen=0 : g∞ (suc (2 ·ℕ k)) ≡ 𝟘∞
+    gen=0 =
+      g∞ (suc (2 ·ℕ k))
+        ≡⟨ sym (odd-gen-below-r01 k) ⟩
+      g∞ (suc (2 ·ℕ k)) ·∞ r01
+        ≡⟨ cong (g∞ (suc (2 ·ℕ k)) ·∞_) (sym eq) ⟩
+      g∞ (suc (2 ·ℕ k)) ·∞ finJoin∞ ns
+        ≡⟨ gen-notin-finJoin (suc (2 ·ℕ k)) ns
+             (above-sucSum-not-in (suc (2 ·ℕ k)) ns (≤-trans (n≤2n k) (≤-suc ≤-refl))) ⟩
+      𝟘∞ ∎
+  go (MNF _ , _) (JF ns , eq) = g∞-nonzero (2 ·ℕ k) gen=0
+    where
+    k = sucSum ns
+    gen=0 : g∞ (2 ·ℕ k) ≡ 𝟘∞
+    gen=0 =
+      g∞ (2 ·ℕ k)
+        ≡⟨ sym (even-gen-below-r10 k) ⟩
+      g∞ (2 ·ℕ k) ·∞ r10
+        ≡⟨ cong (g∞ (2 ·ℕ k) ·∞_) (sym eq) ⟩
+      g∞ (2 ·ℕ k) ·∞ finJoin∞ ns
+        ≡⟨ gen-notin-finJoin (2 ·ℕ k) ns
+             (above-sucSum-not-in (2 ·ℕ k) ns (n≤2n k)) ⟩
+      𝟘∞ ∎
+

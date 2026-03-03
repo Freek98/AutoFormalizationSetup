@@ -1,0 +1,32 @@
+CHANGES0156 (from bck0155)
+
+Summary: Proved ConnectedComponentConnected (tex Lemma 2173),
+         eliminating a postulate.
+
+Changes:
+1. Part11: ConnectedComponentConnectedModule
+   - Replaced postulate ConnectedComponentConnected with full proof.
+   - Proof strategy (following tex):
+     (a) Suffices to show fval ≡ f(a,qa) for all a in Q_x,
+         where fval = f(x, id)
+     (b) PT.rec into ConnectedComponentClosedInCompactHausdorff → get (D, Deq)
+     (c) Define Qx-closed: ConnectedComponent X x w is closed
+         (closedEquiv + closedCountableIntersection on D)
+     (d) Define A_X(w) = ∥ Σ(q:Qx(w)). f(w,q)≡fval ∥₁,
+              B_X(w) = ∥ Σ(q:Qx(w)). f(w,q)≡not fval ∥₁
+         Both closed via closedSigmaClosed-derived + Bool-equality-closed
+     (e) AB-disjoint: if both A_X and B_X hold, isProp of ConnectedComponent
+         gives q1≡q2, contradicting fval ≡ not fval
+     (f) PT.rec into CHausSeperationOfClosedByOpens → get (U, V) open disjoint
+     (g) UV = U ∪ V (open via openOrMP), show Q_x ⊆ UV via Bool-dichotomy
+     (h) PT.rec into ConnectedComponentSubOpenHasDecidableInbetween → get E
+     (i) E' = E ∩ ¬V is clopen (closed via closedAnd, open via openEquiv)
+     (j) E'bool = Dec→Bool(clopenIsDecidable E'), x ∈ E', Q_x ⊆ E'
+     (k) a ∈ Q_x ⊆ E' → ¬V(a), so f(a,qa) ≠ not fval → f(a,qa) = fval
+   - Helper functions: self≢not, Bool-dichotomy, Dec→Bool-true, Dec→Bool-extract
+   - New imports in module: CHausSeperationOfClosedByOpensModule,
+     ClosedSigmaClosedDerived, Cubical.Data.Sum, Cubical.Data.Bool (Dec→Bool, not, _≟_),
+     Cubical.Relation.Nullary (Dec, yes, no)
+
+Line count: 7268 (was 7142 in bck0155, +126 from proof replacing postulate)
+Full chain Part20 compiles: YES

@@ -1,0 +1,18 @@
+CHANGES0149 (from bck0148)
+
+Summary: Proved CHausSeperationOfClosedByOpens (tex Lemma 2058), eliminating another postulate.
+
+Changes:
+1. Part11: Replaced postulate CHausSeperationOfClosedByOpens with full proof.
+   - Proof follows tex: given CHaus X with disjoint closed A, B:
+     (a) Get Stone surjection q : S → X from stoneCover
+     (b) Pull back A, B to closed subsets of S
+     (c) Apply StoneSeparated (Part09) to get decidable separator D : S → Bool
+     (d) Define q(D), q(¬D) as closed subsets of X via CompactHausdorffClosed-backward
+     (e) U = ¬q(¬D), V = ¬q(D) are open
+     (f) Prove A ⊆ U, B ⊆ V, U ∩ V = ∅
+   - New opens in module: CompactHausdorffClosedModule, StoneSeparatedModule
+   - New imports: Cubical.Functions.Surjection, Axioms.StoneDuality
+
+Line count: 6330 (was 6226 in bck0148, +104 from new proof body)
+Full chain Part20 compiles: YES

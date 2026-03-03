@@ -1,0 +1,18 @@
+bck0218: Added MapsStoneToNareBounded postulate, fixed Part14 indentation.
+Quick check: Part07 SUCCESS, Part14 SUCCESS.
+
+Part07 changes (from bck0216 era, Part07 unchanged since bck0216):
+  - ADDED MapsStoneToNareBounded postulate (tex Lemma 1568):
+    Functions from Stone spaces to ℕ have bounded image.
+    Proof route: SDHomVersion + quotient ring + compactness.
+  - Updated ScottDiscreteCodomain comment to note derivation route.
+
+Part14 changes (from bck0216):
+  - Fixed indentation of step4's where-block (lines 579-679):
+    Content was at column 10 (step3 scope) but needed column 14 (step4 scope).
+  - No logical changes.
+  - Remaining postulates (3): β'def, β-fac, β'-coc (cocycle at finite level)
+
+Line counts: Part07: 3366 (3355→3366, +11 lines). Part14: 1188 (1160→1188, +28 from indentation).
+Total postulates added: 1 (MapsStoneToNareBounded). Total postulates: unchanged net
+(ScottDiscreteCodomain still postulated; MapsStoneToNareBounded is new, needed for derivation route).

@@ -1,0 +1,17 @@
+bck0202: Cleaned up CechVanishingStoneProof holes into clean postulate.
+Full type-check: passes.
+
+Part14 changes (from bck0201):
+  - REMOVED CechVanishingStoneProof module with two {!!} holes (π*-raw, step₃)
+    These holes could not be filled without substantial infrastructure
+    (ScottFiniteCodomain, scott-continuity, colimit-of-exact-is-exact).
+  - REPLACED with clean postulate colimit-arg, same type as before.
+  - KEPT cech-vanishing-finite (proven finite case).
+  - No proven theorems lost — the module only contained incomplete holes.
+
+Remaining postulates in Part14: 2 (colimit-arg, cech-eilenberg-1-agree)
+Note: colimit-arg captures cech-complex-vanishing-stone for Stone spaces.
+The finite case is proven (cech-vanishing-finite).
+
+Line count: 618 (bck0201) → 607 (bck0202), -11 lines.
+Decrease justified: removed incomplete module with holes, no proven code lost.

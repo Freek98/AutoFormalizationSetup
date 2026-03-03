@@ -1,0 +1,22 @@
+bck0200: Weakened Ȟ¹-vanishes from untruncated to truncated (∥ is1Coboundary β ∥₁).
+Full type-check passes. 0 holes.
+
+Part14 changes (from bck0199):
+  - CHANGED Ȟ¹-vanishes definition: (β : C¹) → is1Cocycle β → is1Coboundary β
+    BECAME: (β : C¹) → is1Cocycle β → ∥ is1Coboundary β ∥₁
+    This matches the tex definition (quotient group H¹ = 0) more closely.
+  - ADJUSTED section-exact: wraps result in ∣ ∣₁
+  - ADJUSTED canonical-exact: wraps result in ∣ ∣₁
+  - RESTRUCTURED ExactCechComplexVanishingProof.vanishing-result:
+    Now returns ∥ ((x : S) → α x ≡ 0ₖ 1) ∥₁ instead of bare function.
+    Uses PT-Props.map to thread truncation from exact to result.
+    Internal go function takes specific coboundary, SE module moved inside go.
+  - RESTRUCTURED eilenberg-stone-vanish.use-lc:
+    Uses PT.rec on vanish-trunc into squash₂ (∣ α ∣₂ ≡ 0ₕ 1 is a prop).
+    New mk-eq helper wraps vanish' → ∣ α ∣₂ ≡ 0ₕ 1.
+  - cech-complex-vanishing-stone postulate is now easier to prove
+    (only needs ∥ coboundary ∥₁, not specific coboundary)
+
+Remaining postulates in Part14: 2 (cech-complex-vanishing-stone, cech-eilenberg-1-agree)
+
+Line count: 577 (bck0199) → 580 (bck0200), +3 lines.

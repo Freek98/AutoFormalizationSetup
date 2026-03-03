@@ -1,0 +1,27 @@
+bck0178: ScottDiscreteCodomain postulate eliminated, replaced by ScottIntCodomain (proved).
+Quick check: Part07 SUCCESS, Part14 SUCCESS, Part20 SUCCESS (full chain).
+
+Part07 changes (from bck0177/CHANGES0223):
+  - REMOVED ScottDiscreteCodomain postulate (was fully postulated, tex Corollary 1590)
+  - Replaced by ScottIntCodomain in Part14 (specialized to ℤ, which is the only use)
+  - Net: -1 postulate from Part07
+
+Part14 changes (from bck0177/CHANGES0223):
+  - ADDED ScottIntCodomainModule (lines 542-600):
+    Proves ℤ-specific factoring: Sp(B)→ℤ factors through SpProjection at some level.
+    Strategy: MapsStoneToNareBounded bounds abs∘f < M, embed ℤ into Fin.Base.Fin(M) ⊎ Fin.Base.Fin(M),
+    apply ScottFiniteCodomain on embedded function, post-compose with unembed.
+    Key: uses FinBase.Fin (Σ-based) for embed/unembed pairs, EquivPresIsFinSet + SumFin≃Fin
+    to bridge to isFinSetFin (which works with SumFin.Fin).
+  - Updated call site: ScottIntCodomainModule.ScottIntCodomain B-FP rdFP β̃∘tr
+    (was: ScottDiscreteCodomain B-FP rdFP ℤ isSetℤ β̃∘tr)
+  - Updated comment (line 625): ScottDiscreteCodomain → ScottIntCodomain
+
+Postulate summary:
+  - Part07: ScottFiniteCodomain has 1 inner postulate (defF : F, vacuous for k=0)
+  - Part07: ScottDiscreteCodomain REMOVED (was 1 postulate, now proved in Part14 as ScottIntCodomain)
+  - Net: -1 postulate
+
+Line counts: Part07: 3457 (3468→3457, -11 lines). Part14: 1293 (1231→1293, +62 lines).
+Part07 decrease justified: removed fully-postulated ScottDiscreteCodomain (11 lines of signature + postulate).
+Part14 increase justified: new ScottIntCodomainModule proving the factoring result (+62 lines).

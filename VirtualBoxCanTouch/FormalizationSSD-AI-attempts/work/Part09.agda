@@ -1,8 +1,10 @@
 {-# OPTIONS --cubical --guardedness #-}
 
-module work.Part09 where
+open import work.Part02Defs using (FoundationalAxioms)
 
-open import work.Part08 public
+module work.Part09 (fa : FoundationalAxioms) where
+
+open import work.Part08 fa public
 
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels using (hProp)
@@ -23,7 +25,6 @@ open import Cubical.Foundations.Isomorphism using (Iso; iso; invIso; isoToPath)
 open import Cubical.Algebra.CommRing using (CommRing; CommRingStr; CommRing→Ring)
 open import Cubical.Algebra.Ring.Properties using (module RingTheory)
 
--- ClosedInStoneIsStone (tex Corollary 1770)
 module ClosedInStoneIsStoneModule where
   open import Axioms.StoneDuality using (Stone; hasStoneStr; isPropHasStoneStr; isSetBoolHom)
   open import Cubical.Foundations.HLevels using (isPropΠ)
@@ -38,7 +39,6 @@ module ClosedInStoneIsStoneModule where
   open import Cubical.Foundations.Equiv using (equivFun; invEq; secEq)
 
   -- tex Theorem StoneClosedSubsets, (v)→(i) direction
-  -- Proved from localChoice-axiom + ImageStoneMapDecidableIntersection + quotientBySeqPreservesBooleω
   closedFamilyChoice : (S : Stone) (A : fst S → hProp ℓ-zero)
     → ((x : fst S) → isClosedProp (A x))
     → ∥ ((x : fst S) → Σ[ α ∈ binarySequence ] ⟨ A x ⟩ ↔ ((n : ℕ) → α n ≡ false)) ∥₁
@@ -76,7 +76,6 @@ module ClosedInStoneIsStoneModule where
         fT→B : Sp T → Sp B
         fT→B t = q (fst (equivFun SpT≃CS t))
 
-        -- Im(fT→B)(x) ↔ A(transport SpB≡S x)
         imf→A : (x : Sp B) → ∥ Σ[ t ∈ Sp T ] fT→B t ≡ x ∥₁ → ⟨ A (transport SpB≡S x) ⟩
         imf→A x = PT.rec (snd (A (transport SpB≡S x))) go
           where
@@ -209,7 +208,6 @@ module ClosedInStoneIsStoneModule where
         SpC≡ΣA : Sp C ≡ Σ |S| (λ y → fst (A y))
         SpC≡ΣA = ua SpC≃ΣA
 
--- InhabitedClosedSubSpaceClosed (tex Corollary 1776)
 module InhabitedClosedSubSpaceClosedModule where
   open import Axioms.StoneDuality using (Stone; hasStoneStr)
   open ClosedInStoneIsStoneModule
@@ -221,7 +219,6 @@ module InhabitedClosedSubSpaceClosedModule where
   InhabitedClosedSubSpaceClosed S A A-closed =
     TruncationStoneClosed (Σ (fst S) (λ x → fst (A x)) , ClosedInStoneIsStone S A A-closed)
 
--- closedSigmaClosed-derived (tex Corollary ClosedDependentSums 1785)
 module ClosedSigmaClosedDerived where
   open import Axioms.StoneDuality using (Stone; hasStoneStr)
   open ClosedPropIffStone
@@ -238,16 +235,13 @@ module ClosedSigmaClosedDerived where
 
 open ClosedSigmaClosedDerived
 
--- isClosedSubset (tex Definition 884-886, closed analog)
 isClosedSubset : {T : Type₀} → (A : T → hProp ℓ-zero) → Type₀
 isClosedSubset {T} A = (t : T) → isClosedProp (A t)
 
--- Preimage of closed subset is closed (tex remark 889 analog)
 preimageClosedIsClosed : {S T : Type₀} (f : S → T) (A : T → hProp ℓ-zero)
                        → isClosedSubset A → isClosedSubset (λ s → A (f s))
 preimageClosedIsClosed f A Aclosed s = Aclosed (f s)
 
--- Transitivity of closedness (tex Remark ClosedTransitive 1794)
 closedSubsetTransitive : {T : Type₀}
   → (V : T → hProp ℓ-zero) → isClosedSubset V
   → (W : (t : T) → ⟨ V t ⟩ → hProp ℓ-zero)
@@ -256,7 +250,6 @@ closedSubsetTransitive : {T : Type₀}
 closedSubsetTransitive V Vclosed W Wclosed t =
   closedSigmaClosed-derived (V t) (Vclosed t) (W t) (Wclosed t)
 
--- Opaque bridge: 0≡1 in BooleanRing quotient → 1 in CommRing ideal
 import Cubical.Algebra.CommRing.Quotient.ImageQuotient as IQ
 open import CommRingQuotients.IdealTerms using (isInIdeal; isImage; iszero; isSum; isMul; idealDecomp)
 open import CommRingQuotients.TrivialIdeal using (trivialQuotient→1∈I)
@@ -271,12 +264,10 @@ opaque
   0≡1-quotient→1∈ideal B d p =
     trivialQuotient→1∈I (BooleanRing→CommRing B) (IQ.genIdeal (BooleanRing→CommRing B) d) (sym p)
 
--- Finite join in a Boolean ring (defined using ring ops directly)
 finJoinBR : (B : BooleanRing ℓ-zero) → (ℕ → ⟨ B ⟩) → ℕ → ⟨ B ⟩
 finJoinBR B d zero = BooleanRingStr.𝟘 (snd B)
 finJoinBR B d (suc n) = BooleanAlgebraStr._∨_ B (d n) (finJoinBR B d n)
 
--- General ideal bound: from 0≡1 in B/d, extract N with finJoinBR d N ≡ 1
 module IdealBound (B : BooleanRing ℓ-zero) (d : ℕ → ⟨ B ⟩) where
   private
     R = BooleanRing→CommRing B
@@ -368,7 +359,6 @@ module IdealBound (B : BooleanRing ℓ-zero) (d : ℕ → ⟨ B ⟩) where
         ≡⟨ sym r=st ⟩
       r ∎)
 
-  -- Combined: 0≡1 in B/d → ∃ N. finJoinBR d N ≡ 1
   extract-finJoin-bound : BooleanRingStr.𝟘 (snd (B QB./Im d)) ≡ BooleanRingStr.𝟙 (snd (B QB./Im d))
     → ∥ Σ[ N ∈ ℕ ] finJoinBR B d N ≡ BooleanRingStr.𝟙 (snd B) ∥₁
   extract-finJoin-bound 0≡1 = PT.map go (idealDecomp R d _ (0≡1-quotient→1∈ideal B d 0≡1))
@@ -462,20 +452,16 @@ module StoneSeparatedModule where
       d-at-g : (m : ℕ) → d (encode (⊎.inr m)) ≡ g-elem m
       d-at-g m = cong (⊎.rec f-elem g-elem) (Iso.ret ℕ⊎ℕ≅ℕ (⊎.inr m))
 
-      -- The quotient B/d as a Booleω
       B/d-Booleω : Booleω
       B/d-Booleω = fst B QB./Im d , quotientBySeqHasBooleω B d
 
-      -- Sp(B/d) ≃ ClosedSubset via SpOfQuotientBySeq
       open SpOfQuotientBySeq (fst B) d using (Sp-quotient-≃; Sp-quotient→ClosedSubset)
 
-      -- The closed subset for d is F∩G, which is empty
       spEmpty : Sp B/d-Booleω → ⊥
       spEmpty sp-hom =
         let (x , allZero) = equivFun Sp-quotient-≃ sp-hom
             y : |S|
             y = transport SpB≡S x
-            -- x sends all f-elem to false → y ∈ F
             f-false : (n : ℕ) → fst x (f-elem n) ≡ false
             f-false n =
               fst x (f-elem n)
@@ -502,11 +488,9 @@ module StoneSeparatedModule where
               false ∎)
         in disjoint y y-in-F y-in-G
 
-      -- 0 ≡ 1 in B/d
       0≡1 : BooleanRingStr.𝟘 (snd (fst B/d-Booleω)) ≡ BooleanRingStr.𝟙 (snd (fst B/d-Booleω))
       0≡1 = SpectrumEmptyImpliesTrivial.0≡1-in-B sd-axiom B/d-Booleω spEmpty
 
-      -- Use general IdealBound module
       open IdealBound (fst B) d
 
       private
@@ -522,7 +506,6 @@ module StoneSeparatedModule where
       idealMem : ∥ isInIdeal R d CRS.1r ∥₁
       idealMem = idealDecomp R d CRS.1r (0≡1-quotient→1∈ideal (fst B) d 0≡1)
 
-      -- Filter d to g-contributions and f-contributions
       gPartOfD : ℕ → ⟨ fst B ⟩
       gPartOfD zero = 𝟘B
       gPartOfD (suc n) = ⊎.rec (λ _ → gPartOfD n) (λ k → g-elem k ∨B gPartOfD n) (decode n)
@@ -534,7 +517,6 @@ module StoneSeparatedModule where
       private
         _∨Bool_ = BooleanAlgebraStr._∨_ BoolBR
 
-      -- Split: fJ n = fPartOfD n ∨ gPartOfD n
       fJ-split : (n : ℕ) → fJ n ≡ fPartOfD n ∨B gPartOfD n
       fJ-split zero = sym BA.∨IdL
       fJ-split (suc n) with decode n
@@ -555,7 +537,6 @@ module StoneSeparatedModule where
           ≡⟨ sym BA.∨Assoc ⟩
         fPartOfD n ∨B (g-elem k ∨B gPartOfD n) ∎
 
-      -- BoolHom preserves ∨
       boolhom-∨ : (x : Sp B) (a b : ⟨ fst B ⟩) → fst x (a ∨B b) ≡ fst x a ∨Bool fst x b
       boolhom-∨ x a b =
         let _+S_ = CommRingStr._+_ (snd (BooleanRing→CommRing BoolBR))
@@ -565,7 +546,6 @@ module StoneSeparatedModule where
           ≡⟨ cong₂ _+S_ (IsCommRingHom.pres+ (snd x) a b) (IsCommRingHom.pres· (snd x) a b) ⟩
         fst x a ∨Bool fst x b ∎
 
-      -- BoolHom maps gPartOfD to false when all g-elements map to false
       gPartOfD-false : (x : Sp B) → ((k : ℕ) → fst x (g-elem k) ≡ false)
                      → (n : ℕ) → fst x (gPartOfD n) ≡ false
       gPartOfD-false x _ zero = IsCommRingHom.pres0 (snd x)
@@ -578,7 +558,6 @@ module StoneSeparatedModule where
           ≡⟨ cong₂ _∨Bool_ (gf k) (gPartOfD-false x gf n) ⟩
         false ∎
 
-      -- BoolHom maps fPartOfD to false when all f-elements map to false
       fPartOfD-false : (x : Sp B) → ((j : ℕ) → fst x (f-elem j) ≡ false)
                      → (n : ℕ) → fst x (fPartOfD n) ≡ false
       fPartOfD-false x _ zero = IsCommRingHom.pres0 (snd x)
@@ -591,7 +570,6 @@ module StoneSeparatedModule where
         false ∎
       ... | ⊎.inr _ = fPartOfD-false x ff n
 
-      -- From isInIdeal, construct separator
       fromIdeal : isInIdeal R d (CommRingStr.1r (snd R))
                 → ∥ Σ[ D ∈ DecSubsetOfStone S ] (ClosedSubDec S (F , F-closed) D) × (ClosedSubNotDec S (G , G-closed) D) ∥₁
       fromIdeal iI = ∣ D , D-sep-F , D-sep-G ∣₁
@@ -640,7 +618,6 @@ module StoneSeparatedModule where
             ≡⟨ IsCommRingHom.pres1 (snd x) ⟩
           true ∎
 
--- StoneAsClosedSubsetOfCantor (tex Lemma 2082)
 module CantorIsStoneModule where
   open import Axioms.StoneDuality using (Stone; hasStoneStr; SpGeneralBooleanRing)
   open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA; freeBA-universal-property)
@@ -726,7 +703,6 @@ module CantorIsStoneModule where
   CantorIsStone : hasStoneStr CantorSpace
   CantorIsStone = freeBA-ℕ-Booleω , Sp-freeBA-ℕ-≡-Cantor
 
--- MapsStoneToNareBounded (tex Lemma 1568)
 module MapsStoneToNareBoundedModule where
   open import Axioms.StoneDuality using (Stone; hasStoneStr; isSetBoolHom)
   open StoneClosedSubsetsModule
@@ -843,3 +819,4 @@ module MapsStoneToNareBoundedModule where
 
         fJ-false : fst x (finJoinBR (fst B) d N) ≡ false
         fJ-false = joinAllFalse B d x N all-false
+

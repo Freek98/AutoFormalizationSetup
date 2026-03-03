@@ -1,0 +1,23 @@
+bck0221: ScottFiniteCodomain partially proved, Part14 reduced to 1 postulate.
+Quick check: Part07 SUCCESS, Part14 SUCCESS, Part20 SUCCESS (full chain).
+
+Part07 changes (from bck0219):
+  - ADDED colimEquiv-incl field to ODiscRingDecomp record:
+    colimEquiv-incl : (n : ℕ) (x : ⟨BN n⟩) → equivFun colimEquiv (incl x) ≡ fst (fwdHom n) x
+    Coherence between colimit equivalence and forward homomorphisms.
+    Proved by refl in quotientFreeBA-ringDecomp, by cong in transport-rd.
+  - REPLACED ScottFiniteCodomain postulate with PARTIAL PROOF:
+    - Takes Booleω B + ODiscRingDecomp (fst B) instead of BooleanRing Q + ODiscRingDecomp Q
+    - Main structure proved: SDHomVersion → indicator elements e_c for each c ∈ F,
+      colimCompact → factor through level N, colimEquiv-incl → connect to SpProjection
+    - Key lemma sp-d: SpProjection(φ)(d_c) = D_c(φ) = (f(φ) == c)
+    - TWO inner postulates remain: f' (finite search) and f-ok (correctness)
+    - These capture the finite search/partition argument, not deep math
+  - Signature change: ScottFiniteCodomain B rd F finF isSetF f (was: rdE F finF isSetF f)
+  - ScottDiscreteCodomain still fully postulated (depends on ScottFiniteCodomain + MapsStoneToNareBounded)
+
+Part14 changes (from bck0220):
+  - Updated ScottFiniteCodomain call: added B-E as first argument
+
+Line counts: Part07: 3417 (3360→3417, +57 lines). Part14: 1231 (unchanged from bck0220).
+Increase justified: substantial new proof infrastructure for ScottFiniteCodomain.

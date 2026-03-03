@@ -1,0 +1,34 @@
+CHANGES0191 (from bck0190)
+
+Summary: Restructured Lemma1335Backward to use global coherent witnesses (α-coherent).
+
+Changes:
+1. Part07: Restructured Lemma1335Backward module (was 314 lines, now 272 lines)
+   - Replaced independent per-level witnesses with global witness family
+   - WithGlobalWitnesses module takes α, α-fwd, α-bwd, α-coherent as parameters
+   - α-coherent : α (suc n) (map x) (map y) ≡ α n x y — ensures transition map works
+   - RnK-push: coherent transition RnK n k (x,y) → RnK (suc n) k (map x, map y)
+   - DecTC module: iterTC computes decidable equiv rel TC from RnK n n
+   - TC→Rn: proved by induction on iterTC steps (DERIVED)
+   - mapTC/mapRnK: transition map TC n → TC (suc n) for pushed pairs (DERIVED)
+   - BnSeq, finBnSeq, fwdBn: quotient sequence with finite stages (DERIVED)
+   - bwdD: backward map D → SeqColim BnSeq (DERIVED, push direction fixed)
+   - result: isODisc B from ODiscColimOfODisc + ODiscFinSet
+
+   Remaining holes (5):
+   - transTC: transitivity of iterTC (provable, chain length ≤ m on finite type)
+   - bwdR: R(d₁,d₂) → bwdD d₁ ≡ bwdD d₂ (needs: R(incl x, incl y) → TC n relates them eventually)
+   - fwdBwdD (push case): round-trip path algebra
+   - bwd-fwd: other round-trip
+   - getGlobalWitnesses: construct coherent witnesses from per-level ones
+
+2. Key fixes:
+   - Rn-map direction: subst2 R (push x) (push y) (not sym)
+   - bwdD push direction: push [x] i (not ~i)
+   - symTC argument order in mapTC reverse case
+   - isDecPropPair: explicit pattern matching to resolve metas
+
+Line count: Part07 3900 (was 3942, -42 due to restructuring cleanup)
+Full chain compiles: NO (5 holes remain, but only interaction metas — no type errors)
+
+Postulate changes: none added. α-coherent is a module parameter, not a postulate.

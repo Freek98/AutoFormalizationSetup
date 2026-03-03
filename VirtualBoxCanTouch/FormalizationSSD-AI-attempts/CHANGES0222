@@ -1,0 +1,19 @@
+bck0222: ScottDiscreteCodomain signature updated.
+Quick check: Part07 SUCCESS, Part14 SUCCESS, Part20 SUCCESS (full chain).
+
+Part07 changes (from bck0221):
+  - ScottDiscreteCodomain signature changed: now takes (B : Booleω) like ScottFiniteCodomain
+    Old: {Q : BooleanRing} (rd : ODiscRingDecomp Q) (Z : Type) ...
+    New: (B : Booleω) (rd : ODiscRingDecomp (fst B)) (Z : Type) ...
+  - Still postulated (single postulate for the whole thing)
+  - ScottFiniteCodomain unchanged from bck0221 (partial proof with 2 inner postulates)
+
+Part14 changes (from bck0221):
+  - Updated ScottDiscreteCodomain call: added B-FP as first argument
+
+Postulate summary for Part07:
+  - ScottFiniteCodomain: mostly proved (sp-d, fwd-d, D, e, e-ok done)
+    Inner postulates: f' (finite search), f-ok (correctness)
+  - ScottDiscreteCodomain: fully postulated (1 postulate)
+
+Line counts: Part07: 3418 (3417→3418, +1 line). Part14: 1231 (unchanged).

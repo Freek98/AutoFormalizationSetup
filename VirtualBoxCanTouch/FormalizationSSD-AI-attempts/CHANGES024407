@@ -1,0 +1,10 @@
+bck024407: Added tex annotations for 8 missing labels across work/ and formalization/:
+- def-cs-Interval (2250), IntervalIsCHaus (2272), LesserOpenPropAndApartness (2610): Part12/Interval
+- Z-I-local (3015): Part12/Interval
+- LocalChoiceSurjectionForm (394): Part02Defs/AxiomDefs
+- OpenDominance (1330): Part02/Axioms
+- ClosedDominance (1794): Part09/ClosedInStone
+- cech-eilenberg-1-agree (2945): Part14/CechCohomology (comment stating proof plan)
+Coverage: 86/86 tex labels annotated (100%), but cech-eilenberg-1-agree
+is comment-level only (requires long exact sequences infrastructure).
+Remaining issues: 1 postulate (cocycleFactorsE), 1 TERMINATING pragma.

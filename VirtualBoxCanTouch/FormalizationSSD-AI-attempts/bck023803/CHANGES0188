@@ -1,0 +1,21 @@
+CHANGES0188 (from bck0187)
+
+Summary: Added ScottIntCodomain module in Part14 and improved comments on cocycleFactorsE.
+
+Changes:
+1. Part14: Added ScottIntCodomainModule (+60 lines, was 1173, now 1244)
+   - ScottIntCodomain : factors ℤ-valued functions on Stone spaces through finite levels
+   - Uses MapsStoneToNareBounded (bounds |f|) + ScottFiniteCodomain
+   - Embeds ℤ into Fin(M) ⊎ Fin(M) for the bound M, factors through finite level,
+     then unembed back to ℤ.
+   - DERIVED (proven, no postulates).
+
+2. Part14: Updated comments on cocycleFactorsE postulate (+5 comment lines)
+   - Clarified the proof route via FP factorization and scott-continuity
+   - Documented that FP = E ×_S E and the FP ring generation argument
+
+Line count: Part14 1244 (+71)
+Total across all files: 8660 → 8731 (+71)
+Full chain Part14 compiles: YES
+
+Postulate changes: none (cocycleFactorsE remains the only non-axiom postulate)

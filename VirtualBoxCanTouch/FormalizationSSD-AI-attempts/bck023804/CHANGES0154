@@ -1,0 +1,38 @@
+CHANGES0154 (from bck0153)
+
+Summary: Proved ConnectedComponentClosedInCompactHausdorff (tex Lemma 2144),
+         and strengthened AlgebraCompactHausdorffCountablyPresented postulate.
+
+Changes:
+1. Part11: AlgebraCompactHausdorffCountablyPresentedModule
+   - Removed BoolAlgOfCHaus (was just fst X → Bool, unused elsewhere)
+   - Changed postulate type from ∥ Σ[ B ∈ Booleω ] ⟨ fst B ⟩ ≡ BoolAlgOfCHaus X ∥₁
+     to ∥ has-Boole-ω' (2^ (fst X)) ∥₁
+     This preserves the Boolean ring structure (pointwise ops on X → Bool),
+     not just the carrier type equality.
+
+2. Part11: ConnectedComponentModule
+   - Replaced postulate ConnectedComponentClosedInCompactHausdorff with full proof.
+   - Proof strategy (using equalityFromEqualityOnGenerators from freeBATerms):
+     (a) From has-Boole-ω'(2^X), get surjective BoolHom Φ : freeBA ℕ → 2^(fst X)
+         via BooleanEquivToHomInv ∘cr quotientImageHom
+     (b) Generators: g_n = fst Φ (generator n) : fst X → Bool
+     (c) D_n(y) = bool-eq(g_n(x), g_n(y)), where D_n(y) = true iff g_n(x) = g_n(y)
+     (d) Forward (Q_x(y) → ∀n.D_n(y)=true): D_n(x)=true always (bool-eq-refl),
+         then Q_x(y) applied to D_n
+     (e) Backward (∀n.D_n(y)=true → Q_x(y)):
+         - bool-eq-eq gives g_n(x) = g_n(y) for all n
+         - ev_z(h) = h(z) is a BoolHom from 2^X to BoolBR (all pres fields = refl)
+         - equalityFromEqualityOnGenerators: ev_x ∘cr Φ ≡ ev_y ∘cr Φ
+         - For any E : X→Bool, surjectivity of Φ gives t with Φ(t) = E
+         - Then E(y) = Φ(t)(y) = Φ(t)(x) = E(x) = true
+   - Helper functions: bool-eq, bool-eq-refl, bool-eq-eq, ev (evaluation BoolHom)
+   - New imports: Axioms.StoneDuality (2^), PresentedBoole (has-Boole-ω', BooleanEquivToHomInv),
+     FreeBool (freeBA, generator), freeBATerms (equalityFromEqualityOnGenerators),
+     QuotientBool (quotientImageHom, quotientImageHomSurjective, _/Im_),
+     Cubical.Algebra.CommRing (_∘cr_, IsCommRingHom),
+     Cubical.Algebra.BooleanRing (BoolHom), BoolBR,
+     Cubical.Functions.Surjection, hPropExt, equivFun/invEq/retEq
+
+Line count: 7078 (was 6980 in bck0153, +98 from proof replacing postulate)
+Full chain Part20 compiles: YES

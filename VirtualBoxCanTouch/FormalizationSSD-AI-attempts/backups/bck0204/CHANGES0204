@@ -1,0 +1,23 @@
+bck0204: Added stone-commute-delooping infrastructure and CechEilenberg0Agree roundtrips.
+Full type-check: pending (running in background).
+
+Part14 changes (from bck0203):
+  - ADDED CechEilenberg0Agree roundtrip proofs:
+    roundtrip-H⁰: Ȟ⁰→H⁰ (H⁰→Ȟ⁰-f g) (H⁰→Ȟ⁰-cocycle g) ≡ g
+    roundtrip-Ȟ⁰: H⁰→Ȟ⁰-f (Ȟ⁰→H⁰ f d₀-eq) x u ≡ f x u
+    Proofs use PT-Props.elim and squash₁ from PropositionalTruncation.
+  - ADDED StoneCommuteDeloopingModule (tex Corollary 2895):
+    - BZ-funspace-connected: H¹(S,ℤ)=0 implies (S → BZ) is connected
+    - BZ-Stone-funspace-connected: for Stone S, (S → BZ) is connected
+    - evHom: evaluation homomorphism ℤ^S → ℤ at each point
+    - canonicalMap: B(ℤ^S) → (S → BZ) via inducedFun-EM on evHom
+    - BZX-connected: B(ℤ^X) is 2-connected
+    - BZ-funspace-set-trunc-contr: ∥ (S → BZ) ∥₂ is contractible for Stone S
+    Full equivalence proof (canonicalMap is isEquiv) deferred:
+      requires EM₁ loop space computation with ∙∙-refl reduction.
+      Key intermediate results proven; proof sketch documented.
+
+Remaining postulates in Part14: 2 (colimit-arg, cech-eilenberg-1-agree)
+
+Line count: 677 (bck0203) → 751 (bck0204), +74 lines.
+All new lines are proven code (no new postulates).

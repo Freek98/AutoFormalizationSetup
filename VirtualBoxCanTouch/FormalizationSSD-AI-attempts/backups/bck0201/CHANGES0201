@@ -1,0 +1,22 @@
+bck0201: Added cech-vanishing-finite (section-exact + finite choice for finite types).
+Full type-check: pending (inner postulate colimit-arg remains).
+
+Part14 changes (from bck0200):
+  - ADDED cech-vanishing-finite: for finite S with finite T(x) all inhabited,
+    Ȟ¹-vanishes follows from section-exact + FiniteChoice.choice.
+    Uses: FC.choice to get ∥ section ∥₁, then section-exact inside PT.rec.
+  - RESTRUCTURED cech-complex-vanishing-stone:
+    Now delegates to CechVanishingStoneProof module.
+    Inner postulate colimit-arg captures the remaining colimit argument.
+    Proof structure:
+    1. Finite case proven (cech-vanishing-finite)
+    2. Stone case needs: ODisc decomposition → finite approximation → colimit exactness
+    3. Infrastructure available: BooleIsODisc, OdiscSigma, StoneSigmaClosed,
+       lemDecompColimMorphisms, colimCompact, MapsStoneToNareBounded
+  - import of isFinSet from Cubical.Data.FinSet.Base added (public)
+
+Remaining postulates in Part14: 2 (colimit-arg inside CechVanishingStoneProof, cech-eilenberg-1-agree)
+Note: colimit-arg is a more focused postulate than the original cech-complex-vanishing-stone;
+the finite case and module structure are proven.
+
+Line count: 580 (bck0200) → 618 (bck0201), +38 lines.

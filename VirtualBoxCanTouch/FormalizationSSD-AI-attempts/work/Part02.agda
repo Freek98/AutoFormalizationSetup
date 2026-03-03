@@ -1,8 +1,11 @@
 {-# OPTIONS --cubical --guardedness #-}
 
-module work.Part02 where
+open import work.Part02Defs
 
-open import work.Part01 public
+module work.Part02 (fa : FoundationalAxioms) where
+
+open FoundationalAxioms fa public
+open import work.Part02Defs public
 
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Function
@@ -31,67 +34,12 @@ open import Axioms.StoneDuality using (StoneDualityAxiom; Sp; Booleω)
 import OmnisciencePrinciples.Markov as MarkovLib
 
 open import CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω'; BooleanRingEquiv; invBooleanRingEquiv; idBoolHom)
-open import CountablyPresentedBooleanRings.Examples.Bool using (is-cp-2)
 open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA)
 import QuotientBool as QB
 open import Cubical.Data.Nat.Bijections.Sum using (ℕ⊎ℕ≅ℕ)
 import Cubical.Data.Sum as ⊎
 
-module SpectrumEmptyImpliesTrivial (SD : StoneDualityAxiom) (B : Booleω) (spEmpty : Sp B → ⊥) where
-  open import Axioms.StoneDuality using (evaluationMap)
-
-  emptyFunContr : isContr (Sp B → Bool)
-  emptyFunContr = (λ sp → ex-falso (spEmpty sp)) , λ f → funExt (λ sp → ex-falso (spEmpty sp))
-
-  B-contr : isContr ⟨ fst B ⟩
-  B-contr = isOfHLevelRespectEquiv 0 (invEquiv (evaluationMap B , SD B)) emptyFunContr
-
-  0≡1-in-B : BooleanRingStr.𝟘 (snd (fst B)) ≡ BooleanRingStr.𝟙 (snd (fst B))
-  0≡1-in-B = isContr→isProp B-contr _ _
-
-open import Cubical.Algebra.CommRing.Properties using (compCommRingEquiv)
-
-compBoolRingEquiv : (A B C : BooleanRing ℓ-zero)
-                  → BooleanRingEquiv A B → BooleanRingEquiv B C → BooleanRingEquiv A C
-compBoolRingEquiv A B C f g = compCommRingEquiv {A = BooleanRing→CommRing A} {B = BooleanRing→CommRing B} {C = BooleanRing→CommRing C} f g
-
-open import Cubical.Algebra.CommRing.Univalence using (CommRingPath)
-
-commRingPath→boolRingEquiv : (A B : BooleanRing ℓ-zero)
-  → BooleanRing→CommRing A ≡ BooleanRing→CommRing B
-  → BooleanRingEquiv A B
-commRingPath→boolRingEquiv A B p =
-  let e = invEq (CommRingPath _ _) p in fst e , snd e
-
-Bool-Booleω : Booleω
-Bool-Booleω = BoolBR , ∣ is-cp-2 ∣₁
-
-Sp-Bool-inhabited : ∥ Sp Bool-Booleω ∥₁
-Sp-Bool-inhabited = ∣ idBoolHom BoolBR ∣₁
-
--- Dependent Choice axiom (tex Axiom 355, axDependentChoice)
-
-SeqLimit : (E : ℕ → Type ℓ-zero) → ((n : ℕ) → E (suc n) → E n) → Type ℓ-zero
-SeqLimit E p = Σ[ f ∈ ((n : ℕ) → E n) ] ((n : ℕ) → p n (f (suc n)) ≡ f n)
-
-seqLim-proj₀ : (E : ℕ → Type ℓ-zero) (p : (n : ℕ) → E (suc n) → E n)
-             → SeqLimit E p → E 0
-seqLim-proj₀ E p (f , _) = f 0
-
-DependentChoiceAxiom : Type (ℓ-suc ℓ-zero)
-DependentChoiceAxiom = (E : ℕ → Type ℓ-zero) (p : (n : ℕ) → E (suc n) → E n)
-  → ((n : ℕ) → (y : E n) → ∥ Σ[ x ∈ E (suc n) ] p n x ≡ y ∥₁)
-  → (e₀ : E 0) → ∥ Σ[ s ∈ SeqLimit E p ] seqLim-proj₀ E p s ≡ e₀ ∥₁
-
-postulate
-  dependentChoice-axiom : DependentChoiceAxiom
-
-CountableChoiceAxiom : Type (ℓ-suc ℓ-zero)
-CountableChoiceAxiom = (A : ℕ → Type ℓ-zero)
-  → ((n : ℕ) → ∥ A n ∥₁)
-  → ∥ ((n : ℕ) → A n) ∥₁
-
-countableChoice : CountableChoiceAxiom
+countableChoice : CountableChoiceAxiom {ℓ-zero}
 countableChoice A witnesses = PT.map (λ { ((f , _) , _) n → snd (f (suc n)) })
     (dependentChoice-axiom E p p-surj tt)
   where
@@ -105,7 +53,17 @@ countableChoice A witnesses = PT.map (λ { ((f , _) , _) n → snd (f (suc n)) }
   p-surj : (n : ℕ) → (y : E n) → ∥ Σ[ x ∈ E (suc n) ] p n x ≡ y ∥₁
   p-surj n y = PT.map (λ a → (y , a) , refl) (witnesses n)
 
--- If B is Booleω, then B/d is Booleω for any sequence d (tex: Rule 2 separation)
+countableChoice₁ : CountableChoiceAxiom {ℓ-suc ℓ-zero}
+countableChoice₁ A witnesses = PT.map (λ { ((f , _) , _) n → snd (f (suc n)) })
+    (dependentChoice-axiom₁ E p p-surj (lift tt))
+  where
+  E : ℕ → Type (ℓ-suc ℓ-zero)
+  E zero = Lift {j = ℓ-suc ℓ-zero} Unit
+  E (suc n) = E n × A n
+  p : (n : ℕ) → E (suc n) → E n
+  p n (e , _) = e
+  p-surj : (n : ℕ) → (y : E n) → ∥ Σ[ x ∈ E (suc n) ] p n x ≡ y ∥₁
+  p-surj n y = PT.map (λ a → (y , a) , refl) (witnesses n)
 
 quotientBySeqHasBooleω : (B : Booleω) (d : ℕ → ⟨ fst B ⟩)
   → ∥ has-Boole-ω' (fst B QB./Im d) ∥₁
@@ -369,42 +327,12 @@ mp-from-SD SD α α≠0 = MarkovLib.extractFirstHitInBinarySequence.extract α (
     0≡1-CR : CommRingStr.0r (snd (BoolCR IQ./Im α)) ≡ CommRingStr.1r (snd (BoolCR IQ./Im α))
     0≡1-CR = 0≡1-BR
 
-postulate
-  sd-axiom : StoneDualityAxiom
-
--- SurjectionsAreFormalSurjections axiom (tex line 294-297)
-
-isInjectiveBoolHom : (B C : Booleω) → BoolHom (fst B) (fst C) → Type ℓ-zero
-isInjectiveBoolHom B C g = (x y : ⟨ fst B ⟩) → fst g x ≡ fst g y → x ≡ y
-
-isSurjectiveSpHom : (B C : Booleω) → BoolHom (fst B) (fst C) → Type ℓ-zero
-isSurjectiveSpHom B C g = (h : Sp B) → ∥ Σ[ h' ∈ Sp C ] h' ∘cr g ≡ h ∥₁
-
-SurjectionsAreFormalSurjectionsAxiom : Type (ℓ-suc ℓ-zero)
-SurjectionsAreFormalSurjectionsAxiom = (B C : Booleω) (g : BoolHom (fst B) (fst C)) →
-  isInjectiveBoolHom B C g ↔ isSurjectiveSpHom B C g
-
-postulate
-  surj-formal-axiom : SurjectionsAreFormalSurjectionsAxiom
+-- tex Remark 375 (SpIsAntiEquivalence)
+-- tex Remark 160 (BooleAsCQuotient)
 
 injective→Sp-surjective : (B C : Booleω) (g : BoolHom (fst B) (fst C)) →
   isInjectiveBoolHom B C g → isSurjectiveSpHom B C g
 injective→Sp-surjective B C g = fst (surj-formal-axiom B C g)
-
--- Local Choice axiom (tex Axiom 348, AxLocalChoice)
--- tex Remark 394 (LocalChoiceSurjectionForm): equivalent surjection-diagram formulation
-
-isSurjectiveSpMap : {B C : Booleω} → (Sp C → Sp B) → Type ℓ-zero
-isSurjectiveSpMap {B} {C} q = (h : Sp B) → ∥ Σ[ h' ∈ Sp C ] q h' ≡ h ∥₁
-
-LocalChoiceAxiom : Type (ℓ-suc ℓ-zero)
-LocalChoiceAxiom = (B : Booleω) (P : Sp B → Type ℓ-zero)
-  → ((s : Sp B) → ∥ P s ∥₁)
-  → ∥ Σ[ C ∈ Booleω ] Σ[ q ∈ (Sp C → Sp B) ]
-      (isSurjectiveSpMap {B} {C} q × ((t : Sp C) → P (q t))) ∥₁
-
-postulate
-  localChoice-axiom : LocalChoiceAxiom
 
 mp : MarkovPrinciple
 mp = mp-from-SD sd-axiom
@@ -412,116 +340,11 @@ mp = mp-from-SD sd-axiom
 ∞ : ℕ∞
 ∞ = (λ _ → false) , (λ m n αm=t _ → ex-falso (false≢true αm=t))
 
--- Markov principle for ℕ∞ elements (tex Theorem after NotWLPO, line 500)
+-- tex Theorem 500
 ℕ∞-Markov : (α : ℕ∞) → ¬ ((n : ℕ) → fst α n ≡ false) → Σ[ n ∈ ℕ ] fst α n ≡ true
 ℕ∞-Markov α = mp (fst α)
 
-data Reveal_·_is_ {A : Type₀} {B : A → Type₀} (f : (x : A) → B x) (x : A) (y : B x) : Type₀ where
-  [_] : f x ≡ y → Reveal f · x is y
-
-inspect : ∀ {A : Type₀} {B : A → Type₀} (f : (x : A) → B x) (x : A) → Reveal f · x is (f x)
-inspect f x = [ refl ]
-
-open import Cubical.Data.Nat.Bijections.Product using (ℕ×ℕ≅ℕ)
-
-cantorPair : ℕ → ℕ → ℕ
-cantorPair m n = Iso.fun ℕ×ℕ≅ℕ (m , n)
-
-cantorUnpair : ℕ → ℕ × ℕ
-cantorUnpair = Iso.inv ℕ×ℕ≅ℕ
-
-cantorUnpair-pair : (m n : ℕ) → cantorUnpair (cantorPair m n) ≡ (m , n)
-cantorUnpair-pair m n = Iso.ret ℕ×ℕ≅ℕ (m , n)
-
-openAnd : (P Q : hProp ℓ-zero) → isOpenProp P → isOpenProp Q
-        → isOpenProp ((⟨ P ⟩ × ⟨ Q ⟩) , isProp× (snd P) (snd Q))
-openAnd P Q Popen Qopen = PT.rec2 squash₁ go Popen Qopen
-  where
-  go : isOpenWitness P → isOpenWitness Q
-     → isOpenProp ((⟨ P ⟩ × ⟨ Q ⟩) , isProp× (snd P) (snd Q))
-  go (α , P→∃α , ∃α→P) (β , Q→∃β , ∃β→Q) = ∣ γ , forward , backward ∣₁
-    where
-    γ : binarySequence
-    γ k = let (n , m) = cantorUnpair k in α n and β m
-
-    forward : ⟨ P ⟩ × ⟨ Q ⟩ → Σ[ k ∈ ℕ ] γ k ≡ true
-    forward (p , q) =
-      let (n , αn=t) = P→∃α p
-          (m , βm=t) = Q→∃β q
-          k = cantorPair n m
-          γk=t : γ k ≡ true
-          γk=t =
-            γ k
-              ≡⟨ cong (λ p → α (fst p) and β (snd p)) (cantorUnpair-pair n m) ⟩
-            α n and β m
-              ≡⟨ cong (λ x → x and β m) αn=t ⟩
-            true and β m
-              ≡⟨ cong (true and_) βm=t ⟩
-            true ∎
-      in (k , γk=t)
-
-    backward : Σ[ k ∈ ℕ ] γ k ≡ true → ⟨ P ⟩ × ⟨ Q ⟩
-    backward (k , γk=t) =
-      let (n , m) = cantorUnpair k
-          αn=t : α n ≡ true
-          αn=t = and-true-left (α n) (β m) γk=t
-          βm=t : β m ≡ true
-          βm=t = and-true-right (α n) (β m) γk=t
-      in (∃α→P (n , αn=t)) , (∃β→Q (m , βm=t))
-      where
-      and-true-left : (a b : Bool) → a and b ≡ true → a ≡ true
-      and-true-left true  _ _ = refl
-      and-true-left false _ p = ex-falso (false≢true p)
-
-      and-true-right : (a b : Bool) → a and b ≡ true → b ≡ true
-      and-true-right true  _ p = p
-      and-true-right false _ p = ex-falso (false≢true p)
-
-firstTrue : binarySequence → binarySequence
-firstTrue α zero = α zero
-firstTrue α (suc n) with α zero
-... | true = false
-... | false = firstTrue (α ∘ suc) n
-
-firstTrue-preserves-allFalse : (α : binarySequence) → ((n : ℕ) → α n ≡ false)
-                             → (n : ℕ) → firstTrue α n ≡ false
-firstTrue-preserves-allFalse α allF zero = allF zero
-firstTrue-preserves-allFalse α allF (suc n) with α zero | allF zero
-... | true  | α0=f = ex-falso (false≢true (sym α0=f))
-... | false | _    = firstTrue-preserves-allFalse (α ∘ suc) (allF ∘ suc) n
-
-firstTrue-hitsAtMostOnce : (α : binarySequence) → hitsAtMostOnce (firstTrue α)
-firstTrue-hitsAtMostOnce α m n ftm=t ftn=t = aux α m n ftm=t ftn=t
-  where
-  aux : (α : binarySequence) → (m n : ℕ) → firstTrue α m ≡ true → firstTrue α n ≡ true → m ≡ n
-  aux α zero zero _ _ = refl
-  aux α zero (suc n) ft0=t ft-sn=t with α zero
-  aux α zero (suc n) ft0=t ft-sn=t | true = ex-falso (false≢true ft-sn=t)
-  aux α zero (suc n) ft0=t ft-sn=t | false = ex-falso (false≢true ft0=t)
-  aux α (suc m) zero ft-sm=t ft0=t with α zero
-  aux α (suc m) zero ft-sm=t ft0=t | true = ex-falso (false≢true ft-sm=t)
-  aux α (suc m) zero ft-sm=t ft0=t | false = ex-falso (false≢true ft0=t)
-  aux α (suc m) (suc n) ft-sm=t ft-sn=t with α zero
-  aux α (suc m) (suc n) ft-sm=t ft-sn=t | true = ex-falso (false≢true ft-sm=t)
-  aux α (suc m) (suc n) ft-sm=t ft-sn=t | false = cong suc (aux (α ∘ suc) m n ft-sm=t ft-sn=t)
-
-firstTrue-true-implies-original-true : (α : binarySequence) (n : ℕ)
-                                      → firstTrue α n ≡ true → α n ≡ true
-firstTrue-true-implies-original-true α zero ft0=t = ft0=t
-firstTrue-true-implies-original-true α (suc n) ft-sn=t with α zero
-... | true  = ex-falso (false≢true ft-sn=t)
-... | false = firstTrue-true-implies-original-true (α ∘ suc) n ft-sn=t
-
-firstTrue-false-but-original-true : (α : binarySequence) (n : ℕ)
-                                   → firstTrue α n ≡ false → α n ≡ true
-                                   → Σ[ m ∈ ℕ ] (suc m ≤ n) × (α m ≡ true)
-firstTrue-false-but-original-true α zero ft0=f α0=t = ex-falso (true≢false (sym α0=t ∙ ft0=f))
-firstTrue-false-but-original-true α (suc n) ft-sn=f α-sn=t with α zero | inspect α zero
-... | true  | [ α0=t ] = zero , suc-≤-suc zero-≤ , α0=t
-... | false | _ =
-  let (m , m<n , αsm=t) = firstTrue-false-but-original-true (α ∘ suc) n ft-sn=f α-sn=t
-  in suc m , suc-≤-suc m<n , αsm=t
-
+-- tex Lemma 691 (closed stable under countable conjunctions)
 closedCountableIntersection : (P : ℕ → hProp ℓ-zero)
                             → ((n : ℕ) → isClosedProp (P n))
                             → isClosedProp (((n : ℕ) → ⟨ P n ⟩) , isPropΠ (λ n → snd (P n)))
@@ -555,6 +378,7 @@ closedCountableIntersection P αs =
           ≡⟨ allβFalse (cantorPair n k) ⟩
         false ∎
 
+-- tex Lemma 691 (open stable under countable disjunctions)
 openCountableUnion : (P : ℕ → hProp ℓ-zero)
                    → ((n : ℕ) → isOpenProp (P n))
                    → isOpenProp (∥ Σ[ n ∈ ℕ ] ⟨ P n ⟩ ∥₁ , squash₁)
@@ -593,7 +417,7 @@ openCountableUnion P αs = PT.rec squash₁ go (countableChoice _ αs)
                 true ∎
           in false≢true (sym (allFalse k) ∙ βk=t)
 
--- (ClopenDecidable from tex Corollary 774)
+-- tex Corollary 774 (ClopenDecidable)
 
 clopenIsDecidable : (P : hProp ℓ-zero) → isOpenProp P → isClosedProp P → Dec ⟨ P ⟩
 clopenIsDecidable P Popen Pclosed = PT.rec (isPropDec (snd P)) go Pclosed
@@ -608,7 +432,7 @@ clopenIsDecidable P Popen Pclosed = PT.rec (isPropDec (snd P)) go Pclosed
          (openIsStable mp P∨¬P-trunc P∨¬P-trunc-open
            (λ k → k ∣ inr (λ p → k ∣ inl p ∣₁) ∣₁)))
 
--- (ImplicationOpenClosed from tex Lemma 857)
+-- tex Lemma 857 (ImplicationOpenClosed)
 
 implicationOpenClosed : (P Q : hProp ℓ-zero) → isOpenProp P → isClosedProp Q
                       → isClosedProp ((⟨ P ⟩ → ⟨ Q ⟩) , isPropΠ (λ _ → snd Q))
@@ -635,7 +459,7 @@ implicationOpenClosed P Q Popen Qclosed = PT.rec squash₁ go Qclosed
       backward all-false p =
         closedIsStable (⟨ Q ⟩ , snd Q) Qclosed (λ ¬q → ∀→¬P∧¬Q all-false (p , ¬q))
 
--- Second direction (tex Lemma 857): P closed, Q open → P→Q open
+-- tex Lemma 857: P closed, Q open → P→Q open
 implicationClosedOpen : (P Q : hProp ℓ-zero) → isClosedProp P → isOpenProp Q
                       → isOpenProp ((⟨ P ⟩ → ⟨ Q ⟩) , isPropΠ (λ _ → snd Q))
 implicationClosedOpen P Q Pclosed Qopen =
@@ -654,7 +478,7 @@ implicationClosedOpen P Q Pclosed Qopen =
   backward = PT.rec (isPropΠ (λ _ → snd Q))
     (λ { (⊎.inl ¬p) p → ex-falso (¬p p) ; (⊎.inr q) _ → q })
 
--- (ClosedMarkov from tex Lemma 807)
+-- tex Lemma 807 (ClosedMarkov)
 closedMarkovTex : (P : ℕ → hProp ℓ-zero) → ((n : ℕ) → isClosedProp (P n))
                 → (¬ ((n : ℕ) → ⟨ P n ⟩)) ↔ ∥ Σ[ n ∈ ℕ ] (¬ ⟨ P n ⟩) ∥₁
 closedMarkovTex P Pclosed = PT.rec isPropResult go (countableChoice _ Pclosed)
@@ -701,7 +525,7 @@ openSigmaDecidable D (no ¬d) Q Qopen = ∣ (λ _ → false) , forward , backwar
   backward : Σ[ n ∈ ℕ ] false ≡ true → ∥ Σ[ d ∈ ⟨ D ⟩ ] ⟨ Q d ⟩ ∥₁
   backward (_ , p) = ex-falso (false≢true p)
 
--- Open propositions are closed under Σ-types (tex Corollary OpenDependentSums 1313)
+-- tex Corollary OpenDependentSums 1313
 
 openSigmaOpen : (P : hProp ℓ-zero) → isOpenProp P
               → (Q : ⟨ P ⟩ → hProp ℓ-zero) → ((p : ⟨ P ⟩) → isOpenProp (Q p))
@@ -742,17 +566,17 @@ closedEquiv : (P Q : hProp ℓ-zero) → (⟨ P ⟩ → ⟨ Q ⟩) → (⟨ Q �
 closedEquiv P Q P→Q Q→P Pclosed =
   PT.map (λ (α , P→∀ , ∀→P) → α , (λ q → P→∀ (Q→P q)) , (λ w → P→Q (∀→P w))) Pclosed
 
--- Definition (tex line 884-886):
-
+-- tex line 884-886
 isOpenSubset : {T : Type₀} → (A : T → hProp ℓ-zero) → Type₀
 isOpenSubset {T} A = (t : T) → isOpenProp (A t)
 
--- The pre-image of an open subset under any map is open (tex remark 889)
+-- tex remark 889
 preimageOpenIsOpen : {S T : Type₀} (f : S → T) (A : T → hProp ℓ-zero)
                    → isOpenSubset A → isOpenSubset (λ s → A (f s))
 preimageOpenIsOpen f A Aopen s = Aopen (f s)
 
--- Transitivity of openness (tex Corollary OpenTransitive 1319)
+-- tex Corollary OpenTransitive 1319
+-- tex Remark 1330 (OpenDominance): Open forms a dominance (from OpenDependentSums + ⊤ is open)
 openSubsetTransitive : {T : Type₀}
                      → (V : T → hProp ℓ-zero) → isOpenSubset V
                      → (W : (t : T) → ⟨ V t ⟩ → hProp ℓ-zero)
@@ -760,11 +584,4 @@ openSubsetTransitive : {T : Type₀}
                      → isOpenSubset (λ t → (∥ Σ[ v ∈ ⟨ V t ⟩ ] ⟨ W t v ⟩ ∥₁) , squash₁)
 openSubsetTransitive V Vopen W Wopen t =
   openSigmaOpen (V t) (Vopen t) (W t) (Wopen t)
-
--- Open forms a dominance (tex Remark OpenDominance 1330):
---   ⊤ is open (decIsOpen), and open propositions are closed under Σ (openSigmaOpen).
-
--- Closed forms a dominance (tex Remark ClosedDominance 1794):
---   ⊤ is closed (decIsClosed), and closed propositions are closed under Σ
---   (closedSigmaClosed-derived in Part09).
 

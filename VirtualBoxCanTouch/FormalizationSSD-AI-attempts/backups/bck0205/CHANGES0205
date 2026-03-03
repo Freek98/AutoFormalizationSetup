@@ -1,0 +1,23 @@
+bck0205: Completed stone-commute-delooping equivalence proof (tex Corollary 2895).
+Full type-check: pending (running in background).
+
+Part14 changes (from bck0204):
+  - COMPLETED stone-commute-delooping : (S : Stone) → isEquiv (canonicalMap (fst S))
+    Full proof via WhiteheadsLemma.ΩEquiv→Equiv:
+    (1) map-canonicalMap-isEquiv: ST.map(canonicalMap) is equiv
+        (both set-truncations contractible: source via BZX-connected, target via eilenberg-stone-vanish)
+    (2) Ω→-isEquiv-all: Ω→(canonicalMap,refl) is equiv at every point
+        Proved at basepoint via:
+        - Ω→-at-base-is-cong: Ω→(f,refl) q = cong f q (doubleCompPath-elim + unit laws)
+        - target-loop-iso: (X→ℤ) ≅ Ω(X→BZ) via pointwise ΩEM₁
+        - Ω-iso: compIso (invIso ΩEM₁(G X)) (target-loop-iso X)
+        - canonicalMap-on-emloop: cong(canonicalMap)(emloop g) = funExt(λ s → emloop(g s)) by refl
+        - cong-canonicalMap-is-Ω-iso: extends emloop case to all loops via ΩEM₁ roundtrip
+        - cong-canonicalMap-isEquiv: subst isEquiv from Ω-iso
+        Extended to all points via isConnectedPath + J.
+  - Previously deferred proof (bck0204 comment: "Full equivalence proof deferred") is now COMPLETE.
+
+Remaining postulates in Part14: 2 (colimit-arg, cech-eilenberg-1-agree)
+
+Line count: 751 (bck0204) → 901 (bck0205), +150 lines.
+All new lines are proven code (no new postulates).

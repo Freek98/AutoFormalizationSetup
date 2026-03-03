@@ -1,0 +1,42 @@
+CHANGES0163 (from bck0162)
+
+Summary: Proved CompactHausdorffTopology (tex Corollary 2019) — both closed and open characterizations.
+
+Changes:
+1. Part11: Added CompactHausdorffTopologyModule (~150 lines)
+   - Statement: For A ⊆ X (CHaus) with q : S →→ X (S : Stone):
+     - A is closed ↔ ∃ D_n : S → Bool such that A = ∩_n q(D_n)
+     - A is open ↔ ∃ D_n : S → Bool such that A = ∪_n ¬q(D_n)
+
+   - Private infrastructure:
+     - cumAnd: cumulative conjunction D₀ ∧ ... ∧ D_n as Bool function
+     - cumAnd-decr: cumAnd is decreasing
+     - cumAnd-extract: extract D_n from cumAnd
+     - all-to-cumAnd: ∀k. D_k true → cumAnd true
+
+   - CHTopClosed-backward: if A = ∩_n q(D_n), then A is closed
+     - Uses closedCountableIntersection and CompactHausdorffClosed-backward
+
+   - CHTopClosed-forward: if A closed, ∃ D_n with A = ∩_n q(D_n)
+     - Uses closedFamilyChoice to get uniform α
+     - Defines D_n(s) = not(α(s,n)), E_n = cumAnd D (decreasing)
+     - Applies ChausMapsPreserveIntersectionOfClosed to swap ∀∃ → ∃∀
+     - Key insight: need decreasing sequence for CMPIC
+
+   - CHTopOpen-backward: if A = ∪_n ¬q(D_n), then A is open
+     - Uses openCountableUnion and negClosedIsOpen
+
+   - CHTopOpen-forward: if A open, ∃ D_n with A = ∪_n ¬q(D_n)
+     - ¬A closed → apply CHTopClosed-forward to ¬A
+     - Then use closedMarkovTex to convert ¬(∩_n q(D_n)) to ∪_n ¬q(D_n)
+     - Uses openIsStable for the double negation elimination
+
+2. Part11: New imports in CompactHausdorffTopologyModule
+   - Cubical.Data.Bool (not, _and_)
+   - Cubical.Foundations.Function (_∘_)
+   - Cubical.Foundations.Univalence (hPropExt)
+   - Cubical.Data.Empty as ⊥
+
+Line count: Part11 1720 (was ~1520 in bck0162, +200 from new proof)
+Total across all files: 8285 (was 8086, +199)
+Full chain Part20 compiles: YES

@@ -1,0 +1,25 @@
+bck0194: ODiscColimOfODisc COMPLETE. Full type-check passes. 0 holes.
+
+Part07 changes (accumulated since bck0193):
+  - hv-swap₁: one-step horizontal-vertical commutation (fCompat + PathP naturality)
+  - multi-vmap-commute: d vertical steps commute with 1 horizontal step (induction on d)
+  - diag-eq-hv: diagonal iteration = horizontal then vertical (induction on d)
+    - Uses ColimCompactHelpers.iterMap (qpSeq (q N)) directly (avoids liftTo/transport mismatch)
+  - rowEq→diagEq: from row-colimit equality to diagonal-colimit equality
+    - colimSeparation on row → J-eliminate to refl → transportRefl bridge → diag-eq-hv
+  - liftToS₀-via-nat, liftToS₀-via-nat-gen: naturality of liftToS₀ w.r.t. liftToD
+  - incl-inj: injectivity of fwdD on incl pairs via colimSeparation on S₀ + go'
+  - go': bridges colimSeparation witness to diagonal equality using rowEq→diagEq + inclLiftD
+  - fwdD-inj: injectivity of fwdD via double SeqColim→Prop + incl-inj
+  - fwdD-emb: embedding via injEmbedding isSetS₀ fwdD-inj
+  - diagEquiv: SeqColim D ≃ SeqColim S₀ via isEmbedding×isSurjection→isEquiv
+    (fwdD-surj completed in earlier session, fwdD-emb completed in this session)
+
+  Key insight: ColimCompactHelpers.iterMap alias normalizes differently from liftTo:
+    - iterMap d x is clean (no transport)
+    - liftTo (d, refl) x = transport refl (iterMap d x) — unwanted transport layer
+    - Solution: use iterMap in diag-eq-hv type, bridge via transportRefl in rowEq→diagEq
+
+Remaining holes in Part07: NONE (only pre-existing postulate ImageStoneMapDecidableIntersection).
+
+Line count: 2797 (bck0193) → 3019 (bck0194), +222 lines.

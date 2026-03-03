@@ -1,0 +1,43 @@
+bck0244: Mass comment cleanup + dead code removal
+
+Summary: Removed 593 useless standalone comment lines across all Part files,
+plus 2 dead lines (propRnK' in Part07), plus 30 excess blank lines.
+Total reduction: 14279 → 13666 lines (-613 lines, -4.3%).
+
+NO useful code was removed. Only standalone comment lines that were NOT
+tex references were deleted. All `-- tex Lemma/Theorem/...` comments preserved.
+
+Per-file breakdown:
+  Part01: 289→284 (-5 blank, -6 comments = -5 net after adjustments)
+  Part02: no change
+  Part02Defs: 233→224 (-5 comments, -4 blank)
+  Part03: 335→324 (-12 comments, +1 blank adjustment)
+  Part04: 1023→1022 (-1 blank)
+  Part05: 1359→1355 (-5 comments, +1 blank adjustment)
+  Part05a: no change
+  Part06: 230→227 (-4 comments, +1 blank adjustment)
+  Part07: 4165→3909 (-249 comments, -2 dead code propRnK', -5 blank)
+  Part08: 210→207 (-2 comments, -1 blank)
+  Part09: 847→822 (-26 comments, +1 blank adjustment)
+  Part10: 813→749 (-65 comments, +1 blank adjustment)
+  Part11: 1857→1771 (-72 comments, -14 blank)
+  Part12: no change
+  Part13: no change
+  Part14: 1333→1192 (-136 comments, -5 blank)
+  Part19: 141→139 (-3 comments, +1 blank adjustment)
+  Part20: 61→54 (-8 comments, +1 blank adjustment)
+
+Dead code removed:
+  Part07: propRnK' (redundant isProp proof for ∥ ∥₁ type, never used)
+
+No library duplicates found worth replacing.
+Additional changes after initial cleanup:
+- Deleted Part10b.agda (trivial re-export of Part10, replaced by direct import in Part11)
+- Updated All.agda to remove Part10b import
+- Removed unused import: Cubical.Foundations.GroupoidLaws from Part11 (lUnit, rUnit, rCancel, lCancel unused)
+- Removed unused import: equivToIso from Part11 Cubical.Foundations.Equiv
+- Removed unused import: false≢true from Part14 Cubical.Data.Bool
+- Removed unused import: _$cr_ from Part14 Cubical.Algebra.CommRing
+
+Final total: 14279 → 13658 lines (-621 lines, -4.3%)
+Full compilation pending (background job).

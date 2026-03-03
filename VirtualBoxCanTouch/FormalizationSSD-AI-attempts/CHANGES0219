@@ -1,0 +1,14 @@
+bck0219: Removed dead MapsStoneToNareBounded postulate from Part07.
+Quick check: Part07 not re-checked (only comment/postulate removal, no logic change).
+
+Part07 changes (from bck0218):
+  - REMOVED MapsStoneToNareBounded postulate (lines 2584-2587 old):
+    This postulate was unused by any downstream file (Part08-Part21).
+    The same result is already fully proved in Part09's MapsStoneToNareBoundedModule
+    using the Stone interface (IdealBound, finJoinBR, etc.).
+  - Replaced 7-line block with 1-line comment pointing to Part09.
+  - No logical changes, no downstream impact.
+
+Line counts: Part07: 3360 (3366→3360, -6 lines).
+Decrease justified: removed dead postulate already proved elsewhere.
+Part14: 1188 (unchanged).

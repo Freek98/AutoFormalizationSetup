@@ -1,0 +1,19 @@
+bck0227: Added FiniteIsStoneModule to Part07 — proves finite sets are Stone.
+Quick check: Part07+Part14 SUCCESS.
+
+Part07 changes (from bck0226):
+  - ADDED FiniteIsStoneModule (lines 3369-3420):
+    - FiniteBooleω: constructs Booleω algebra 2^F for finite F using ODiscBAareBoole + ODiscFinSet
+    - 2^-positive: proves 2^n = suc k for some k (by induction)
+    - 1≢2^suc: proves 1 ≢ 2^(suc n) using 2^-positive + injSuc + znots + +-suc
+    - ^-inj-2: proves 2^n = 2^m → n = m (by induction, using inj-sm· + 1≢2^suc)
+    - FiniteIsStone: proves (F : Type₀) → isFinSet F → hasStoneStr F
+      Strategy: SD gives (F→Bool)≃(SpBF→Bool), cardEquiv+card→+^-inj-2 give card(F)=card(SpBF),
+      cardInj gives ∥F≃SpBF∥₁, then hasStoneStr F.
+
+Part14 changes: none.
+
+Postulate summary: unchanged from bck0226.
+
+Line counts: Part07: 3613 (3563→3613, +50 lines). Part14: unchanged.
+Increase justified: new FiniteIsStone infrastructure (+50 lines).

@@ -1,0 +1,18 @@
+CHANGES0239 - Revert failed buildCoherent attempt, keep Part07 nat fixes
+
+Part07: 4149 → 4137 (-12 lines). Decrease from shorter comments on
+the buildCoherent postulate. The long implementation attempt was reverted
+because the coherence proof requires canonical map-fiber representatives
+across levels, which is ~100 lines and has subtle issues with non-injective
+sequence maps. The postulate remains with a shorter, more accurate comment.
+
+All arithmetic fixes from bck0238 are preserved and compiling:
+- TCmonoN with +-zero/+-suc
+- +-∸-< with +-comm
+- pred-≤-pred instead of <-weaken for toℕ<
+- pigeonHole' with {X = FX} {Y = FA}
+- suc-≤-suc (<-weaken m<k)
+- ≤-antisym argument order
+- transTC with +-comm ∙ ≤-∸-+-cancel
+
+Full chain check (Part20) passes.

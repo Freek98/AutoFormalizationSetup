@@ -1,52 +1,47 @@
 {-# OPTIONS --cubical --guardedness #-}
 
-module work.Part12 where
+open import work.Part02Defs using (FoundationalAxioms)
 
-open import work.Part11 public
+module work.Part12 (fa : FoundationalAxioms) where
 
+open import work.Part11 fa public
+
+open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.HLevels
+open import Cubical.Data.Sigma
+open import Cubical.Data.Nat using (ℕ)
+open import Cubical.Data.Fin using (Fin)
+open import Cubical.Data.Bool using (Bool; true; false; false≢true; true≢false)
+open import Cubical.Data.Empty renaming (rec to ex-falso)
+open import Cubical.Relation.Nullary using (¬_)
+open import Cubical.HITs.PropositionalTruncation using (∥_∥₁; squash₁; ∣_∣₁)
+import Cubical.HITs.PropositionalTruncation as PT
 import Cubical.Data.Sum as ⊎
+open ⊎ using (_⊎_)
+open import Cubical.Data.Int using (ℤ)
 
-module IntervalIsCHausModule where
+-- tex Definition 2250 (def-cs-Interval): cs : 2^ℕ → I
+-- tex Theorem 2272 (IntervalIsCHaus): I is compact Hausdorff
+-- tex Remark 2610 (LesserOpenPropAndApartness): x<y is open, x≠y ↔ x<y ⊎ y<x
+record IntervalAxioms : Type (ℓ-suc ℓ-zero) where
   open CompactHausdorffModule
   open CantorIsStoneModule
-
-  -- tex Definition 2251 (def-cs-Interval)
-  postulate
+  field
     UnitInterval : Type ℓ-zero
     isSetUnitInterval : isSet UnitInterval
     cs : CantorSpace → UnitInterval
     cs-surjective : (x : UnitInterval) → ∥ Σ[ α ∈ CantorSpace ] cs α ≡ x ∥₁
     IntervalIsCHaus : hasCHausStr UnitInterval
-
-  IntervalCHaus : CHaus
-  IntervalCHaus = UnitInterval , IntervalIsCHaus
-
-  -- The unit interval [0,1] is contractible (tex Corollary 3047)
-  postulate
     isContrUnitInterval : isContr UnitInterval
-
--- IntervalTopologyModule (tex 2614-2762)
-
-module IntervalTopologyModule where
-  open IntervalIsCHausModule
-
-  postulate
     _≤I_ : UnitInterval → UnitInterval → Type ℓ-zero
     _<I_ : UnitInterval → UnitInterval → Type ℓ-zero
     ≤I-isProp : (x y : UnitInterval) → isProp (x ≤I y)
     <I-isProp : (x y : UnitInterval) → isProp (x <I y)
     0I : UnitInterval
     1I : UnitInterval
-
-  -- tex Remark 2610 (LesserOpenPropAndApartness): x<y is open, x≠y ↔ (x<y)∨(y<x)
-  postulate
     <I-isOpen : (x y : UnitInterval) → isOpenProp ((x <I y) , <I-isProp x y)
-
-  postulate
     ≠I-apartness : (x y : UnitInterval)
       → (x ≡ y → ⊥) ↔ ((x <I y) ⊎ (y <I x))
-
-  postulate
     ≤I-antisym : (x y : UnitInterval) → x ≤I y → y ≤I x → x ≡ y
     ≤I-trans : (x y z : UnitInterval) → x ≤I y → y ≤I z → x ≤I z
     ≤I-refl : (x : UnitInterval) → x ≤I x
@@ -54,7 +49,6 @@ module IntervalTopologyModule where
     ≤-from-<I : (x y : UnitInterval) → x <I y → x ≤I y
     <I-asymmetric : (x y : UnitInterval) → x <I y → y <I x → ⊥
 
-  -- tex Lemma 2614: Image of a decidable subset under cs is a finite union of closed intervals
   DecSubsetCantor : Type ℓ-zero
   DecSubsetCantor = CantorSpace → Bool
 
@@ -64,59 +58,50 @@ module IntervalTopologyModule where
   inFiniteClosedIntervals : (n : ℕ) → FiniteClosedIntervals n → UnitInterval → Type ℓ-zero
   inFiniteClosedIntervals n Is x = Σ[ i ∈ Fin n ] (fst (Is i) ≤I x) × (x ≤I snd (Is i))
 
-  postulate
-    -- tex Lemma 2614
-    ImageDecidableClosedInterval : (D : DecSubsetCantor)
-      → ∥ Σ[ n ∈ ℕ ] Σ[ Is ∈ FiniteClosedIntervals n ]
-          ((x : UnitInterval) → (Σ[ α ∈ CantorSpace ] (D α ≡ true) × (cs α ≡ x))
-                              ↔ inFiniteClosedIntervals n Is x) ∥₁
-
-  -- tex Lemma 2673: Complement of finite union of closed intervals is finite union of open intervals
   FiniteOpenIntervals : ℕ → Type ℓ-zero
   FiniteOpenIntervals n = (i : Fin n) → UnitInterval × UnitInterval
 
   inFiniteOpenIntervals : (n : ℕ) → FiniteOpenIntervals n → UnitInterval → Type ℓ-zero
   inFiniteOpenIntervals n Is x = Σ[ i ∈ Fin n ] (fst (Is i) <I x) × (x <I snd (Is i))
 
-  postulate
+  field
+    -- tex Lemma 2614
+    ImageDecidableClosedInterval : (D : DecSubsetCantor)
+      → ∥ Σ[ n ∈ ℕ ] Σ[ Is ∈ FiniteClosedIntervals n ]
+          ((x : UnitInterval) → (Σ[ α ∈ CantorSpace ] (D α ≡ true) × (cs α ≡ x))
+                              ↔ inFiniteClosedIntervals n Is x) ∥₁
     -- tex Lemma 2673
     complementClosedIntervalOpenIntervals : (n : ℕ) → (Is : FiniteClosedIntervals n)
       → ∥ Σ[ m ∈ ℕ ] Σ[ Os ∈ FiniteOpenIntervals m ]
           ((x : UnitInterval) → (¬ inFiniteClosedIntervals n Is x)
                               ↔ inFiniteOpenIntervals m Os x) ∥₁
-
-  -- tex Lemma 2729: Open sets in I have standard form
-  postulate
+    -- tex Lemma 2729
     IntervalTopologyStandard : (U : UnitInterval → hProp ℓ-zero)
       → ((x : UnitInterval) → isOpenProp (U x))
       → ∥ Σ[ S ∈ (ℕ → UnitInterval × UnitInterval) ]
           ((x : UnitInterval) → fst (U x) ≡ ∥ Σ[ n ∈ ℕ ] x <I fst (S n) × snd (S n) <I x ∥₁) ∥₁
 
--- ZILocalModule (tex Lemma 3015)
+module IntervalTheory (ia : IntervalAxioms) where
+  open IntervalAxioms ia public
+  open CompactHausdorffModule
+  open CantorIsStoneModule
+  open InhabitedClosedSubSpaceClosedCHausModule
 
-module ZILocalModule where
-  open IntervalIsCHausModule
-  open IntervalTopologyModule
-  open import Cubical.Data.Int using (ℤ)
+  IntervalCHaus : CHaus
+  IntervalCHaus = UnitInterval , IntervalIsCHaus
 
   contr-map-const-local : {X : Type ℓ-zero} {Y : Type ℓ-zero} → isContr X → (f : X → Y)
                         → (x y : X) → f x ≡ f y
   contr-map-const-local contr f x y = cong f (sym (snd contr x) ∙ snd contr y)
 
+  open import Cubical.Data.Int using (ℤ)
+
+  -- tex Lemma 3015 (Z-I-local): ℤ is I-local
   Z-I-local : (f : UnitInterval → ℤ) → (x y : UnitInterval) → f x ≡ f y
   Z-I-local = contr-map-const-local isContrUnitInterval
 
-  -- tex Lemma 3015 corollary
   Bool-I-local : (f : UnitInterval → Bool) → (x y : UnitInterval) → f x ≡ f y
   Bool-I-local = contr-map-const-local isContrUnitInterval
-
--- IntermediateValueTheoremModule (tex Theorem ivt, lines 3082-3097)
-
-module IntermediateValueTheoremModule where
-  open IntervalIsCHausModule
-  open IntervalTopologyModule
-  open ZILocalModule
-  open InhabitedClosedSubSpaceClosedCHausModule
 
   U₀ : (f : UnitInterval → UnitInterval) → UnitInterval → UnitInterval → Type ℓ-zero
   U₀ f y x = f x <I y
@@ -173,7 +158,7 @@ module IntermediateValueTheoremModule where
         ≡⟨ IVT-char-fun-at-1 f y no-sol y≤f1 ⟩
       true ∎
 
-  -- The main theorem (tex Theorem 3082)
+  -- tex Theorem 3082
   IntermediateValueTheorem : (f : UnitInterval → UnitInterval)
     → (y : UnitInterval)
     → f 0I ≤I y → y ≤I f 1I
@@ -199,4 +184,3 @@ module IntermediateValueTheoremModule where
 
     in closedIsStable existence-prop existence-closed ¬¬existence
 
--- BrouwerFixedPointTheoremModule (tex Theorem, lines 3099-3111)

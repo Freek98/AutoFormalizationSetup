@@ -96,6 +96,7 @@ I want you to finish a proof of the following: If i'm given a Boolean Ring (but 
   cofinite set should be sent to the conjunction of the negations of the        
   corresponding list.                                                           
 ───────────────────────       
+<<<<<<< HEAD
 
 ❯ I was working in NFinCofin. I want you to finish this proof to show that     
   there's an equivalence between NfinCofin and presentation.
@@ -104,3 +105,6 @@ I want you to finish a proof of the following: If i'm given a Boolean Ring (but 
   operation between underlying sets of boolean rings preserves negation, one    
   of conjunction or disjunction and one of 0 or 1, then it's a boolean ring     
   morphism. Give me some nice library for that.     
+=======
+get rid of all postulates
+>>>>>>> refs/remotes/origin/main

@@ -20,7 +20,7 @@ open import Cubical.Algebra.CommRing.Instances.Bool
 
 open import Cubical.Data.Sum
 open import Cubical.Data.Sigma hiding (_∨_ ; _∧_)
-open import BooleanRing.BooleanRingQuotients.QuotientBool as QB
+open import QuotientBool as QB
 open import BooleanRing.BooleanRingQuotients.QuotientConclusions
 open import Cubical.Algebra.BooleanRing.Instances.Bool
 open import CountablyPresentedBooleanRings.EquivalenceOfCountablyPresentedDefinitions

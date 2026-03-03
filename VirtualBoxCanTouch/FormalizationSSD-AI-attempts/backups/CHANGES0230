@@ -1,0 +1,45 @@
+bck0230: Proved SpColimToSeqLim (tex Lemma 1512) — Sp(colim BN) ≃ SeqLimit Sp(BN)
+
+Quick check: Part10 SUCCESS.
+
+Part10 changes (from bck0229):
+  - ADDED SpColimToSeqLimModule (~lines 569-783):
+    Proves: For any BooleanRing Q with ODiscRingDecomp, Sp(Q) ≃ SeqLimit SpBN πSp
+    where SpBN n = SpGeneralBooleanRing (BN n) and πSp n φ = φ ∘cr mapBNHom n.
+
+    Forward map (fwd): Sp(Q) → SeqLimit SpBN πSp
+      Uses SpProjection, compat via mapBN≡ bridge and fwd-compat.
+
+    Backward map (bwd): SeqLimit SpBN πSp → Sp(Q)
+      Strategy: BwdConstruction module builds CommRingHom from compatible family.
+      - bwd-on-colim: SeqColim seqB → Bool via φs n at incl level, push path via compat
+      - bwd-fun: Q → Bool via colimEquiv inverse
+      - bwd-at-incl: key lemma relating bwd-fun ∘ fwdHom n to φs n
+      - bwd-pres0, bwd-pres1: via fwdHom 0 hom properties
+      - bwd-pres-: via SeqColim→Prop (unary case)
+      - bwd-pres-bin (generic binary): double SeqColim→Prop elimination
+        Lifts two elements at levels n₁, n₂ to common level N = n₂+n₁
+        using iterMapHom, constSubstCommSlice for +-comm transport.
+        go-same: same-level case via colimEquiv-incl and bwd-at-incl
+      - pres+, pres·: instantiate bwd-pres-bin with QR/BNR/BR operations
+
+    Roundtrips:
+      - fwd-bwd: Σ≡Prop + CommRingHom≡ + bwd-at-incl
+      - bwd-fwd: SeqColim→Prop showing bwd-on-colim matches fst φ via colimEquiv-incl
+
+    SpColim≃SeqLim: isoToEquiv combining fwd, bwd, fwd-bwd, bwd-fwd.
+
+    Key techniques:
+      - BooleanRing→CommRing for CommRingHom/IsCommRingHom types
+      - constSubstCommSlice for transport across +-comm
+      - Explicit {B = ...} annotation on SeqColim→Prop for type inference
+
+  - NO new postulates introduced.
+
+Part07 changes: none.
+
+Postulate summary:
+  - No change from bck0229 (same remaining postulates).
+
+Line counts: Part10: 783 (567→783, +216 lines). Part07: unchanged (3613).
+Increase justified: full proof of SpColim≃SeqLim (Lemma 1512), no postulates.

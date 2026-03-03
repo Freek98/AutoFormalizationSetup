@@ -1,0 +1,26 @@
+CHANGES0155 (from bck0154)
+
+Summary: Proved ConnectedComponentSubOpenHasDecidableInbetween (tex Lemma 2156),
+         eliminating a postulate.
+
+Changes:
+1. Part11: ConnectedComponentModule
+   - Replaced postulate ConnectedComponentSubOpenHasDecidableInbetween with full proof.
+   - Proof strategy (following tex):
+     (a) From ConnectedComponentClosedInCompactHausdorff, get D : ℕ → DecSubsetCHaus X
+         with Q_x(y) ↔ ∀n. D n y ≡ true
+     (b) Define C_n(y) = (D_n y ≡ true) × (¬ U(y)), each closed via
+         closedAnd + Bool-equality-closed + negOpenIsClosed
+     (c) Show countable intersection of C_n is empty:
+         if ∀n. C_n(y) holds, get Q_x(y) from ∀n.D_n y, then U(y), contradicting ¬U(y)
+     (d) Apply CHausFiniteIntersectionProperty to get k with ∩_{n≤k} C_n = ∅
+     (e) E = finBoolAnd k (finite Bool AND of D_0,...,D_k)
+     (f) x ∈ E: D_n x ≡ true for all n (from Q_x(x) ≡ id), so cong₂ _and_ gives it
+     (g) E ⊆ U: If E y ≡ true and ¬U(y), build finiteIntersectionClosed C k y,
+         contradicting FIP. So ¬¬U(y), and openIsStable gives U(y).
+   - Helper functions: finBoolAnd, and-true-l, and-true-r, build-finInt
+   - New imports in module: CHausFiniteIntersectionPropertyModule (opened),
+     Cubical.Data.Bool (_and_)
+
+Line count: 7142 (was 7078 in bck0154, +64 from proof replacing postulate)
+Full chain Part20 compiles: YES

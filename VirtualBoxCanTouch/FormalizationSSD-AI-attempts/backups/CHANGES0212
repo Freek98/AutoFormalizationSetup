@@ -1,0 +1,27 @@
+bck0212: Added ODiscRingDecomp record exposing ring-structured stages from quotientFreeBA.
+Full type-check: Part07 + Part14 + Part20 quick check SUCCESS.
+
+Part07 changes (from bck0211):
+  - ADDED ODiscRingDecompSeq helper function (standalone, outside record)
+  - ADDED ODiscRingDecomp record: exposes BN, isFinSetBN, mapBN, fwdHom,
+    fwd-compat, colimEquiv, seqB from the ODisc colimit construction.
+  - REFACTORED quotientFreeBA-isODisc into:
+    - quotientFreeBA-ringDecomp: returns ∥ ODiscRingDecomp (freeBA ℕ /Im f) ∥₁
+      (richer data: ring structure at each stage)
+    - quotientFreeBA-isODisc: derives isODisc from ringDecomp (thin wrapper)
+  - ADDED BooleωRingDecomp: ring decomposition for general Booleω algebra
+    (transports via BooleanRingEquiv, composes with inverse equiv)
+  - ADDED SpProjection: spectrum projection Sp(B) → Sp(BN n) via fwdHom
+  - ADDED BoolHomFromFiniteFactors (tex 1558 partial): BoolHom from finite ring
+    to Q factors through some stage BN(N) via colimCompact.
+  - ADDED StoneFinitePartition: partitions Sp(B) by finitely many elements
+  - ADDED isFinSet-BoolFin: (Fin k → Bool) is finite
+
+Part14 changes (from bck0211):
+  - Reverted FiniteApproximationProof module to clean postulate with comments
+    explaining dependencies (ProFiniteMapsFactorization/ScottFiniteCodomain).
+  - No new code; finite-approximation remains a postulate.
+
+Line counts: Part07: 3271 (3185→3271, +86 lines new infrastructure).
+Part14: 1027 (unchanged from bck0211 level).
+All new code fully proven (no new postulates).

@@ -1,0 +1,50 @@
+bck0243: Simplified FiniteApproximationProof, consolidated 3 postulates into 1 (Part14).
+
+Quick check: SUCCESS (Part14.agda compiles, Part19 and Part20 also compile).
+
+Part14 changes (from bck0242):
+  Restructured the FiniteApproximationProof to eliminate the fiber product infrastructure:
+  1. Removed BooleωRingDecomp B-FP call (step4 with rdFP is gone).
+  2. Removed ScottIntCodomain call for β̃∘tr (no longer needed).
+  3. Removed ScottFiniteCodomain call for pairMap (no longer needed).
+  4. Removed step4 function entirely (step3 now calls stepAB directly via ScottFiniteCodomain for q₀ only).
+  5. Removed all fiber product infrastructure: FP, stoneFP, B-FP, eqFP, β̃, β̃∘tr, pairMap,
+     pairMap-compat, β-through-FP, β-well-def, stepAB-inner.
+  6. Replaced 3 postulates (fpN₂-agree, fE, fE-ok) with 1 consolidated postulate:
+     cocycleFactorsE : ∥ Σ[ fE ∈ (E'N → ℤ) ] ((x : S) (u v : T x) → β x u v
+       ≡ ℤInt._-_ (fE (τ x v .fst)) (fE (τ x u .fst))) ∥₁
+  7. useRef now uses PT.rec on cocycleFactorsE to construct FiniteApprox.
+  8. Kept ScottIntCodomainModule as useful infrastructure (not currently used in proof
+     but may be needed for future cocycleFactorsE proof).
+  9. Removed unused imports: Cubical.Foundations.Equiv, Cubical.Data.Int.isSetℤ,
+     Cubical.Data.FinSet.Constructors.isFinSet×, isSetE'N, isSetE'N², finE'N².
+
+  Benefits:
+  - Proof is cleaner: one well-motivated postulate instead of three interconnected ones.
+  - cocycleFactorsE captures the exact mathematical content: the cocycle factors
+    through the E-level ring decomposition (tex Lemma 2843 core).
+  - No longer depends on rdFP (the fiber product ring decomposition).
+  - Simpler proof structure: fewer nesting levels and intermediate functions.
+
+  The old 3 postulates captured implementation details of the proof strategy (the
+  generation fact about B-FP, plus specific function/proof constructions). The new
+  single postulate captures the mathematical RESULT that needs to hold.
+
+  Note: ScottIntCodomainModule (lines 538-598) is still defined but not used in the
+  current proof path. Kept as potentially useful infrastructure.
+
+Postulate summary:
+  Part02: 4 axioms (was 5 — dependentChoice counted as 2 but is 1 block)
+  Part12: 9 interval postulates (unchanged)
+  Part13: 3 Disk2 postulates (unchanged)
+  Part14: 1 postulate (cocycleFactorsE) + 1 (cech-eilenberg-1-agree) = 2 total
+    (was: 3 + 1 = 4 in bck0242)
+  Part20: 2 postulates (unchanged)
+
+Line counts: Part14.agda 1248 lines (was 1336, -88). Total: 12929 (was 13017, -88).
+  The decrease is justified: removed unused fiber product infrastructure that was
+  superseded by the consolidated postulate. No useful proved code was lost — only
+  the intermediate infrastructure (pairMap, β-through-FP, β-well-def, etc.) which
+  existed solely to support the old 3-postulate structure. The core proved results
+  (CechComplex, cocycle lemmas, section-exact, cech-vanishing-finite, colimit-arg,
+  eilenberg-stone-vanish, StoneCommuteDelooping, etc.) are all preserved.

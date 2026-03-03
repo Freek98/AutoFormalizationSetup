@@ -1,8 +1,10 @@
 {-# OPTIONS --cubical --guardedness #-}
 
-module work.Part05a where
+open import work.Part02Defs using (FoundationalAxioms)
 
-open import work.Part04 public
+module work.Part05a (fa : FoundationalAxioms) where
+
+open import work.Part04 fa public
 
 open import Cubical.Algebra.BooleanRing
 open import Cubical.Algebra.CommRing
@@ -422,3 +424,117 @@ char2-B∞ x = BooleanAlgebraStr.characteristic2 B∞ {x}
 
 char2-B∞×B∞ : (z : ⟨ B∞×B∞ ⟩) → z +× z ≡ (𝟘∞ , 𝟘∞)
 char2-B∞×B∞ (a , b) = cong₂ _,_ (char2-B∞ a) (char2-B∞ b)
+
+module φ-injectivity where
+  open B∞→FinCof using (φ)
+  open import Cubical.Data.Nat.Properties using (max)
+  open import Cubical.Data.Nat.Order using (left-≤-max; right-≤-max; ≤-suc; ¬m<m; ≤-antisym; <-asym'; _≤_)
+  open import Cubical.Data.Bool using (_and_; _or_; not)
+
+  private
+    isSetB∞ : isSet ⟨ B∞ ⟩
+    isSetB∞ = BooleanRingStr.is-set (snd B∞)
+
+  listMax : List ℕ → ℕ
+  listMax [] = 0
+  listMax (n ∷ ns) = max (suc n) (listMax ns)
+
+  m≠n→decToBool-not : (m n : ℕ) → ¬ (m ≡ n) → not (decToBool (discreteℕ m n)) ≡ true
+  m≠n→decToBool-not m n m≠n with discreteℕ m n
+  ... | yes p = ex-falso (m≠n p)
+  ... | no _ = refl
+
+  notMemberOf-fresh : (ns : List ℕ) (m : ℕ) → listMax ns ≤ m → notMemberOf ns m ≡ true
+  notMemberOf-fresh [] m _ = refl
+  notMemberOf-fresh (k ∷ ns) m lm≤m =
+    let sk≤m : suc k ≤ m
+        sk≤m = ≤-trans (left-≤-max {m = suc k} {n = listMax ns}) lm≤m
+        m≠k : ¬ (m ≡ k)
+        m≠k p = ¬m<m (subst (suc k ≤_) p sk≤m)
+        rest≤m : listMax ns ≤ m
+        rest≤m = ≤-trans (right-≤-max {n = listMax ns} {m = suc k}) lm≤m
+    in cong₂ _and_ (m≠n→decToBool-not m k m≠k) (notMemberOf-fresh ns m rest≤m)
+    where open import Cubical.Data.Nat.Order using (≤-trans; ≤-refl)
+
+  opaque
+    unfolding φ-pres-finJoin
+    φ-finJoin-kernel : (ns : List ℕ) → fst φ (finJoin∞ ns) ≡ fcEmpty → finJoin∞ ns ≡ 𝟘∞
+    φ-finJoin-kernel [] _ = refl
+    φ-finJoin-kernel (n ∷ ns) p = ex-falso (true≢false (sym at-n≡true ∙ at-n≡false))
+      where
+      at-n≡false : fst (fst φ (finJoin∞ (n ∷ ns))) n ≡ false
+      at-n≡false = cong (λ z → fst z n) p
+      at-n≡true : fst (fst φ (finJoin∞ (n ∷ ns))) n ≡ true
+      at-n≡true =
+        fst (fst φ (finJoin∞ (n ∷ ns))) n
+          ≡⟨ cong (λ z → fst z n) (φ-pres-finJoin (n ∷ ns)) ⟩
+        fst (fcFinJoin (n ∷ ns)) n
+          ≡⟨ fcFinJoin-eval (n ∷ ns) n ⟩
+        decToBool (discreteℕ n n) or memberOf ns n
+          ≡⟨ cong (_or memberOf ns n) (fcSingleton-self n) ⟩
+        true or memberOf ns n ∎
+
+  opaque
+    unfolding φ-pres-finMeetNeg
+    φ-finMeetNeg-kernel : (ns : List ℕ) → ¬ (fst φ (finMeetNeg∞ ns) ≡ fcEmpty)
+    φ-finMeetNeg-kernel ns p = true≢false (sym at-m≡true ∙ at-m≡false)
+      where
+      m : ℕ
+      m = listMax ns
+      at-m≡false : fst (fst φ (finMeetNeg∞ ns)) m ≡ false
+      at-m≡false = cong (λ z → fst z m) p
+      at-m≡true : fst (fst φ (finMeetNeg∞ ns)) m ≡ true
+      at-m≡true =
+        fst (fst φ (finMeetNeg∞ ns)) m
+          ≡⟨ cong (λ z → fst z m) (φ-pres-finMeetNeg ns) ⟩
+        fst (fcFinMeetNeg ns) m
+          ≡⟨ fcFinMeetNeg-eval ns m ⟩
+        notMemberOf ns m
+          ≡⟨ notMemberOf-fresh ns m ≤-refl ⟩
+        true ∎
+        where open import Cubical.Data.Nat.Order using (≤-refl)
+
+  φ-nf-kernel : (nf : B∞-NormalForm) → fst φ ⟦ nf ⟧nf ≡ fcEmpty → ⟦ nf ⟧nf ≡ 𝟘∞
+  φ-nf-kernel (joinForm ns) = φ-finJoin-kernel ns
+  φ-nf-kernel (meetNegForm ns) p = ex-falso (φ-finMeetNeg-kernel ns p)
+
+  φ-kernel-trivial : (x : ⟨ B∞ ⟩) → fst φ x ≡ fcEmpty → x ≡ 𝟘∞
+  φ-kernel-trivial x φx≡0 = PT.rec (isSetB∞ x 𝟘∞)
+    (λ (nf , nf≡x) → sym nf≡x ∙ φ-nf-kernel nf (cong (fst φ) nf≡x ∙ φx≡0))
+    (normalFormExists-trunc x)
+
+  char2-eq : (a b : ⟨ B∞ ⟩) → a +∞ b ≡ 𝟘∞ → a ≡ b
+  char2-eq a b p =
+    a               ≡⟨ sym (+B∞-IdR a) ⟩
+    a +∞ 𝟘∞         ≡⟨ cong (a +∞_) (sym (char2-B∞ b)) ⟩
+    a +∞ (b +∞ b)   ≡⟨ +B∞-Assoc a b b ⟩
+    (a +∞ b) +∞ b   ≡⟨ cong (_+∞ b) p ⟩
+    𝟘∞ +∞ b         ≡⟨ +B∞-IdL b ⟩
+    b ∎
+
+  φ-inj : (x y : ⟨ B∞ ⟩) → fst φ x ≡ fst φ y → x ≡ y
+  φ-inj x y p = char2-eq x y (φ-kernel-trivial (x +∞ y) φ-sum-eq-0)
+    where
+    φ-sum-eq-0 : fst φ (x +∞ y) ≡ fcEmpty
+    φ-sum-eq-0 =
+      fst φ (x +∞ y)
+        ≡⟨ IsCommRingHom.pres+ (snd φ) x y ⟩
+      fcXor (fst φ x) (fst φ y)
+        ≡⟨ cong (λ z → fcXor (fst φ x) z) (sym p) ⟩
+      fcXor (fst φ x) (fst φ x)
+        ≡⟨ BooleanAlgebraStr.characteristic2 FinCofBR {fst φ x} ⟩
+      fcEmpty ∎
+
+  ψ∘φ-proved : (x : ⟨ B∞ ⟩) → FinCof→B∞.ψ-fun (fst φ x) ≡ x
+  ψ∘φ-proved x = φ-inj (FinCof→B∞.ψ-fun (fst φ x)) x (φ∘ψ (fst φ x))
+
+open φ-injectivity public using (ψ∘φ-proved; φ-inj)
+
+open import CountablyPresentedBooleanRings.PresentedBoole using (BooleanRingEquiv)
+open import Cubical.Foundations.Isomorphism using (iso; isoToIsEquiv)
+private
+  φ' = B∞→FinCof.φ
+
+B∞≅FinCofBR : BooleanRingEquiv B∞ FinCofBR
+B∞≅FinCofBR = (fst φ' , isoToIsEquiv (iso (fst φ') FinCof→B∞.ψ-fun φ∘ψ ψ∘φ-proved)) , snd φ'
+

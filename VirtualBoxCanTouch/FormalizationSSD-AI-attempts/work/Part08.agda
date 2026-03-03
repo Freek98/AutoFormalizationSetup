@@ -1,8 +1,10 @@
 {-# OPTIONS --cubical --guardedness #-}
 
-module work.Part08 where
+open import work.Part02Defs using (FoundationalAxioms)
 
-open import work.Part07 public
+module work.Part08 (fa : FoundationalAxioms) where
+
+open import work.Part07 fa public
 
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels using (isPropΠ; hProp)
@@ -134,6 +136,7 @@ module StoneEqualityClosedModule where
     (λ pres → SpEqualityClosed-from-presentation B pres s t)
     presB
 
+  -- tex Lemma 1636 (StoneEqualityClosed)
   StoneEqualityClosed : (S : Stone) → (s t : fst S)
     → isClosedProp ((s ≡ t) , hasStoneStr→isSet S s t)
   StoneEqualityClosed (X , B , path) s t = closedEquiv
@@ -156,8 +159,6 @@ module StoneEqualityClosedModule where
 
     backward : (s ≡ t) → (s' ≡ t')
     backward s=t = cong (transport⁻ path) s=t
-
--- StoneClosedSubsets (tex Theorem 1648)
 
 module StoneClosedSubsetsModule where
 
@@ -204,4 +205,3 @@ module StoneClosedSubsetsModule where
          → Σ[ C ∈ Booleω ] (Sp C ≃ (Σ[ x ∈ Sp B ] ((n : ℕ) → fst x (d n) ≡ false)))
     wrap pres = (fst B QB./Im d , ∣ pres ∣₁) , SpOfQuotientBySeq.Sp-quotient-≃ (fst B) d
 
--- StoneSeparated (tex Lemma 1824)

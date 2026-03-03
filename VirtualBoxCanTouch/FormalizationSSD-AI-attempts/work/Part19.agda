@@ -1,13 +1,28 @@
 {-# OPTIONS --cubical --guardedness #-}
 
-module work.Part19 where
+open import work.Part02Defs using (FoundationalAxioms)
+import work.Part12
 
-open import work.Part14 public
+module work.Part19 (fa : FoundationalAxioms) (ia : work.Part12.IntervalAxioms fa) where
+
+open import work.Part14b fa ia public
+
+open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Isomorphism using (Iso)
+open import Cubical.Foundations.Structure using (⟨_⟩)
+open import Cubical.Data.Sigma
+open import Cubical.Data.Nat using (ℕ)
+open import Cubical.Data.Bool using (Bool; true; false; true≢false; false≢true)
+open import Cubical.Data.Empty renaming (rec to ex-falso)
+open import Cubical.Relation.Nullary using (¬_)
+open import Cubical.HITs.PropositionalTruncation using (∥_∥₁; squash₁; ∣_∣₁)
+open import Cubical.Algebra.BooleanRing using (BooleanRingStr)
+open import Axioms.StoneDuality using (Booleω; Sp)
+open import Cubical.Foundations.Equiv using (isEquiv)
 
 -- tex Remark after Lemma 3015: Stone spaces are I-local
 module StoneILocalTC where
-  open ZILocalModule using (Bool-I-local)
-  open IntervalIsCHausModule using (UnitInterval)
   open import Cubical.Data.Bool using (Bool)
   open import Cubical.Algebra.CommRing.Base using (CommRingHom≡)
 
@@ -26,22 +41,45 @@ module StoneILocalTC where
 
 -- tex Lemma 3027: BZ is I-local
 module BZILocalTC where
-  open CohomologyModule using (BZ)
-  open IntervalIsCHausModule using (UnitInterval; isContrUnitInterval)
-
   BZ-I-local : (f : UnitInterval → BZ) → (x y : UnitInterval) → f x ≡ f y
-  BZ-I-local = ZILocalModule.contr-map-const-local isContrUnitInterval
+  BZ-I-local = contr-map-const-local isContrUnitInterval
 
 -- tex Lemma 3035: continuously-path-connected-contractible
 module PathConnectedContractibleTC where
-  open IntervalIsCHausModule using (UnitInterval)
-  open IntervalTopologyModule using (0I; 1I)
 
   ContinuousPath : {X : Type ℓ-zero} → X → X → Type ℓ-zero
   ContinuousPath {X} x y = Σ[ f ∈ (UnitInterval → X) ] (f 0I ≡ x) × (f 1I ≡ y)
 
   isContPathConnectedFrom : (X : Type ℓ-zero) → X → Type ℓ-zero
   isContPathConnectedFrom X x = (y : X) → ContinuousPath x y
+
+  open import Cubical.Foundations.Function using (_∘_)
+
+  -- tex Lemma 3035: If X is continuously path-connected from x₀ and Y is I-local,
+  path-connected→const : {X Y : Type ℓ-zero}
+    → (x₀ : X)
+    → isContPathConnectedFrom X x₀
+    → ((g : UnitInterval → Y) → (a b : UnitInterval) → g a ≡ g b)
+    → (f : X → Y) → (x : X) → f x ≡ f x₀
+  path-connected→const {X} {Y} x₀ paths Y-I-local f x =
+    let (h , h0≡x₀ , h1≡x) = paths x
+        fh-const : f (h 1I) ≡ f (h 0I)
+        fh-const = Y-I-local (f ∘ h) 1I 0I
+    in f x
+         ≡⟨ cong f (sym h1≡x) ⟩
+       f (h 1I)
+         ≡⟨ fh-const ⟩
+       f (h 0I)
+         ≡⟨ cong f h0≡x₀ ⟩
+       f x₀ ∎
+
+  path-connected→I-contractible : {X Y : Type ℓ-zero}
+    → (x₀ : X)
+    → isContPathConnectedFrom X x₀
+    → ((g : UnitInterval → Y) → (a b : UnitInterval) → g a ≡ g b)
+    → (f : X → Y) → f ≡ (λ _ → f x₀)
+  path-connected→I-contractible x₀ paths Y-loc f =
+    funExt (λ x → path-connected→const x₀ paths Y-loc f x)
 
 -- tex Theorem 475: ¬WLPO from Stone Duality
 module NotWLPOTC where

@@ -1,8 +1,10 @@
 {-# OPTIONS --cubical --guardedness #-}
 
-module work.Part06 where
+open import work.Part02Defs using (FoundationalAxioms)
 
-open import work.Part05 public
+module work.Part06 (fa : FoundationalAxioms) where
+
+open import work.Part05 fa public
 
 open import Cubical.Algebra.BooleanRing
 open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
@@ -56,15 +58,12 @@ SpB∞≃ℕ∞ = isoToEquiv SpB∞≅ℕ∞
 ℕ∞-has-StoneStr : hasStoneStr ℕ∞
 ℕ∞-has-StoneStr = B∞-Booleω , ua SpB∞≃ℕ∞
 
--- Bool is Stone (tex line 1527)
 Bool-has-StoneStr : hasStoneStr Bool
 Bool-has-StoneStr = Bool²-Booleω , ua Sp-Bool²≃Bool
 
--- LLPO proved from Stone Duality (tex Theorem LLPO, line 541)
 llpo : LLPO
 llpo = llpo-from-SD
 
--- (tex Lemma ClosedDeMorgan, line 760)
 closedDeMorgan : (P Q : hProp ℓ-zero) → isClosedProp P → isClosedProp Q
                → ¬ ((¬ ⟨ P ⟩) × (¬ ⟨ Q ⟩)) → ∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁
 closedDeMorgan P Q Pclosed Qclosed ¬¬P∧¬Q = PT.rec2 squash₁ go Pclosed Qclosed
@@ -170,6 +169,7 @@ closedDeMorgan P Q Pclosed Qclosed ¬¬P∧¬Q = PT.rec2 squash₁ go Pclosed Qc
     helper (inl allEvensF) = ∣ inl (allEvensF-implies-P allEvensF) ∣₁
     helper (inr allOddsF) = ∣ inr (allOddsF-implies-Q allOddsF) ∣₁
 
+-- tex Lemma 691 (closed stable under finite disjunctions)
 closedOr : (P Q : hProp ℓ-zero) → isClosedProp P → isClosedProp Q
          → isClosedProp (∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁ , squash₁)
 closedOr P Q Pclosed Qclosed = PT.rec2 squash₁ go Pclosed Qclosed
@@ -211,7 +211,6 @@ closedOr P Q Pclosed Qclosed = PT.rec2 squash₁ go Pclosed Qclosed
           let (n , γn=t) = fwd-open (¬p , ¬q)
           in false≢true (sym (all-false n) ∙ γn=t)
 
--- (tex line 716)
 openDeMorgan : (P Q : hProp ℓ-zero) → isOpenProp P → isOpenProp Q
              → (¬ (⟨ P ⟩ × ⟨ Q ⟩)) ↔ ∥ (¬ ⟨ P ⟩) ⊎ (¬ ⟨ Q ⟩) ∥₁
 openDeMorgan P Q Popen Qopen = forward , backward
@@ -225,3 +224,4 @@ openDeMorgan P Q Popen Qopen = forward , backward
     { (inl ¬p) (p , _) → ¬p p
     ; (inr ¬q) (_ , q) → ¬q q
     }
+

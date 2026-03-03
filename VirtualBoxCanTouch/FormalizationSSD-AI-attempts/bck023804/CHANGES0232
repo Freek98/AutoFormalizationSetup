@@ -1,0 +1,38 @@
+bck0232: Added FinCofSubsets module (Boolean algebra of finite/cofinite subsets)
+  and forward map φ : BoolHom B∞ FinCofBR to Part03.
+Quick check: Part03 SUCCESS (clean).
+
+Part03 changes (from bck0230/CHANGES0229):
+  - NEW MODULE FinCofSubsets:
+    - isEventuallyConst : (ℕ → Bool) → Type₀ (truncated stabilization witness)
+    - FinCof : Type₀ = Σ-type of eventually-constant bool functions
+    - isSetFinCof : isSet FinCof
+    - fcEmpty, fcFull : FinCof (constant false/true)
+    - fcNot : FinCof → FinCof (complement via not)
+    - fcXor : FinCof → FinCof → FinCof (symmetric difference, ring addition)
+    - fcAnd : FinCof → FinCof → FinCof (intersection, ring multiplication)
+    - decToBool : Dec A → Bool (helper for singleton)
+    - fcSingleton : ℕ → FinCof (characteristic function of {n})
+    - FinCofBR : BooleanRing ℓ-zero (full Boolean ring structure on FinCof)
+      Built via idemCommRing→BR on CommRing constructed from pointwise Bool laws
+      (⊕-assoc, ⊕-identityʳ, ⊕-comm, and-assoc, and-identityʳ, and-comm, and-idem
+       from Cubical.Data.Bool.Properties, plus locally proved and-distR-⊕ and ⊕-invR)
+    - fcSingleton-disjoint : m ≠ n → fcAnd (fcSingleton m) (fcSingleton n) ≡ fcEmpty
+    - fcSingleton-self : decToBool (discreteℕ n n) ≡ true
+  - NEW MODULE B∞→FinCof:
+    - φ-free : BoolHom (freeBA ℕ) FinCofBR (via inducedBAHom universal property)
+    - φ-free-on-gen : fst φ-free (gen n) ≡ fcSingleton n (from evalBAInduce)
+    - φ-free-kills-rel : fst φ-free (relB∞ k) ≡ 𝟘 (generators are pairwise disjoint)
+    - φ : BoolHom B∞ FinCofBR (induced on quotient via QB.inducedHom)
+    - φ-on-gen : fst φ (g∞ n) ≡ fcSingleton n
+  - Added imports: inducedBAHom, evalBAInduce from FreeBool;
+    Bool properties from Cubical.Data.Bool.Properties
+
+Line counts: Part03: 333 (152→333, +181 lines from bck0230 state).
+Increase justified: entirely new FinCof Boolean algebra + forward map infrastructure
+  (CLAUDE.md item 3: separate out FinCof isomorphism for LLPO proof).
+
+Next steps:
+  - Backward map ψ : FinCofBR → B∞ (requires finJoin∞/finMeetNeg∞ from Part04)
+  - Prove φ∘ψ = id and ψ∘φ = id (full isomorphism)
+  - Reformulate LLPO proof using FinCof

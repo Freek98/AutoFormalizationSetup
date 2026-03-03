@@ -1,8 +1,10 @@
 {-# OPTIONS --cubical --guardedness #-}
 
-module work.Part04 where
+open import work.Part02Defs using (FoundationalAxioms)
 
-open import work.Part03 public
+module work.Part04 (fa : FoundationalAxioms) where
+
+open import work.Part03 fa public
 
 open import Cubical.Algebra.BooleanRing
 open import Cubical.Algebra.CommRing
@@ -631,4 +633,390 @@ f-pres-neg x =
 δ∞-hits-n n with discreteℕ n n
 ... | yes _ = refl
 ... | no n≠n = ex-falso (n≠n refl)
+
+module FinCof→B∞ where
+  open B∞→FinCof using (φ)
+  open import Cubical.Data.List hiding (map)
+  open import Cubical.HITs.PropositionalTruncation as PT using (∥_∥₁; ∣_∣₁; squash₁)
+  open import Cubical.Data.Bool using (_⊕_; not; if_then_else_) renaming (elim to bool-elim)
+  open import Cubical.Data.Nat.Order using (_≤_)
+  open import Cubical.Foundations.Function using (2-Constant)
+
+  filterTrue : (f : ℕ → Bool) → ℕ → List ℕ
+  filterTrue f zero = []
+  filterTrue f (suc n) = if f n then (n ∷ filterTrue f n) else (filterTrue f n)
+
+  filterFalse : (f : ℕ → Bool) → ℕ → List ℕ
+  filterFalse f N = filterTrue (λ n → not (f n)) N
+
+  ψ-raw : (f : ℕ → Bool) → (N : ℕ) → f N ≡ false → ⟨ B∞ ⟩
+  ψ-raw f N _ = finJoin∞ (filterTrue f N)
+
+  ψ-raw-cofin : (f : ℕ → Bool) → (N : ℕ) → f N ≡ true → ⟨ B∞ ⟩
+  ψ-raw-cofin f N _ = finMeetNeg∞ (filterFalse f N)
+
+  filterTrue-stable : (f : ℕ → Bool) (N : ℕ) → f N ≡ false →
+    filterTrue f (suc N) ≡ filterTrue f N
+  filterTrue-stable f N fN=false =
+    cong (λ b → if b then (N ∷ filterTrue f N) else (filterTrue f N)) fN=false
+
+  filterTrue-extend : (f : ℕ → Bool) (N k : ℕ) →
+    ((n : ℕ) → N ≤ n → f n ≡ false) →
+    filterTrue f (k +ℕ N) ≡ filterTrue f N
+  filterTrue-extend f N zero _ = refl
+  filterTrue-extend f N (suc k) all-false =
+    filterTrue-stable f (k +ℕ N) (all-false (k +ℕ N) (k , refl)) ∙
+    filterTrue-extend f N k all-false
+
+  filterFalse-stable : (f : ℕ → Bool) (N : ℕ) → f N ≡ true →
+    filterFalse f (suc N) ≡ filterFalse f N
+  filterFalse-stable f N fN=true =
+    let g = λ n → not (f n)
+    in cong (λ b → if b then (N ∷ filterTrue g N) else (filterTrue g N)) (cong not fN=true)
+
+  filterFalse-extend : (f : ℕ → Bool) (N k : ℕ) →
+    ((n : ℕ) → N ≤ n → f n ≡ true) →
+    filterFalse f (k +ℕ N) ≡ filterFalse f N
+  filterFalse-extend f N zero _ = refl
+  filterFalse-extend f N (suc k) all-true =
+    filterFalse-stable f (k +ℕ N) (all-true (k +ℕ N) (k , refl)) ∙
+    filterFalse-extend f N k all-true
+
+  ψ-by-val : (f : ℕ → Bool) → (N : ℕ) → Bool → ⟨ B∞ ⟩
+  ψ-by-val f N false = finJoin∞ (filterTrue f N)
+  ψ-by-val f N true = finMeetNeg∞ (filterFalse f N)
+
+  ψ-from-witness : (f : ℕ → Bool) → (N : ℕ) → ((n : ℕ) → N ≤ n → f n ≡ f N) → ⟨ B∞ ⟩
+  ψ-from-witness f N _ = ψ-by-val f N (f N)
+
+  ψ-by-val-extend : (f : ℕ → Bool) (N k : ℕ) (v : Bool) →
+    ((n : ℕ) → N ≤ n → f n ≡ v) →
+    ψ-by-val f (k +ℕ N) v ≡ ψ-by-val f N v
+  ψ-by-val-extend f N k false all-false =
+    cong finJoin∞ (filterTrue-extend f N k (λ n n≥N → all-false n n≥N))
+  ψ-by-val-extend f N k true all-true =
+    cong finMeetNeg∞ (filterFalse-extend f N k (λ n n≥N → all-true n n≥N))
+
+  ψ-witness-indep : (f : ℕ → Bool) →
+    (N₁ : ℕ) → (s₁ : (n : ℕ) → N₁ ≤ n → f n ≡ f N₁) →
+    (N₂ : ℕ) → (s₂ : (n : ℕ) → N₂ ≤ n → f n ≡ f N₂) →
+    ψ-from-witness f N₁ s₁ ≡ ψ-from-witness f N₂ s₂
+  ψ-witness-indep f N₁ s₁ N₂ s₂ = step₁ ∙ sym step₂
+    where
+    open import Cubical.Data.Nat.Order using (≤SumLeft)
+
+    N = N₁ +ℕ N₂
+
+    N₁≤N : N₁ ≤ N
+    N₁≤N = ≤SumLeft {n = N₁} {k = N₂}
+
+    N₂≤N : N₂ ≤ N
+    N₂≤N = subst (N₂ ≤_) (+-comm N₂ N₁) (≤SumLeft {n = N₂} {k = N₁})
+
+    fN₁≡fN : f N₁ ≡ f N
+    fN₁≡fN = sym (s₁ N N₁≤N)
+
+    fN₂≡fN : f N₂ ≡ f N
+    fN₂≡fN = sym (s₂ N N₂≤N)
+
+    fN₁≡fN₂ : f N₁ ≡ f N₂
+    fN₁≡fN₂ = fN₁≡fN ∙ sym fN₂≡fN
+
+    s₁' : (n : ℕ) → N₁ ≤ n → f n ≡ f N₁
+    s₁' = s₁
+
+    step₁ : ψ-by-val f N₁ (f N₁) ≡ ψ-by-val f N (f N)
+    step₁ =
+      ψ-by-val f N₁ (f N₁)
+        ≡⟨ cong (ψ-by-val f N₁) fN₁≡fN ⟩
+      ψ-by-val f N₁ (f N)
+        ≡⟨ sym (ψ-by-val-extend f N₁ N₂ (f N) (λ n n≥N₁ → s₁ n n≥N₁ ∙ fN₁≡fN)) ⟩
+      ψ-by-val f (N₂ +ℕ N₁) (f N)
+        ≡⟨ cong (λ m → ψ-by-val f m (f N)) (+-comm N₂ N₁) ⟩
+      ψ-by-val f N (f N) ∎
+
+    step₂ : ψ-by-val f N₂ (f N₂) ≡ ψ-by-val f N (f N)
+    step₂ =
+      ψ-by-val f N₂ (f N₂)
+        ≡⟨ cong (ψ-by-val f N₂) fN₂≡fN ⟩
+      ψ-by-val f N₂ (f N)
+        ≡⟨ sym (ψ-by-val-extend f N₂ N₁ (f N) (λ n n≥N₂ → s₂ n n≥N₂ ∙ fN₂≡fN)) ⟩
+      ψ-by-val f N (f N) ∎
+
+  open import Cubical.Data.Bool using (_or_; _and_)
+  open import Cubical.Data.Bool.Properties using (or-zeroʳ; or-comm; or-assoc; or-idem; and-zeroʳ; or-identityʳ)
+
+  fcOr : FinCof → FinCof → FinCof
+  fcOr a b = fcXor (fcXor a b) (fcAnd a b)
+
+  fcFinJoin : List ℕ → FinCof
+  fcFinJoin [] = fcEmpty
+  fcFinJoin (n ∷ ns) = fcOr (fcSingleton n) (fcFinJoin ns)
+
+  xor-and-is-or : (x y : Bool) → (x ⊕ y) ⊕ (x and y) ≡ x or y
+  xor-and-is-or false false = refl
+  xor-and-is-or false true = refl
+  xor-and-is-or true false = refl
+  xor-and-is-or true true = refl
+
+  fcOr-pointwise : (a b : FinCof) (m : ℕ) → fst (fcOr a b) m ≡ (fst a m) or (fst b m)
+  fcOr-pointwise a b m = xor-and-is-or (fst a m) (fst b m)
+
+  memberOf : List ℕ → ℕ → Bool
+  memberOf [] m = false
+  memberOf (n ∷ ns) m = decToBool (discreteℕ m n) or memberOf ns m
+
+  fcFinJoin-eval : (ns : List ℕ) (m : ℕ) → fst (fcFinJoin ns) m ≡ memberOf ns m
+  fcFinJoin-eval [] m = refl
+  fcFinJoin-eval (n ∷ ns) m =
+    fst (fcOr (fcSingleton n) (fcFinJoin ns)) m
+      ≡⟨ fcOr-pointwise (fcSingleton n) (fcFinJoin ns) m ⟩
+    fst (fcSingleton n) m or fst (fcFinJoin ns) m
+      ≡⟨ cong (fst (fcSingleton n) m or_) (fcFinJoin-eval ns m) ⟩
+    decToBool (discreteℕ m n) or memberOf ns m ∎
+
+  open import Cubical.Data.Bool.Properties using (or-identityˡ)
+  open import Cubical.Data.Nat.Order using (≤-refl; ≤-suc; ¬m<m; ≤-antisym; <-asym'; <Dec; _<_; ≤-trans; pred-≤-pred; <-weaken; ¬-<-zero)
+
+  m≠n→decToBool-false : (m n : ℕ) → ¬ (m ≡ n) → decToBool (discreteℕ m n) ≡ false
+  m≠n→decToBool-false m n m≠n with discreteℕ m n
+  ... | yes p = ex-falso (m≠n p)
+  ... | no _ = refl
+
+  filterTrue-outside : (f : ℕ → Bool) (N m : ℕ) → N ≤ m →
+    memberOf (filterTrue f N) m ≡ false
+  filterTrue-outside f zero m _ = refl
+  filterTrue-outside f (suc N) m sN≤m with f N in fNeq
+  ... | false = filterTrue-outside f N m (<-weaken sN≤m)
+  ... | true =
+    let N≤m : N ≤ m
+        N≤m = <-weaken sN≤m
+        m≠N : ¬ (m ≡ N)
+        m≠N p = ¬m<m {N} (subst (suc N ≤_) p sN≤m)
+    in
+    decToBool (discreteℕ m N) or memberOf (filterTrue f N) m
+      ≡⟨ cong (_or memberOf (filterTrue f N) m) (m≠n→decToBool-false m N m≠N) ⟩
+    false or memberOf (filterTrue f N) m
+      ≡⟨ or-identityˡ _ ⟩
+    memberOf (filterTrue f N) m
+      ≡⟨ filterTrue-outside f N m N≤m ⟩
+    false ∎
+
+  filterTrue-suc : (f : ℕ → Bool) (N m : ℕ) →
+    memberOf (if f N then (N ∷ filterTrue f N) else filterTrue f N) m ≡
+    (f N and decToBool (discreteℕ m N)) or memberOf (filterTrue f N) m
+  filterTrue-suc f N m with f N
+  ... | true  = refl
+  ... | false = refl
+
+  and-true-right : (b : Bool) → b and true ≡ b
+  and-true-right false = refl
+  and-true-right true = refl
+
+  filterTrue-spec : (f : ℕ → Bool) (N m : ℕ) → m < N →
+    memberOf (filterTrue f N) m ≡ f m
+  filterTrue-spec f zero m m<0 = ex-falso (¬-<-zero m<0)
+  filterTrue-spec f (suc N) m m<sN with <Dec m N
+  ... | yes m<N =
+    memberOf (filterTrue f (suc N)) m
+      ≡⟨ filterTrue-suc f N m ⟩
+    (f N and decToBool (discreteℕ m N)) or memberOf (filterTrue f N) m
+      ≡⟨ cong (λ d → (f N and d) or memberOf (filterTrue f N) m) (m≠n→decToBool-false m N (λ p → ¬m<m (subst (_< N) p m<N))) ⟩
+    (f N and false) or memberOf (filterTrue f N) m
+      ≡⟨ cong (_or memberOf (filterTrue f N) m) (and-zeroʳ (f N)) ⟩
+    false or memberOf (filterTrue f N) m
+      ≡⟨ or-identityˡ _ ⟩
+    memberOf (filterTrue f N) m
+      ≡⟨ filterTrue-spec f N m m<N ⟩
+    f m ∎
+  ... | no ¬m<N =
+    let m≡N : m ≡ N
+        m≡N = ≤-antisym (pred-≤-pred m<sN) (<-asym' ¬m<N)
+    in
+    memberOf (filterTrue f (suc N)) m
+      ≡⟨ filterTrue-suc f N m ⟩
+    (f N and decToBool (discreteℕ m N)) or memberOf (filterTrue f N) m
+      ≡⟨ cong (λ k → (f N and decToBool (discreteℕ k N)) or memberOf (filterTrue f N) k) m≡N ⟩
+    (f N and decToBool (discreteℕ N N)) or memberOf (filterTrue f N) N
+      ≡⟨ cong (λ d → (f N and d) or memberOf (filterTrue f N) N) (fcSingleton-self N) ⟩
+    (f N and true) or memberOf (filterTrue f N) N
+      ≡⟨ cong (_or memberOf (filterTrue f N) N) (and-true-right (f N)) ⟩
+    f N or memberOf (filterTrue f N) N
+      ≡⟨ cong (f N or_) (filterTrue-outside f N N ≤-refl) ⟩
+    f N or false
+      ≡⟨ or-identityʳ (f N) ⟩
+    f N
+      ≡⟨ sym (cong f m≡N) ⟩
+    f m ∎
+
+  opaque
+    φ-pres-finJoin : (ns : List ℕ) → fst φ (finJoin∞ ns) ≡ fcFinJoin ns
+    φ-pres-finJoin [] = IsCommRingHom.pres0 (snd φ)
+    φ-pres-finJoin (n ∷ ns) =
+      let open IsCommRingHom (snd φ) renaming (pres+ to φ-pres+; pres· to φ-pres·)
+      in
+      fst φ (g∞ n ∨∞ finJoin∞ ns)
+        ≡⟨ refl ⟩
+      fst φ ((g∞ n +∞ finJoin∞ ns) +∞ (g∞ n ·∞ finJoin∞ ns))
+        ≡⟨ φ-pres+ (g∞ n +∞ finJoin∞ ns) (g∞ n ·∞ finJoin∞ ns) ⟩
+      fcXor (fst φ (g∞ n +∞ finJoin∞ ns)) (fst φ (g∞ n ·∞ finJoin∞ ns))
+        ≡⟨ cong₂ fcXor (φ-pres+ (g∞ n) (finJoin∞ ns)) (φ-pres· (g∞ n) (finJoin∞ ns)) ⟩
+      fcXor (fcXor (fst φ (g∞ n)) (fst φ (finJoin∞ ns)))
+            (fcAnd (fst φ (g∞ n)) (fst φ (finJoin∞ ns)))
+        ≡⟨ cong₂ (λ a b → fcXor (fcXor a b) (fcAnd a b)) (φ-on-gen n) (φ-pres-finJoin ns) ⟩
+      fcOr (fcSingleton n) (fcFinJoin ns) ∎
+
+  private
+    isSetB∞ : isSet ⟨ B∞ ⟩
+    isSetB∞ = BooleanRingStr.is-set (snd B∞)
+
+  open PT.SetElim isSetB∞ using (rec→Set)
+
+  ψ-const : (f : ℕ → Bool) →
+    2-Constant (λ (w : Σ[ N ∈ ℕ ] ((n : ℕ) → N ≤ n → f n ≡ f N)) → ψ-from-witness f (fst w) (snd w))
+  ψ-const f (N₁ , s₁) (N₂ , s₂) = ψ-witness-indep f N₁ s₁ N₂ s₂
+
+  ψ-fun : FinCof → ⟨ B∞ ⟩
+  ψ-fun (f , ec) = rec→Set
+    (λ w → ψ-from-witness f (fst w) (snd w))
+    (ψ-const f)
+    ec
+
+  FC≡ : {a b : FinCof} → fst a ≡ fst b → a ≡ b
+  FC≡ = Σ≡Prop (λ _ → squash₁)
+
+  fcFinMeetNeg : List ℕ → FinCof
+  fcFinMeetNeg [] = fcFull
+  fcFinMeetNeg (n ∷ ns) = fcAnd (fcNot (fcSingleton n)) (fcFinMeetNeg ns)
+
+  notMemberOf : List ℕ → ℕ → Bool
+  notMemberOf [] m = true
+  notMemberOf (n ∷ ns) m = not (decToBool (discreteℕ m n)) and notMemberOf ns m
+
+  fcFinMeetNeg-eval : (ns : List ℕ) (m : ℕ) → fst (fcFinMeetNeg ns) m ≡ notMemberOf ns m
+  fcFinMeetNeg-eval [] m = refl
+  fcFinMeetNeg-eval (n ∷ ns) m =
+    cong (fst (fcNot (fcSingleton n)) m and_) (fcFinMeetNeg-eval ns m)
+
+  fcXor-fcFull≡fcNot : (x : FinCof) → fcXor fcFull x ≡ fcNot x
+  fcXor-fcFull≡fcNot x = FC≡ refl
+
+  opaque
+    φ-pres-neg : (x : ⟨ B∞ ⟩) → fst φ (¬∞ x) ≡ fcNot (fst φ x)
+    φ-pres-neg x =
+      IsCommRingHom.pres+ (snd φ) 𝟙∞ x
+      ∙ cong (λ a → fcXor a (fst φ x)) (IsCommRingHom.pres1 (snd φ))
+      ∙ fcXor-fcFull≡fcNot (fst φ x)
+
+  opaque
+    φ-pres-finMeetNeg : (ns : List ℕ) → fst φ (finMeetNeg∞ ns) ≡ fcFinMeetNeg ns
+    φ-pres-finMeetNeg [] = IsCommRingHom.pres1 (snd φ)
+    φ-pres-finMeetNeg (n ∷ ns) =
+      IsCommRingHom.pres· (snd φ) (¬∞ g∞ n) (finMeetNeg∞ ns)
+      ∙ cong₂ fcAnd (φ-pres-neg (g∞ n) ∙ cong fcNot (φ-on-gen n)) (φ-pres-finMeetNeg ns)
+
+  not-or-and : (a b : Bool) → not (a or b) ≡ not a and not b
+  not-or-and false false = refl
+  not-or-and false true  = refl
+  not-or-and true  false = refl
+  not-or-and true  true  = refl
+
+  notMemberOf≡not-memberOf : (ns : List ℕ) (m : ℕ) →
+    notMemberOf ns m ≡ not (memberOf ns m)
+  notMemberOf≡not-memberOf [] m = refl
+  notMemberOf≡not-memberOf (n ∷ ns) m =
+    cong (not (decToBool (discreteℕ m n)) and_) (notMemberOf≡not-memberOf ns m)
+    ∙ sym (not-or-and (decToBool (discreteℕ m n)) (memberOf ns m))
+
+  not-not : (b : Bool) → not (not b) ≡ b
+  not-not false = refl
+  not-not true = refl
+
+  filterFalse-spec : (f : ℕ → Bool) (N m : ℕ) → m < N →
+    notMemberOf (filterFalse f N) m ≡ f m
+  filterFalse-spec f N m m<N =
+    notMemberOf≡not-memberOf (filterTrue (not ∘ f) N) m
+    ∙ cong not (filterTrue-spec (not ∘ f) N m m<N)
+    ∙ not-not (f m)
+
+  open import Cubical.Data.Nat.Order using (zero-≤)
+
+  filterFalse-outside : (f : ℕ → Bool) (N m : ℕ) → N ≤ m →
+    notMemberOf (filterFalse f N) m ≡ true
+  filterFalse-outside f N m N≤m =
+    notMemberOf≡not-memberOf (filterTrue (not ∘ f) N) m
+    ∙ cong not (filterTrue-outside (not ∘ f) N m N≤m)
+
+  memberOf-filterTrue-eq : (f : ℕ → Bool) (N : ℕ) →
+    ((n : ℕ) → N ≤ n → f n ≡ false) →
+    (m : ℕ) → memberOf (filterTrue f N) m ≡ f m
+  memberOf-filterTrue-eq f zero stab m = sym (stab m zero-≤)
+  memberOf-filterTrue-eq f (suc N') stab m with <Dec m (suc N')
+  ... | yes m<sN = filterTrue-spec f (suc N') m m<sN
+  ... | no ¬m<sN =
+    filterTrue-outside f (suc N') m (<-asym' ¬m<sN) ∙
+    sym (stab m (<-asym' ¬m<sN))
+
+  notMemberOf-filterFalse-eq : (f : ℕ → Bool) (N : ℕ) →
+    ((n : ℕ) → N ≤ n → f n ≡ true) →
+    (m : ℕ) → notMemberOf (filterFalse f N) m ≡ f m
+  notMemberOf-filterFalse-eq f zero stab m = sym (stab m zero-≤)
+  notMemberOf-filterFalse-eq f (suc N') stab m with <Dec m (suc N')
+  ... | yes m<sN = filterFalse-spec f (suc N') m m<sN
+  ... | no ¬m<sN =
+    filterFalse-outside f (suc N') m (<-asym' ¬m<sN) ∙
+    sym (stab m (<-asym' ¬m<sN))
+
+  opaque
+    unfolding φ-pres-finJoin
+    φ∘ψ-finite : (f : ℕ → Bool) (N : ℕ) →
+      ((n : ℕ) → N ≤ n → f n ≡ false) →
+      (m : ℕ) → fst (fst φ (finJoin∞ (filterTrue f N))) m ≡ f m
+    φ∘ψ-finite f N stab m =
+      fst (fst φ (finJoin∞ (filterTrue f N))) m
+        ≡⟨ cong (λ z → fst z m) (φ-pres-finJoin (filterTrue f N)) ⟩
+      fst (fcFinJoin (filterTrue f N)) m
+        ≡⟨ fcFinJoin-eval (filterTrue f N) m ⟩
+      memberOf (filterTrue f N) m
+        ≡⟨ memberOf-filterTrue-eq f N stab m ⟩
+      f m ∎
+
+  opaque
+    unfolding φ-pres-finMeetNeg
+    φ∘ψ-cofinite : (f : ℕ → Bool) (N : ℕ) →
+      ((n : ℕ) → N ≤ n → f n ≡ true) →
+      (m : ℕ) → fst (fst φ (finMeetNeg∞ (filterFalse f N))) m ≡ f m
+    φ∘ψ-cofinite f N stab m =
+      fst (fst φ (finMeetNeg∞ (filterFalse f N))) m
+        ≡⟨ cong (λ z → fst z m) (φ-pres-finMeetNeg (filterFalse f N)) ⟩
+      fst (fcFinMeetNeg (filterFalse f N)) m
+        ≡⟨ fcFinMeetNeg-eval (filterFalse f N) m ⟩
+      notMemberOf (filterFalse f N) m
+        ≡⟨ notMemberOf-filterFalse-eq f N stab m ⟩
+      f m ∎
+
+  opaque
+    unfolding φ∘ψ-finite
+    unfolding φ∘ψ-cofinite
+    φ∘ψ-by-val : (f : ℕ → Bool) (N : ℕ) (v : Bool) →
+      ((n : ℕ) → N ≤ n → f n ≡ v) →
+      (m : ℕ) → fst (fst φ (ψ-by-val f N v)) m ≡ f m
+    φ∘ψ-by-val f N false stab = φ∘ψ-finite f N stab
+    φ∘ψ-by-val f N true stab = φ∘ψ-cofinite f N stab
+
+  opaque
+    unfolding φ∘ψ-by-val
+    φ∘ψ-on-witness : (f : ℕ → Bool) (N : ℕ) (stab : (n : ℕ) → N ≤ n → f n ≡ f N) →
+      fst φ (ψ-from-witness f N stab) ≡ (f , ∣ N , stab ∣₁)
+    φ∘ψ-on-witness f N stab =
+      FC≡ {a = fst φ (ψ-by-val f N (f N))} {b = (f , ∣ N , stab ∣₁)}
+          (funExt (φ∘ψ-by-val f N (f N) (λ n n≥N → stab n n≥N)))
+
+  φ∘ψ : (x : FinCof) → fst φ (ψ-fun x) ≡ x
+  φ∘ψ (f , ec) = PT.elim {P = λ e → fst φ (ψ-fun (f , e)) ≡ (f , e)}
+    (λ _ → isSetFinCof _ _)
+    (λ (N , stab) → φ∘ψ-on-witness f N stab)
+    ec
+
+open FinCof→B∞ public hiding (ψ-fun)
 

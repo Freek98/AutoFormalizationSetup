@@ -1,0 +1,21 @@
+CHANGES0242 - Revert broken buildCoherent skeleton, restore clean postulate with improved comment
+
+Part07: 4137 → 4138 (+1 line). Net +1 from expanded comment with detailed proof strategy.
+
+The bck0241 buildCoherent skeleton had multiple issues:
+- isPropDec scope error (missing import)
+- isPropΣ used incorrectly (fiber Σ[x] map S x ≡ a is NOT a prop when map is non-injective)
+- can' hole in canSurj unprovable: image/non-image status is not preserved by colimEq,
+  so α' built via canPre cannot be shown canonical on colimEq classes
+- can0 hole in canSeed unfilled
+- admit postulate for partition stabilization bound unfilled
+
+The fundamental difficulty: independently chosen witnesses at different levels give different
+binary sequences for the same R-pair. Making them cohere requires either:
+(a) Canonical representatives (colimRep) + birth-level tracking + cross-level compatibility, or
+(b) Transport of isOpenWitness along push paths (preserves α component)
+Both approaches require ~200 lines of infrastructure. The postulate is restored with a detailed
+comment explaining the proof strategy via birth-level tracking and transport.
+
+Postulate remains: buildCoherent (derived from dependent choice + colimEq infrastructure).
+Full chain check pending.

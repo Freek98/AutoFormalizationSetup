@@ -1,34 +1,43 @@
 {-# OPTIONS --cubical --guardedness #-}
 
-module work.Part13 where
+open import work.Part02Defs using (FoundationalAxioms)
+import work.Part12
 
-open import work.Part12 public
+module work.Part13 (fa : FoundationalAxioms) (ia : work.Part12.IntervalAxioms fa) where
 
-module BrouwerFixedPointTheoremModule where
-  open InhabitedClosedSubSpaceClosedCHausModule
+open import work.Part12 fa public
+open IntervalTheory ia public
+
+open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.HLevels
+open import Cubical.Data.Sigma
+open import Cubical.Data.Empty renaming (rec to ex-falso)
+open import Cubical.Relation.Nullary using (¬_)
+open import Cubical.HITs.PropositionalTruncation using (∥_∥₁; squash₁; ∣_∣₁)
+
+record DiskAxioms : Type (ℓ-suc ℓ-zero) where
   open CompactHausdorffModule
-
-  postulate
-    Disk2 : Type₀
+  field
+    Disk2 : Type ℓ-zero
     isSetDisk2 : isSet Disk2
-    Circle : Type₀
+    Circle : Type ℓ-zero
     boundary-inclusion : Circle → Disk2
-
-  -- D² is compact Hausdorff (tex: follows from being homeomorphic to I²)
-  postulate
     Disk2IsCHaus : hasCHausStr Disk2
-
-  Disk2CHaus : CHaus
-  Disk2CHaus = Disk2 , Disk2IsCHaus
-
-  -- No retraction from D² to S¹ (tex Proposition 3074)
-  postulate
+    -- tex Proposition 3073
     no-retraction : (r : Disk2 → Circle)
       → ((x : Circle) → r (boundary-inclusion x) ≡ x)
       → ⊥
     retraction-from-no-fixpoint : (f : Disk2 → Disk2)
       → ((x : Disk2) → (f x ≡ x → ⊥))
       → Σ[ r ∈ (Disk2 → Circle) ] ((x : Circle) → r (boundary-inclusion x) ≡ x)
+
+module DiskTheory (da : DiskAxioms) where
+  open DiskAxioms da public
+  open CompactHausdorffModule
+  open InhabitedClosedSubSpaceClosedCHausModule
+
+  Disk2CHaus : CHaus
+  Disk2CHaus = Disk2 , Disk2IsCHaus
 
   BFP-contradiction : (f : Disk2 → Disk2) → ((x : Disk2) → (f x ≡ x → ⊥)) → ⊥
   BFP-contradiction f no-fix =
@@ -56,4 +65,3 @@ module BrouwerFixedPointTheoremModule where
 
     in closedIsStable existence-prop existence-closed ¬¬existence
 
--- Cohomology (tex 2769-2968)

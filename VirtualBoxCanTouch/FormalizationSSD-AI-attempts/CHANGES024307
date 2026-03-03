@@ -1,0 +1,8 @@
+bck024307: Backup of Part14 before attempting to eliminate cocycleFactorsE postulate.
+Added tex annotations in work/ and formalization/ for:
+- def-cs-Interval (2250), IntervalIsCHaus (2272), LesserOpenPropAndApartness (2610) in Part12/Interval
+- Z-I-local (3015) in Part12/Interval
+- LocalChoiceSurjectionForm (394) in Part02Defs/AxiomDefs
+- OpenDominance (1330) in Part02/Axioms
+- ClosedDominance (1794) in Part09/ClosedInStone
+Coverage: 85/86 tex labels formalized (98.8%). Only cech-eilenberg-1-agree missing.

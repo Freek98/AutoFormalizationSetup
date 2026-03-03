@@ -1,0 +1,22 @@
+CHANGES0161 (from bck0160)
+
+Summary: Completed construct function for booleω-equality-open proof.
+This eliminates the booleω-equality-open postulate.
+
+Changes:
+1. Part07: ODiscInfrastructure module
+   - Completed the `construct` function: has-Boole-ω' B → ∥ isOpenWitness (a ≡ b) ∥₁
+   - Key components:
+     - ψ : B → freeBA-ℕ /Im f (from BoolRingEquiv)
+     - πQ : freeBA-ℕ → freeBA-ℕ /Im f (quotient projection)
+     - inIdeal→πQ≡0: genI membership → quotient zero (by induction on genI constructors)
+     - πQ≡0→inIdeal: quotient zero → genI membership (via opaque unfolding + kernel≡I)
+     - α N = Dec→Bool (freeBA-ℕ-DecEq (d · finJoin_N) d)
+     - fwd: a≡b → witness (using idealForward + extract via Decidable→Collapsible)
+     - bwd: witness → a≡b (using idealBackward + retEq for equiv injectivity)
+   - Fixed stale variable names (π → πQ, πd≡ψc → πQd≡ψc)
+   - Fixed duplicate import of Cubical.Relation.Nullary.Properties
+   - Added retEq to Cubical.Foundations.Equiv import
+
+Line count: 845 (was 749 in bck0160, +96 from construct implementation)
+Full chain Part20 compiles: YES

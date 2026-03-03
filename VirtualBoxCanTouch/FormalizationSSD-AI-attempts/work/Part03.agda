@@ -1,8 +1,10 @@
 {-# OPTIONS --cubical --guardedness #-}
 
-module work.Part03 where
+open import work.Part02Defs using (FoundationalAxioms)
 
-open import work.Part02 public
+module work.Part03 (fa : FoundationalAxioms) where
+
+open import work.Part02 fa public
 
 open import Cubical.Algebra.BooleanRing
 open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
@@ -16,7 +18,7 @@ open import Cubical.Data.Sigma
 open import Cubical.Data.Empty renaming (rec to ex-falso)
 open import Cubical.Data.Bool using (Bool; true; false; _and_; true≢false)
 import QuotientBool as QB
-open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator)
+open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator; inducedBAHom; evalBAInduce)
 open import CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω'; idBoolEquiv)
 open import Axioms.StoneDuality using (Booleω; Sp)
 open import Cubical.HITs.PropositionalTruncation using (∣_∣₁)
@@ -150,3 +152,173 @@ Bool²-unit-left = true , false
 
 Bool²-unit-right : ⟨ Bool² ⟩
 Bool²-unit-right = false , true
+
+module FinCofSubsets where
+  open import Cubical.Data.Bool using (Bool; true; false; _⊕_; _and_; not; isSetBool;
+    true≢false; notnot)
+  open import Cubical.HITs.PropositionalTruncation as PT using (∥_∥₁; ∣_∣₁; squash₁)
+  open import Cubical.Foundations.HLevels using (isSetΣ; isOfHLevelΠ)
+
+  isEventuallyConst : (ℕ → Bool) → Type₀
+  isEventuallyConst f = ∥ Σ[ N ∈ ℕ ] ((n : ℕ) → N ≤ n → f n ≡ f N) ∥₁
+
+  FinCof : Type₀
+  FinCof = Σ[ f ∈ (ℕ → Bool) ] isEventuallyConst f
+
+  isSetFinCof : isSet FinCof
+  isSetFinCof = isSetΣ (isOfHLevelΠ 2 (λ _ → isSetBool)) (λ _ → isProp→isSet squash₁)
+
+  _∈FC_ : ℕ → FinCof → Bool
+  n ∈FC (f , _) = f n
+
+  fcEmpty : FinCof
+  fcEmpty = (λ _ → false) , ∣ 0 , (λ _ _ → refl) ∣₁
+
+  fcFull : FinCof
+  fcFull = (λ _ → true) , ∣ 0 , (λ _ _ → refl) ∣₁
+
+  fcNot : FinCof → FinCof
+  fcNot (f , ec) = (λ n → not (f n)) ,
+    PT.map (λ { (N , stable) → N , (λ n N≤n → cong not (stable n N≤n)) }) ec
+
+  fcXor : FinCof → FinCof → FinCof
+  fcXor (f , ef) (g , eg) = (λ n → f n ⊕ g n) ,
+    PT.rec2 squash₁ (λ { (N₁ , s₁) (N₂ , s₂) →
+      let N = N₁ +ℕ N₂ in
+      ∣ N , (λ n N≤n →
+        let n₁ : N₁ ≤ n
+            n₁ = ≤-trans (≤SumLeft {n = N₁} {k = N₂}) N≤n
+            n₂ : N₂ ≤ n
+            n₂ = ≤-trans (subst (N₂ ≤_) (+-comm N₂ N₁) (≤SumLeft {n = N₂} {k = N₁})) N≤n
+            nN₁ : N₁ ≤ N
+            nN₁ = ≤SumLeft {n = N₁} {k = N₂}
+            nN₂ : N₂ ≤ N
+            nN₂ = subst (N₂ ≤_) (+-comm N₂ N₁) (≤SumLeft {n = N₂} {k = N₁})
+        in cong₂ _⊕_ (s₁ n n₁) (s₂ n n₂) ∙ sym (cong₂ _⊕_ (s₁ N nN₁) (s₂ N nN₂))) ∣₁ })
+    ef eg
+
+  fcAnd : FinCof → FinCof → FinCof
+  fcAnd (f , ef) (g , eg) = (λ n → f n and g n) ,
+    PT.rec2 squash₁ (λ { (N₁ , s₁) (N₂ , s₂) →
+      let N = N₁ +ℕ N₂ in
+      ∣ N , (λ n N≤n →
+        let n₁ : N₁ ≤ n
+            n₁ = ≤-trans (≤SumLeft {n = N₁} {k = N₂}) N≤n
+            n₂ : N₂ ≤ n
+            n₂ = ≤-trans (subst (N₂ ≤_) (+-comm N₂ N₁) (≤SumLeft {n = N₂} {k = N₁})) N≤n
+            nN₁ : N₁ ≤ N
+            nN₁ = ≤SumLeft {n = N₁} {k = N₂}
+            nN₂ : N₂ ≤ N
+            nN₂ = subst (N₂ ≤_) (+-comm N₂ N₁) (≤SumLeft {n = N₂} {k = N₁})
+        in cong₂ _and_ (s₁ n n₁) (s₂ n n₂) ∙ sym (cong₂ _and_ (s₁ N nN₁) (s₂ N nN₂))) ∣₁ })
+    ef eg
+
+  decToBool : {A : Type₀} → Dec A → Bool
+  decToBool (yes _) = true
+  decToBool (no _) = false
+
+  fcSingleton : ℕ → FinCof
+  fcSingleton n = (λ m → decToBool (discreteℕ m n)) ,
+    ∣ suc n , (λ m sn≤m → helper m sn≤m) ∣₁
+    where
+    helper : (m : ℕ) → suc n ≤ m → decToBool (discreteℕ m n) ≡ decToBool (discreteℕ (suc n) n)
+    helper m sn≤m with discreteℕ m n | discreteℕ (suc n) n
+    ... | yes m≡n | _ = ex-falso (¬m<m (subst (suc n ≤_) m≡n sn≤m))
+    ... | no _ | yes sn≡n = ex-falso (¬m<m (subst (n <_) sn≡n ≤-refl))
+    ... | no _ | no _ = refl
+
+  open import Cubical.Data.Bool.Properties using
+    (⊕-assoc; ⊕-identityʳ; ⊕-comm;
+     and-assoc; and-identityʳ; and-comm; and-idem)
+
+  private
+    FC≡ : {a b : FinCof} → fst a ≡ fst b → a ≡ b
+    FC≡ = Σ≡Prop (λ _ → squash₁)
+
+    and-distR-⊕ : (x y z : Bool) → x and (y ⊕ z) ≡ (x and y) ⊕ (x and z)
+    and-distR-⊕ false _ _ = refl
+    and-distR-⊕ true y z = refl
+
+    ⊕-invR : (x : Bool) → x ⊕ x ≡ false
+    ⊕-invR false = refl
+    ⊕-invR true = refl
+
+  FinCofBR : BooleanRing ℓ-zero
+  FinCofBR = idemCommRing→BR FinCofCR FinCof-idem
+    where
+    FinCofCR : CommRing ℓ-zero
+    FinCofCR = makeCommRing {R = FinCof}
+      fcEmpty fcFull fcXor fcAnd (λ x → x)
+      isSetFinCof
+      (λ x y z → FC≡ (funExt (λ n → ⊕-assoc (fst x n) (fst y n) (fst z n))))
+      (λ x → FC≡ (funExt (λ n → ⊕-identityʳ (fst x n))))
+      (λ x → FC≡ (funExt (λ n → ⊕-invR (fst x n))))
+      (λ x y → FC≡ (funExt (λ n → ⊕-comm (fst x n) (fst y n))))
+      (λ x y z → FC≡ (funExt (λ n → and-assoc (fst x n) (fst y n) (fst z n))))
+      (λ x → FC≡ (funExt (λ n → and-identityʳ (fst x n))))
+      (λ x y z → FC≡ (funExt (λ n → and-distR-⊕ (fst x n) (fst y n) (fst z n))))
+      (λ x y → FC≡ (funExt (λ n → and-comm (fst x n) (fst y n))))
+
+    FinCof-idem : isIdemRing FinCofCR
+    FinCof-idem x = FC≡ (funExt (λ n → and-idem (fst x n)))
+
+  fcSingleton-disjoint : (m n : ℕ) → ¬ (m ≡ n) →
+    fcAnd (fcSingleton m) (fcSingleton n) ≡ fcEmpty
+  fcSingleton-disjoint m n m≠n = FC≡ (funExt helper)
+    where
+    helper : (k : ℕ) → decToBool (discreteℕ k m) and decToBool (discreteℕ k n) ≡ false
+    helper k with discreteℕ k m | discreteℕ k n
+    ... | yes k≡m | yes k≡n = ex-falso (m≠n (sym k≡m ∙ k≡n))
+    ... | yes _ | no _ = refl
+    ... | no _ | yes _ = refl
+    ... | no _ | no _ = refl
+
+  fcSingleton-self : (n : ℕ) → decToBool (discreteℕ n n) ≡ true
+  fcSingleton-self n with discreteℕ n n
+  ... | yes _ = refl
+  ... | no n≠n = ex-falso (n≠n refl)
+
+open FinCofSubsets public
+
+module B∞→FinCof where
+  private
+    φ-free : BoolHom (freeBA ℕ) FinCofBR
+    φ-free = inducedBAHom ℕ FinCofBR fcSingleton
+
+    φ-free-on-gen : (n : ℕ) → fst φ-free (gen n) ≡ fcSingleton n
+    φ-free-on-gen n = funExt⁻ (evalBAInduce ℕ FinCofBR fcSingleton) n
+
+    open IsCommRingHom (snd φ-free) renaming (pres· to φ-free-pres·)
+
+    m<m+suc : (m d : ℕ) → m < m +ℕ suc d
+    m<m+suc m d = d , +-suc d m ∙ cong suc (+-comm d m) ∙ sym (+-suc m d)
+
+    m≠m+suc : (m d : ℕ) → ¬ (m ≡ m +ℕ suc d)
+    m≠m+suc m d p = ¬m<m (subst (_< m +ℕ suc d) p (m<m+suc m d))
+
+    φ-free-kills-rel : (k : ℕ) → fst φ-free (relB∞ k) ≡ BooleanRingStr.𝟘 (snd FinCofBR)
+    φ-free-kills-rel k =
+      let (m , d) = cantorUnpair k
+          n = m +ℕ suc d
+      in
+      fst φ-free (gen m · gen n)
+        ≡⟨ φ-free-pres· (gen m) (gen n) ⟩
+      fcAnd (fst φ-free (gen m)) (fst φ-free (gen n))
+        ≡⟨ cong₂ fcAnd (φ-free-on-gen m) (φ-free-on-gen n) ⟩
+      fcAnd (fcSingleton m) (fcSingleton n)
+        ≡⟨ fcSingleton-disjoint m n (m≠m+suc m d) ⟩
+      fcEmpty ∎
+
+  φ : BoolHom B∞ FinCofBR
+  φ = QB.inducedHom FinCofBR φ-free φ-free-kills-rel
+
+  φ-on-gen : (n : ℕ) → fst φ (g∞ n) ≡ fcSingleton n
+  φ-on-gen n =
+    fst φ (g∞ n)
+      ≡⟨ cong (λ h → fst h (gen n)) (QB.evalInduce FinCofBR) ⟩
+    fst φ-free (gen n)
+      ≡⟨ φ-free-on-gen n ⟩
+    fcSingleton n ∎
+
+open B∞→FinCof public hiding (φ)
+

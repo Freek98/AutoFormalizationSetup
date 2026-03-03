@@ -1,0 +1,33 @@
+bck0181: Eliminated defF postulate in ScottFiniteCodomain (Part07).
+Quick check: Part07 SUCCESS, Part14 SUCCESS, Part20 SUCCESS (full chain).
+
+Part07 changes (from bck0179/CHANGES0225):
+  - ADDED mapBNHom and mapBN≡ fields to ODiscRingDecomp record (lines 2078-2079):
+    mapBNHom : (n : ℕ) → BoolHom (BN n) (BN (suc n))
+    mapBN≡ : (n : ℕ) → mapBN n ≡ fst (mapBNHom n)
+    This records that the transition maps in the ring decomposition are ring homomorphisms.
+  - Updated quotientFreeBA-ringDecomp to provide mapBNHom (mapBN now derived from it).
+  - Updated BooleωRingDecomp.transport-rd to pass through mapBNHom/mapBN≡.
+  - ADDED iterMap-pres0/pres1, liftTo-pres0/pres1 helpers (lines 2651-2673):
+    Prove that iterMap and liftTo on seqB preserve 0 and 1 of the Boolean ring,
+    using mapBNHom (ring hom preserves 0 and 1).
+  - ELIMINATED defF postulate in ScottFiniteCodomain (was line 2663, now replaced):
+    Split go into go-inner with case analysis on k = fst finF.
+    k = 0: F ≃ Fin 0 = ⊥, so Sp B is empty. Get 0_Q = 1_Q via SpectrumEmptyImpliesTrivial.
+      Use colimEquiv injectivity to get incl(0_{BN 0}) = incl(1_{BN 0}) in SeqColim.
+      By colimSeparation, find M where liftTo(0) = liftTo(1) in BN M.
+      Using liftTo-pres0/1, conclude 0_{BN M} = 1_{BN M}, so Sp(BN M) is empty.
+      Define f' : Sp(BN M) → F via ex-falso. f-ok vacuous (Sp B empty).
+    k ≥ 1 (suc k'): use invEq eq fzero : F as default for finSearch (was the intent all along).
+
+Part14 changes: none (identical to bck0179).
+
+Postulate summary:
+  - Part07: ScottFiniteCodomain has 0 postulates (was 1: defF, now PROVED)
+  - Part14: CocycleFactorsThroughELevel (1 postulate), cech-eilenberg-1-agree (1 postulate, unused)
+  Net: -1 postulate from Part07
+
+Line counts: Part07: 3537 (3457→3537, +80 lines).
+Increase justified: new mapBNHom infrastructure (+5 lines in record/constructions),
+  iterMap/liftTo preservation lemmas (+24 lines), and k=0 case proof (+51 lines).
+  These replace the 1-line defF postulate with a real proof.

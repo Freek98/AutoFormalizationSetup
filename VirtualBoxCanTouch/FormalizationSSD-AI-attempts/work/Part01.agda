@@ -21,8 +21,12 @@ open import Cubical.Algebra.CommRing
 open import Cubical.Algebra.BooleanRing
 import QuotientBool as QB
 import Cubical.Data.Sum as ⊎
+open import BooleanRing.BooleanRingQuotients.QuotientConclusions using (quotientEquivBool) public
 
-open import BooleanRing.BooleanRingQuotients.QuotientConclusions renaming (quotientEquivBool to BoolQuotientEquiv) public
+BoolQuotientEquiv : (A : BooleanRing ℓ-zero) (f g : ℕ → ⟨ A ⟩) →
+    BooleanRing→CommRing (A QB./Im (⊎.rec f g)) ≡
+    BooleanRing→CommRing ((A QB./Im f) QB./Im (fst QB.quotientImageHom ∘ g))
+BoolQuotientEquiv A f g = cong BooleanRing→CommRing (quotientEquivBool A f g)
 
 binarySequence : Type₀
 binarySequence = ℕ → Bool
@@ -60,12 +64,6 @@ Closed = Σ[ P ∈ hProp ℓ-zero ] isClosedProp P
 ¬hProp P = (¬ ⟨ P ⟩) , isProp¬ ⟨ P ⟩
 
 -- tex Remark 676 (rmkOpenClosedNegation):
--- (i) negOpenIsClosed: negation of open is closed
--- (ii) negClosedIsOpen (line 113): by MP, negation of closed is open
--- (iii) closedIsStable (line 124): closed props are ¬¬-stable
--- (iv) openIsStable (line 135): by MP, open props are ¬¬-stable
--- (v) ¬WLPO (Part19): not every closed prop is decidable
--- (vi) decIsOpen/decIsClosed (lines 77,81): every decidable prop is open and closed
 negOpenIsClosed : (P : hProp ℓ-zero) → isOpenProp P → isClosedProp (¬hProp P)
 negOpenIsClosed P Popen = PT.rec squash₁ go Popen
   where
@@ -98,6 +96,7 @@ decIsClosed P (no ¬p) = ∣ (λ _ → true) , (λ p₁ → ex-falso (¬p p₁))
 Bool-equality-closed : (a b : Bool) → isClosedProp ((a ≡ b) , isSetBool a b)
 Bool-equality-closed a b = decIsClosed ((a ≡ b) , isSetBool a b) (a =B b)
 
+-- tex Corollary 530 (MarkovPrinciple)
 MarkovPrinciple : Type₀
 MarkovPrinciple = (α : binarySequence) → ¬ ((n : ℕ) → α n ≡ false) → Σ[ n ∈ ℕ ] α n ≡ true
 
@@ -220,6 +219,7 @@ interleave-odd : (α β : binarySequence) (n : ℕ) → isEvenB n ≡ false
 interleave-odd α β n n-odd =
   cong (λ x → if x then α (half n) else β (half n)) n-odd
 
+-- tex Lemma 691 (closed stable under finite conjunctions)
 closedAnd : (P Q : hProp ℓ-zero) → isClosedProp P → isClosedProp Q
           → isClosedProp ((⟨ P ⟩ × ⟨ Q ⟩) , isProp× (snd P) (snd Q))
 closedAnd P Q Pclosed Qclosed = PT.rec2 squash₁ go Pclosed Qclosed
@@ -246,6 +246,7 @@ closedAnd P Q Pclosed Qclosed = PT.rec2 squash₁ go Pclosed Qclosed
       β-zero : (k : ℕ) → β k ≡ false
       β-zero k = sym (interleave-2k+1 α β k) ∙ all-zero (suc (2 ·ℕ k))
 
+-- tex Lemma 691 (open stable under finite disjunctions)
 openOrMP : MarkovPrinciple → (P Q : hProp ℓ-zero) → isOpenProp P → isOpenProp Q
         → isOpenProp (∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁ , squash₁)
 openOrMP mp P Q Popen Qopen = PT.rec2 squash₁ go Popen Qopen
@@ -280,3 +281,4 @@ openOrMP mp P Q Popen Qopen = PT.rec2 squash₁ go Popen Qopen
         helper (inr q) =
           let (k , βk=t) = Q→∃β q
           in false≢true (sym (sym (interleave-2k+1 α β k) ∙ all-false (suc (2 ·ℕ k))) ∙ βk=t)
+

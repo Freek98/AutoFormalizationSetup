@@ -22,7 +22,7 @@ open import Cubical.Algebra.CommRing
 open import Cubical.Algebra.BooleanRing
 open import BasicDefinitions
 
-import BooleanRing.BooleanRingQuotients.QuotientBool as QB
+import QuotientBool as QB
 import Cubical.Data.Sum as ⊎
 
 isOpenWitness : hProp ℓ-zero → Type₀

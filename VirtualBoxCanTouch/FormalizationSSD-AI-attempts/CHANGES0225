@@ -1,0 +1,24 @@
+bck0179: Added cocycle-cancel lemma to CechComplex.CocycleProps.
+Quick check: Part07 SUCCESS, Part14 SUCCESS, Part20 SUCCESS (full chain).
+
+Part14 changes (from bck0178/CHANGES0224):
+  - ADDED cocycle-cancel to CocycleProps (lines 156-175):
+    cocycle-cancel : (x : S) (u₀ u v : T x) → β x u v ≡ (β x u₀ v) - (β x u₀ u)
+    Proof: from cocycle-add (β(u₀,u) + β(u,v) = β(u₀,v)), isolate β(u,v).
+    Uses: +IdL, +InvL, +Assoc, cong, +Comm.
+
+Part07 changes: none (identical to bck0178).
+
+Postulate summary (unchanged from bck0178):
+  - Part07: ScottFiniteCodomain has 1 inner postulate (defF : F, vacuous for k=0)
+  - Part14: CocycleFactorsThroughELevel (1 postulate), cech-eilenberg-1-agree (1 postulate, unused)
+
+Investigation notes:
+  - Attempted to prove CocycleFactorsThroughELevel via α̃ coboundary potential approach.
+    FAILED: PT.rec requires isProp target, but ℤ is a set. Cannot eliminate ∥ T x ∥₁ into ℤ.
+  - Attempted to prove defF (Part07) by case-splitting on k.
+    BLOCKED: when k=0, F ≃ Fin 0 is empty, but cannot produce F element without Sp B element.
+  - cocycle-cancel will be useful for eventual CocycleFactorsThroughELevel proof.
+
+Line counts: Part14: 1311 (1293→1311, +18 lines).
+Increase justified: new cocycle-cancel lemma (+18 lines of proof).

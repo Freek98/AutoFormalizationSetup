@@ -1,0 +1,42 @@
+CHANGES0164 (from bck0163)
+
+Summary: Added ODisc axioms to Part07 and proved AlgebraCompactHausdorffCountablyPresented
+(tex Lemma 2112) in Part11, eliminating that postulate.
+
+Changes:
+1. Part07: Added ODiscAxioms module (+20 lines)
+   - isODisc : Type₀ → Type₁ (tex Definition 918)
+   - isProp-isODisc : isProp (isODisc X)
+   - BooleIsODisc : Booleω → isODisc ⟨ fst B ⟩ (tex Lemma 1396)
+   - OdiscSigma : isODisc A → (∀ a → isODisc (B a)) → isODisc (Σ A B) (tex Lemma 1184)
+   - PropOpenIffOdisc : isOpenProp P → isODisc (fst P) (tex Lemma 1302)
+   - ODiscBAareBoole : isODisc ⟨ B ⟩ → ∥ has-Boole-ω' B ∥₁ (tex Corollary 1441)
+   - isODisc-path : A ≡ B → isODisc A → isODisc B (derived)
+   - Added has-Boole-ω' to PresentedBoole import
+
+2. Part11: Proved AlgebraCompactHausdorffCountablyPresented (+111 lines, postulate ELIMINATED)
+   - closedImplDecIsOpen: if P is closed and Q is decidable, (P → Q) is open
+     - yes case: trivially open (α = const true)
+     - no case: (P → Q) ↔ ¬P, transfer openness via negClosedIsOpen
+   - Main proof strategy:
+     a. Stone cover q : S →→ X from CHaus structure
+     b. (fst S → Bool) is ODisc: SDHomVersion gives ⟨ fst B ⟩ ≃ (Sp B → Bool),
+        transport along ua + path Sp B ≡ fst S using BooleIsODisc
+     c. Compatibility predicate: compatible b = ∀ s t. q s ≡ q t → b s ≡ b t
+     d. Each (q s ≡ q t → b s ≡ b t) is open via closedImplDecIsOpen
+        (equality in X is closed, equality in Bool is decidable)
+     e. compatible b is open via double AllOpenSubspaceOpen
+     f. Equivalence (fst X → Bool) ≃ Σ (fst S → Bool) compatible
+        via rec→Set for backward map, PT.elim for section/retraction
+     g. Σ-isODisc via OdiscSigma + PropOpenIffOdisc
+     h. 2^X-isODisc via isODisc-path + sym (ua equiv)
+     i. ODiscBAareBoole finishes
+
+Line count: Part07 865 (was 845, +20), Part11 1831 (was 1720, +111)
+Total across all files: 8416 (was 8285, +131)
+Full chain Part20 compiles: YES
+
+Postulate changes:
+- ELIMINATED: AlgebraCompactHausdorffCountablyPresented (Part11)
+- ADDED (all tex-referenced ODisc axioms in Part07):
+  isODisc, isProp-isODisc, BooleIsODisc, OdiscSigma, PropOpenIffOdisc, ODiscBAareBoole
