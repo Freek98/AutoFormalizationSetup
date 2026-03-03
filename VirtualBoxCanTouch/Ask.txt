@@ -1,2 +1,4 @@
-❯ I was working in NFinCofin. I want you to finish this proof to show that     
-  there's an equivalence between NfinCofin and presentation.
+❯ You've done some work in this direction already. I want a proof that if an   
+  operation between underlying sets of boolean rings preserves negation, one    
+  of conjunction or disjunction and one of 0 or 1, then it's a boolean ring     
+  morphism. Give me some nice library for that.     
