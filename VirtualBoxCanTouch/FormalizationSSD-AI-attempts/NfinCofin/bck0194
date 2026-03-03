@@ -276,7 +276,6 @@ open import BooleanRing.FreeBooleanRing.freeBATerms using (equalityFromEqualityO
 open import Cubical.Data.Nat.Bijections.Product using (ℕ×ℕ≅ℕ)
 open import Cubical.Algebra.CommRing using (compCommRingEquiv ; _∘cr_ ; _∘cre_)
 open import Cubical.Foundations.Isomorphism
-open import BooleanRing.BoolAlgMorphism
 
 module CountablyPresentedProof where
   open ℕFinCofin
@@ -393,35 +392,6 @@ module CountablyPresentedProof where
   ∨-lid : (x : ⟨ Q ⟩) → QA._∨_ QS.𝟘 x ≡ x
   ∨-lid x = solve! (BooleanRing→CommRing Q)
 
-  idem-Q : (x : ⟨ Q ⟩) → QS._·_ x x ≡ x
-  idem-Q = IsBooleanRing.·Idem QS.isBooleanRing
-
-  char2-Q : {x : ⟨ Q ⟩} → QS._+_ x x ≡ QS.𝟘
-  char2-Q {x} = BooleanAlgebraStr.characteristic2 Q {x}
-
-  ∨-·-∨ : (a b g : ⟨ Q ⟩) →
-    QS._·_ a g ≡ QS.𝟘 → QS._·_ b g ≡ QS.𝟘 →
-    QS._·_ (QA._∨_ a g) (QA._∨_ b g) ≡ QA._∨_ (QS._·_ a b) g
-  ∨-·-∨ a b g ag=0 bg=0 = lhs-eq ∙ sym rhs-eq where
-    abg=0 : QS._·_ (QS._·_ a b) g ≡ QS.𝟘
-    abg=0 = solve! (BooleanRing→CommRing Q) ∙ cong (QS._·_ a) bg=0
-            ∙ solve! (BooleanRing→CommRing Q)
-    lhs-eq : QS._·_ (QA._∨_ a g) (QA._∨_ b g) ≡ QS._+_ (QS._·_ a b) g
-    lhs-eq =
-      cong₂ QS._·_ (∨-disjoint a g ag=0) (∨-disjoint b g bg=0) ∙
-      (QS._·_ (QS._+_ a g) (QS._+_ b g)
-        ≡⟨ solve! (BooleanRing→CommRing Q) ⟩
-      QS._+_ (QS._+_ (QS._·_ a b) (QS._·_ a g))
-              (QS._+_ (QS._·_ g b) (QS._·_ g g))
-        ≡⟨ cong₂ QS._+_
-             (cong (QS._+_ (QS._·_ a b)) ag=0)
-             (cong₂ QS._+_ (solve! (BooleanRing→CommRing Q) ∙ bg=0) (idem-Q g)) ⟩
-      QS._+_ (QS._+_ (QS._·_ a b) QS.𝟘) (QS._+_ QS.𝟘 g)
-        ≡⟨ solve! (BooleanRing→CommRing Q) ⟩
-      QS._+_ (QS._·_ a b) g ∎)
-    rhs-eq : QA._∨_ (QS._·_ a b) g ≡ QS._+_ (QS._·_ a b) g
-    rhs-eq = ∨-disjoint (QS._·_ a b) g abg=0
-
   -- Section for finite elements
   sFin : (α : binarySequence) → isFinite α → ⟨ Q ⟩
   sFin α (constant0 _)     = QS.𝟘
@@ -536,12 +506,34 @@ module CountablyPresentedProof where
     QS._·_ (sB α n) (sB β n) ≡ sB (λ k → α k and β k) n
   sB-pres· α β zero = solve! (BooleanRing→CommRing Q)
   sB-pres· α β (suc n) with α n =B true | β n =B true
-  ... | yes αn | yes βn = -- both true: use ∨-·-∨ lemma
+  ... | yes αn | yes βn = -- both true: result has ∨ qGen n
     QS._·_ (QA._∨_ (sB α n) (qGen n)) (QA._∨_ (sB β n) (qGen n))
-      ≡⟨ ∨-·-∨ (sB α n) (sB β n) (qGen n)
-           (sB-disjoint α n n ≤-refl) (sB-disjoint β n n ≤-refl) ⟩
-    QA._∨_ (QS._·_ (sB α n) (sB β n)) (qGen n)
-      ≡⟨ cong (λ z → QA._∨_ z (qGen n)) (sB-pres· α β n) ⟩
+      ≡⟨ solve! (BooleanRing→CommRing Q) ⟩
+    QS._+_ (QS._+_ (QS._+_
+      (QS._·_ (sB α n) (sB β n))
+      (QS._·_ (sB α n) (qGen n)))
+      (QS._+_ (QS._·_ (qGen n) (sB β n))
+               (QS._·_ (qGen n) (qGen n))))
+      (QS._+_ (QS._+_
+        (QS._·_ (QS._·_ (sB α n) (qGen n)) (sB β n))
+        (QS._·_ (QS._·_ (sB α n) (qGen n)) (qGen n)))
+        (QS._+_
+          (QS._·_ (QS._·_ (qGen n) (sB β n)) (qGen n))
+          (QS._·_ (QS._·_ (qGen n) (qGen n)) (QS._·_ (sB α n) (sB β n)))))
+      ≡⟨ cong₂ QS._+_
+          (cong₂ QS._+_
+            (cong₂ QS._+_ (sB-pres· α β n)
+                           (sB-disjoint α n n ≤-refl))
+            (cong₂ QS._+_ (cong (λ z → QS._·_ z (sB β n)) (sB-disjoint β n n ≤-refl) ∙ solve! (BooleanRing→CommRing Q))
+                           refl))
+          (cong₂ QS._+_
+            (cong₂ QS._+_
+              (cong (λ z → QS._·_ z (sB β n)) (sB-disjoint α n n ≤-refl) ∙ solve! (BooleanRing→CommRing Q))
+              (cong (λ z → QS._·_ z (qGen n)) (sB-disjoint α n n ≤-refl) ∙ solve! (BooleanRing→CommRing Q)))
+            (cong₂ QS._+_
+              (cong (λ z → QS._·_ z (qGen n)) (cong (λ z → QS._·_ z (sB β n)) (sB-disjoint β n n ≤-refl) ∙ solve! (BooleanRing→CommRing Q)) ∙ solve! (BooleanRing→CommRing Q))
+              (cong (QS._·_ (QS._·_ (qGen n) (qGen n))) (sB-pres· α β n))))
+      ≡⟨ {! !} ⟩ -- simplify using 0+0=0 and idem
     QA._∨_ (sB (λ k → α k and β k) n) (qGen n)
       ≡⟨ sym (sB-step-true (λ k → α k and β k) n (cong₂ _and_ αn βn)) ⟩
     sB (λ k → α k and β k) (suc n) ∎
@@ -581,12 +573,12 @@ module CountablyPresentedProof where
     ∙ sym (sB-step (λ k → α k and β k) n
         (cong₂ _and_ (¬true→false (α n) ¬αn) (¬true→false (β n) ¬βn)))
 
-  -- KEY LEMMA: sB preserves addition (_⊕_)
+  -- KEY LEMMA: sB preserves addition (xor)
   sB-pres+ : (α β : binarySequence) (n : ℕ) →
-    QS._+_ (sB α n) (sB β n) ≡ sB (λ k → α k ⊕ β k) n
+    QS._+_ (sB α n) (sB β n) ≡ sB (λ k → xor (α k) (β k)) n
   sB-pres+ α β zero = solve! (BooleanRing→CommRing Q)
   sB-pres+ α β (suc n) with α n =B true | β n =B true
-  ... | yes αn | yes βn = -- both true: _⊕_ gives false, no qGen n added
+  ... | yes αn | yes βn = -- both true: xor gives false, no qGen n added
     QS._+_ (QA._∨_ (sB α n) (qGen n)) (QA._∨_ (sB β n) (qGen n))
       ≡⟨ cong₂ QS._+_
           (∨-disjoint (sB α n) (qGen n) (sB-disjoint α n n ≤-refl))
@@ -595,11 +587,11 @@ module CountablyPresentedProof where
       ≡⟨ solve! (BooleanRing→CommRing Q) ⟩
     QS._+_ (sB α n) (sB β n)
       ≡⟨ sB-pres+ α β n ⟩
-    sB (λ k → α k ⊕ β k) n
-      ≡⟨ sym (sB-step (λ k → α k ⊕ β k) n
-          (cong₂ _⊕_ αn βn)) ⟩
-    sB (λ k → α k ⊕ β k) (suc n) ∎
-  ... | yes αn | no ¬βn = -- α true, β false: _⊕_ true
+    sB (λ k → xor (α k) (β k)) n
+      ≡⟨ sym (sB-step (λ k → xor (α k) (β k)) n
+          (cong₂ xor αn βn)) ⟩
+    sB (λ k → xor (α k) (β k)) (suc n) ∎
+  ... | yes αn | no ¬βn = -- α true, β false: xor true
     QS._+_ (QA._∨_ (sB α n) (qGen n)) (sB β n)
       ≡⟨ cong₂ QS._+_
           (∨-disjoint (sB α n) (qGen n) (sB-disjoint α n n ≤-refl))
@@ -608,14 +600,14 @@ module CountablyPresentedProof where
       ≡⟨ solve! (BooleanRing→CommRing Q) ⟩
     QS._+_ (QS._+_ (sB α n) (sB β n)) (qGen n)
       ≡⟨ cong (λ z → QS._+_ z (qGen n)) (sB-pres+ α β n) ⟩
-    QS._+_ (sB (λ k → α k ⊕ β k) n) (qGen n)
-      ≡⟨ sym (∨-disjoint (sB (λ k → α k ⊕ β k) n) (qGen n)
-          (sB-disjoint (λ k → α k ⊕ β k) n n ≤-refl)) ⟩
-    QA._∨_ (sB (λ k → α k ⊕ β k) n) (qGen n)
-      ≡⟨ sym (sB-step-true (λ k → α k ⊕ β k) n
-          (cong₂ _⊕_ αn (¬true→false (β n) ¬βn))) ⟩
-    sB (λ k → α k ⊕ β k) (suc n) ∎
-  ... | no ¬αn | yes βn = -- α false, β true: _⊕_ true
+    QS._+_ (sB (λ k → xor (α k) (β k)) n) (qGen n)
+      ≡⟨ sym (∨-disjoint (sB (λ k → xor (α k) (β k)) n) (qGen n)
+          (sB-disjoint (λ k → xor (α k) (β k)) n n ≤-refl)) ⟩
+    QA._∨_ (sB (λ k → xor (α k) (β k)) n) (qGen n)
+      ≡⟨ sym (sB-step-true (λ k → xor (α k) (β k)) n
+          (cong₂ xor αn (¬true→false (β n) ¬βn))) ⟩
+    sB (λ k → xor (α k) (β k)) (suc n) ∎
+  ... | no ¬αn | yes βn = -- α false, β true: xor true
     QS._+_ (sB α n) (QA._∨_ (sB β n) (qGen n))
       ≡⟨ cong (QS._+_ (sB α n))
           (∨-disjoint (sB β n) (qGen n) (sB-disjoint β n n ≤-refl)) ⟩
@@ -623,50 +615,39 @@ module CountablyPresentedProof where
       ≡⟨ solve! (BooleanRing→CommRing Q) ⟩
     QS._+_ (QS._+_ (sB α n) (sB β n)) (qGen n)
       ≡⟨ cong (λ z → QS._+_ z (qGen n)) (sB-pres+ α β n) ⟩
-    QS._+_ (sB (λ k → α k ⊕ β k) n) (qGen n)
-      ≡⟨ sym (∨-disjoint (sB (λ k → α k ⊕ β k) n) (qGen n)
-          (sB-disjoint (λ k → α k ⊕ β k) n n ≤-refl)) ⟩
-    QA._∨_ (sB (λ k → α k ⊕ β k) n) (qGen n)
-      ≡⟨ sym (sB-step-true (λ k → α k ⊕ β k) n
-          (cong₂ _⊕_ (¬true→false (α n) ¬αn) βn)) ⟩
-    sB (λ k → α k ⊕ β k) (suc n) ∎
-  ... | no ¬αn | no ¬βn = -- both false: _⊕_ false
+    QS._+_ (sB (λ k → xor (α k) (β k)) n) (qGen n)
+      ≡⟨ sym (∨-disjoint (sB (λ k → xor (α k) (β k)) n) (qGen n)
+          (sB-disjoint (λ k → xor (α k) (β k)) n n ≤-refl)) ⟩
+    QA._∨_ (sB (λ k → xor (α k) (β k)) n) (qGen n)
+      ≡⟨ sym (sB-step-true (λ k → xor (α k) (β k)) n
+          (cong₂ xor (¬true→false (α n) ¬αn) βn)) ⟩
+    sB (λ k → xor (α k) (β k)) (suc n) ∎
+  ... | no ¬αn | no ¬βn = -- both false: xor false
     sB-pres+ α β n
-    ∙ sym (sB-step (λ k → α k ⊕ β k) n
-        (cong₂ _⊕_ (¬true→false (α n) ¬αn) (¬true→false (β n) ¬βn)))
+    ∙ sym (sB-step (λ k → xor (α k) (β k)) n
+        (cong₂ xor (¬true→false (α n) ¬αn) (¬true→false (β n) ¬βn)))
+
+  -- sec preserves ring operations
+  sec-pres0 : sec FCS.𝟘 ≡ QS.𝟘
+  sec-pres0 = refl
+
+  sec-pres- : (x : ⟨ ℕfinCofinBA ⟩) → sec (FCS.-_ x) ≡ QS.-_ (sec x)
+  sec-pres- x = cong sec FCA.-IsId ∙ sym QA.-IsId
+
+  sec-pres1 : sec FCS.𝟙 ≡ QS.𝟙
+  sec-pres1 = cong (QA.¬_) refl ∙ solve! (BooleanRing→CommRing Q)
 
   -- Helper: sFin at a common bound
   sFin-sB : (α : binarySequence) (f : isFinite α) → Σ[ n ∈ ℕ ] (isZeroFrom n α × (sFin α f ≡ sB α n))
   sFin-sB α (constant0 α=0) = 0 , α=0 , refl
   sFin-sB α (last1 n _ α>n=0) = suc n , α>n=0 , refl
 
-  -- Pointwise identity: α ⊕ (α ∧ ¬β) = α ∧ β
-  ⊕-and-not : (a b : Bool) → (a ⊕ (a and not b)) ≡ a and b
-  ⊕-and-not false false = refl
-  ⊕-and-not false true  = refl
-  ⊕-and-not true  false = refl
-  ⊕-and-not true  true  = refl
-
-  -- Pointwise identity: β ⊕ (¬α ∧ β) = α ∧ β
-  ⊕-not-and : (a b : Bool) → (b ⊕ (not a and b)) ≡ a and b
-  ⊕-not-and false false = refl
-  ⊕-not-and false true  = refl
-  ⊕-not-and true  false = refl
-  ⊕-not-and true  true  = refl
-
-  -- Pointwise identity: (¬α ⊕ ¬β) ⊕ (¬α ∧ ¬β) = not (α and β)
-  ⊕-not-not-and : (a b : Bool) → ((not a ⊕ not b) ⊕ (not a and not b)) ≡ not (a and b)
-  ⊕-not-not-and false false = refl
-  ⊕-not-not-and false true  = refl
-  ⊕-not-not-and true  false = refl
-  ⊕-not-not-and true  true  = refl
-
-  -- sec-pres·-FinFin: sFin (α∧β) = sFin α · sFin β
+  -- sec-pres· for Fin-Fin case
   sec-pres·-FinFin : (α β : binarySequence) (f : isFinite α) (g : isFinite β) →
     sFin (λ k → α k and β k) (intersectionWithFiniteIsFinite α β f) ≡ QS._·_ (sFin α f) (sFin β g)
   sec-pres·-FinFin α β f g =
-    let (n , zfα , _) = sFin-sB α f
-        (m , zfβ , _) = sFin-sB β g
+    let (n , zfα , eqα) = sFin-sB α f
+        (m , zfβ , eqβ) = sFin-sB β g
         N = max n m
         zfα' : isZeroFrom N α
         zfα' k k≥N = zfα k (≤-trans (left-≤-max {n = m}) k≥N)
@@ -678,118 +659,53 @@ module CountablyPresentedProof where
        ∙ sym (sB-pres· α β N)
        ∙ cong₂ QS._·_ (sym (sFin-via-bound α N zfα' f)) (sym (sFin-via-bound β N zfβ' g))
 
-  -- sec-pres+-FinFin: sFin (α⊕β) = sFin α + sFin β
-  sec-pres+-FinFin : (α β : binarySequence) (f : isFinite α) (g : isFinite β) →
-    (h : isFinite (λ k → α k ⊕ β k)) →
-    sFin (λ k → α k ⊕ β k) h ≡ QS._+_ (sFin α f) (sFin β g)
-  sec-pres+-FinFin α β f g h =
-    let (n , zfα , _) = sFin-sB α f
-        (m , zfβ , _) = sFin-sB β g
-        N = max n m
-        zfα' : isZeroFrom N α
-        zfα' k k≥N = zfα k (≤-trans (left-≤-max {n = m}) k≥N)
-        zfβ' : isZeroFrom N β
-        zfβ' k k≥N = zfβ k (≤-trans (right-≤-max {m = n}) k≥N)
-        zf⊕ : isZeroFrom N (λ k → α k ⊕ β k)
-        zf⊕ k k≥N = cong₂ _⊕_ (zfα' k k≥N) (zfβ' k k≥N)
-    in sFin-via-bound (λ k → α k ⊕ β k) N zf⊕ h
-       ∙ sym (sB-pres+ α β N)
-       ∙ cong₂ QS._+_ (sym (sFin-via-bound α N zfα' f)) (sym (sFin-via-bound β N zfβ' g))
-
-  -- sec preserves negation
-  sec-pres¬ : (x : ⟨ ℕfinCofinBA ⟩) → sec (FCA.¬_ x) ≡ QA.¬_ (sec x)
-  sec-pres¬ (α , Fin f) =
-    cong (QA.¬_) (cong (sFin (¬ℕ α)) (isPropIsFinite (¬ℕ α) _ _))
-  sec-pres¬ (α , Cof c) =
-    cong (sFin (¬ℕ α)) (isPropIsFinite (¬ℕ α) _ _)
-    ∙ sym (cong (sFin (¬ℕ α)) (isPropIsFinite (¬ℕ α) c _)
-    ∙ sym QA.¬Invol)
-
-  -- sec preserves multiplication (∧)
+  -- sec preserves multiplication
   sec-pres· : (x y : ⟨ ℕfinCofinBA ⟩) → sec (FCS._·_ x y) ≡ QS._·_ (sec x) (sec y)
   sec-pres· (α , Fin f) (β , Fin g) =
-    cong (sFin (λ k → α k and β k)) (isPropIsFinite _ _ _)
+    cong (sFin (λ k → α k and β k)) (isPropIsFinite (λ k → α k and β k) _ _)
     ∙ sec-pres·-FinFin α β f g
   sec-pres· (α , Fin f) (β , Cof c) =
-    cong (sFin (λ k → α k and β k)) (isPropIsFinite _ _ _) ∙
-    let (n , zfα , _) = sFin-sB α f
-        (m , zf¬β , _) = sFin-sB (¬ℕ β) c
-        N = max n m
-        zfα' : isZeroFrom N α
-        zfα' k k≥N = zfα k (≤-trans (left-≤-max {n = m}) k≥N)
-        zf¬β' : isZeroFrom N (¬ℕ β)
-        zf¬β' k k≥N = zf¬β k (≤-trans (right-≤-max {m = n}) k≥N)
-        zf∧ : isZeroFrom N (λ k → α k and β k)
-        zf∧ k k≥N = cong (λ a → a and β k) (zfα' k k≥N)
-        zfα¬β : isZeroFrom N (λ k → α k and not (β k))
-        zfα¬β k k≥N = cong (λ a → a and not (β k)) (zfα' k k≥N)
-    in sFin-via-bound _ N zf∧ (intersectionWithFiniteIsFinite α β f)
-       ∙ sym (cong (λ z → sB z N) (funExt (λ k → ⊕-and-not (α k) (β k)))
-              ∙ sB-pres+ α (λ k → α k and not (β k)) N)
-       ∙ cong₂ QS._+_
-           (sym (sFin-via-bound α N zfα' f))
-           (sym (sFin-via-bound _ N zfα¬β (intersectionWithFiniteIsFinite α (¬ℕ β) f)
-                ∙ sym (sB-pres· α (¬ℕ β) N)
-                ∙ cong₂ QS._·_ (sym (sFin-via-bound α N zfα' f))
-                                (sym (sFin-via-bound (¬ℕ β) N zf¬β' c))))
-       ∙ sym (solve! (BooleanRing→CommRing Q))
-  sec-pres· (α , Cof cα) (β , Fin g) =
-    cong (sFin (λ k → α k and β k)) (isPropIsFinite _ _ _) ∙
-    let (n , zf¬α , _) = sFin-sB (¬ℕ α) cα
-        (m , zfβ , _) = sFin-sB β g
-        N = max n m
-        zf¬α' : isZeroFrom N (¬ℕ α)
-        zf¬α' k k≥N = zf¬α k (≤-trans (left-≤-max {n = m}) k≥N)
-        zfβ' : isZeroFrom N β
-        zfβ' k k≥N = zfβ k (≤-trans (right-≤-max {m = n}) k≥N)
-        zf∧ : isZeroFrom N (λ k → α k and β k)
-        zf∧ k k≥N = cong (α k and_) (zfβ' k k≥N) ∙ and-zeroʳ (α k)
-        zf¬αβ : isZeroFrom N (λ k → not (α k) and β k)
-        zf¬αβ k k≥N = cong (not (α k) and_) (zfβ' k k≥N) ∙ and-zeroʳ _
-    in sFin-via-bound _ N zf∧ (intersectionWithFiniteIsFinite α β (subst isFinite (sym (BooleanAlgebraStr.¬Invol ℙℕ)) cα))
-       ∙ sym (cong (λ z → sB z N) (funExt (λ k → ⊕-not-and (α k) (β k)))
-              ∙ sB-pres+ β (λ k → not (α k) and β k) N)
-       ∙ cong₂ QS._+_
-           (sym (sFin-via-bound β N zfβ' g))
-           (sym (sFin-via-bound _ N zf¬αβ (intersectionWithFiniteIsFinite (¬ℕ α) β cα)
-                ∙ sym (sB-pres· (¬ℕ α) β N)
-                ∙ cong₂ QS._·_ (sym (sFin-via-bound (¬ℕ α) N zf¬α' cα))
-                                (sym (sFin-via-bound β N zfβ' g))))
-       ∙ sym (solve! (BooleanRing→CommRing Q))
-  sec-pres· (α , Cof cα) (β , Cof cβ) =
-    let (n , zf¬α , _) = sFin-sB (¬ℕ α) cα
-        (m , zf¬β , _) = sFin-sB (¬ℕ β) cβ
-        N = max n m
-        zf¬α' : isZeroFrom N (¬ℕ α)
-        zf¬α' k k≥N = zf¬α k (≤-trans (left-≤-max {n = m}) k≥N)
-        zf¬β' : isZeroFrom N (¬ℕ β)
-        zf¬β' k k≥N = zf¬β k (≤-trans (right-≤-max {m = n}) k≥N)
-        zf¬∧ : isZeroFrom N (λ k → not (α k and β k))
-        zf¬∧ k k≥N = cong not (cong₂ _and_ (sym (notnot (α k)) ∙ cong not (zf¬α' k k≥N)) refl)
-        a = sFin (¬ℕ α) cα
-        b = sFin (¬ℕ β) cβ
-    in cong (QA.¬_) (cong (sFin _) (isPropIsFinite _ _ _)
-       ∙ sFin-via-bound _ N zf¬∧ _
-       ∙ sym (cong (λ z → sB z N) (funExt (λ k → ⊕-not-not-and (α k) (β k)))
-              ∙ sB-pres+ (¬ℕ α) (λ k → not (α k) ⊕ not (β k)) N
-              ∙ cong (QS._+_ (sB (¬ℕ α) N))
-                  (sym (sB-pres+ (¬ℕ β) (λ k → not (α k) and not (β k)) N
-                  ∙ cong (QS._+_ (sB (¬ℕ β) N)) (sym (sB-pres· (¬ℕ α) (¬ℕ β) N)))))
-       ∙ cong₂ QS._+_
-           (sym (sFin-via-bound (¬ℕ α) N zf¬α' cα))
-           (cong₂ QS._+_
-             (sym (sFin-via-bound (¬ℕ β) N zf¬β' cβ))
-             (cong₂ QS._·_
-               (sym (sFin-via-bound (¬ℕ α) N zf¬α' cα))
-               (sym (sFin-via-bound (¬ℕ β) N zf¬β' cβ)))))
-       ∙ sym (solve! (BooleanRing→CommRing Q))
+    cong (sFin (λ k → α k and β k)) (isPropIsFinite (λ k → α k and β k) _ _)
+    ∙ sec-pres·-FinCof α β f c
+    where
+    sec-pres·-FinCof : (α β : binarySequence) (f : isFinite α) (c : isCofinite β) →
+      sFin (λ k → α k and β k) (intersectionWithFiniteIsFinite α β f) ≡
+      QS._·_ (sFin α f) (QA.¬_ (sFin (¬ℕ β) c))
+    sec-pres·-FinCof α β f c =
+      let (n , zfα , eqα) = sFin-sB α f
+          (m , zf¬β , eq¬β) = sFin-sB (¬ℕ β) c
+          N = max n m
+          zfα' : isZeroFrom N α
+          zfα' k k≥N = zfα k (≤-trans (left-≤-max {n = m}) k≥N)
+          zf¬β' : isZeroFrom N (¬ℕ β)
+          zf¬β' k k≥N = zf¬β k (≤-trans (right-≤-max {m = n}) k≥N)
+          zf∧ : isZeroFrom N (λ k → α k and β k)
+          zf∧ k k≥N = cong (λ a → a and β k) (zfα' k k≥N)
+          zfα¬β : isZeroFrom N (λ k → α k and not (β k))
+          zfα¬β k k≥N = cong (λ a → a and not (β k)) (zfα' k k≥N)
+      in sFin-via-bound (λ k → α k and β k) N zf∧ (intersectionWithFiniteIsFinite α β f)
+         ∙ (sB (λ k → α k and β k) N
+              ≡⟨ cong (sB (λ k → α k and β k) N +_) (sym (sB-pres· α (¬ℕ β) N)
+                  ∙ cong₂ QS._·_ refl refl
+                  ∙ sB-pres· α (¬ℕ β) N) ⟩ -- trick: use a + a·b = a(1+b) identity backwards
+            {! !})
+  sec-pres· (α , Cof cα) (β , Fin g) = {! !}
+  sec-pres· (α , Cof cα) (β , Cof cβ) = {! !}
 
-  -- Use BoolAlgMorphism to derive secHom from sec-pres¬ and sec-pres·
-  private
-    module SecHom = FromPres¬∧ ℕfinCofinBA Q sec sec-pres¬ sec-pres·
+  -- sec preserves addition
+  sec-pres+ : (x y : ⟨ ℕfinCofinBA ⟩) → sec (FCS._+_ x y) ≡ QS._+_ (sec x) (sec y)
+  sec-pres+ (α , Fin f) (β , Fin g) = {! !}
+  sec-pres+ (α , Fin f) (β , Cof c) = {! !}
+  sec-pres+ (α , Cof c) (β , Fin g) = {! !}
+  sec-pres+ (α , Cof c) (β , Cof c') = {! !}
 
   secHom : BoolHom ℕfinCofinBA Q
-  secHom = SecHom.asBoolHom
+  fst secHom = sec
+  snd secHom .pres0 = sec-pres0
+  snd secHom .pres1 = sec-pres1
+  snd secHom .pres+ = sec-pres+
+  snd secHom .pres· = sec-pres·
+  snd secHom .pres- = sec-pres-
 
   -- sec ∘ h = id via generators
   δ-below : (n k : ℕ) → k < n → δSequence n k ≡ false
@@ -826,8 +742,8 @@ module CountablyPresentedProof where
   h-iso : Iso ⟨ Q ⟩ ⟨ ℕfinCofinBA ⟩
   h-iso .Iso.fun = fst h
   h-iso .Iso.inv = sec
-  h-iso .Iso.sec = h∘sec≡id
-  h-iso .Iso.ret = funExt⁻ sec∘h≡id-fun
+  h-iso .Iso.rightInv = h∘sec≡id
+  h-iso .Iso.leftInv = funExt⁻ sec∘h≡id-fun
 
   Q≃FC : BooleanRingEquiv Q ℕfinCofinBA
   Q≃FC .fst .fst = fst h

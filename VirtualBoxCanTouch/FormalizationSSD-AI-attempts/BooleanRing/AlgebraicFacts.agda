@@ -17,7 +17,7 @@ open import Cubical.Foundations.Prelude hiding (_∧_;_∨_)
 
 module _ {ℓ : Level} (B : BooleanRing ℓ) where
   open BooleanRingStr (snd B)
-  open BooleanAlgebraStr B
+  open BooleanAlgebraStr (snd B)
   +FromBooleanAlgebraStr : { x y : ⟨ B ⟩ } → ((x + y) ≡ ( (x ∧ (¬ y)) ∨ ((¬ x) ∧ y)))
   +FromBooleanAlgebraStr {x} {y} = sym $
     ((x ∧ (¬ y)) ∨ ((¬ x) ∧ y)) 

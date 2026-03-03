@@ -1,0 +1,3 @@
+Backup of NFinCofin.agda before major rework of remaining holes.
+State: 773 lines, holes in sB-pres· yes-yes case, sec-pres·-FinCof/CofFin/CofCof, all sec-pres+ cases.
+Plan: add ∨-·-∨ lemma, use BoolAlgMorphism for secHom derivation.
