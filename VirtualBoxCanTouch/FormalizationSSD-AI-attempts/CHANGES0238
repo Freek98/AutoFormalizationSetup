@@ -1,0 +1,22 @@
+CHANGES0238 (Part01: 288 lines, was 285; Part02: 793 lines, was 789)
+
+Summary:
+- Fixed compilation breakage from merged "other version" that switched all library files
+  from top-level QuotientBool to nested BooleanRing.BooleanRingQuotients.QuotientBool.
+  The two modules have incompatible opaque /Im definitions, causing type mismatches
+  when work files (using top-level QB) interact with library definitions (using nested QB).
+- Fixes applied:
+  1. Axioms/StoneDuality.agda: replaced _ with explicit (ε ⟦ F ⟅ y ⟆ ⟧) on line 212
+     (unsolved meta exposed by stale .agdai rebuild)
+  2. Reverted 11 library files from nested QB back to top-level QB:
+     CountablyPresentedBooleanRings/{Definitions,EquivalenceOfCountablyPresentedDefinitions,
+       Examples/{Bool,BoolQuotientByBinarySequence,TrivialBA,NFinCofin}}.agda
+     OmnisciencePrinciples/Markov.agda
+     CommRingQuotients/{RepeatedQuotient,IdealTerms}.agda
+     NfinCofin/NFinCofin.agda, PropositionalTopology/OpenClosedProps.agda
+  3. QuotientConclusions.agda: switched to top-level QB + local QBAgreesWithCR proof
+     (opaque unfolding to get refl between BooleanRing→CommRing (A /Im f) and R IQ./Im f)
+  4. Part01: restored BoolQuotientEquiv postulate (was always a postulate, other version deleted it)
+  5. Part02: fixed MarkovLib.extract' → MarkovLib.extractFirstHitInBinarySequence.extract
+- Net: +3 lines Part01 (postulate + imports), +4 lines Part02 (comment + fix)
+- Full chain compiles clean (Part01→Part02→...→Part20)

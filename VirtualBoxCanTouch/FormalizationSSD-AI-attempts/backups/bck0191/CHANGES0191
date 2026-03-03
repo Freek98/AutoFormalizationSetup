@@ -1,0 +1,28 @@
+bck0191: Structure compiles (4 holes). lemDecompColimMorphisms + subSeqEquiv + ODiscColimOfODisc skeleton.
+
+Part02 changes:
+  - SeqLimit, seqLim-proj₀, DependentChoiceAxiom: now universe-polymorphic ({ℓ : Level})
+  - Added dependentChoice-axiom₁ (level 1) postulate
+  - Added CountableChoiceAxiom universe-polymorphic, countableChoice₁ (level 1)
+
+Part07 changes:
+  - DecompData record changed from Type₁ to Type ℓ-zero (fields all in Type ℓ-zero)
+  - PD zero = ℕ (was Lift ℕ), pd₀ = 0
+  - PD (suc k) now includes suc k ≤ N field (for lvlGrow)
+  - extract function completed: lvlMono/fCompat' via subst along compat k
+  - Added isSetSeqColim : {!!} (needed: SeqColim of sets is a set)
+  - Added subSeqEquiv with fwd/bwd/fwd-bwd/bwd-fwd structure:
+    - fwd maps SubS into S' via incl identity
+    - bwd maps S' into SubS via liftTo (grow n)
+    - fwd-bwd via inclLift
+    - bwd-fwd via subLift-is-lift {!!} + CHS.inclLift
+  - ODiscColimOfODisc: transition function defined, QP/qpSeq/qpFin/qpEquiv skeleton
+
+Remaining holes:
+  1. isSetSeqColim : isSet (SeqColim S₂) when stages are sets
+  2. subLift-is-lift : CHS.liftTo le x ≡ liftTo le' x (SubS liftTo = S' liftTo)
+  3. qpEquiv {suc n} : SeqColim (qpSeq ...) ≃ obj S₀ (suc n)
+  4. buildDiag : construct diagonal from quarter-plane data
+
+Line count: 2570 (bck0190 Part07) → 2732 (bck0191 Part07), +162 lines.
+Part02: 775 → 783, +8 lines.

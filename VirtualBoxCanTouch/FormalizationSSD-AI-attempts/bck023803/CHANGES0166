@@ -1,0 +1,41 @@
+CHANGES0166 (from bck0165)
+
+Summary: Added new formalized tex results: implicationClosedOpen (Lemma 857 second direction),
+closedSubsetTransitive (Remark ClosedTransitive 1794), isClosedSubset/preimageClosedIsClosed
+(Definition 884 analogs), plus extended ODiscAxioms with isODiscIsSet, ODiscClosedUnder-
+SequentialColimits, ODiscEqualityOpen, ODiscNat, ODiscBool.
+
+Changes:
+1. Part02: Added implicationClosedOpen (+19 lines, was 747, now 766)
+   - tex Lemma 857 second direction: P closed, Q open → P→Q open
+   - Proof uses (P→Q) ↔ (¬P ∨ Q) with ¬¬-stability:
+     ¬P is open (negClosedIsOpen), Q is open, ¬P ∨ Q is open (openOrMP),
+     forward uses openIsStable, backward uses PT.rec with case split.
+   - Uses PT.map on openness witness of ¬P ∨ Q.
+
+2. Part07: Extended ODiscAxioms module (+16 lines, was 899, now 915)
+   - isODiscIsSet: ODisc types are sets (tex Remark 924, Corollary 7.7 of [SequentialColimitHoTT])
+   - ODiscClosedUnderSequentialColimits: ODisc stable under sequential colimits (tex Lemma 1160)
+   - ODiscEqualityOpen: ODisc types have open equality (tex Lemma 1335, DERIVED from OdiscPath + ODiscPropIsOpen)
+   - ODiscNat: ℕ is ODisc (colimit of Fin 0 → Fin 1 → ...)
+   - ODiscBool: Bool is ODisc (finite type)
+
+3. Part09: Added closedSubsetTransitive and infrastructure (+20 lines, was 824, now 844)
+   - isClosedSubset: definition (closed analog of isOpenSubset from tex Definition 884)
+   - preimageClosedIsClosed: preimage of closed subset is closed (tex Remark 889 analog)
+   - closedSubsetTransitive: closedness is transitive (tex Remark ClosedTransitive 1794)
+     Proof: directly applies closedSigmaClosed-derived at each point.
+   - open ClosedSigmaClosedDerived to bring closedSigmaClosed-derived into scope.
+
+Line count: Part02 766 (was 747, +19), Part07 915 (was 899, +16), Part09 844 (was 824, +20)
+Total across all files: 8593 (was 8538, +55)
+Full chain Part20 compiles: YES
+
+Postulate changes:
+- ADDED (Part07 ODiscAxioms):
+  isODiscIsSet, ODiscClosedUnderSequentialColimits, ODiscNat, ODiscBool
+- DERIVED (new proven results):
+  implicationClosedOpen (Part02), ODiscEqualityOpen (Part07),
+  isClosedSubset, preimageClosedIsClosed, closedSubsetTransitive (Part09)
+
+Net postulate change: +4 (all tex-referenced ODisc section postulates)

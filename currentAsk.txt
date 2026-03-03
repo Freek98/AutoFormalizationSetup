@@ -96,3 +96,4 @@ I want you to finish a proof of the following: If i'm given a Boolean Ring (but 
   cofinite set should be sent to the conjunction of the negations of the        
   corresponding list.                                                           
 ───────────────────────       
+get rid of all postulates

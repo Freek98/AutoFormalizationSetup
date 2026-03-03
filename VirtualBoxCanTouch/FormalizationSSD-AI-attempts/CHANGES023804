@@ -1,0 +1,50 @@
+CHANGES023804: Reorganized directory structure following tex sections
+
+Summary: Created formalization/ directory with code organized by monolithic.tex sections.
+Both work/ (original) and formalization/ (reorganized) compile successfully.
+Library dependencies copied into formalization/Library/ (self-contained).
+
+New directory structure:
+  formalization/
+    StoneDuality/       -- Section 1 of tex
+      Preliminaries.agda    (was Part01)
+      AxiomDefs.agda        (was Part02Defs)
+      Axioms.agda           (was Part02)
+      BooleanAlgebra.agda   (was Part03)
+      FinCofinAlgebra.agda  (was Part04)
+      NormalForms.agda      (was Part05a)
+      Omniscience.agda      (was Part05)
+      OpenClosed.agda       (was Part06)
+    OvertlyDiscrete/    -- Section 2 of tex
+      ODisc.agda            (was Part07)
+    StoneSpaces/        -- Section 3 of tex
+      Topology.agda         (was Part08)
+      ClosedInStone.agda    (was Part09)
+      Profinite.agda        (was Part10)
+      ProfiniteExport.agda  (was Part10b)
+    CompactHausdorff/   -- Section 4 of tex
+      CHaus.agda            (was Part11)
+      Interval.agda         (was Part12)
+    Cohomology/         -- Section 5 of tex
+      Disk.agda             (was Part13)
+      CechCohomology.agda   (was Part14)
+      ILocal.agda           (was Part19)
+      Applications.agda     (was Part20)
+    Library/            -- FormalizationSSD library dependencies (self-contained)
+      Axioms/StoneDuality.agda
+      BooleanRing/ (BoolRingUnivalence, BooleanRingMaps, FreeBooleanRing/*, BooleanRingQuotients/*)
+      CommRingQuotients/ (IdealTerms, TrivialIdeal, EmptyQuotient, EquivHelper, ReindexingQuotients, RepeatedQuotient)
+      CountablyPresentedBooleanRings/ (Definitions, PresentedBoole, EquivalenceOfCountablyPresentedDefinitions, Examples/*)
+      OmnisciencePrinciples/Markov.agda
+      CategoryTheory/ (BasicFacts, Image, SigmaPropCat)
+      Boole/EquivHelper.agda
+      QuotientBool.agda, WLPO.agda, BasicDefinitions.agda, QuickFixes.agda, AntiEquivalence.agda
+    All.agda            -- imports all section modules
+
+All module paths updated:
+  - work.PartXX → formalization.Section.ModuleName
+  - Library imports prefixed with formalization.Library.
+  - No references to old library paths or work/ paths
+
+Compilation verified: formalization/All.agda compiles (exit code 0).
+Line counts unchanged from bck023803.

@@ -1,0 +1,19 @@
+bck0210: Added iterMapHom/liftToHom/fwd-compat-hom to ODiscRingDecomp (Part07).
+Full type-check: Part07 SUCCESS. Part14 unchanged from bck0209.
+
+Part07 changes (from bck0209):
+  - ADDED iterMapHom to ODiscRingDecomp record (derived field):
+    iterMapHom : (d : ℕ) {n : ℕ} → BoolHom (BN n) (BN (d +ℕ n))
+    Compose mapBNHom d times to get ring hom between non-adjacent levels.
+  - ADDED iterMapHom≡iterMap: connects iterMapHom to ColimCompactHelpers.iterMap
+  - ADDED liftToHom: BoolHom (BN n) (BN N) for n ≤ N (via iterMapHom + subst)
+  - ADDED fwd-compat-hom: fwdHom n factors through fwdHom (d+n) ∘ iterMapHom d
+  These are needed for refining SpProjection levels in the finite-approximation proof.
+
+Part14 changes: none (reverted experimental edit, identical to bck0209).
+
+Remaining postulates:
+  - Part07: 0
+  - Part14: finite-approximation (1), cech-eilenberg-1-agree (1, unused)
+
+Line counts: Part07: 3563 (3537→3563, +26 lines). Part14: 1023 (unchanged).

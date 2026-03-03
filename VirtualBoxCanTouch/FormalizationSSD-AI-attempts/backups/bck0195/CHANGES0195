@@ -1,0 +1,34 @@
+bck0195: ImageStoneMapDecidableIntersection COMPLETE. Full type-check passes. 0 holes, 0 postulates in Part07.
+
+Part07 changes (accumulated since bck0194):
+  - ELIMINATED postulate ImageStoneMapDecidableIntersection (tex Remark 1475)
+  - Proof: given f : Sp C → Sp B, produce ∥ Σ d . (x ∈ Im(f) ↔ ∀n. x(d n) = false) ∥₁
+  - Dual BoolHom g : fst B → fst C via SDHomVersion evaluationMap:
+    - g = eCinv ∘cr precompF ∘cr eBhom (composition of eval, precomp, inverse eval)
+    - precompF defined directly with all-refl ring hom proofs
+    - g-spec : c ∘cr g ≡ f c (via secEq on evaluation equiv)
+  - Kernel enumeration via ODiscSurjFromN on OdiscSigma/OdiscPath
+  - Forward direction: x ∈ Im(f) → ∀n. x(d n) = false
+    (equational chain: x(d n) = f(c)(d n) = c(g(d n)) = c(0C) = false)
+  - Backward direction: ∀n. x(d n) = false → x ∈ Im(f)
+    - Factor through quotient B/d = fst B QB./Im d
+    - char2-eq/eq→sum0: Boolean ring characteristic 2 lemmas
+    - π-kills-gen: QB.zeroOnImage (generators map to 0 in quotient)
+    - π-kills-ker: Ker(g) elements map to 0 under π (via d-surjKer + π-kills-gen)
+    - ḡ-inj: injectivity of induced map ḡ on quotient
+      (lift via π-surjective, reduce to g-level, char2-eq + π-kills-ker)
+    - x̄ = QB.inducedHom BoolBR x allZero (factor x through quotient)
+    - quotientBySeqHasBooleω gives B/d ∈ Booleω
+    - injective→Sp-surjective gives c : Sp C with c ∘cr ḡ = x̄
+    - finish: f c = c ∘cr g = (c ∘cr ḡ) ∘cr π = x̄ ∘cr π = x
+
+Key insights:
+  - SpFunctor/SpFullyFaithful category wrapping causes unsolved metas. Direct SDHomVersion
+    construction via evaluation map is cleaner.
+  - QB.zeroOnImage directly gives π(d n) = 0, avoiding need for IQ.generatedIdeal.single
+    constructor (which has tricky module parameter resolution).
+  - CommRingHom≡ refl handles ∘cr associativity definitionally.
+
+Remaining in Part07: only {-# TERMINATING #-} on one function (pre-existing).
+
+Line count: 3019 (bck0194) → 3185 (bck0195), +166 lines.

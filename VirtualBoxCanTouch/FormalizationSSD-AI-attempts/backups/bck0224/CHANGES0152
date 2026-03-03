@@ -1,0 +1,17 @@
+CHANGES0152 (from bck0151)
+
+Summary: Proved StoneProduct (product of Stone spaces is Stone) in Part10.
+
+Changes:
+1. Part10: Added StoneProductModule with full proof that S × T is Stone.
+   - Cantor pairing: pairCantor/unpairL/unpairR interleave two binary sequences
+   - Roundtrip proofs using with/inspect pattern for isEvenB
+   - CantorPair-Iso and CantorPair-≃: CantorSpace × CantorSpace ≃ CantorSpace
+   - Σ×Σ-Iso: (Σ A B) × (Σ C D) ≃ Σ (A×C) (B×D) rearrangement
+   - StoneProduct: given S, T : Stone, hasStoneStr (fst S × fst T)
+     via embedding as closed subsets of Cantor, combining via pairing
+   - New imports in module: Axioms.StoneDuality, Cubical.Foundations.{Equiv,Isomorphism,HLevels,Univalence},
+     Cubical.Data.{Nat,Empty,Bool}
+
+Line count: 6806 (was 6694 in bck0151, +112 from StoneProduct proof)
+Full chain Part20 compiles: YES

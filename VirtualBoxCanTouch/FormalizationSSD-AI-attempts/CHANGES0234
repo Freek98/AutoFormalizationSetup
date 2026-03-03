@@ -1,0 +1,35 @@
+bck0234: Added B∞≅FinCofBR isomorphism infrastructure in Part04.
+Quick check: Part04 SUCCESS (clean).
+
+Part04 changes (from bck0233/CHANGES0233):
+  - NEW FC≡ : {a b : FinCof} → fst a ≡ fst b → a ≡ b (Σ≡Prop for FinCof)
+  - NEW fcFinMeetNeg : List ℕ → FinCof (cofinite meet of complements)
+  - NEW notMemberOf : List ℕ → ℕ → Bool (complement of membership)
+  - NEW fcFinMeetNeg-eval : pointwise evaluation of fcFinMeetNeg
+  - NEW fcXor-fcFull≡fcNot : fcXor fcFull x ≡ fcNot x (via FC≡ refl)
+  - NEW φ-pres-neg (opaque) : fst φ (¬∞ x) ≡ fcNot (fst φ x)
+  - NEW φ-pres-finMeetNeg (opaque) : fst φ (finMeetNeg∞ ns) ≡ fcFinMeetNeg ns
+  - NEW not-or-and : De Morgan for Bool (not (a or b) ≡ not a and not b)
+  - NEW notMemberOf≡not-memberOf : notMemberOf ns m ≡ not (memberOf ns m)
+  - NEW not-not : involution for Bool not
+  - NEW filterFalse-spec : notMemberOf (filterFalse f N) m ≡ f m for m < N
+  - NEW filterFalse-outside : notMemberOf (filterFalse f N) m ≡ true for N ≤ m
+  - NEW memberOf-filterTrue-eq : combined finite spec + outside
+  - NEW notMemberOf-filterFalse-eq : combined cofinite spec + outside
+  - POSTULATE φ∘ψ : fst φ (ψ-fun x) ≡ x
+    (Direct proof causes OOM: expanding fst φ on quotient ring elements)
+  - POSTULATE ψ∘φ : ψ-fun (fst φ x) ≡ x
+    (Requires ψ-fun to be ring hom or generator-level computation)
+  - NEW B∞≅FinCofBR : BooleanRingEquiv B∞ FinCofBR (from postulated roundtrips)
+
+Line counts: Part04: 981 (882→981, +99 lines from bck0233 state).
+Increase justified: cofinite map infrastructure + isomorphism structure.
+
+Postulate summary for Part04:
+  - φ∘ψ : derivable (all ingredients proved, but Agda OOMs on term normalization)
+  - ψ∘φ : derivable (needs generator computation + ring hom uniqueness)
+
+Next steps:
+  - Eliminate φ∘ψ postulate (may need opaque/abstract quotient handling)
+  - Eliminate ψ∘φ postulate (prove ψ-fun (fcSingleton n) ≡ g∞ n)
+  - Continue with other formalization goals from CLAUDE.md

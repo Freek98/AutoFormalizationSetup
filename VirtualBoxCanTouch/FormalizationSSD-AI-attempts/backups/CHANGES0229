@@ -1,0 +1,41 @@
+bck0229: Eliminated closedPredIsClosed-postulate in Part10 — StoneAreProfinite now fully proved.
+Quick check: Part10 SUCCESS.
+
+Part10 changes (from bck0228):
+  - ELIMINATED closedPredIsClosed-postulate (was the only postulate in StoneAreProfiniteModule)
+  - ADDED closedFinΣ (lines ~329-368):
+    Proves: propositional Σ over Fin k with closed fibers is closed.
+    Strategy: induction on k. Base: Fin 0 → empty → decidable → closed.
+    Step: Σ(Fin(suc k), P) ≃ ∥ P(fzero) ⊎ Σ(Fin k, P∘fsuc) ∥₁,
+    then closedOr + recursive call.
+    Uses fsuc-inj (via toℕ-injective + injSuc) for isPropΣtail.
+  - ADDED decFinΠ (lines ~371-378):
+    Proves: Dec((j : Fin k) → P j) from pointwise Dec.
+    Induction on k with fzero/fsuc split.
+  - ADDED closedPredIsClosed (lines ~380-490):
+    Proves ProfiniteEncoding.closedPred α is closed for all α.
+    Strategy:
+    1) discF: F n has decidable equality (via EquivPresDiscrete + discreteFin)
+    2) innerClosed: for fixed (n,j), ∀m. α(enc(n,m))≡boolEq(toℕ j)(m)
+       is closedCountableIntersection of Bool-equality-closed
+    3) validAtClosed: validAt n α = Σ[j∈Fin(kn n)] inner(j)
+       is closed via closedFinΣ
+    4) allValidClosed: ∀n. validAt n α via closedCountableIntersection
+    5) compatCond: reformulated compat without validAt witnesses
+       (α(enc(n,toℕ j))≡true → α(enc(suc n,toℕ j'))≡true → π-compat)
+    6) decCompatCond: each compatCond is decidable
+       (check Bool values + finite set equality)
+    7) allCompatClosed: ∀n. ∀j∈Fin. ∀j'∈Fin. compatCond
+       via closedCountableIntersection + decIsClosed + decFinΠ
+    8) origToAlt + altToOrig: biimplication between closedPred and altPred
+    9) result: closedAnd + TypeOfHLevel≡ transport
+
+Part07 changes: none.
+
+Postulate summary:
+  - ELIMINATED: closedPredIsClosed-postulate (Part10)
+  - Remaining postulates unchanged from bck0227.
+
+Line counts: Part10: 567 (421→567, +146 lines). Part07: unchanged (3613).
+Increase justified: closedFinΣ (+40), decFinΠ (+10), closedPredIsClosed (+110) replacing 10-line postulate.
+Net gain: completely proved StoneAreProfinite (tex Lemma 1520) with ZERO postulates.

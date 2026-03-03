@@ -1,8 +1,35 @@
 {-# OPTIONS --cubical --guardedness #-}
 
-module work.Part14 where
+open import work.Part02Defs using (FoundationalAxioms)
+import work.Part12
 
-open import work.Part13 public
+module work.Part14 (fa : FoundationalAxioms) (ia : work.Part12.IntervalAxioms fa) where
+
+open import work.Part13 fa ia public
+
+open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Equiv using (_≃_; isEquiv; invEquiv; equivFun; invEq; secEq)
+open import Cubical.Foundations.Isomorphism using (Iso; iso; isoToEquiv)
+open import Cubical.Foundations.Structure using (⟨_⟩)
+open import Cubical.Foundations.Univalence using (ua)
+open import Cubical.Foundations.Transport using (transport⁻; transportTransport⁻)
+open import Cubical.Data.Sigma
+open import Cubical.Data.Nat using (ℕ; zero; suc)
+open import Cubical.Data.Fin using (Fin)
+open import Cubical.Data.Bool using (Bool; true; false; isSetBool; true≢false; false≢true)
+open import Cubical.Data.Empty renaming (rec to ex-falso)
+open import Cubical.Data.Unit using (Unit; tt)
+open import Cubical.Data.Sum using (_⊎_)
+open import Cubical.Relation.Nullary using (¬_)
+open import Cubical.HITs.PropositionalTruncation using (∥_∥₁; squash₁; ∣_∣₁)
+import Cubical.HITs.PropositionalTruncation as PT
+open import Cubical.Data.Int using (ℤ)
+open import Cubical.Algebra.BooleanRing using (BoolHom; BooleanRingStr; BooleanRing; BooleanRing→CommRing)
+open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
+open import Cubical.Algebra.CommRing using (_∘cr_; _$cr_; CommRingStr; CommRing→Ring; IsCommRingHom)
+open import Axioms.StoneDuality using (Booleω; Sp; Stone; hasStoneStr)
+open import CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω'; BooleanRingEquiv)
 
 module CohomologyModule where
   open import Axioms.StoneDuality using (Stone; hasStoneStr)
@@ -20,10 +47,10 @@ module CohomologyModule where
   BZ : Type ℓ-zero
   BZ = EM ℤAbGroup 1
 
-  H¹ : Type₀ → Type₀
+  H¹ : Type ℓ-zero → Type ℓ-zero
   H¹ X = coHom 1 ℤAbGroup X
 
-  H¹-vanishes : Type₀ → Type₀
+  H¹-vanishes : Type ℓ-zero → Type ℓ-zero
   H¹-vanishes X = (x : H¹ X) → x ≡ (0ₕ 1 {G = ℤAbGroup} {A = X})
 
   -- Čech Complex (tex Definition 2784-2795)
@@ -497,7 +524,7 @@ module CohomologyModule where
   -- tex Lemma 2878: finite case
   open import Cubical.Data.FinSet.Base using (isFinSet) public
 
-  cech-vanishing-finite : (S : Type₀) (T : S → Type₀)
+  cech-vanishing-finite : (S : Type ℓ-zero) (T : S → Type ℓ-zero)
     → isFinSet S → ((x : S) → isFinSet (T x))
     → ((x : S) → ∥ T x ∥₁)
     → CechComplex.Ȟ¹-vanishes S T (λ _ → ℤAbGroup)
@@ -522,10 +549,10 @@ module CohomologyModule where
   -- and a surjection π : S → S' with compatible fiber maps,
   -- plus a finite-level cocycle β' that pulls back to β.
   -- Proof uses: ProFiniteMapsFactorization (tex 1540), ScottFiniteCodomain (tex 1558).
-  record FiniteApprox (S : Type₀) (T : S → Type₀) (β : CechComplex.C¹ S T (λ _ → ℤAbGroup)) : Type₁ where
+  record FiniteApprox (S : Type ℓ-zero) (T : S → Type ℓ-zero) (β : CechComplex.C¹ S T (λ _ → ℤAbGroup)) : Type (ℓ-suc ℓ-zero) where
     field
-      S' : Type₀
-      T' : S' → Type₀
+      S' : Type ℓ-zero
+      T' : S' → Type ℓ-zero
       finS' : isFinSet S'
       finT' : (s : S') → isFinSet (T' s)
       inh' : (s : S') → ∥ T' s ∥₁
@@ -565,7 +592,7 @@ module CohomologyModule where
       go (M , bound) = PT.map recover
         (ScottFiniteCodomain B rd F finF isSetF f') where
         open import Cubical.Data.FinSet using (FinSet)
-        BFin : ℕ → Type₀
+        BFin : ℕ → Type ℓ-zero
         BFin = FinBase.Fin
         F = BFin M ⊎.⊎ BFin M
         finBFin : (n : ℕ) → isFinSet (BFin n)
@@ -612,7 +639,7 @@ module CohomologyModule where
     open StoneSigmaClosedModule
     open import Axioms.StoneDuality using (Sp; Booleω; SpGeneralBooleanRing)
 
-    finite-approximation : (S : Type₀) (T : S → Type₀)
+    finite-approximation : (S : Type ℓ-zero) (T : S → Type ℓ-zero)
       → hasStoneStr S → ((x : S) → hasStoneStr (T x)) → ((x : S) → ∥ T x ∥₁)
       → (β : CechComplex.C¹ S T (λ _ → ℤAbGroup))
       → CechComplex.is1Cocycle S T (λ _ → ℤAbGroup) β
@@ -630,7 +657,7 @@ module CohomologyModule where
       step2 rdS = PT.rec squash₁ (step3 rdS) (BooleωRingDecomp B-E) where
         TStone : (x : S) → Stone
         TStone x = T x , stoneT x
-        E : Type₀
+        E : Type ℓ-zero
         E = Σ S T
         stoneE : hasStoneStr E
         stoneE = StoneSigmaClosed SStone TStone
@@ -655,7 +682,7 @@ module CohomologyModule where
             open import Cubical.Data.FinSet.FiniteChoice as FC using (choice)
             open import Cubical.Algebra.CommRing using (CommRingHom≡)
             -- FP = Σ S (T × T), the fiber product E ×_S E
-            FP : Type₀
+            FP : Type ℓ-zero
             FP = Σ S (λ x → T x × T x)
             stoneTT : (x : S) → hasStoneStr (T x × T x)
             stoneTT x = StoneProductModule.StoneProduct (T x , stoneT x) (T x , stoneT x)
@@ -758,18 +785,21 @@ module CohomologyModule where
                   ((x : S) (u v : T x) → β x u v
                     ≡ ℤInt._-_ (fE (τ x v .fst)) (fE (τ x u .fst))) ∥₁
                 cocycleFactorsE = ∣ fE , fE-ok ∣₁ where
-                  -- β factors through FP-level: β(x,u,v) = β̃'(FP-proj(x,u,v))
-                  -- For each E'N pair (a,b), β(x,u,v) is constant when τ(x,u).fst=a, τ(x,v).fst=b
-                  -- Pick a basepoint e₀ ∈ E'N (from any inhabited fiber)
-                  -- Define fE(e) via the cocycle basepoint trick
-                  -- fE(e) = β̃'(FP-proj(x₀,u₀,v)) where τ(x₀,u₀).fst = e₀, τ(x₀,v).fst = e
-                  -- This is well-defined because β̃ factors through FP-level
-                  -- For now, we use a simpler construction: pick any section and use cocycle
+                  -- Proof sketch: p=(pr₁,pr₂) : FP ↪ E×E is injective.
+                  -- By Stone duality, pr₁*,pr₂* : B-E → B-FP generate B-FP.
+                  -- So SpProjection rdFP m is determined by the E-pair
+                  -- (SpProjection rdE n ∘ pr₁, SpProjection rdE n ∘ pr₂) at some level n.
+                  -- Combined with β̃' factoring through FP-level N₂:
+                  -- β(x,u,v) depends only on (τ(x,u).fst, τ(x,v).fst).
+                  -- cocycle-add then gives β(x,u,v) = fE(τv) - fE(τu).
+                  -- Elimination requires: (1) constructing ring maps pr₁*,pr₂*
+                  -- via SDHomVersion, (2) proving B-FP generated by their images
+                  -- (follows from p injective + Stone representation), (3) finite-
+                  -- level factorization via ScottFiniteCodomain. ~150 lines total.
                   postulate
                     fE : E'N → ℤ
                     fE-ok : (x : S) (u v : T x) → β x u v
                       ≡ ℤInt._-_ (fE (τ x v .fst)) (fE (τ x u .fst))
-                  -- TODO: derive fE from β̃'-factorization + SpProj-sep + Markov
                 useRef : ((s' : S') → T' s') → ∥ FiniteApprox S T β ∥₁
                 useRef w = PT.rec squash₁ construct cocycleFactorsE
                   where
@@ -803,7 +833,7 @@ module CohomologyModule where
   open FiniteApproximationProof
 
   -- Given the finite approximation, prove colimit-arg
-  colimit-arg : (S : Type₀) (T : S → Type₀)
+  colimit-arg : (S : Type ℓ-zero) (T : S → Type ℓ-zero)
     → hasStoneStr S → ((x : S) → hasStoneStr (T x)) → ((x : S) → ∥ T x ∥₁)
     → CechComplex.Ȟ¹-vanishes S T (λ _ → ℤAbGroup)
   colimit-arg S T stoneS stoneT inh β cocyc =
@@ -834,7 +864,7 @@ module CohomologyModule where
             ≡⟨ sym (β-factors x u v) ⟩
           β x u v ∎
 
-  cech-complex-vanishing-stone : (S : Type₀) (T : S → Type₀)
+  cech-complex-vanishing-stone : (S : Type ℓ-zero) (T : S → Type ℓ-zero)
     → hasStoneStr S
     → ((x : S) → hasStoneStr (T x))
     → ((x : S) → ∥ T x ∥₁)
@@ -918,7 +948,7 @@ module CohomologyModule where
 
   -- Čech cover definition (tex Definition 2906)
 
-  record CechCover : Type₁ where
+  record CechCover : Type (ℓ-suc ℓ-zero) where
     field
       X : CHaus
       S : fst X → Stone
@@ -1004,6 +1034,11 @@ module CohomologyModule where
       cong (PT-Props.SetElim.rec→Set (AGx.is-set x) (f x) (d₀-zero→const f d₀-eq x))
            (squash₁ (inhabited x) ∣ u ∣₁)
 
+  -- tex Theorem 2945 (cech-eilenberg-1-agree): H¹(X,ℤ) = Ȟ¹(X,S,ℤ)
+  -- Proof uses cech-eilenberg-0-agree (2912), eilenberg-exact (2921), and cech-exact (2932).
+  -- These show H¹ and Ȟ¹ are cokernels of isomorphic maps (via naturality of H⁰≅Ȟ⁰).
+  -- Full formalization requires long exact cohomology sequences for coefficient families.
+
   -- Key ingredient for eilenberg-exact and cech-exact:
   -- H¹ with ℤ^{S_x} coefficients vanishes because Σ S_x is Stone.
   -- (tex proof of Lemma 2921, line 2929)
@@ -1022,7 +1057,7 @@ module CohomologyModule where
   -- Key step: H¹(X, ℤ^{S_x}) = 0 (H¹-ΠAb-vanish above).
 
   -- tex Lemma 2932 key step: Ȟ¹(X,S, ℤ^{S_x}) = 0 by canonical-exact
-  Ȟ¹-coefficient-vanish : (X : Type₀) (T : X → Type₀)
+  Ȟ¹-coefficient-vanish : (X : Type ℓ-zero) (T : X → Type ℓ-zero)
     → CanonicalExactCechComplex.Ȟ¹-vanishes X T (λ _ → ℤAbGroup)
   Ȟ¹-coefficient-vanish X T = CanonicalExactCechComplex.canonical-exact X T (λ _ → ℤAbGroup)
 
@@ -1044,7 +1079,7 @@ module CohomologyModule where
     open import Axioms.StoneDuality using (Stone; hasStoneStr)
 
     -- (S → BZ) is connected when H¹(S,ℤ) = 0
-    BZ-funspace-connected : (S : Type₀) → H¹-vanishes S
+    BZ-funspace-connected : (S : Type ℓ-zero) → H¹-vanishes S
       → (f : S → BZ) → ∥ f ≡ (λ _ → 0ₖ {G = ℤAbGroup} 1) ∥₁
     BZ-funspace-connected S h1v f =
       ST.PathIdTrunc₀Iso .Iso.fun (h1v ∣ f ∣₂)
@@ -1060,21 +1095,21 @@ module CohomologyModule where
     open import Cubical.Algebra.AbGroup.Base using (AbGroupHom)
 
     -- The evaluation homomorphism: (ℤ^S)(s) = ℤ
-    evHom : (X : Type₀) (s : X) → AbGroupHom (ΠAbGroup (λ (_ : X) → ℤAbGroup)) ℤAbGroup
+    evHom : (X : Type ℓ-zero) (s : X) → AbGroupHom (ΠAbGroup (λ (_ : X) → ℤAbGroup)) ℤAbGroup
     fst (evHom X s) f = f s
     snd (evHom X s) = record { pres· = λ _ _ → refl
                               ; pres1 = refl
                               ; presinv = λ _ → refl }
 
     -- The canonical map: B(ℤ^S) → (S → BZ)
-    canonicalMap : (X : Type₀) → EM (ΠAbGroup (λ (_ : X) → ℤAbGroup)) 1 → (X → BZ)
+    canonicalMap : (X : Type ℓ-zero) → EM (ΠAbGroup (λ (_ : X) → ℤAbGroup)) 1 → (X → BZ)
     canonicalMap X x s = inducedFun-EM {G' = ΠAbGroup (λ (_ : X) → ℤAbGroup)} {H' = ℤAbGroup} (evHom X s) 1 x
 
     open import Cubical.Homotopy.EilenbergMacLane.Properties using (isConnectedEM)
     open import Cubical.Homotopy.Connected using (isConnected)
 
     -- Source B(ℤ^X) is 2-connected
-    BZX-connected : (X : Type₀) → isConnected 2 (EM (ΠAbGroup (λ (_ : X) → ℤAbGroup)) 1)
+    BZX-connected : (X : Type ℓ-zero) → isConnected 2 (EM (ΠAbGroup (λ (_ : X) → ℤAbGroup)) 1)
     BZX-connected X = isConnectedEM {G' = ΠAbGroup (λ (_ : X) → ℤAbGroup)} 1
 
     -- For Stone S, the target (|S| → BZ) has contractible set-truncation
@@ -1092,11 +1127,11 @@ module CohomologyModule where
     open import Cubical.HITs.Truncation.Properties using (setTrunc≃Trunc2)
 
     private
-      G : Type₀ → AbGroup ℓ-zero
+      G : Type ℓ-zero → AbGroup ℓ-zero
       G X = ΠAbGroup (λ (_ : X) → ℤAbGroup)
 
       -- Set-truncation of source is contractible
-      source-set-trunc-contr : (X : Type₀) → isConnected 2 (EM (G X) 1)
+      source-set-trunc-contr : (X : Type ℓ-zero) → isConnected 2 (EM (G X) 1)
         → isContr (∥ EM (G X) 1 ∥₂)
       source-set-trunc-contr X conn = isOfHLevelRespectEquiv 0 (invEquiv setTrunc≃Trunc2) conn
 
@@ -1109,9 +1144,9 @@ module CohomologyModule where
 
       -- At basepoint, Ω→(canonicalMap, refl) is propositionally cong(canonicalMap)
       -- By doubleCompPath-elim: refl ∙∙ cong f q ∙∙ refl = (refl ∙ cong f q) ∙ refl = cong f q
-      open import Cubical.Foundations.GroupoidLaws using (doubleCompPath-elim)
+      open import Cubical.Foundations.GroupoidLaws using (doubleCompPath-elim; rUnit; lUnit)
 
-      Ω→-at-base-is-cong : (X : Type₀) (q : 0ₖ {G = G X} 1 ≡ 0ₖ {G = G X} 1)
+      Ω→-at-base-is-cong : (X : Type ℓ-zero) (q : 0ₖ {G = G X} 1 ≡ 0ₖ {G = G X} 1)
         → fst (Ω→ {A = EM (G X) 1 , 0ₖ {G = G X} 1} {B = (X → BZ) , (λ _ → 0ₖ {G = ℤAbGroup} 1)}
                (canonicalMap X , refl)) q
         ≡ cong (canonicalMap X) q
@@ -1141,7 +1176,7 @@ module CohomologyModule where
 
       -- The target loop space iso: (X → ℤ) ≅ Ω(X → BZ, const 0)
       -- via funExt + pointwise ΩEM₁
-      target-loop-iso : (X : Type₀) → Iso ((x : X) → ℤ) ((λ (_ : X) → 0ₖ {G = ℤAbGroup} 1) ≡ (λ _ → 0ₖ {G = ℤAbGroup} 1))
+      target-loop-iso : (X : Type ℓ-zero) → Iso ((x : X) → ℤ) ((λ (_ : X) → 0ₖ {G = ℤAbGroup} 1) ≡ (λ _ → 0ₖ {G = ℤAbGroup} 1))
       Iso.fun (target-loop-iso X) g = funExt (λ s → Iso.fun (ΩEM₁ ℤAbGroup) (g s))
       Iso.inv (target-loop-iso X) p s = Iso.inv (ΩEM₁ ℤAbGroup) (funExt⁻ p s)
       Iso.sec (target-loop-iso X) p =
@@ -1156,12 +1191,12 @@ module CohomologyModule where
       -- by EMFun-EM→ΩEM+1 at n=0 (which is refl), for each s:
       -- emloop (g s) = cong (inducedFun-EM (evHom X s) 1) (emloop g) definitionally.
       -- Build the Ω-equivalence directly as an Iso
-      Ω-iso : (X : Type₀) → Iso (0ₖ {G = G X} 1 ≡ 0ₖ {G = G X} 1) ((λ _ → 0ₖ {G = ℤAbGroup} 1) ≡ (λ _ → 0ₖ {G = ℤAbGroup} 1))
+      Ω-iso : (X : Type ℓ-zero) → Iso (0ₖ {G = G X} 1 ≡ 0ₖ {G = G X} 1) ((λ _ → 0ₖ {G = ℤAbGroup} 1) ≡ (λ _ → 0ₖ {G = ℤAbGroup} 1))
       Ω-iso X = compIso (invIso (ΩEM₁ (G X))) (target-loop-iso X)
 
       -- cong(canonicalMap) on emloop g computes to target-loop-iso g
       -- This uses the EM₁ computation: inducedFun-EM₁ on emloop computes
-      canonicalMap-on-emloop : (X : Type₀) (g : fst (G X))
+      canonicalMap-on-emloop : (X : Type ℓ-zero) (g : fst (G X))
         → cong (canonicalMap X) (emloop g)
         ≡ funExt (λ s → emloop (g s))
       canonicalMap-on-emloop X g = refl
@@ -1172,7 +1207,7 @@ module CohomologyModule where
       -- So cong(canonicalMap) agrees with Iso.fun(Ω-iso) on emloop generators.
       -- Since both are groupoid homomorphisms (preserve ∙), they agree on all loops.
 
-      cong-canonicalMap-on-emloop : (X : Type₀) (g : fst (G X))
+      cong-canonicalMap-on-emloop : (X : Type ℓ-zero) (g : fst (G X))
         → cong (canonicalMap X) (emloop g) ≡ Iso.fun (Ω-iso X) (emloop g)
       cong-canonicalMap-on-emloop X g =
         cong (canonicalMap X) (emloop g)
@@ -1188,7 +1223,7 @@ module CohomologyModule where
       -- Since EM₁ is a groupoid, loops form a set. Both cong(canonicalMap) and Ω-iso.fun
       -- are group homomorphisms agreeing on generators emloop g, so they agree on all loops.
       -- The key: ΩEM₁Iso.inv = emloop generates all loops (ΩEM₁Iso is an iso).
-      cong-canonicalMap-is-Ω-iso : (X : Type₀) (q : 0ₖ {G = G X} 1 ≡ 0ₖ {G = G X} 1)
+      cong-canonicalMap-is-Ω-iso : (X : Type ℓ-zero) (q : 0ₖ {G = G X} 1 ≡ 0ₖ {G = G X} 1)
         → cong (canonicalMap X) q ≡ Iso.fun (Ω-iso X) q
       cong-canonicalMap-is-Ω-iso X q =
         cong (canonicalMap X) q
@@ -1200,21 +1235,21 @@ module CohomologyModule where
         Iso.fun (Ω-iso X) q ∎
 
       -- cong(canonicalMap) is an equiv (propositionally equal to Ω-iso.fun)
-      cong-canonicalMap-isEquiv : (X : Type₀)
+      cong-canonicalMap-isEquiv : (X : Type ℓ-zero)
         → isEquiv (cong {x = 0ₖ {G = G X} 1} {y = 0ₖ {G = G X} 1} (canonicalMap X))
       cong-canonicalMap-isEquiv X = subst isEquiv
         (sym (funExt (cong-canonicalMap-is-Ω-iso X)))
         (isoToIsEquiv (Ω-iso X))
 
       -- Ω→(canonicalMap, refl) is equiv at basepoint
-      Ω→-isEquiv-at-base : (X : Type₀)
+      Ω→-isEquiv-at-base : (X : Type ℓ-zero)
         → isEquiv (fst (Ω→ {A = EM (G X) 1 , 0ₖ {G = G X} 1} {B = (X → BZ) , (λ _ → 0ₖ {G = ℤAbGroup} 1)}
                         (canonicalMap X , refl)))
       Ω→-isEquiv-at-base X = subst isEquiv (sym (funExt (Ω→-at-base-is-cong X)))
         (cong-canonicalMap-isEquiv X)
 
       -- Transport Ω→ equivalence from basepoint to any point via connectedness
-      Ω→-isEquiv-all : (X : Type₀)
+      Ω→-isEquiv-all : (X : Type ℓ-zero)
         → isConnected 2 (EM (G X) 1)
         → (a : EM (G X) 1) → isEquiv (fst (Ω→ {A = EM (G X) 1 , a} {B = (X → BZ) , canonicalMap X a}
                                               (canonicalMap X , refl)))
@@ -1272,7 +1307,6 @@ module CohomologyModule where
   -- The interval case is obtained by instantiating with I_n and adjacency relation.
 
   -- tex Proposition 2991 (cohomology-I): H⁰(I,ℤ)≅ℤ and H¹(I,ℤ)=0
-  open IntervalIsCHausModule using (UnitInterval; isContrUnitInterval)
   open import Cubical.Cohomology.EilenbergMacLane.Groups.Unit using (isContr-Hⁿ⁺¹[Unit,G]; H⁰[Unit,G]≅G)
   open import Cubical.Data.Unit using (Unit; tt)
   open import Cubical.Foundations.Equiv using (isContr→Equiv)

@@ -1,0 +1,22 @@
+CHANGES0151 (from bck0150)
+
+Summary: Proved ChausMapsPreserveIntersectionOfClosed (tex Corollary 2003), eliminating another postulate.
+
+Changes:
+1. Part11: Replaced postulate ChausMapsPreserveIntersectionOfClosed with full proof.
+   - Proves f(∩_n G_n) = ∩_n f(G_n) for CHaus spaces with decreasing closed sequence G.
+   - Forward direction (⊆): trivial via PT.rec.
+   - Backward direction (⊇): following the tex proof:
+     (a) Define C_n(x) = G_n(x) ∧ (f x ≡ y), each closed (closedAnd + equalityClosed from Y)
+     (b) Build finite intersection witnesses from G_k via decreasingness (buildFinInt)
+     (c) Show each finite intersection is nonempty: ∥ Σ x. finInt C k x ∥₁ from hypothesis
+     (d) By contrapositive of CHausFIP: ¬(∀x. ¬ countableIntersection C x)
+     (e) Target ∥ Σ x. (∀n. G_n x) × (f x ≡ y) ∥₁ is closed
+         via InhabitedClosedSubSpaceClosedCHaus + closedCountableIntersection + equalityClosed
+     (f) closedIsStable gives the result from ¬¬ target
+   - Uses hPropExt for the type equality between LHS and RHS
+   - New imports: Cubical.Foundations.Univalence (hPropExt),
+     InhabitedClosedSubSpaceClosedCHausModule
+
+Line count: 6694 (was 6627 in bck0150, +67 from proof replacing postulate)
+Full chain Part20 compiles: YES

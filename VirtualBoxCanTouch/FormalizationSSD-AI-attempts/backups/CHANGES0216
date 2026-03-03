@@ -1,0 +1,15 @@
+bck0216: Eliminated inh' postulate in finite-approximation proof.
+Quick check: Part14 SUCCESS.
+
+Part14 changes (from bck0215):
+  - ELIMINATED inh' postulate by redefining S' as Image(q'):
+    S' = Σ[s' ∈ S'₀] ∥ Σ[e' ∈ E'N] q'(e') ≡ s' ∥₁
+    * finS' proved using isFinSetΣ + isFinSet∥∥ + isFinSetFiber
+    * inh' trivially follows from the ∥...∥₁ component of S'
+    * π(x) = (π₀(x), PT.rec squash₁ (λ u → ∣ SpProjection rdE N ..., τ-lem x u ∣₁) (inh x))
+  - Cleaned up stepA: removed all dead code from previous approaches
+  - Remaining postulates (3): β', β-fac, β'-coc (cocycle at finite level)
+
+Line counts: Part14: 1160 (1174→1160, -14 lines).
+Note: decrease from bck0215 due to removing complex decidability proof replaced by isFinSet∥∥.
+Compared to bck0214: 1160 vs 1062 = +98 lines of new proved infrastructure.

@@ -1,0 +1,25 @@
+bck0215: Restructured finite-approximation proof skeleton in Part14.
+Quick check: Part14 SUCCESS.
+
+Part14 changes (from bck0214):
+  - RESTRUCTURED step3 of finite-approximation proof:
+    - Removed abandoned lemDecompColimMorphisms approach (dual algebra map construction).
+    - Now uses ScottFiniteCodomain directly:
+      1. S' = Sp(BN_S(0)), finite via isFinSetSpFinRing
+      2. q₀ = π₀ ∘ fst ∘ transport eqE : Sp(B_E) → S' (projection to finite S')
+      3. ScottFiniteCodomain rdE S' finS' isSetS' q₀ factors through SpProjection rdE N
+      4. T'(s') = fiber of q' at s' (finite as fiber of map between finite sets)
+      5. τ(x,u) = SpProjection rdE N (transport⁻ eqE (x,u)), proved τ-lem
+    - τ-lem fully proved using transportTransport⁻ and q'-ok
+    - Remaining postulates (3):
+      * inh' : (s' : S') → ∥ T' s' ∥₁ (surjectivity of SpProjection)
+      * β' : cocycle at finite level
+      * β-fac : cocycle factoring
+      * β'-coc : cocycle condition at finite level
+  - Removed all dead code from previous lemDecompColimMorphisms attempt
+    (dual BoolHom construction, precompP, eS, eE, etc.)
+  - Removed unnecessary imports (SDHomVersion, BooleanEquivToHom, IsCommRingHom, etc.)
+
+Line counts: Part14: 1174 (1062→1174, +112 lines). Part07: 3355 (unchanged).
+Note: Part14 grew because the proof skeleton now has concrete type-checked definitions
+for S', T', π, τ, τ-lem instead of a single hole.

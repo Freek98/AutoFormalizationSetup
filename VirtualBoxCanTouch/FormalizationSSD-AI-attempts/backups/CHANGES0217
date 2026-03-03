@@ -1,0 +1,12 @@
+bck0217: Fixed indentation of step4's where-block in Part14.
+Quick check: Part14 SUCCESS.
+
+Part14 changes (from bck0216):
+  - Fixed step4's where-block: lines 579-679 were at column 10 (step3's where scope)
+    but needed to be at column 14 (step4's where scope). Added 4 spaces of indentation.
+  - No logical changes, only indentation fix.
+  - step4 now properly has its definitions (stepAB, S', T', etc.) in scope.
+  - Remaining postulates (3): β'def, β-fac, β'-coc (cocycle at finite level)
+
+Line counts: Part14: 1188 (1160→1188, +28 lines due to indentation causing some lines to wrap).
+Note: increase is purely from indentation (100 lines × 4 spaces each).

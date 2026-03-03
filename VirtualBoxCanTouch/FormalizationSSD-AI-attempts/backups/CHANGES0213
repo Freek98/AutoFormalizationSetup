@@ -1,0 +1,14 @@
+bck0213: Proved isFinSetSpFinRing (Sp(B) finite when ⟨B⟩ finite), eliminated postulate.
+Quick check: Part07 SUCCESS.
+
+Part07 changes (from bck0212):
+  - FIXED DecompFibers: replaced manual isFinSetΣ/DecProp with isFinSetFiber (already in bck0212)
+  - PROVED isFinSetSpFinRing fully (no postulates):
+    Uses EquivPresIsFinSet + IsCommRingHomIsoΣ to reduce IsBoolRingHom condition
+    to nested Σ of finite types (equalities in Bool, Π/Π2 over finite domain).
+    Previously had local postulate decHomProp for decidability; now eliminated.
+  - ADDED imports: Cubical.Data.FinSet.Base (FinSet), Cubical.Algebra.CommRing.Base
+    (IsCommRingHom, IsCommRingHomIsoΣ), Cubical.Data.FinSet.Properties (EquivPresIsFinSet)
+
+Line counts: Part07: 3336 (3197→3336, +139 lines new infrastructure).
+All new code fully proven (no new postulates).

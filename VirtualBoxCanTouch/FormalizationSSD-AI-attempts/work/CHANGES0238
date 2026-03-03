@@ -1,0 +1,29 @@
+CHANGES0238 - Fix pre-existing nat arithmetic bugs in Part07 DecTC module
+
+These bugs were masked by cached .agdai files and exposed when Part03
+was modified (hiding φ from public export) in bck0237.
+
+Files changed: Part07.agda (4141 → 4149, +8 lines)
+
+Fixes:
+1. TCmonoN k zero case: k ≠ k+0 definitionally. Added subst with
+   sym (+-zero k) for base case and sym (+-suc k j) for suc case.
+   Import: Cubical.Data.Nat.Properties (+-zero, +-suc, +-comm).
+
+2. +-∸-< arithmetic lemma: <-+k gives a+(k∸b) < b+(k∸b), but
+   ≤-∸-+-cancel needs (k∸b)+b. Added +-comm step.
+
+3. splice/shortenChain: <-weaken (toℕ< j) gave toℕ j ≤ suc k,
+   but needed toℕ j ≤ k. Fixed with pred-≤-pred (toℕ< j).
+
+4. pigeonHole' call: FX FA were passed positionally but X,Y are
+   implicit module params. Changed to {X = FX} {Y = FA}.
+
+5. suc-≤-suc m<k: gave suc(suc m) ≤ suc k, needed suc m ≤ suc k.
+   Fixed with suc-≤-suc (<-weaken m<k).
+
+6. toℕ-injective antisym: arguments were in wrong order. Swapped.
+
+7. transTC: chainToTC gives iterTC j', but subst expected
+   iterTC ((m∸j')+j'). Restructured: chainToTC → TCmonoN → subst
+   with +-comm ∙ ≤-∸-+-cancel.

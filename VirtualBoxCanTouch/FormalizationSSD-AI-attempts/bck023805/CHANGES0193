@@ -1,0 +1,30 @@
+CHANGES0193 (from bck0192)
+
+Summary: Filled most holes in Lemma1335Backward — only transTC remains.
+
+Changes:
+1. Part07: Lemma1335Backward module (was 3924 lines, now 4015 lines, +91)
+   - Added iterCoherent: iterated α-coherent proof (α (k+n) (iterMap n k x) (iterMap n k y) ≡ α n x y)
+   - Added RnK-iterPush: push RnK to higher level via iterated α-coherent
+   - Added iterMapBn-rep: iterMapBn k [x] ≡ [iterMap n k x]
+   - Filled bwdR-same: uses α-fwd + iterPushBn + iterMapBn-rep + eq/ via RnK witness
+   - Filled bwdR: nested SeqColim→Prop elimination with cross-level case
+     * Push both elements to level n₁+n₂ via iterMap
+     * Transport via +-comm for x₁, use iterPush for x₂
+     * Apply bwdR-same at common level
+   - Filled fwdBwdD push case: isProp→PathP since B is a set
+   - Filled bwd-fwd: SeqColim→Prop + SQ.elimProp, reduces to refl for [x] representatives
+   - Added +-comm import to WithGlobalWitnesses module
+   - Added ≤SumRight to Nat.Order import
+   - Cleaned up iterMapBn/iterPushBn with explicit sequence annotations
+
+   Remaining hole (1):
+   - transTC: transitivity of iterTC after m iterations (chain length ≤ m on finite type)
+
+   Note: bwdR-same uses equational reasoning chain with iterPushBn + iterMapBn-rep + eq/.
+   bwdR uses cong-∙ composition (cross-level transport involves subst-filler).
+
+Line count: Part07 4015 (+91 from bck0192's 3924)
+Full chain compiles: NO (1 hole: transTC)
+
+Postulate changes: none (buildCoherent still postulated as derived result)

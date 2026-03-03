@@ -1,0 +1,14 @@
+CHANGES0237 (Part14: 1299 lines, was 1244 lines in bck0236)
+
+Summary:
+- Restructured cocycleFactorsE proof in FiniteApproximationProof:
+  - Added FP = Σ S (T×T) fiber product construction with Stone structure
+  - Added step4 with FP ring decomposition parameter
+  - Added β̃∘tr : Sp(B-FP) → ℤ (cocycle on fiber product spectrum)
+  - Added SpProj-sep (SpProjection separates points via SeqColim→Prop)
+  - Restructured stepAB to take both q₀-factorization (N₁) and β̃-factorization (N₂)
+  - cocycleFactorsE now has structured form ∣ fE , fE-ok ∣₁ with inner postulates
+- Fixed compilation: added imports for invEq/secEq/equivFun/SeqColim→Prop,
+  fixed SpProj-sep proof (subst approach), fixed useRef indentation (must be inside stepAB's where)
+- Net: +55 lines, cocycleFactorsE postulate restructured but inner fE/fE-ok still postulated
+- Full chain compiles clean

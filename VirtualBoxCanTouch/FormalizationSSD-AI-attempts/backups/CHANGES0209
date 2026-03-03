@@ -1,0 +1,15 @@
+bck0209: Added ¬isContr-BZ (BZ is not contractible).
+Full type-check: in progress (Part14 quick check: SUCCESS).
+
+Part14 changes (from bck0208):
+  - ADDED ¬isContr-BZ : isContr BZ → ⊥
+    Proof: If BZ = EM ℤAbGroup 1 is contractible, then Ω BZ is a prop
+    (isProp→isSet on isContr→isProp). But Ω BZ ≅ ℤ (via Iso-EM-ΩEM+1),
+    so all integers would be equal, giving pos 0 ≡ pos 1, contradicting
+    0≢1-ℤ from Cubical.Data.Int.Properties.
+    Needed for no-retraction / Brouwer fixed point (tex 3074).
+
+Remaining postulates in Part14: 2 (finite-approximation, cech-eilenberg-1-agree)
+
+Line count: 1001 (bck0208) → 1023 (bck0209), +22 lines.
+All new lines are proven code (no new postulates).

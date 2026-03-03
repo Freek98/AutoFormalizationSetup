@@ -1,0 +1,28 @@
+bck0210: Added continuously-path-connected→constant and I-contractibility consequences.
+Full type-check: Part19 + Part20 quick check SUCCESS.
+
+Part14 changes (from bck0209):
+  - Cleaned up finite-approximation comments (no structural change)
+
+Part19 changes (from bck0208 baseline):
+  - ADDED path-connected→const: If X path-connected from x₀ and Y is I-local,
+    then f : X → Y satisfies f(x) = f(x₀) for all x. (tex Lemma 3035)
+  - ADDED path-connected→I-contractible: funExt version of path-connected→const.
+  Both fully proven (no new postulates).
+
+Part20 changes (from bck0208 baseline):
+  - ADDED IContractibleConsequences module:
+    - R-I-contractible: R → Y constant when Y is I-local
+    - D²-I-contractible: D² → Y constant when Y is I-local
+    - D²→BZ-const: any f : D² → BZ is constant
+  All proven from path-connected→const + existing I-locality infrastructure.
+
+Analysis of no-retraction: Cannot be proved without shape-S1-is-BZ (L_I(R/Z) ≃ BZ),
+which requires I-localization infrastructure. The tex proof relies on Circle ≃ R/Z and
+L_I being available. Our Circle is postulated without connection to BZ.
+
+Remaining postulates: unchanged (finite-approximation, cech-eilenberg-1-agree in Part14;
+interval/disk/circle axioms; R/D² path-connected in Part20).
+
+Line counts: Part14: 1026 (1023→1026, +3 comment lines), Part19: 129 (99→129, +30),
+Part20: 59 (34→59, +25). Total new proven code: ~55 lines.

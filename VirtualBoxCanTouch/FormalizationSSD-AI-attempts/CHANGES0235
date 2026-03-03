@@ -1,0 +1,12 @@
+CHANGES0235 (Part07: 4163 lines, was 4589 lines in bck0228)
+
+Summary:
+- Deleted dead WithGlobalWitnesses-DELETED module (~431 lines of never-checked code with parse error)
+- Fixed bugs in WithAllWitnesses module exposed by deletion (cached .agdai masked them):
+  - decTruncΣ: rewrote with explicit go/searchFin/contra (was using wrong transport direction)
+  - decLevel: fixed type for double truncation from nested decTruncΣ
+  - searchM: rewrote with BoundedLevelWit type, fixed ≤-bound tracking
+  - bwdR-same: fixed allWit extraction (was snd(fst(snd ...)) on a function, now fst(snd ...) r)
+  - Removed local iterMap/iterPush, using ColimCompactHelpers.iterMap/inclIter instead
+    (fixes definitional mismatch with liftTo-isProp which uses CCH.iterMap internally)
+- Net: -426 lines, Part07 compiles clean

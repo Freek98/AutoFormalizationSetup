@@ -1,0 +1,44 @@
+CHANGES0167 (from bck0166)
+
+Summary: Added SpectrumEmptyIff01Equal combined equivalence (DERIVED), H¹-vanishes-Interval
+postulate, plus comprehensive tex label reference comments across multiple files.
+
+Changes:
+1. Part07: Added SpectrumEmptyIff01Equal (tex Lemma 406) (+7 lines, was 915, now 930)
+   - DERIVED combined statement: (0=1 in B) ≃ (¬ Sp B)
+   - Uses propBiimpl→Equiv with 0=1→¬Sp (forward) and SpectrumEmptyImpliesTrivial (backward)
+   - Added tex reference comments for profinite section results:
+     lemDecompositionOfColimitMorphisms (933), decompositionInjectionSurjectionOfOdisc (1134),
+     StoneAreProfinite (1520), ScottFiniteCodomain (1558)
+   - These require sequential colimit/limit infrastructure beyond current formalization;
+     consequences captured by ODiscClosedUnderSequentialColimits and
+     ImageStoneMapDecidableIntersection.
+
+2. Part14: Added H¹-vanishes-Interval postulate and comments (+16 lines, was 433, now 449)
+   - H¹-vanishes-Interval: H¹(I,ℤ) = 0 (tex Proposition 2991, cohomology-I)
+   - Comment about stone-commute-delooping (tex Corollary 2895): follows from eilenberg-stone-vanish
+   - Comment about Cn-exact-sequence (tex Lemma 2973): used for cohomology-I derivation
+   - Together with Z-I-local (Part12), captures both parts of cohomology-I:
+     H⁰(I,ℤ) = ℤ (Z-I-local) and H¹(I,ℤ) = 0 (H¹-vanishes-Interval)
+
+3. Part01: Added rmkOpenClosedNegation tex reference comment (+7 lines, was 275, now 282)
+   - tex Remark 676: catalogues existing results:
+     negOpenIsClosed, negClosedIsOpen, closedIsStable, openIsStable,
+     ¬WLPO (Part19), decIsOpen/decIsClosed
+
+4. Part12: Updated LesserOpenPropAndApartness tex reference (-1 line, was 202, now 201)
+   - Combined two separate comments into one: tex Remark 2610
+
+5. Part20: Added shape-S1-is-BZ tex reference comment (+5 lines, was 28, now 33)
+   - tex Proposition 3051: L_I(R/Z) = BZ
+
+Line count: Part01 282 (+7), Part07 930 (+15), Part12 201 (-1), Part14 449 (+16), Part20 33 (+5)
+Total across all files: 8639 (was 8596, +43)
+Full chain Part20 compiles: YES
+
+Postulate changes:
+- ADDED: H¹-vanishes-Interval (Part14) — H¹(I,ℤ) = 0
+- DERIVED: SpectrumEmptyIff01Equal (Part07) — (0=1 in B) ≃ (¬ Sp B)
+- Added tex reference comments for 7+ tex labels not previously referenced in Agda
+
+Net postulate change: +1 (cohomology-I H¹ part)

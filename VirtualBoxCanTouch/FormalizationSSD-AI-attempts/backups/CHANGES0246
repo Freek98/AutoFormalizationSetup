@@ -1,0 +1,37 @@
+bck0246: Removed unused cech-eilenberg-1-agree postulate and ScottIntCodomainModule (Part14).
+
+Quick check: SUCCESS (Part14.agda, Part19.agda, Part20.agda all compile).
+
+Part14 changes (from bck0245):
+  1. Removed ScottIntCodomainModule (was lines 538-598, 61 lines).
+     This module defined ScottIntCodomain : ℤ-valued functions on Stone spaces
+     factor through finite levels. It was mentioned in comments as potential
+     infrastructure for proving cocycleFactorsE, but was NEVER used in any
+     actual code.
+  2. Removed cech-eilenberg-1-agree postulate (was lines 987-992, 11 lines).
+     This postulate stated H¹(X,ℤ) ↔ Ȟ¹(X,S,T,ℤ) for Čech covers.
+     It was NEVER used anywhere in the codebase. The proof chain goes
+     directly through cech-complex-vanishing-stone → eilenberg-stone-vanish
+     without needing this postulate.
+  3. Consolidated duplicate comment blocks around cocycleFactorsE into a
+     single 4-line comment (was 19 lines, now 4 lines, -15 lines).
+  4. Removed cech-exact comment block (5 lines) that described infrastructure
+     for the removed postulate.
+
+  All removed code was verified to be unused:
+  - ScottIntCodomainModule: only referenced in comments, never called
+  - cech-eilenberg-1-agree: grep confirms only declaration, no usage
+  - No downstream files reference these names
+
+Postulate summary:
+  Part02: 5 axioms (unchanged)
+  Part12: 9 interval postulates (unchanged)
+  Part13: 3 Disk2 postulates (unchanged)
+  Part14: 1 postulate (cocycleFactorsE) (was 2: removed cech-eilenberg-1-agree)
+  Part20: 1 postulate block (unchanged)
+  Total: 19 postulates (was 20)
+
+Line counts: Part14.agda 1173 lines (was 1264, -91). Total: 12838 (was 12929, -91).
+  Decrease justified: removed 61 lines of unused ScottIntCodomainModule,
+  11 lines of unused cech-eilenberg-1-agree postulate, 19 lines of comments
+  replaced by 4 consolidated lines. All proved theorems preserved.

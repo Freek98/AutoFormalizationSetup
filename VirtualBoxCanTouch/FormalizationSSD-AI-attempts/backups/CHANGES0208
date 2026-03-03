@@ -1,0 +1,22 @@
+bck0208: Decomposed colimit-arg into finite-approximation + lift-coboundary.
+Full type-check: SUCCESS (verified through Part20).
+
+Part14 changes (from bck0207):
+  - REPLACED monolithic colimit-arg postulate with structured proof:
+    1. FiniteApprox record: captures a finite approximation of a Čech cocycle
+       (finite S', T', surjection π, fiber maps τ, factored cocycle β')
+    2. finite-approximation postulate: states that every cocycle on a Stone
+       family factors through a finite approximation (tex 2843 + 1558)
+    3. colimit-arg PROVED from finite-approximation + cech-vanishing-finite:
+       - Use finite-approximation to get FiniteApprox
+       - Apply cech-vanishing-finite at finite level
+       - Lift coboundary: α(x)(u) = α'(π(x))(τ(x)(u))
+       - Verify: d₀(α) = β by d₀(α') = β' + β-factors
+
+Remaining postulates in Part14: 2 (finite-approximation, cech-eilenberg-1-agree)
+  finite-approximation: concrete sub-step of colimit-arg (tex 2843 + ScottFiniteCodomain)
+  cech-eilenberg-1-agree: H¹(X,ℤ) ↔ Ȟ¹(X,S,ℤ) for Čech covers (tex 2945)
+
+Line count: 946 (bck0207) → 1001 (bck0208), +55 lines.
+New proven code: colimit-arg and lift-coboundary (+35 lines proof).
+New record/postulate: FiniteApprox record + finite-approximation postulate (+20 lines).

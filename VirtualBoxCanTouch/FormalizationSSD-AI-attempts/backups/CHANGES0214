@@ -1,0 +1,24 @@
+bck0214: Added ScottFiniteCodomain and ScottDiscreteCodomain postulates to Part07.
+Started finite-approximation proof skeleton in Part14.
+Quick check: Part07 SUCCESS, Part14 has one hole in step3.
+
+Part07 changes (from bck0213):
+  - ADDED ScottFiniteCodomain postulate (tex Lemma 1558):
+    Functions from Sp(Q) to a finite set factor through SpProjection at some level N.
+    Proof route: SpFullyFaithful + BoolHomFromFiniteFactors.
+  - ADDED ScottDiscreteCodomain postulate (tex Corollary 1590 scott-continuity):
+    Functions from Sp(Q) to any set factor through SpProjection at some level N.
+    Proof route: ScottFiniteCodomain + MapsStoneToNareBounded.
+
+Part14 changes (from bck0212):
+  - REPLACED finite-approximation postulate with FiniteApproximationProof module
+    containing a partial proof with one hole (step3).
+  - Proof structure: get Stone structure on E=Σ_x T(x), get ring decompositions
+    for B_S and B_E, then construct FiniteApprox from decomposition data.
+  - step2 extracts rd_S, step3 extracts rd_E, step3 body is the hole.
+  - Added open FiniteApproximationProof to expose finite-approximation.
+
+Line counts: Part07: 3355 (3336→3355, +19 lines). Part14: 1062 (1034→1062, +28 lines).
+Note: No postulates REMOVED in this backup; ScottFiniteCodomain and ScottDiscreteCodomain
+are NEW postulates whose proof route is documented. finite-approximation is now a hole
+instead of a postulate (partial progress).

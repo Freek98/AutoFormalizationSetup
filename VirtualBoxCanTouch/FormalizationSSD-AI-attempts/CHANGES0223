@@ -1,0 +1,27 @@
+bck0223: ScottFiniteCodomain f'/f-ok proved (1 inner postulate: defF).
+Quick check: Part07 SUCCESS, Part14 SUCCESS, Part20 SUCCESS (full chain).
+
+Part07 changes (from bck0222):
+  - PROVED f' (finite search) and f-ok (correctness) in ScottFiniteCodomain
+  - Key technique: caseBool helper function for transparent Bool case analysis
+    - caseBool : Bool → A → A → A (pattern-matches on Bool)
+    - finSearch uses caseBool instead of if_then_else_ or with
+    - finSearch-ok uses helper : (b : Bool) → P(enum fzero) ≡ b → ...
+      which calls (P (enum fzero)) refl, making caseBool reduce properly
+    - This avoids the with-abstraction opacity issue: with on P(enum fzero)
+      in finSearch-ok couldn't see inside separately-defined finSearch
+  - finSearch: {A} (n : ℕ) → (Fin n → A) → (A → Bool) → A → A
+    Returns first element where P is true, or default
+  - finSearch-ok: given witness Σ[j] P(enum j) ≡ true, proves P(finSearch ...) ≡ true
+  - f'₀ ψ = finSearch k (invEq eq) (λ c → fst ψ (d c)) defF
+  - f-ok φ: uses D-true→eq with sp-d + search-ok to show f φ ≡ f'₀ (SpProjection rd N φ)
+  - ONE inner postulate remains: defF : F (default element for finSearch)
+    Only used when k=0 (F ≃ ⊥), which is vacuous (no elements to search)
+  - Previous postulates f' and f-ok are now PROVED
+
+Postulate summary for Part07:
+  - ScottFiniteCodomain: 1 inner postulate (defF : F, trivial/vacuous)
+  - ScottDiscreteCodomain: fully postulated (1 postulate)
+
+Line counts: Part07: 3468 (3418→3468, +50 lines).
+Increase justified: new finSearch/finSearch-ok infrastructure + caseBool helper.

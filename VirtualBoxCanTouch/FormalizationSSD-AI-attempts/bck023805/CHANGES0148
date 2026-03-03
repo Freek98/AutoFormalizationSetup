@@ -1,0 +1,28 @@
+CHANGES0148 (from bck0147)
+
+Summary: Eliminated BoolQuotientEquiv postulate and moved quotientBySeqHasBooleω from Part08 to Part02.
+
+Changes:
+1. BoolQuotientEquiv POSTULATE ELIMINATED:
+   - Part01: Replaced `postulate BoolQuotientEquiv` with proven import from
+     `BooleanRing.BooleanRingQuotients.QuotientConclusions` (public)
+   - QuotientConclusions.agda: Proves BoolQuotientEquiv using three-step path:
+     sym (quotientCheck A (rec f g)) ∙ uaCommRing (quotientConclusion ...) ∙ quotientCheck (A /Im f) (...)
+   - KEY INSIGHT: `--lossy-unification` flag needed to handle nested
+     BooleanRing→CommRing ∘ idemCommRing→BR roundtrip in quotient contexts
+
+2. quotientBySeqHasBooleω moved from Part08 to Part02:
+   - This implements Rule 2 from CLAUDE.md: separating "B countably presented → B/f countably presented"
+   - quotientPreservesBooleω remains in Part08 (one-liner using Part02's version)
+   - Part08 shrunk from ~433 lines to 207
+
+3. Part02 cleanup:
+   - Removed orphaned/duplicate code from previous refactorings
+   - Streamlined imports
+
+Line count: 6226 (was 6443 in bck0147, -217 lines)
+Line decrease justified: Part08 lost ~226 lines (moved to Part02), Part01 lost 3 lines
+(postulate → import). Part02 gained some lines from the moved code but also had
+orphaned code removed. Net -217 is from code consolidation, NOT loss of useful work.
+
+Full chain Part20 compiles: YES

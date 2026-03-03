@@ -1,0 +1,34 @@
+CHANGES0157 (from bck0156)
+
+Summary: Proved StoneCompactHausdorffTotallyDisconnected-backward (tex Lemma 2186),
+         eliminating a postulate.
+
+Changes:
+1. Part11: StoneCompactHausdorffTotallyDisconnectedModule
+   - Replaced postulate StoneCompactHausdorffTotallyDisconnected-backward with full proof.
+   - Proof strategy (following tex):
+     (a) PT.rec into isPropHasStoneStr using AlgebraCompactHausdorffCountablyPresented
+     (b) BX = (2^(fst X), countable presentation) as Booleω
+     (c) ev : fst X → Sp BX, evaluation BoolHom (all pres fields = refl)
+     (d) ev-inj: ev x ≡ ev y → D x ≡ D y for all D → ConnectedComponent → x ≡ y by td
+     (e) ev-surj: from Stone cover (S, q, q-surj):
+         - BSo = 2^(fst S) as Booleω
+         - q* : BoolHom (2^X) (2^S) by precomposition, injective since q surjective
+         - injective→Sp-surjective gives h' : Sp BSo with h' ∘cr q* ≡ h
+         - coord : BoolHom (fst B_S) (fst BSo) via evaluationMap + transport
+         - sdEquiv from SDHomVersion sd-axiom B_S
+         - ψ = h' ∘cr coord : Sp B_S, s = transport p_S ψ : fst S
+         - Prove ev(q s) ≡ h via 3-step equational chain using secEq and coordb≡
+     (f) ev-emb = injEmbedding + isSetBoolHom
+     (g) ev-equiv via isEmbedding×isSurjection→isEquiv
+     (h) Result: BX , sym (ua ev-equiv)
+   - Helper functions: coord (transported evaluation BoolHom), bE (inverse of sdEquiv),
+     coordb≡ (coord ∘ bE ≡ id, via secEq + transportTransport⁻)
+   - New imports in module: AlgebraCompactHausdorffCountablyPresentedModule,
+     Cubical.Foundations.Function (_∘_), Cubical.Functions.Surjection
+     (isSurjection, isEmbedding×isSurjection→isEquiv),
+     Cubical.Functions.Embedding (injEmbedding), Cubical.Foundations.Equiv (invEq, secEq),
+     Axioms.StoneDuality (isPropHasStoneStr, 2^, SDHomVersion, isSetBoolHom)
+
+Line count: 7380 (was 7268 in bck0156, +112 from proof replacing postulate)
+Full chain Part20 compiles: YES

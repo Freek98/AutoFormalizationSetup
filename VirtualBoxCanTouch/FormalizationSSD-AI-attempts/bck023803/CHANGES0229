@@ -1,0 +1,34 @@
+bck0229: Proved transTC postulate in Part07 Lemma1335Backward.
+Quick check: Part07 SUCCESS (clean, no errors; pre-existing k!=k+0 warning).
+
+Part07 changes (from bck0228/CHANGES0228):
+  - ELIMINATED postulate transTC (transitivity of iterative transitive closure).
+    Proof strategy:
+    1. Chain type (recursive function, not indexed data) decomposes TC into
+       sequence of T₀ connections.
+    2. chainToTC / tcToChain: bijection between chains and TC_k (under truncation).
+    3. chainConcat: concatenation of chains.
+    4. cv / cvTake / cvDrop: Fin-indexed chain vertex extraction and splitting.
+    5. splice: given two Fin indices with same vertex, removes cycle.
+    6. shortenChain: well-founded induction on chain length using
+       pigeonHole' from Cubical.Data.FinSet.Cardinality.
+       If chain has > m vertices (where m = |An|), pigeonhole finds
+       repeated vertex → splice removes cycle → recurse on shorter chain.
+    7. transTC: TC(x,y) ∧ TC(y,z) → T_{suc m}(x,z) → chain → shorten → TC(x,z).
+  - New imports added to Lemma1335Backward:
+    - Cubical.Data.FinSet.Cardinality (pigeonHole')
+    - Cubical.Data.FinSet.Properties (isFinSetFin)
+    - Cubical.Induction.WellFounded (WFI)
+    - Extended Nat.Order import with _>_, <-wellfounded
+    - Extended Function import with case_return_of_
+    - Extended SumFin.Base import with toℕ-injective
+  - Helper lemmas proved:
+    - toℕ< : toℕ i < n for i : Fin n (not in cubical library)
+    - +-∸-< : a < b → b ≤ k → a + (k ∸ b) < k
+
+Line counts: Part07: 4141 (4017→4141, +124 lines from bck0195 state / +49 from bck0228 state).
+Increase justified: fully proved transTC postulate with chain + pigeonhole infrastructure.
+
+Postulate summary for Part07:
+  - transTC: ELIMINATED (proved via chains + pigeonhole)
+  - buildCoherent: derived (recursive witness construction, not new axiom)

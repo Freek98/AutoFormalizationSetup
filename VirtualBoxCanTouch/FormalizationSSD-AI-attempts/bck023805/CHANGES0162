@@ -1,0 +1,35 @@
+CHANGES0162 (from bck0161)
+
+Summary: Refactored IdealBound to top level and proved MapsStoneToNareBounded.
+
+Changes:
+1. Part09: Extracted general infrastructure to top level (from StoneSeparatedModule)
+   - 0≡1-quotient→1∈ideal: now top-level opaque function
+   - finJoinBR: now top-level function
+   - IdealBound module: now top-level parameterized module
+   - These were previously duplicated inside StoneSeparatedModule
+   - StoneSeparated now uses `open IdealBound (fst B) d` from top-level
+
+2. Part09: Added MapsStoneToNareBoundedModule (tex Lemma 1568)
+   - Statement: For S : Stone and f : S → ℕ, ∃ N such that f(s) < N for all s
+   - Proof strategy:
+     a. For each n, fiber predicate d(n) = elemFromDecPred for (f(x) ≟ n)
+     b. Spectrum of B/d is empty (every point is in some fiber)
+     c. 0≡1 in B/d → extract-finJoin-bound gives ∃ N with finJoinBR d N ≡ 1
+     d. Bound by contradiction: if f(s) ≥ N, all d(n) for n<N evaluate to false,
+        so the join is false, contradicting finJoinBR d N ≡ 1
+   - Helper lemmas:
+     - Dec→Bool-yes, Dec→Bool-false: Dec→Bool characterization
+     - boolhom-∨: BoolHom preserves ∨ (generalized from StoneSeparated)
+     - joinAllFalse: if all components map to false, the join maps to false
+
+3. Part09: Top-level imports added
+   - Cubical.Algebra.CommRing.Quotient.ImageQuotient as IQ
+   - CommRingQuotients.IdealTerms
+   - CommRingQuotients.TrivialIdeal
+   - QuotientBool as QB
+   - max added to Cubical.Data.Nat import
+
+Line count: Part09 736 (was ~614 before, +122 from new proof + extraction)
+Total across all files: 8086
+Full chain Part20 compiles: pending (Part09 compiles individually)

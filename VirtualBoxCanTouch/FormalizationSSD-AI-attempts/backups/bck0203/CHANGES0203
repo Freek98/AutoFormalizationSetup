@@ -1,0 +1,12 @@
+bck0203: Added cocycle-add to CocycleProps module.
+Full type-check: passes.
+
+Part14 changes (from bck0202):
+  - ADDED cocycle-add: β(x)(u)(v) + β(x)(v)(w) = β(x)(u)(w) (cocycle additivity)
+    Proof uses ·CancelR from Group.Properties, +Assoc, +Comm, and cocycle condition.
+  - CocycleProps now has 3 proved lemmas: cocycle-diag, cocycle-antisym, cocycle-add.
+
+Remaining postulates in Part14: 2 (colimit-arg, cech-eilenberg-1-agree)
+
+Line count: 607 (bck0202) → 677 (bck0203), +70 lines.
+All new lines are proven code.

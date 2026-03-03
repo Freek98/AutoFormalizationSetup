@@ -1,0 +1,49 @@
+bck0232: Proved f-no-retraction (tex Lemma 600) + StoneEqualizer/StonePullback (tex Corollary 1537)
+
+Quick check: Part05 SUCCESS, Part10 SUCCESS. Full check pending.
+
+Part05 changes (from bck0230):
+  - ADDED f-no-retraction (~lines 1238-1363):
+    Proves: The map f : B∞ → B∞×B∞ does not admit a retraction.
+
+    Helpers:
+    - sucSum : List ℕ → ℕ (sums (suc n) for each n in list)
+    - sucSum-bound : m ∈? ns ≡ true → m < sucSum ns
+    - n≤2n : n ≤ 2·n
+    - above-sucSum-not-in : sucSum ns ≤ m → m ∈? ns ≡ false
+
+    Main proof (f-no-retraction):
+    If r ∘ f = id, let r01 = r(0,1), r10 = r(1,0).
+    - r-on-gen-odd k: r(0,g_k) = g_{2k+1} (by retraction property)
+    - r-on-gen-even k: r(g_k,0) = g_{2k} (by retraction property)
+    - odd-gen-below-r01: g_{2k+1} · r01 = g_{2k+1} (r preserves ·, (0,g_k)·(0,1)=(0,g_k))
+    - even-gen-below-r10: g_{2k} · r10 = g_{2k} (r preserves ·, (g_k,0)·(1,0)=(g_k,0))
+    - r01·r10≡0: r01 · r10 = 0 (since (0,1)·(1,0)=(0,0) and r(0,0)=0)
+
+    Case analysis on normal forms of r01 and r10:
+    - Both meetNegForm: product = meetNegForm(ms₁++ms₂) = 0, contradicts finMeetNeg∞-nonzero
+    - r01 = joinForm ns: pick fresh odd k = sucSum ns, g_{2k+1} ≤ r01 but g_{2k+1}·finJoin(ns)=0
+    - r10 = joinForm ns: pick fresh even k = sucSum ns, g_{2k} ≤ r10 but g_{2k}·finJoin(ns)=0
+
+  - New imports: Cubical.Relation.Nullary (yes, no, Dec), Cubical.Data.Nat.Order (_<_, _≤_, etc.)
+  - New imports from Part05a: _∈?_, gen-notin-finJoin, meet-nf-correct (with NF/JF/MNF renaming)
+  - NO new postulates introduced.
+
+Part10 changes (from bck0230):
+  - ADDED tex annotation for StoneProduct (-- tex Corollary 1537)
+  - ADDED StoneEqualizerModule (~lines 789-804):
+    StoneEqualizer: equalizer of maps between Stone spaces is Stone
+    Uses ClosedInStoneIsStone + StoneEqualityClosed.
+  - ADDED StonePullbackModule (~lines 806-813):
+    StonePullback: pullback of maps between Stone spaces is Stone
+    Uses StoneProduct + StoneEqualizer.
+  - NO new postulates introduced.
+
+Part11 changes (from bck0230):
+  - Added 2 tex annotation comments (Lemma 2144, Lemma 2156)
+  - No code changes.
+
+Postulate summary: No change from bck0230.
+
+Line counts: Part05: 1362 (1236→1362, +126 lines). Part10: 811 (783→811, +28 lines). Part11: 1833 (+2).
+Increase justified: f-no-retraction proof (Lemma 600) + StoneEqualizer/StonePullback (Corollary 1537).

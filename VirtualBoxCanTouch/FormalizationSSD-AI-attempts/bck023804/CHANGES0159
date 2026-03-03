@@ -1,0 +1,31 @@
+CHANGES0159 (from bck0158)
+
+Summary: Completed Part E decidability infrastructure for booleω-equality-open proof.
+
+Changes:
+1. Part07: ODiscInfrastructure module
+   - Added Part E: decidability infrastructure for checkTerms (sound+complete).
+   - Key functions (all inside private block):
+     - eqBool-sound/refl/complete, and-tt-l/r, and-intro, and-ff-l/r, eqBool-neq
+     - outside predicate, checkVars-sound, checkVars-gives-ff, checkVars-complete
+     - buildAssignment, update-same, update-other, update-agree, buildAssignment-σ
+     - outside-build
+     - appears, appears-here, appears-++l, appears-++r, appears-cons-no
+     - termEval-ext (variable extensionality for term evaluation)
+     - buildAssignment-appears (proved with subst trick)
+   - checkTerms-sound: if checkTerms t₁ t₂ ≡ tt, then ∀ σ. termEval σ t₁ ≡ termEval σ t₂
+   - checkTerms-complete: converse
+
+   CRITICAL BUG FIX: In Cubical Agda, `with discreteℕ n m` abstracts inside
+   `update ρ m (σ m) n` (which internally uses discreteℕ), preventing
+   `yes refl` unification. Solution: use `subst` with explicit Dec argument
+   instead of `with`. Pattern:
+     go (yes p) = subst (λ k → ...k... ≡ ...k...) (sym p) (proof-for-m)
+     go (no ¬p) = direct-proof
+   Applied to both update-agree and buildAssignment-appears.
+
+   Also: appears-++l/r need explicit (vars t₁) (vars t₂) arguments in
+   termEval-ext and checkTerms-sound (InversionDepthReached with wildcards).
+
+Line count: 614 (was 269 in bck0158, +345 from Part E infrastructure)
+Full chain Part20 compiles: NOT YET CHECKED (Part07 compiles)

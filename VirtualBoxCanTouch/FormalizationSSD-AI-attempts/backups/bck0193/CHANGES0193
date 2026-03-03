@@ -1,0 +1,21 @@
+bck0193: isSetSeqColim deduplication + fwdD push case completed. 2 holes remain.
+
+Part07 changes:
+  - REMOVED redundant isSetSeqColim proof (lines 1319-1390 in bck0192)
+    - Was trying to re-prove isSet for SeqColim of sets
+    - Already proven as isSetSeqColimOfSets via SCSet.result at line 1140!
+    - References in subSeqEquiv updated: isSetSeqColim → isSetSeqColimOfSets
+  - fwdD-coh (fwdD coherence): COMPLETED
+    - 5-step proof that equivFun (qpEquiv qsn) (incl (map D x)) ≡ map S₀ (equivFun (qpEquiv qn) (incl x))
+    - Step 1: subSeqEquiv fwd on incl = incl (definitional)
+    - Step 2: DecompData.fOk relates incl (fMap ...) to transition
+    - Step 3: secEq (eT (suc n)) relates equivFun eT ∘ transition to map S₀ ∘ equivFun qpEquiv
+    - Step 4: PathP via transport-filler along qcompat n, relating qpEquiv qn' to qpEquiv qn
+    - Step 5: sym (cong (equivFun qpEquiv qn) (push x)) relating incl y to incl x
+  - fwdD push case: COMPLETED using push ∙ cong incl (sym fwdD-coh)
+
+Remaining holes:
+  1. bwdD : SeqColim S₀ → SeqColim D (backward map for diagonal equivalence)
+  2. diagEquiv : SeqColim D ≃ SeqColim S₀ (the full equivalence)
+
+Line count: 2746 (bck0192) → 2797 (bck0193), +51 lines.

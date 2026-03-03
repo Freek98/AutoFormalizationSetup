@@ -1,0 +1,28 @@
+CHANGES0187 (from bck0186)
+
+Summary: Added ODiscIsOpenQuotientOfCountable (tex Lemma 1335 forward direction) in Part07,
+plus tex reference comments for previously-unreferenced labels.
+
+Changes:
+1. Part07: Added ODiscIsOpenQuotientOfCountable (+13 lines, was 3614, now 3627)
+   - tex Lemma 1335 (OdiscQuotientCountableByOpen, forward direction)
+   - If B is ODisc, then B is a quotient of Σ_{n:ℕ} B_n (countable) by open relation.
+   - Proof: immediate from isODisc witness + ODiscEqualityOpen.
+   - DERIVED (proven, no postulates).
+
+2. Part05: Added tex reference comment for LLPO (+1 line, was 1362, now 1363)
+   - tex Theorem 541, equation 544 (eqnLLPO), equation 555 (eqnLLPOProofMap)
+
+3. Part02: Added tex reference comments (+4 lines, was 785, now 789)
+   - tex Remark 375 (SpIsAntiEquivalence): captured by sd-axiom + SDHomVersion
+   - tex Remark 160 (BooleAsCQuotient): captured by has-Boole-ω'
+
+Line count: Part07 3627 (+13), Part05 1363 (+1), Part02 789 (+4)
+Total across all files: 8660 (was 8639, +21)
+Full chain Part07 compiles: YES
+
+Postulate changes: none (only derived results and comments)
+
+Tex label coverage: Previously 8 non-commented labels were unreferenced.
+Now only 3 remain: boolean-algebra-examples (211), ExampleBAunderCantor (220),
+ExampleBAunderNinfty (230) — all examples, not structural results.
