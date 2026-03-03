@@ -64,4 +64,3 @@ module DiskTheory (da : DiskAxioms) where
         ¬¬existence ¬∃ = BFP-contradiction f (λ x fx=x → ¬∃ ∣ x , fx=x ∣₁)
 
     in closedIsStable existence-prop existence-closed ¬¬existence
-

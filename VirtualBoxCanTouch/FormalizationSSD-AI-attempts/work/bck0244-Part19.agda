@@ -5,7 +5,7 @@ import work.Part12
 
 module work.Part19 (fa : FoundationalAxioms) (ia : work.Part12.IntervalAxioms fa) where
 
-open import work.Part14b fa ia public
+open import work.Part14 fa ia public
 
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels
@@ -41,6 +41,8 @@ module StoneILocalTC where
 
 -- tex Lemma 3027: BZ is I-local
 module BZILocalTC where
+  open CohomologyModule using (BZ)
+
   BZ-I-local : (f : UnitInterval → BZ) → (x y : UnitInterval) → f x ≡ f y
   BZ-I-local = contr-map-const-local isContrUnitInterval
 
@@ -56,6 +58,7 @@ module PathConnectedContractibleTC where
   open import Cubical.Foundations.Function using (_∘_)
 
   -- tex Lemma 3035: If X is continuously path-connected from x₀ and Y is I-local,
+  -- then any f : X → Y is constant (f(x) = f(x₀) for all x).
   path-connected→const : {X Y : Type ℓ-zero}
     → (x₀ : X)
     → isContPathConnectedFrom X x₀
@@ -73,6 +76,8 @@ module PathConnectedContractibleTC where
          ≡⟨ cong f h0≡x₀ ⟩
        f x₀ ∎
 
+  -- Corollary: path-connected types have trivial functions to I-local targets
+  -- (i.e., any f : X → Y with X path-connected and Y I-local is homotopic to const f(x₀))
   path-connected→I-contractible : {X Y : Type ℓ-zero}
     → (x₀ : X)
     → isContPathConnectedFrom X x₀

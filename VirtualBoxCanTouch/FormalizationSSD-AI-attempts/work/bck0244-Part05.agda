@@ -1271,6 +1271,7 @@ f-no-retraction r retract = PT.rec2 isProp⊥ go
       ≡⟨ retract (g∞ (2 ·ℕ k)) ⟩
     g∞ (2 ·ℕ k) ∎
 
+  -- g_{2k+1} ≤ r(0,1): since (0,g_k) · (0,1) = (0,g_k) in B∞×B∞
   odd-gen-below-r01 : (k : ℕ) → g∞ (suc (2 ·ℕ k)) ·∞ r01 ≡ g∞ (suc (2 ·ℕ k))
   odd-gen-below-r01 k =
     g∞ (suc (2 ·ℕ k)) ·∞ r01
@@ -1295,6 +1296,7 @@ f-no-retraction r retract = PT.rec2 isProp⊥ go
       ≡⟨ r-on-gen-even k ⟩
     g∞ (2 ·ℕ k) ∎
 
+  -- r(0,1) · r(1,0) = r(0,0) = 0
   r01·r10≡0 : r01 ·∞ r10 ≡ 𝟘∞
   r01·r10≡0 =
     r01 ·∞ r10
@@ -1315,6 +1317,7 @@ f-no-retraction r retract = PT.rec2 isProp⊥ go
     (≤-trans (sucSum-bound m ns (builtin→Path-Bool eq')) S≤m))
 
   go : (Σ NF λ nf₁ → ⟦ nf₁ ⟧nf ≡ r01) → (Σ NF λ nf₂ → ⟦ nf₂ ⟧nf ≡ r10) → ⊥
+  -- Both meetNegForm: product is meetNegForm, nonzero
   go (MNF ms₁ , eq₁) (MNF ms₂ , eq₂) = finMeetNeg∞-nonzero (ms₁ ++ ms₂) prod=0
     where
     prod=0 : finMeetNeg∞ (ms₁ ++ ms₂) ≡ 𝟘∞
@@ -1326,6 +1329,7 @@ f-no-retraction r retract = PT.rec2 isProp⊥ go
       r01 ·∞ r10
         ≡⟨ r01·r10≡0 ⟩
       𝟘∞ ∎
+  -- r01 is joinForm: find fresh odd not in ns, contradiction
   go (JF ns , eq) _ = g∞-nonzero (suc (2 ·ℕ k)) gen=0
     where
     k = sucSum ns
@@ -1339,6 +1343,7 @@ f-no-retraction r retract = PT.rec2 isProp⊥ go
         ≡⟨ gen-notin-finJoin (suc (2 ·ℕ k)) ns
              (above-sucSum-not-in (suc (2 ·ℕ k)) ns (≤-trans (n≤2n k) (≤-suc ≤-refl))) ⟩
       𝟘∞ ∎
+  -- r10 is joinForm: symmetric, find fresh even not in ns
   go (MNF _ , _) (JF ns , eq) = g∞-nonzero (2 ·ℕ k) gen=0
     where
     k = sucSum ns
@@ -1352,4 +1357,3 @@ f-no-retraction r retract = PT.rec2 isProp⊥ go
         ≡⟨ gen-notin-finJoin (2 ·ℕ k) ns
              (above-sucSum-not-in (2 ·ℕ k) ns (n≤2n k)) ⟩
       𝟘∞ ∎
-

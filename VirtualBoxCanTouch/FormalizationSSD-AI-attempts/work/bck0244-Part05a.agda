@@ -537,4 +537,3 @@ private
 
 B∞≅FinCofBR : BooleanRingEquiv B∞ FinCofBR
 B∞≅FinCofBR = (fst φ' , isoToIsEquiv (iso (fst φ') FinCof→B∞.ψ-fun φ∘ψ ψ∘φ-proved)) , snd φ'
-

@@ -160,6 +160,8 @@ module StoneEqualityClosedModule where
     backward : (s ≡ t) → (s' ≡ t')
     backward s=t = cong (transport⁻ path) s=t
 
+-- StoneClosedSubsets (tex Theorem 1648)
+
 module StoneClosedSubsetsModule where
 
   module SpOfQuotientBySeq (B : BooleanRing ℓ-zero) (d : ℕ → ⟨ B ⟩) where
@@ -205,3 +207,4 @@ module StoneClosedSubsetsModule where
          → Σ[ C ∈ Booleω ] (Sp C ≃ (Σ[ x ∈ Sp B ] ((n : ℕ) → fst x (d n) ≡ false)))
     wrap pres = (fst B QB./Im d , ∣ pres ∣₁) , SpOfQuotientBySeq.Sp-quotient-≃ (fst B) d
 
+-- StoneSeparated (tex Lemma 1824)

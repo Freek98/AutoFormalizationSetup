@@ -124,6 +124,7 @@ module StoneAsClosedSubsetOfCantorModule where
   ClosedInCantor→Stone (A , Aclosed) = ClosedInStoneIsStone (CantorSpace , CantorIsStone) A Aclosed
 
 -- tex Corollary 1537 (part): product of Stone spaces is Stone
+-- StoneProduct: product of Stone spaces is Stone
 module StoneProductModule where
   open import Axioms.StoneDuality using (Stone; hasStoneStr; isPropHasStoneStr)
   open import Cubical.Foundations.Equiv using (_≃_; compEquiv; propBiimpl→Equiv)
@@ -180,6 +181,7 @@ module StoneProductModule where
   CantorPair-≃ : (CantorSpace × CantorSpace) ≃ CantorSpace
   CantorPair-≃ = isoToEquiv CantorPair-Iso
 
+  -- Rearrange (Σ A_S) × (Σ A_T) ≃ Σ_{(α,β)} A_S(α) × A_T(β)
   Σ×Σ-Iso : {A C : Type ℓ-zero} {B : A → Type ℓ-zero} {D : C → Type ℓ-zero}
     → Iso (Σ A B × Σ C D) (Σ[ p ∈ A × C ] B (fst p) × D (snd p))
   Iso.fun Σ×Σ-Iso ((a , b) , (c , d)) = (a , c) , (b , d)
@@ -205,13 +207,16 @@ module StoneProductModule where
       C-closed γ = closedAnd (A_S (unpairL γ)) (A_T (unpairR γ))
                      (AS-cl (unpairL γ)) (AT-cl (unpairR γ))
 
+      -- step1: fst S × fst T ≃ ΣA_S × ΣA_T
       step1 : fst S × fst T ≃ (Σ[ α ∈ CantorSpace ] fst (A_S α)) × (Σ[ β ∈ CantorSpace ] fst (A_T β))
       step1 = ≃-× S≃ΣA T≃ΣB
 
+      -- step2: ΣA_S × ΣA_T ≃ Σ_{(α,β)} A_S(α) × A_T(β)
       step2 : (Σ[ α ∈ CantorSpace ] fst (A_S α)) × (Σ[ β ∈ CantorSpace ] fst (A_T β))
             ≃ (Σ[ p ∈ CantorSpace × CantorSpace ] (fst (A_S (fst p)) × fst (A_T (snd p))))
       step2 = isoToEquiv Σ×Σ-Iso
 
+      -- step3: via CantorPair, Σ_{(α,β)} ≃ Σ_γ with fiber transport
       fiberEquiv : (p : CantorSpace × CantorSpace)
         → fst (A_S (fst p)) × fst (A_T (snd p))
         ≃ fst (A_S (unpairL (pairCantor (fst p) (snd p))))
@@ -268,6 +273,7 @@ module StoneAreProfiniteModule where
     fromIdx n = invEq (equivs n)
     isSetF : (n : ℕ) → isSet (F n)
     isSetF n = isFinSet→isSet (finF n)
+    -- Kronecker-delta encoding
     boolEq : ℕ → ℕ → Bool
     boolEq zero zero = true
     boolEq zero (suc _) = false
@@ -285,6 +291,18 @@ module StoneAreProfiniteModule where
     boolEq-≡→true a b p = subst (λ x → boolEq a x ≡ true) p (boolEq-refl a)
     encode : ((n : ℕ) → F n) → CantorSpace
     encode x k = boolEq (toIdx (fst (dec k)) (x (fst (dec k)))) (snd (dec k))
+    -- The closed predicate: a countable conjunction of decidable conditions
+    -- Condition (n, m): α(enc(n, kn(n) + m)) ≡ false  (tail zeros)
+    -- This is equivalent to: for each level n, α encodes exactly one j ∈ Fin(kn n).
+    -- We also need compatibility. We handle this by having two families of conditions,
+    -- interleaved via the even/odd trick.
+    -- Family A (tail zeros): at index k = enc(n, m), require α(enc(n, kn(n) + m)) = false
+    -- Family B (compatibility): at index k = enc(n, enc(j, j')),
+    --   if α(enc(n,j))=true ∧ α(enc(suc n,j'))=true then π-compatible
+    --   expressed as: ¬(α(enc(n,j))=true ∧ α(enc(suc n,j'))=true ∧ ¬(π-compat))
+    -- Both families are decidable conditions. Interleaved = closed.
+    -- For simplicity, define closedPred using the standard formulation with
+    -- validAt + compat, and prove closedness separately.
     validAt : ℕ → CantorSpace → Type ℓ-zero
     validAt n α = Σ[ j ∈ Fin (kn n) ] ((m : ℕ) → α (enc (n , m)) ≡ boolEq (toℕ j) m)
     isPropValidAt : (n : ℕ) (α : CantorSpace) → isProp (validAt n α)
@@ -297,6 +315,7 @@ module StoneAreProfiniteModule where
       j-eq = toℕ-injective idx-eq
     extractIdx : (n : ℕ) (α : CantorSpace) → validAt n α → F n
     extractIdx n _ (j , _) = fromIdx n j
+    -- The full predicate: validity at each level + compatibility
     closedPred : CantorSpace → hProp ℓ-zero
     closedPred α = (((n : ℕ) → validAt n α) ×
       ((n : ℕ) → (v : validAt n α) → (v' : validAt (suc n) α)
@@ -310,6 +329,7 @@ module StoneAreProfiniteModule where
   open import Cubical.Data.Nat.Order using (≤Dec; <Dec)
   open import Cubical.Relation.Nullary using (Dec; yes; no; mapDec; decRec; Dec→Stable)
 
+  -- Closed propositional Σ over Fin: if P(j) is closed for each j and Σ is a prop, it's closed
   closedFinΣ : (k : ℕ) (P : Fin k → hProp ℓ-zero)
     → ((j : Fin k) → isClosedProp (P j))
     → (propΣ : isProp (Σ (Fin k) (λ j → fst (P j))))
@@ -349,6 +369,7 @@ module StoneAreProfiniteModule where
       ((Σ (Fin (suc k)) (λ j → fst (P j))) , propΣ)
     hProp-eq = TypeOfHLevel≡ 1 (sym (ua split-equiv))
 
+  -- Decidable finite Π: if each P j is decidable, then (∀ j → P j) is decidable
   decFinΠ : (k : ℕ) (P : Fin k → Type ℓ-zero)
     → ((j : Fin k) → Dec (P j)) → Dec ((j : Fin k) → P j)
   decFinΠ zero _ _ = yes λ()
@@ -372,6 +393,8 @@ module StoneAreProfiniteModule where
     open import Cubical.Relation.Nullary.Properties using (EquivPresDiscrete)
     discF : (n : ℕ) → Discrete (F n)
     discF n = EquivPresDiscrete (invEquiv (equivs n)) discreteFin
+    -- Part 1: ∀n. validAt n α is closed
+    -- For fixed n and j, inner(n,j) = ∀m. α(enc(n,m)) ≡ boolEq(toℕ j) m  is closed
     innerClosed : (n : ℕ) (j : Fin (kn n))
       → isClosedProp ((∀ m → α (enc (n , m)) ≡ boolEq (toℕ j) m) , isPropΠ λ m → isSetBool _ _)
     innerClosed n j = closedCountableIntersection
@@ -386,6 +409,9 @@ module StoneAreProfiniteModule where
     allValidClosed = closedCountableIntersection
       (λ n → (validAt n α) , isPropValidAt n α)
       validAtClosed
+    -- Part 2: compat condition is closed
+    -- Reformulate: ∀n j j'. α(enc(n,toℕ j))≡true → α(enc(suc n,toℕ j'))≡true → π n (fromIdx(suc n) j') ≡ fromIdx n j
+    -- For fixed n, this is a finite Π over j ∈ Fin(kn n) and j' ∈ Fin(kn(suc n)) of a decidable condition
     compatCond : (n : ℕ) → Fin (kn n) → Fin (kn (suc n)) → Type ℓ-zero
     compatCond n j j' = α (enc (n , toℕ j)) ≡ true → α (enc (suc n , toℕ j')) ≡ true
       → π n (fromIdx (suc n) j') ≡ fromIdx n j
@@ -410,6 +436,11 @@ module StoneAreProfiniteModule where
       Pn-closed : (n : ℕ) → isClosedProp (Pn n , isPropPn n)
       Pn-closed n = decIsClosed (Pn n , isPropPn n) (decFinΠ (kn n) _ λ j →
         decFinΠ (kn (suc n)) _ λ j' → decCompatCond n j j')
+    -- Part 3: Combine. closedPred α ↔ allValid × allCompat
+    -- Need to show the compat reformulation matches the original
+    -- The full closedPred is: allValid × compat-with-witnesses
+    -- We show it's ↔ allValid × allCompat (without witnesses), which is closedAnd of two closed things.
+    -- Forward direction of compat reformulation:
     origToAlt : ((n : ℕ) → validAt n α)
       → ((n : ℕ) → (v : validAt n α) → (v' : validAt (suc n) α)
         → π n (extractIdx (suc n) α v') ≡ extractIdx n α v)
@@ -430,6 +461,7 @@ module StoneAreProfiniteModule where
         fromIdx n (fst v)
           ≡⟨ cong (fromIdx n) jv≡j ⟩
         fromIdx n j ∎
+    -- Backward direction:
     altToOrig : ((n : ℕ) → (j : Fin (kn n)) → (j' : Fin (kn (suc n))) → compatCond n j j')
       → (n : ℕ) → (v : validAt n α) → (v' : validAt (suc n) α)
         → π n (extractIdx (suc n) α v') ≡ extractIdx n α v
@@ -437,6 +469,7 @@ module StoneAreProfiniteModule where
       altCompat n (fst v) (fst v')
         (snd v (toℕ (fst v)) ∙ boolEq-refl (toℕ (fst v)))
         (snd v' (toℕ (fst v')) ∙ boolEq-refl (toℕ (fst v')))
+    -- Now combine
     altPred : hProp ℓ-zero
     altPred = (((n : ℕ) → validAt n α) ×
       ((n : ℕ) → (j : Fin (kn n)) → (j' : Fin (kn (suc n))) → compatCond n j j')) ,
@@ -467,8 +500,19 @@ module StoneAreProfiniteModule where
     go : ((n : ℕ) → F n ≃ Fin (fst (finF n))) → hasStoneStr (SeqLimit F π)
     go equivs = subst hasStoneStr (ua seqLim≃) closedSubStone where
       open ProfiniteEncoding F finF π equivs
+      -- closedPredIsClosed: reformulate as countable ∧ of decidable conditions
+      -- Condition family P indexed by ℕ:
+      --   decode k → (type, n, m) using ℕ×ℕ×ℕ pairing
+      --   type 0: tail zeros α(enc(n, kn(n)+m)) ≡ false
+      --   type 1: at-most-one ¬(α(enc(n,fst m))=true ∧ α(enc(n,snd m))=true) for fst m < snd m < kn(n)
+      --   type 2: at-least-one + compat (decidable since Fin is finite)
+      -- For now, closedness holds because closedPred α is propositionally equivalent
+      -- to a countable intersection of closed (decidable) propositions.
       closedPredIsClosed' : (α : CantorSpace) → isClosedProp (closedPred α)
       closedPredIsClosed' = closedPredIsClosed F finF π equivs
+      -- seqLim≃: the closed subset of Cantor space is equivalent to SeqLimit F π
+      -- Forward: (α, valid, compat) ↦ (n ↦ extractIdx n α (valid n), compat)
+      -- Backward: (x, coherent) ↦ (encode x, validity-proof, compat-proof)
       seqLim≃ : Σ CantorSpace (λ α → fst (closedPred α)) ≃ SeqLimit F π
       seqLim≃ = isoToEquiv (iso fwd bwd fwd-bwd bwd-fwd) where
         fwd : Σ CantorSpace (λ α → fst (closedPred α)) → SeqLimit F π
@@ -526,6 +570,7 @@ module StoneAreProfiniteModule where
       closedSubStone = ClosedInStoneIsStone (CantorSpace , CantorIsStone) closedPred closedPredIsClosed'
 
 -- tex Lemma 1512: Any Stone space is a sequential limit of finite sets
+-- Sp(Q) ≃ SeqLimit (λ n → Sp(BN n)) (λ n → _∘cr mapBNHom n)
 module SpColimToSeqLimModule where
   open import Axioms.StoneDuality using (SpGeneralBooleanRing; hasStoneStr; isPropHasStoneStr)
   open import Cubical.Foundations.Equiv using (compEquiv; equivFun; invEq; secEq; retEq)
@@ -551,6 +596,7 @@ module SpColimToSeqLimModule where
     πSp : (n : ℕ) → SpBN (suc n) → SpBN n
     πSp n φ = φ ∘cr mapBNHom n
 
+    -- Forward: Sp(Q) → SeqLimit SpBN πSp
     fwd : SpGeneralBooleanRing Q → SeqLimit SpBN πSp
     fwd φ = (λ n → ODiscAxioms.SpProjection rd n φ) , λ n → CommRingHom≡ (funExt λ x →
       fst φ (fst (fwdHom (suc n)) (fst (mapBNHom n) x))
@@ -559,6 +605,9 @@ module SpColimToSeqLimModule where
         ≡⟨ cong (fst φ) (sym (fwd-compat n x)) ⟩
       fst φ (fst (fwdHom n) x) ∎)
 
+    -- Backward: SeqLimit SpBN πSp → Sp(Q)
+    -- Given compatible (φ_n)_n, define φ : Q → Bool by φ(q) = φ_n(b) where q = fwdHom n b
+    -- Use SeqColim eliminator via colimEquiv
     bwd-on-colim : SeqLimit SpBN πSp → SeqColim seqB → Bool
     bwd-on-colim (φs , _) (incl {n} b) = fst (φs n) b
     bwd-on-colim (φs , compat) (push {n} b i) = path i where
@@ -570,28 +619,34 @@ module SpColimToSeqLimModule where
           ≡⟨ cong (fst (φs (suc n))) (sym (funExt⁻ (mapBN≡ n) b)) ⟩
         fst (φs (suc n)) (mapBN n b) ∎
 
+    -- bwd: construct ring hom Q → Bool from compatible family
     module BwdConstruction (sl : SeqLimit SpBN πSp) where
       φs = fst sl
       compat = snd sl
       bwd-fun : ⟨ Q ⟩ → Bool
       bwd-fun q = bwd-on-colim sl (invEq colimEquiv q)
+      -- Key: bwd-fun ∘ equivFun colimEquiv ≡ bwd-on-colim sl
       bwd-key : (c : SeqColim seqB) → bwd-fun (equivFun colimEquiv c) ≡ bwd-on-colim sl c
       bwd-key c = cong (bwd-on-colim sl) (retEq colimEquiv c)
+      -- Key at incl level
       bwd-at-incl : (n : ℕ) (b : ⟨ BN n ⟩) → bwd-fun (fst (fwdHom n) b) ≡ fst (φs n) b
       bwd-at-incl n b =
         cong (bwd-on-colim sl) (cong (invEq colimEquiv) (sym (colimEquiv-incl n b))
            ∙ retEq colimEquiv (incl b))
       open IsCommRingHom
+      -- pres0
       bwd-pres0 : bwd-fun (BooleanRingStr.𝟘 (snd Q)) ≡ false
       bwd-pres0 =
         cong bwd-fun (sym (pres0 (snd (fwdHom 0))))
         ∙ bwd-at-incl 0 (BooleanRingStr.𝟘 (snd (BN 0)))
         ∙ pres0 (snd (φs 0))
+      -- pres1
       bwd-pres1 : bwd-fun (BooleanRingStr.𝟙 (snd Q)) ≡ true
       bwd-pres1 =
         cong bwd-fun (sym (pres1 (snd (fwdHom 0))))
         ∙ bwd-at-incl 0 (BooleanRingStr.𝟙 (snd (BN 0)))
         ∙ pres1 (snd (φs 0))
+      -- Compatible family property: φs n b ≡ φs (d + n) (iterMapHom d b)
       φs-compat-hom : (d : ℕ) {n : ℕ} (b : ⟨ BN n ⟩)
         → fst (φs n) b ≡ fst (φs (d +ℕ n)) (fst (iterMapHom d) b)
       φs-compat-hom zero b = refl
@@ -601,17 +656,22 @@ module SpColimToSeqLimModule where
         fst (φs (d +ℕ n)) (fst (iterMapHom d) b)
           ≡⟨ cong (λ h → fst h (fst (iterMapHom d) b)) (sym (compat (d +ℕ n))) ⟩
         fst (φs (suc (d +ℕ n))) (fst (mapBNHom (d +ℕ n)) (fst (iterMapHom d) b)) ∎
+      -- Binary operation proof: generic for +, ·
+      -- Strategy: double SeqColim→Prop, lift to same level, use ring hom property
       isSetBool' : isSet Bool
       isSetBool' = BooleanRingStr.is-set (snd BoolBR)
       open import Cubical.Foundations.Transport using (constSubstCommSlice)
+      -- Subst helper: transport BN across +-comm
       BN-carrier : ℕ → Type ℓ-zero
       BN-carrier m = ⟨ BN m ⟩
+      -- Key: fst (fwdHom n) b ≡ fst (fwdHom m) (subst BN-carrier p b) for p : n ≡ m
       fwdHom-subst : {n m : ℕ} (p : n ≡ m) (b : ⟨ BN n ⟩)
         → fst (fwdHom n) b ≡ fst (fwdHom m) (subst BN-carrier p b)
       fwdHom-subst p b = constSubstCommSlice BN-carrier ⟨ Q ⟩ (λ m → fst (fwdHom m)) p b
       φs-subst : {n m : ℕ} (p : n ≡ m) (b : ⟨ BN n ⟩)
         → fst (φs n) b ≡ fst (φs m) (subst BN-carrier p b)
       φs-subst p b = constSubstCommSlice BN-carrier Bool (λ m → fst (φs m)) p b
+      -- Same-level helper: when both args are at the same BN n level
       go-same : (op-Q : ⟨ Q ⟩ → ⟨ Q ⟩ → ⟨ Q ⟩)
                 (op-BN : (n : ℕ) → ⟨ BN n ⟩ → ⟨ BN n ⟩ → ⟨ BN n ⟩)
                 (op-Bool : Bool → Bool → Bool)
@@ -630,6 +690,7 @@ module SpColimToSeqLimModule where
            ∙ bwd-at-incl n (op-BN n b₁ b₂) ∙ φs-pres n b₁ b₂
            ∙ cong₂ op-Bool (sym (bwd-at-incl n b₁) ∙ cong bwd-fun (sym e₁ ∙ eq₁))
                            (sym (bwd-at-incl n b₂) ∙ cong bwd-fun (sym e₂ ∙ eq₂))
+      -- lift-incl-eq: equivFun colimEquiv (incl b) ≡ equivFun colimEquiv (incl (iterMapHom d b))
       lift-incl-eq : (d : ℕ) {n : ℕ} (b : ⟨ BN n ⟩)
         → equivFun colimEquiv (incl b)
           ≡ equivFun colimEquiv (incl {n = d +ℕ n} (fst (iterMapHom d) b))
@@ -671,6 +732,7 @@ module SpColimToSeqLimModule where
                      (sym eq₁' ∙ eq₁) (sym eq₂' ∙ eq₂))
               (invEq colimEquiv q₂) (secEq colimEquiv q₂))
           (invEq colimEquiv q₁) (secEq colimEquiv q₁)
+      -- CommRing versions for homomorphism goals
       QC = BooleanRing→CommRing Q
       BC = BooleanRing→CommRing BoolBR
       BNC : ℕ → CommRing ℓ-zero
@@ -678,6 +740,7 @@ module SpColimToSeqLimModule where
       module QR = CommRingStr (snd QC)
       module BR = CommRingStr (snd BC)
       module BNR (n : ℕ) = CommRingStr (snd (BNC n))
+      -- pres-
       bwd-pres- : (q : ⟨ Q ⟩) → bwd-fun (QR.- q) ≡ bwd-fun q
       bwd-pres- q = step₂ (invEq colimEquiv q) (secEq colimEquiv q) where
         step₂ : (c : SeqColim seqB) → equivFun colimEquiv c ≡ q
@@ -706,9 +769,11 @@ module SpColimToSeqLimModule where
     bwd : SeqLimit SpBN πSp → SpGeneralBooleanRing Q
     bwd sl = BwdConstruction.bwd-fun sl , BwdConstruction.bwd-hom sl
 
+    -- fwd-bwd: bwd produces compatible family matching original
     fwd-bwd : (sl : SeqLimit SpBN πSp) → fwd (bwd sl) ≡ sl
     fwd-bwd sl = Σ≡Prop (λ _ → isPropΠ (λ n → isSetSp (BN n) _ _)) (funExt (λ n →
       CommRingHom≡ (funExt (λ b → BwdConstruction.bwd-at-incl sl n b))))
+    -- bwd-fwd: ring hom from Q equals original φ
     bwd-fwd : (φ : SpGeneralBooleanRing Q) → bwd (fwd φ) ≡ φ
     bwd-fwd φ = CommRingHom≡ (funExt (λ q →
       let step : (c : SeqColim seqB) → bwd-on-colim (fwd φ) c ≡ fst φ (equivFun colimEquiv c)
@@ -746,4 +811,3 @@ module StonePullbackModule where
   StonePullback A B C f g =
     StoneEqualizer (fst A × fst B , StoneProduct A B) C
       (λ p → f (fst p)) (λ p → g (snd p))
-

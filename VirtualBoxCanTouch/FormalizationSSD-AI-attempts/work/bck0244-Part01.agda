@@ -64,6 +64,12 @@ Closed = Σ[ P ∈ hProp ℓ-zero ] isClosedProp P
 ¬hProp P = (¬ ⟨ P ⟩) , isProp¬ ⟨ P ⟩
 
 -- tex Remark 676 (rmkOpenClosedNegation):
+-- (i) negOpenIsClosed: negation of open is closed
+-- (ii) negClosedIsOpen (line 113): by MP, negation of closed is open
+-- (iii) closedIsStable (line 124): closed props are ¬¬-stable
+-- (iv) openIsStable (line 135): by MP, open props are ¬¬-stable
+-- (v) ¬WLPO (Part19): not every closed prop is decidable
+-- (vi) decIsOpen/decIsClosed (lines 77,81): every decidable prop is open and closed
 negOpenIsClosed : (P : hProp ℓ-zero) → isOpenProp P → isClosedProp (¬hProp P)
 negOpenIsClosed P Popen = PT.rec squash₁ go Popen
   where
@@ -281,4 +287,3 @@ openOrMP mp P Q Popen Qopen = PT.rec2 squash₁ go Popen Qopen
         helper (inr q) =
           let (k , βk=t) = Q→∃β q
           in false≢true (sym (sym (interleave-2k+1 α β k) ∙ all-false (suc (2 ·ℕ k))) ∙ βk=t)
-

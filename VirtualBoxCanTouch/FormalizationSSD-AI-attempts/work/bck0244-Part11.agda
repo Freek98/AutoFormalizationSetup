@@ -4,15 +4,16 @@ open import work.Part02Defs using (FoundationalAxioms)
 
 module work.Part11 (fa : FoundationalAxioms) where
 
-open import work.Part10 fa public
+open import work.Part10b fa public
 
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Structure using (⟨_⟩)
 open import Cubical.Foundations.HLevels
-open import Cubical.Foundations.Equiv using (_≃_; compEquiv; invEquiv; isEquiv)
+open import Cubical.Foundations.Equiv using (_≃_; compEquiv; equivToIso; invEquiv; isEquiv)
 open import Cubical.Foundations.Univalence using (ua)
 open import Cubical.Foundations.Transport using (transport⁻; transportTransport⁻)
 open import Cubical.Foundations.Isomorphism using (iso; isoToEquiv; Iso)
+open import Cubical.Foundations.GroupoidLaws using (lUnit; rUnit; rCancel; lCancel)
 open import Cubical.Data.Sigma
 open import Cubical.Data.Nat using (ℕ; zero; suc)
 open import Cubical.Data.Fin using (Fin)
@@ -28,6 +29,8 @@ open import Cubical.Algebra.BooleanRing using (BoolHom; BooleanRingStr)
 open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
 open import Cubical.Algebra.CommRing using (_∘cr_)
 open import CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω'; _is-presented-by_/_; BooleanRingEquiv; invBooleanRingEquiv; idBoolEquiv; has-Countability-structure)
+
+-- Compact Hausdorff Spaces (tex Definition at line 1898)
 
 module CompactHausdorffModule where
   open import Axioms.StoneDuality using (Stone; hasStoneStr)
@@ -51,6 +54,8 @@ module CompactHausdorffModule where
     where
     open StoneEqualityClosedModule
 
+-- CompactHausdorffClosed (tex Lemma 1906)
+
 module CompactHausdorffClosedModule where
   open import Axioms.StoneDuality using (Stone; hasStoneStr)
   open import Cubical.Functions.Surjection using (isSurjection)
@@ -69,6 +74,8 @@ module CompactHausdorffClosedModule where
 
     Aₓ-closed : (s : fst S) → isClosedProp (Aₓ s)
     Aₓ-closed s = closedAnd (B s) ((q s ≡ x) , isSetX (q s) x) (B-closed s) (equalityClosed (q s) x)
+
+-- InhabitedClosedSubSpaceClosedCHaus (tex Corollary 1930)
 
 module InhabitedClosedSubSpaceClosedCHausModule where
   open import Axioms.StoneDuality using (Stone; hasStoneStr)
@@ -111,6 +118,8 @@ module InhabitedClosedSubSpaceClosedCHausModule where
       backward = PT.rec squash₁ (λ { (x , Ax) →
         PT.map (λ { (s , qs≡x) → s , subst (λ y → fst (A y)) (sym qs≡x) Ax }) (q-surj x) })
 
+-- AllOpenSubspaceOpen (tex Corollary 1967)
+
 module AllOpenSubspaceOpenModule where
   open CompactHausdorffModule
   open InhabitedClosedSubSpaceClosedCHausModule
@@ -146,6 +155,8 @@ module AllOpenSubspaceOpenModule where
     go (β , β-fwd , β-bwd) = openEquiv ¬exists-¬U (((x : fst X) → fst (U x)) , isPropΠ (λ x → snd (U x)))
               backward forward (negClosedIsOpen mp exists-¬U β (β-fwd , β-bwd))
 
+-- CHausFiniteIntersectionProperty (tex Lemma 1981)
+
 module CHausFiniteIntersectionPropertyModule where
   open CompactHausdorffModule
   open import Cubical.Functions.Surjection using (isSurjection)
@@ -154,6 +165,7 @@ module CHausFiniteIntersectionPropertyModule where
   open ClosedInStoneIsStoneModule using (closedFamilyChoice)
   open SDDecToElemModule
   open StoneClosedSubsetsModule
+  -- finJoinBR and 0≡1-quotient→1∈ideal are now top-level in Part09
   import Cubical.Algebra.CommRing.Quotient.ImageQuotient as IQ
   open import CommRingQuotients.IdealTerms using (isInIdeal; isImage; iszero; isSum; isMul; idealDecomp)
   import QuotientBool as QB
@@ -183,6 +195,7 @@ module CHausFiniteIntersectionPropertyModule where
   countableIntersectionClosed C x =
     ((n : ℕ) → fst (C n x)) , isPropΠ (λ n → snd (C n x))
 
+  -- Extract C n x from the finite intersection C₀ ∩ ... ∩ C_k
   allC : {X : Type ℓ-zero} (C : ℕ → (X → hProp ℓ-zero))
        → (k : ℕ) (x : X) → fst (finiteIntersectionClosed C k x) → (n : ℕ) → n ≤ k → fst (C n x)
   allC C zero x p n (zero , q) = subst (λ m → fst (C m x)) (sym q) p
@@ -218,12 +231,14 @@ module CHausFiniteIntersectionPropertyModule where
                     → ∥ Σ[ k ∈ ℕ ] ((x : fst X) → ¬ fst (finiteIntersectionClosed C k x)) ∥₁
       fromWitnesses wit = PT.rec squash₁ fromIdealMem idealMem
         where
+        -- Stone duality data
         Bω : Booleω
         Bω = fst (snd S)
         B : BooleanRing ℓ-zero
         B = fst Bω
         SpB≡S = snd (snd S)
 
+        -- For each (n,m), the decidable predicate and its Boolean ring element
         α-pred : ℕ → ℕ → Sp Bω → Bool
         α-pred n m x = fst (wit n (transport SpB≡S x)) m
 
@@ -233,6 +248,7 @@ module CHausFiniteIntersectionPropertyModule where
         elem-prop : (n m : ℕ) (x : Sp Bω) → fst x (elem n m) ≡ α-pred n m x
         elem-prop n m x = decPred-elem-correspondence sd-axiom Bω (α-pred n m) x
 
+        -- Encode ℕ×ℕ as ℕ
         enc : ℕ × ℕ → ℕ
         enc = Iso.fun ℕ×ℕ≅ℕ
 
@@ -242,17 +258,20 @@ module CHausFiniteIntersectionPropertyModule where
         dec-enc : (p : ℕ × ℕ) → dec (enc p) ≡ p
         dec-enc = Iso.ret ℕ×ℕ≅ℕ
 
+        -- Combined sequence d : ℕ → ⟨B⟩ encoding all (n,m) pairs
         d : ℕ → ⟨ B ⟩
         d k = elem (fst (dec k)) (snd (dec k))
 
         d-at : (n m : ℕ) → d (enc (n , m)) ≡ elem n m
         d-at n m = cong (λ p → elem (fst p) (snd p)) (dec-enc (n , m))
 
+        -- Quotient B/d and its spectrum
         B/d-Booleω : Booleω
         B/d-Booleω = B QB./Im d , quotientBySeqHasBooleω Bω d
 
         open SpOfQuotientBySeq B d using (Sp-quotient-≃)
 
+        -- Sp(B/d) is empty (corresponds to ∩_n C_n = ∅)
         spEmpty : Sp B/d-Booleω → ⊥
         spEmpty sp-hom =
           let (x , allZero) = equivFun Sp-quotient-≃ sp-hom
@@ -267,9 +286,11 @@ module CHausFiniteIntersectionPropertyModule where
                 ≡⟨ allZero (enc (n , m)) ⟩
               false ∎))
 
+        -- 0 ≡ 1 in B/d
         0≡1 : BooleanRingStr.𝟘 (snd (fst B/d-Booleω)) ≡ BooleanRingStr.𝟙 (snd (fst B/d-Booleω))
         0≡1 = SpectrumEmptyImpliesTrivial.0≡1-in-B sd-axiom B/d-Booleω spEmpty
 
+        -- 1 ∈ ideal(d)
         1∈ideal : IQ.generatedIdeal (BooleanRing→CommRing B) d
                     (CommRingStr.1r (snd (BooleanRing→CommRing B)))
         1∈ideal = 0≡1-quotient→1∈ideal B d 0≡1
@@ -278,6 +299,7 @@ module CHausFiniteIntersectionPropertyModule where
                        (CommRingStr.1r (snd (BooleanRing→CommRing B))) ∥₁
         idealMem = idealDecomp (BooleanRing→CommRing B) d _ 1∈ideal
 
+        -- Algebraic abbreviations
         private
           module BA = BooleanAlgebraStr B
           R = BooleanRing→CommRing B
@@ -290,6 +312,7 @@ module CHausFiniteIntersectionPropertyModule where
           fJ = finJoinBR B
           _∨Bool_ = BooleanAlgebraStr._∨_ BoolBR
 
+        -- r · fJ d N = r  →  r · fJ d (suc N) = r
         leq-suc : {r : ⟨ B ⟩} (N : ℕ) → r ·B fJ d N ≡ r → r ·B fJ d (suc N) ≡ r
         leq-suc {r} N p =
           r ·B (d N ∨B fJ d N)
@@ -366,6 +389,7 @@ module CHausFiniteIntersectionPropertyModule where
               ≡⟨ sym r=st ⟩
             r ∎)
 
+        -- BoolHom preserves ∨
         boolhom-∨ : (x : Sp Bω) (a b : ⟨ B ⟩) → fst x (a ∨B b) ≡ fst x a ∨Bool fst x b
         boolhom-∨ x a b =
           let _+S_ = CommRingStr._+_ (snd (BooleanRing→CommRing BoolBR))
@@ -375,6 +399,7 @@ module CHausFiniteIntersectionPropertyModule where
             ≡⟨ cong₂ _+S_ (IsCommRingHom.pres+ (snd x) a b) (IsCommRingHom.pres· (snd x) a b) ⟩
           fst x a ∨Bool fst x b ∎
 
+        -- If all d(k) for k<N map to false, then fJ d N maps to false
         finJoin-false : (x : Sp Bω) (N : ℕ) → ((k : ℕ) → k < N → fst x (d k) ≡ false)
                       → fst x (fJ d N) ≡ false
         finJoin-false x zero _ = IsCommRingHom.pres0 (snd x)
@@ -385,6 +410,7 @@ module CHausFiniteIntersectionPropertyModule where
             ≡⟨ cong₂ _∨Bool_ (h n ≤-refl) (finJoin-false x n (λ k k<n → h k (≤-suc k<n))) ⟩
           false ∎
 
+        -- Max of first coordinates of dec(0),...,dec(N-1)
         maxFst : ℕ → ℕ
         maxFst zero = 0
         maxFst (suc k) = max (fst (dec k)) (maxFst k)
@@ -397,6 +423,7 @@ module CHausFiniteIntersectionPropertyModule where
         ... | (zero , p) = subst (λ j → fst (dec j) ≤ maxFst (suc N)) (sym p) (left-≤-max {fst (dec N)} {maxFst N})
         ... | (suc j , p) = ≤-trans (maxFst-bound N k (j , +-suc j k ∙ p)) (right-≤-max {maxFst N} {fst (dec N)})
 
+        -- From isInIdeal 1, construct the finite bound
         fromIdealMem : isInIdeal R d CRS.1r
                      → ∥ Σ[ k ∈ ℕ ] ((x : fst X) → ¬ fst (finiteIntersectionClosed C k x)) ∥₁
         fromIdealMem iI = ∣ K , conclusion ∣₁
@@ -452,6 +479,8 @@ module CHausFiniteIntersectionPropertyModule where
                   ≡⟨ finJoin-false x' N x'-d-false ⟩
                 false ∎
 
+-- ChausMapsPreserveIntersectionOfClosed (tex Corollary 2003)
+
 module ChausMapsPreserveIntersectionOfClosedModule where
   open CompactHausdorffModule
   open CHausFiniteIntersectionPropertyModule
@@ -489,6 +518,7 @@ module ChausMapsPreserveIntersectionOfClosedModule where
              → fst (imageSubset f (countableIntersectionClosed G) y)
     backward hyp = closedIsStable target-prop target-closed ¬¬target
       where
+      -- C_n(x) = G_n(x) ∧ (f x ≡ y)
       C : ℕ → (fst X → hProp ℓ-zero)
       C n x = (fst (G n x) × (f x ≡ y)) , isProp× (snd (G n x)) (isSetY (f x) y)
 
@@ -496,6 +526,7 @@ module ChausMapsPreserveIntersectionOfClosedModule where
       C-closed n x = closedAnd (G n x) ((f x ≡ y) , isSetY (f x) y)
                        (G-closed n x) (hasCHausStr.equalityClosed (snd Y) (f x) y)
 
+      -- Build finite intersection witness from G_k witness + decreasingness
       buildFinInt : (k : ℕ) (x : fst X)
                   → fst (G k x) → f x ≡ y
                   → fst (finiteIntersectionClosed C k x)
@@ -503,12 +534,14 @@ module ChausMapsPreserveIntersectionOfClosedModule where
       buildFinInt (suc k) x gkx fx≡y =
         (gkx , fx≡y) , buildFinInt k x (G-decr k x gkx) fx≡y
 
+      -- Each finite intersection is nonempty
       finInt-nonempty : (k : ℕ) → ¬ ((x : fst X) → ¬ fst (finiteIntersectionClosed C k x))
       finInt-nonempty k allEmpty-k =
         PT.rec isProp⊥
           (λ { (x , gkx , fx≡y) → allEmpty-k x (buildFinInt k x gkx fx≡y) })
           (hyp k)
 
+      -- Countable intersection is nonempty (contrapositive of CHausFIP)
       ¬countInt-empty : ¬ ((x : fst X) → ¬ fst (countableIntersectionClosed C x))
       ¬countInt-empty allEmpty =
         PT.rec isProp⊥
@@ -518,6 +551,7 @@ module ChausMapsPreserveIntersectionOfClosedModule where
       target-prop : hProp ℓ-zero
       target-prop = imageSubset f (countableIntersectionClosed G) y
 
+      -- ∥ Σ x. (∀n. G_n x) × (f x ≡ y) ∥₁ is closed
       A-bwd : fst X → hProp ℓ-zero
       A-bwd x = (((n : ℕ) → fst (G n x)) × (f x ≡ y)) ,
                 isProp× (isPropΠ (λ n → snd (G n x))) (isSetY (f x) y)
@@ -536,6 +570,8 @@ module ChausMapsPreserveIntersectionOfClosedModule where
       ¬¬target ¬tgt = ¬countInt-empty λ x countInt-C-x →
         ¬tgt ∣ x , (λ n → fst (countInt-C-x n)) , snd (countInt-C-x 0) ∣₁
 
+-- CompactHausdorffTopology (tex Corollary 2019)
+
 module CompactHausdorffTopologyModule where
   open CompactHausdorffModule
   open CompactHausdorffClosedModule
@@ -551,6 +587,7 @@ module CompactHausdorffTopologyModule where
   import Cubical.HITs.PropositionalTruncation as PT
 
   private
+    -- Cumulative conjunction: D₀ ∧ D₁ ∧ ... ∧ D_n
     cumAnd : {A : Type ℓ-zero} (D : ℕ → A → Bool) → ℕ → A → Bool
     cumAnd D zero s = D zero s
     cumAnd D (suc n) s = D (suc n) s and cumAnd D n s
@@ -575,6 +612,8 @@ module CompactHausdorffTopologyModule where
       subst (λ b → b and cumAnd D n s ≡ true) (sym (hyp (suc n)))
         (all-to-cumAnd D n s hyp)
 
+  -- Closed characterization: backward direction
+  -- If A = ∩_n q(D_n) for decidable D_n, then A is closed
   CHTopClosed-backward : (X : CHaus) (S : Stone)
     → (q : fst S → fst X) → isSurjection q
     → (D : ℕ → fst S → Bool) → (y : fst X)
@@ -585,6 +624,8 @@ module CompactHausdorffTopologyModule where
     (λ n → CompactHausdorffClosed-backward X S q q-surj
       (λ s → (D n s ≡ true) , isSetBool _ _) (λ s → Bool-equality-closed (D n s) true) y)
 
+  -- Closed characterization: forward direction
+  -- If A is closed, then ∃ D_n decidable with A(y) ≡ ∩_n q(D_n)(y)
   CHTopClosed-forward : (X : CHaus) (S : Stone)
     → (q : fst S → fst X) → isSurjection q
     → (A : fst X → hProp ℓ-zero) → ((x : fst X) → isClosedProp (A x))
@@ -613,6 +654,7 @@ module CompactHausdorffTopologyModule where
       α-bwd : (s : fst S) → ((n : ℕ) → α s n ≡ false) → fst (A (q s))
       α-bwd s = snd (snd (witness s))
 
+      -- D_n(s) = not(α(s,n)), so D_n(s) = true ↔ α(s,n) = false
       D : ℕ → fst S → Bool
       D n s = not (α s n)
 
@@ -626,9 +668,11 @@ module CompactHausdorffTopologyModule where
       ... | false = refl
       ... | true = ⊥.rec (true≢false eq)
 
+      -- Output: cumulative intersection (decreasing and decidable)
       E : ℕ → fst S → Bool
       E = cumAnd D
 
+      -- hProp version for CMPIC
       G : ℕ → (fst S → hProp ℓ-zero)
       G n s = (E n s ≡ true) , isSetBool _ _
 
@@ -638,22 +682,26 @@ module CompactHausdorffTopologyModule where
       G-decr : isDecreasingSeq G
       G-decr n s = cumAnd-decr D n s
 
+      -- ∩_n G_n(s) ↔ A'(s)
       countG→A' : (s : fst S) → ((n : ℕ) → fst (G n s)) → fst (A' s)
       countG→A' s hyp = α-bwd s (λ n → D-true→α-false n s (cumAnd-extract D n s (hyp n)))
 
       A'→countG : (s : fst S) → fst (A' s) → (n : ℕ) → fst (G n s)
       A'→countG s a's n = all-to-cumAnd D n s (λ k → α-false→D-true k s (α-fwd s a's k))
 
+      -- A(y) → imageSubset q (∩_n G) y
       A→img : (y : fst X) → fst (A y)
         → fst (imageSubset q (countableIntersectionClosed G) y)
       A→img y ay = PT.rec squash₁
         (λ (s , qs≡y) → ∣ s , A'→countG s (subst (fst ∘ A) (sym qs≡y) ay) , qs≡y ∣₁)
         (q-surj y)
 
+      -- imageSubset q (∩_n G) y → A(y)
       img→A : (y : fst X) → fst (imageSubset q (countableIntersectionClosed G) y) → fst (A y)
       img→A y = PT.rec (snd (A y))
         (λ (s , allG , qs≡y) → subst (fst ∘ A) qs≡y (countG→A' s allG))
 
+      -- CMPIC: q(∩_n G) = ∩_n q(G_n)
       cmpic : (y : fst X)
         → fst (imageSubset q (countableIntersectionClosed G) y)
           ≡ fst (countableIntersectionClosed (λ n → imageSubset q (G n)) y)
@@ -665,6 +713,8 @@ module CompactHausdorffTopologyModule where
         (λ ay → transport (cmpic y) (A→img y ay))
         (λ hyp → img→A y (transport (sym (cmpic y)) hyp))
 
+  -- Open characterization: backward direction
+  -- If A = ∪_n ¬q(D_n) for decidable D_n, then A is open
   CHTopOpen-backward : (X : CHaus) (S : Stone)
     → (q : fst S → fst X) → isSurjection q
     → (D : ℕ → fst S → Bool) → (y : fst X)
@@ -677,6 +727,8 @@ module CompactHausdorffTopologyModule where
       (CompactHausdorffClosed-backward X S q q-surj
         (λ s → (D n s ≡ true) , isSetBool _ _) (λ s → Bool-equality-closed (D n s) true) y))
 
+  -- Open characterization: forward direction
+  -- If A is open, then ∃ D_n decidable with A(y) ≡ ∪_n ¬q(D_n)(y)
   CHTopOpen-forward : (X : CHaus) (S : Stone)
     → (q : fst S → fst X) → isSurjection q
     → (A : fst X → hProp ℓ-zero) → ((x : fst X) → isOpenProp (A x))
@@ -717,6 +769,8 @@ module CompactHausdorffTopologyModule where
         bwd ex = openIsStable mp (A y) (A-open y)
           (λ ¬ay → snd (markov y) ex (transport (char y) ¬ay))
 
+-- CHausSeperationOfClosedByOpens (tex Lemma 2058)
+
 module CHausSeperationOfClosedByOpensModule where
   open CompactHausdorffModule
   open CompactHausdorffClosedModule
@@ -753,6 +807,7 @@ module CHausSeperationOfClosedByOpensModule where
                   subsetOf A U × subsetOf B V × areDisjoint U V ∥₁
     fromCover (S , q , q-surj) = PT.rec squash₁ fromSeparator separated
       where
+      -- Pull back A and B to S
       A' : fst S → hProp ℓ-zero
       A' s = A (q s)
 
@@ -778,6 +833,7 @@ module CHausSeperationOfClosedByOpensModule where
                         subsetOf A U × subsetOf B V × areDisjoint U V ∥₁
       fromSeparator (D , D-sep-A , D-sep-B) = ∣ U , V , U-open , V-open , A⊆U , B⊆V , UV-disjoint ∣₁
         where
+        -- D-subset: {s : S | D s = true}
         D-true : fst S → hProp ℓ-zero
         D-true s = (D s ≡ true) , isSetBool (D s) true
 
@@ -790,6 +846,7 @@ module CHausSeperationOfClosedByOpensModule where
         D-false-closed : (s : fst S) → isClosedProp (D-false s)
         D-false-closed s = Bool-equality-closed (D s) false
 
+        -- q(D) and q(¬D) as closed subsets of X
         qD : fst X → hProp ℓ-zero
         qD x = ∥ Σ[ s ∈ fst S ] (D s ≡ true) × (q s ≡ x) ∥₁ , squash₁
 
@@ -802,6 +859,7 @@ module CHausSeperationOfClosedByOpensModule where
         q¬D-closed : (x : fst X) → isClosedProp (q¬D x)
         q¬D-closed = CompactHausdorffClosed-backward X S q q-surj D-false D-false-closed
 
+        -- U = ¬q(¬D), V = ¬q(D)
         U : fst X → hProp ℓ-zero
         U x = ¬hProp (q¬D x)
 
@@ -818,14 +876,17 @@ module CHausSeperationOfClosedByOpensModule where
           (λ (β , fwd , bwd) → negClosedIsOpen mp (qD x) β (fwd , bwd))
           (qD-closed x)
 
+        -- A ⊆ U: if x ∈ A, then ¬∃s, D(s)=false ∧ q(s)=x
         A⊆U : subsetOf A U
         A⊆U x ax = PT.rec isProp⊥ λ { (s , ds≡false , qs≡x) →
           true≢false (sym (D-sep-A s (subst (λ y → fst (A y)) (sym qs≡x) ax)) ∙ ds≡false) }
 
+        -- B ⊆ V: if x ∈ B, then ¬∃s, D(s)=true ∧ q(s)=x
         B⊆V : subsetOf B V
         B⊆V x bx = PT.rec isProp⊥ λ { (s , ds≡true , qs≡x) →
           true≢false (sym ds≡true ∙ D-sep-B s (subst (λ y → fst (B y)) (sym qs≡x) bx)) }
 
+        -- U ∩ V = ∅: ¬q(¬D)(x) ∧ ¬q(D)(x) → ⊥
         UV-disjoint : areDisjoint U V
         UV-disjoint x (ux , vx) = PT.rec isProp⊥ helper (q-surj x)
           where
@@ -835,6 +896,8 @@ module CHausSeperationOfClosedByOpensModule where
             case-bool : (b : Bool) → D s ≡ b → ⊥
             case-bool true  eq = vx ∣ s , eq , qs≡x ∣₁
             case-bool false eq = ux ∣ s , eq , qs≡x ∣₁
+
+-- SigmaCompactHausdorff (tex Lemma 2098)
 
 module SigmaCompactHausdorffModule where
   open CompactHausdorffModule
@@ -863,6 +926,7 @@ module SigmaCompactHausdorffModule where
     isSetΣXY : isSet (SigmaCHausType X Y)
     isSetΣXY = isSetΣ isSetXbase (λ x → hasCHausStr.isSetX (snd (Y x)))
 
+    -- Equality in Σ X Y is closed (tex ClosedDependentSums 1785)
     σ-eq-closed : (σ₁ σ₂ : SigmaCHausType X Y)
       → isClosedProp ((σ₁ ≡ σ₂) , isSetΣXY σ₁ σ₂)
     σ-eq-closed (x₁ , y₁) (x₂ , y₂) =
@@ -892,6 +956,8 @@ module SigmaCompactHausdorffModule where
                isOfHLevelPathP' 1 (hasCHausStr.isSetX (snd (Y x₂))) y₁ y₂)
         pathP-closed
 
+    -- Stone cover of Σ X Y (tex proof of Lemma 2098)
+    -- Uses localChoice with Type ℓ-zero encoding of closed subsets (binary sequences)
     σ-stoneCover : ∥ Σ[ S ∈ Stone ] Σ[ q ∈ (fst S → SigmaCHausType X Y) ] isSurjection q ∥₁
     σ-stoneCover = PT.rec squash₁ build-cover X-sc
       where
@@ -904,6 +970,7 @@ module SigmaCompactHausdorffModule where
         p_X : Sp (fst (snd S_X)) ≡ fst S_X
         p_X = snd (snd S_X)
 
+        -- Type ℓ-zero encoding: binary sequence per Cantor point + surjection to Y(q_X s)
         FiberData : fst S_X → Type ℓ-zero
         FiberData s = Σ[ enc ∈ (CantorSpace → binarySequence) ]
                       Σ[ f ∈ ((Σ[ γ ∈ CantorSpace ] ((n : ℕ) → enc γ n ≡ false)) → fst (Y (q_X s))) ]
@@ -1019,6 +1086,8 @@ module SigmaCompactHausdorffModule where
   CHausΣ : (X : CHaus) → (Y : fst X → CHaus) → CHaus
   CHausΣ X Y = SigmaCHausType X Y , SigmaCompactHausdorff X Y
 
+-- AlgebraCompactHausdorffCountablyPresented (tex Lemma 2112)
+
 module AlgebraCompactHausdorffCountablyPresentedModule where
   open CompactHausdorffModule
   open AllOpenSubspaceOpenModule
@@ -1029,6 +1098,7 @@ module AlgebraCompactHausdorffCountablyPresentedModule where
   open import Cubical.Data.Bool using (_≟_)
   open import Cubical.HITs.PropositionalTruncation.Properties using (rec→Set)
 
+  -- Helper: if P is closed and Q is decidable, (P → Q) is open
   closedImplDecIsOpen : (P Q : hProp ℓ-zero) → isClosedProp P → Dec ⟨ Q ⟩
     → isOpenProp ((⟨ P ⟩ → ⟨ Q ⟩) , isPropΠ (λ _ → snd Q))
   closedImplDecIsOpen P Q Pclosed (yes q) =
@@ -1057,11 +1127,13 @@ module AlgebraCompactHausdorffCountablyPresentedModule where
       p : Sp B ≡ fst S
       p = snd (snd S)
 
+      -- (fst S → Bool) is ODisc via Stone duality
       2^S-isODisc : isODisc (fst S → Bool)
       2^S-isODisc = isODisc-path
         (ua (fst (SDHomVersion sd-axiom B)) ∙ cong (λ T → T → Bool) p)
         (BooleIsODisc B)
 
+      -- compatibility predicate
       compatible : (fst S → Bool) → Type ℓ-zero
       compatible b = (s t : fst S) → q s ≡ q t → b s ≡ b t
 
@@ -1069,6 +1141,7 @@ module AlgebraCompactHausdorffCountablyPresentedModule where
       isProp-compatible b =
         isPropΠ λ s → isPropΠ λ t → isPropΠ λ _ → isSetBool (b s) (b t)
 
+      -- each (q s ≡ q t → b s ≡ b t) is open
       S-CHaus : CHaus
       S-CHaus = Stone→CHaus S
 
@@ -1080,6 +1153,7 @@ module AlgebraCompactHausdorffCountablyPresentedModule where
         (hasCHausStr.equalityClosed (snd X) (q s) (q t))
         ((b s) ≟ (b t))
 
+      -- compatible b is open for each b
       compatible-open : (b : fst S → Bool)
         → isOpenProp (compatible b , isProp-compatible b)
       compatible-open b = AllOpenSubspaceOpen S-CHaus
@@ -1090,6 +1164,7 @@ module AlgebraCompactHausdorffCountablyPresentedModule where
                  isPropΠ (λ _ → isSetBool (b s) (b t)))
           (λ t → impl-open b s t))
 
+      -- (fst X → Bool) ≃ Σ (fst S → Bool) compatible
       fwd : (fst X → Bool) → Σ[ b ∈ (fst S → Bool) ] compatible b
       fwd a = (λ s → a (q s)) , (λ s t e → cong a e)
 
@@ -1124,12 +1199,16 @@ module AlgebraCompactHausdorffCountablyPresentedModule where
       2^X≃Σ : (fst X → Bool) ≃ (Σ[ b ∈ (fst S → Bool) ] compatible b)
       2^X≃Σ = isoToEquiv (iso fwd bwd fwd-bwd bwd-fwd)
 
+      -- Σ (fst S → Bool) compatible is ODisc
       Σ-isODisc : isODisc (Σ[ b ∈ (fst S → Bool) ] (compatible b))
       Σ-isODisc = OdiscSigma 2^S-isODisc
         (λ b → PropOpenIffOdisc (compatible b , isProp-compatible b) (compatible-open b))
 
+      -- (fst X → Bool) is ODisc
       2^X-isODisc : isODisc (fst X → Bool)
       2^X-isODisc = isODisc-path (sym (ua 2^X≃Σ)) Σ-isODisc
+
+-- ConnectedComponentModule (tex 2138-2171)
 
 module ConnectedComponentModule where
   open CompactHausdorffModule
@@ -1320,6 +1399,8 @@ module ConnectedComponentModule where
           ¬¬Uy : ¬ ¬ fst (U y)
           ¬¬Uy ¬Uy = kEmpty y (build-finInt k y Ey ¬Uy)
 
+-- ConnectedComponentConnectedModule (tex Lemma 2173)
+
 module ConnectedComponentConnectedModule where
   open CompactHausdorffModule
   open ConnectedComponentModule
@@ -1455,6 +1536,8 @@ module ConnectedComponentConnectedModule where
             conclusion with Bool-dichotomy (f (a , qa)) fval
             ... | ⊎.inl p = sym p
             ... | ⊎.inr p = ex-falso (a-not-in-V (B⊆V a ∣ qa , p ∣₁))
+
+-- StoneCompactHausdorffTotallyDisconnectedModule (tex Lemma 2186)
 
 module StoneCompactHausdorffTotallyDisconnectedModule where
   open CompactHausdorffModule
@@ -1672,6 +1755,8 @@ module StoneCompactHausdorffTotallyDisconnectedModule where
       ev-equiv : fst X ≃ Sp BX
       ev-equiv = ev , isEmbedding×isSurjection→isEquiv (ev-emb , ev-surj)
 
+-- StoneSigmaClosedModule (tex Theorem 2214, stone-sigma-closed)
+
 module StoneSigmaClosedModule where
   open import Axioms.StoneDuality using (Stone; hasStoneStr)
   open CompactHausdorffModule
@@ -1692,6 +1777,7 @@ module StoneSigmaClosedModule where
     → fst (ConnectedComponent (Stone→CHaus S) x x')
   proj₁-preserves-CC S T x y x' y' ccσ D xInD = ccσ (λ (a , b) → D a) xInD
 
+  -- Proof of ΣStone-isTotallyDisconnected following tex Theorem 2214
   ΣStone-isTotallyDisconnected : (S : Stone) (T : fst S → Stone)
     → isTotallyDisconnected (ΣStoneCHaus S T)
   ΣStone-isTotallyDisconnected S T (x , y) (x' , y') ccσ = goal
@@ -1768,3 +1854,4 @@ module StoneSigmaClosedModule where
     (ΣStoneCHaus S T)
     (ΣStone-isTotallyDisconnected S T)
 
+-- IntervalIsCHausModule (tex Theorem 2272)

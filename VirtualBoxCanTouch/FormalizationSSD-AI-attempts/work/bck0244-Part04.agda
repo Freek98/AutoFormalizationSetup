@@ -1018,5 +1018,6 @@ module FinCof→B∞ where
     (λ (N , stab) → φ∘ψ-on-witness f N stab)
     ec
 
+
 open FinCof→B∞ public hiding (ψ-fun)
 

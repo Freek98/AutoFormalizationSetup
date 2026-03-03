@@ -58,12 +58,15 @@ SpB∞≃ℕ∞ = isoToEquiv SpB∞≅ℕ∞
 ℕ∞-has-StoneStr : hasStoneStr ℕ∞
 ℕ∞-has-StoneStr = B∞-Booleω , ua SpB∞≃ℕ∞
 
+-- Bool is Stone (tex line 1527)
 Bool-has-StoneStr : hasStoneStr Bool
 Bool-has-StoneStr = Bool²-Booleω , ua Sp-Bool²≃Bool
 
+-- LLPO proved from Stone Duality (tex Theorem LLPO, line 541)
 llpo : LLPO
 llpo = llpo-from-SD
 
+-- (tex Lemma ClosedDeMorgan, line 760)
 closedDeMorgan : (P Q : hProp ℓ-zero) → isClosedProp P → isClosedProp Q
                → ¬ ((¬ ⟨ P ⟩) × (¬ ⟨ Q ⟩)) → ∥ ⟨ P ⟩ ⊎ ⟨ Q ⟩ ∥₁
 closedDeMorgan P Q Pclosed Qclosed ¬¬P∧¬Q = PT.rec2 squash₁ go Pclosed Qclosed
@@ -211,6 +214,7 @@ closedOr P Q Pclosed Qclosed = PT.rec2 squash₁ go Pclosed Qclosed
           let (n , γn=t) = fwd-open (¬p , ¬q)
           in false≢true (sym (all-false n) ∙ γn=t)
 
+-- (tex line 716)
 openDeMorgan : (P Q : hProp ℓ-zero) → isOpenProp P → isOpenProp Q
              → (¬ (⟨ P ⟩ × ⟨ Q ⟩)) ↔ ∥ (¬ ⟨ P ⟩) ⊎ (¬ ⟨ Q ⟩) ∥₁
 openDeMorgan P Q Popen Qopen = forward , backward
@@ -224,4 +228,3 @@ openDeMorgan P Q Popen Qopen = forward , backward
     { (inl ¬p) (p , _) → ¬p p
     ; (inr ¬q) (_ , q) → ¬q q
     }
-

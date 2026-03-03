@@ -41,6 +41,8 @@ module StoneILocalTC where
 
 -- tex Lemma 3027: BZ is I-local
 module BZILocalTC where
+  open CohomologyModule using (BZ)
+
   BZ-I-local : (f : UnitInterval → BZ) → (x y : UnitInterval) → f x ≡ f y
   BZ-I-local = contr-map-const-local isContrUnitInterval
 

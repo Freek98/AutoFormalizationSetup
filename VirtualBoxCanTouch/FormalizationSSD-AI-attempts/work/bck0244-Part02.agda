@@ -584,4 +584,3 @@ openSubsetTransitive : {T : Type₀}
                      → isOpenSubset (λ t → (∥ Σ[ v ∈ ⟨ V t ⟩ ] ⟨ W t v ⟩ ∥₁) , squash₁)
 openSubsetTransitive V Vopen W Wopen t =
   openSigmaOpen (V t) (Vopen t) (W t) (Wopen t)
-

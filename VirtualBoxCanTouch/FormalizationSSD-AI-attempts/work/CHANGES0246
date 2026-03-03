@@ -1,0 +1,10 @@
+Summary: Split Part14 into Part14a + Part14b + Part14 to fix compilation OOM/timeout.
+
+Part14a (810 lines): CohomologyModule, CechComplex, FiniteApprox, ScottIntCodomain, FiniteApproximationProof, cocycleFactorsE postulate. COMPILES.
+Part14b (203 lines): eilenberg-stone-vanish, CechCover, CHaus-has-CechCover, CechEilenberg0Agree, H1-total-vanish. Imports Part14a public. COMPILES.
+Part14 (237 lines): StoneCommuteDeloopingModule, ¬isContr-BZ, H⁰-Interval≅ℤ, H¹-vanishes-Interval. Imports Part14b public. COMPILING (expensive ΩEquiv→Equiv).
+
+Part19 now imports Part14b instead of Part14 (doesn't need StoneCommuteDelooping).
+All.agda updated with Part14b import.
+
+Reason: Original Part14 (1192 lines) OOMed. Split to Part14a (810 lines) worked but remaining 414-line Part14 still timed out at 30min due to StoneCommuteDeloopingModule's expensive ΩEquiv→Equiv. Further split isolates the expensive module.

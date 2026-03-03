@@ -153,34 +153,45 @@ Bool²-unit-left = true , false
 Bool²-unit-right : ⟨ Bool² ⟩
 Bool²-unit-right = false , true
 
+-- FinCof: Boolean algebra of finite/cofinite subsets of ℕ
+-- Represented as eventually-constant boolean functions
+-- (tex: B∞ ≅ FinCof, separating out the LLPO structure)
 module FinCofSubsets where
   open import Cubical.Data.Bool using (Bool; true; false; _⊕_; _and_; not; isSetBool;
     true≢false; notnot)
   open import Cubical.HITs.PropositionalTruncation as PT using (∥_∥₁; ∣_∣₁; squash₁)
   open import Cubical.Foundations.HLevels using (isSetΣ; isOfHLevelΠ)
 
+  -- A boolean sequence is eventually constant if after some point it stays constant
   isEventuallyConst : (ℕ → Bool) → Type₀
   isEventuallyConst f = ∥ Σ[ N ∈ ℕ ] ((n : ℕ) → N ≤ n → f n ≡ f N) ∥₁
 
+  -- The type of finite/cofinite subsets (eventually constant boolean functions)
   FinCof : Type₀
   FinCof = Σ[ f ∈ (ℕ → Bool) ] isEventuallyConst f
 
+  -- FinCof is a set
   isSetFinCof : isSet FinCof
   isSetFinCof = isSetΣ (isOfHLevelΠ 2 (λ _ → isSetBool)) (λ _ → isProp→isSet squash₁)
 
+  -- Membership: n ∈ S iff fst S n ≡ true
   _∈FC_ : ℕ → FinCof → Bool
   n ∈FC (f , _) = f n
 
+  -- The empty set (finite, eventually false from the start)
   fcEmpty : FinCof
   fcEmpty = (λ _ → false) , ∣ 0 , (λ _ _ → refl) ∣₁
 
+  -- The full set ℕ (cofinite, eventually true from the start)
   fcFull : FinCof
   fcFull = (λ _ → true) , ∣ 0 , (λ _ _ → refl) ∣₁
 
+  -- Complement: swap true/false
   fcNot : FinCof → FinCof
   fcNot (f , ec) = (λ n → not (f n)) ,
     PT.map (λ { (N , stable) → N , (λ n N≤n → cong not (stable n N≤n)) }) ec
 
+  -- Symmetric difference (XOR): the "addition" operation
   fcXor : FinCof → FinCof → FinCof
   fcXor (f , ef) (g , eg) = (λ n → f n ⊕ g n) ,
     PT.rec2 squash₁ (λ { (N₁ , s₁) (N₂ , s₂) →
@@ -197,6 +208,7 @@ module FinCofSubsets where
         in cong₂ _⊕_ (s₁ n n₁) (s₂ n n₂) ∙ sym (cong₂ _⊕_ (s₁ N nN₁) (s₂ N nN₂))) ∣₁ })
     ef eg
 
+  -- Intersection (AND): the "multiplication" operation
   fcAnd : FinCof → FinCof → FinCof
   fcAnd (f , ef) (g , eg) = (λ n → f n and g n) ,
     PT.rec2 squash₁ (λ { (N₁ , s₁) (N₂ , s₂) →
@@ -321,4 +333,3 @@ module B∞→FinCof where
     fcSingleton n ∎
 
 open B∞→FinCof public hiding (φ)
-

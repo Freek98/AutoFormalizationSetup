@@ -183,4 +183,3 @@ module IntervalTheory (ia : IntervalAxioms) where
           in IVT-contradiction f y no-sol f0≤y y≤f1
 
     in closedIsStable existence-prop existence-closed ¬¬existence
-
