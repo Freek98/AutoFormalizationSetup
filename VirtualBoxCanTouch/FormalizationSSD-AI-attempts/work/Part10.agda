@@ -19,10 +19,10 @@ open import Cubical.HITs.PropositionalTruncation as PT using (∣_∣₁; ∥_�
 open import Cubical.Algebra.BooleanRing using (BooleanRing; BooleanRingStr; BoolHom)
 open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
 open import Cubical.Algebra.CommRing using (CommRing; _∘cr_; CommRingHom≡)
-open import Axioms.StoneDuality using (Sp)
+open import StoneSpaces.Spectrum using (Sp)
 
 module StoneAsClosedSubsetOfCantorModule where
-  open import Axioms.StoneDuality using (Stone; hasStoneStr)
+  open import StoneSpaces.Spectrum using (Stone; hasStoneStr)
   open import Cubical.Foundations.Equiv using (compEquiv)
   open ClosedInStoneIsStoneModule
   open StoneClosedSubsetsModule
@@ -34,7 +34,7 @@ module StoneAsClosedSubsetOfCantorModule where
   module Stone→ClosedInCantorProof where
     open import CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω')
     open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA)
-    open import Axioms.StoneDuality using (SpGeneralBooleanRing)
+    open import StoneSpaces.Spectrum using (SpGeneralBooleanRing)
     import QuotientBool as QB
     open StoneClosedSubsetsModule.SpOfQuotientBySeq
 
@@ -125,7 +125,8 @@ module StoneAsClosedSubsetOfCantorModule where
 
 -- tex Corollary 1537 (part): product of Stone spaces is Stone
 module StoneProductModule where
-  open import Axioms.StoneDuality using (Stone; hasStoneStr; isPropHasStoneStr)
+  open import StoneSpaces.Spectrum using (Stone; hasStoneStr)
+  open import Axioms.StoneDuality using (isPropHasStoneStr)
   open import Cubical.Foundations.Equiv using (_≃_; compEquiv; propBiimpl→Equiv)
   open import Cubical.Foundations.HLevels using (isProp×)
   open import Cubical.Foundations.Isomorphism using (Iso; iso; isoToEquiv)
@@ -233,7 +234,8 @@ module StoneProductModule where
 
 -- tex Lemma 1520: Sequential limit of finite sets is Stone
 module StoneAreProfiniteModule where
-  open import Axioms.StoneDuality using (hasStoneStr; isPropHasStoneStr)
+  open import StoneSpaces.Spectrum using (hasStoneStr)
+  open import Axioms.StoneDuality using (isPropHasStoneStr)
   open CantorIsStoneModule
   open ClosedInStoneIsStoneModule using (ClosedInStoneIsStone)
   open import Cubical.Data.FinSet.Base using (isFinSet; isFinSet→isSet)
@@ -527,7 +529,8 @@ module StoneAreProfiniteModule where
 
 -- tex Lemma 1512: Any Stone space is a sequential limit of finite sets
 module SpColimToSeqLimModule where
-  open import Axioms.StoneDuality using (SpGeneralBooleanRing; hasStoneStr; isPropHasStoneStr)
+  open import StoneSpaces.Spectrum using (SpGeneralBooleanRing; hasStoneStr)
+  open import Axioms.StoneDuality using (isPropHasStoneStr)
   open import Cubical.Foundations.Equiv using (compEquiv; equivFun; invEq; secEq; retEq)
   open import Cubical.Foundations.Isomorphism using (Iso; iso; isoToEquiv)
   open import Cubical.Foundations.HLevels using (isPropΠ; isPropΠ3)
@@ -538,7 +541,7 @@ module SpColimToSeqLimModule where
   open import Cubical.Algebra.CommRing using (_∘cr_; CommRingHom≡; IsCommRingHom; CommRingStr)
   open import Cubical.Data.Sequence using (Sequence)
   open import Cubical.HITs.SequentialColimit.Properties using (SeqColim→Prop)
-  open import Axioms.StoneDuality using (isSetSp)
+  open import StoneSpaces.Spectrum using (isSetSp)
   open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
   open import Cubical.Algebra.BooleanRing using (BooleanRing→CommRing)
 
@@ -722,7 +725,7 @@ module SpColimToSeqLimModule where
 
 -- tex Corollary 1537 (part): equalizer of Stone maps is Stone
 module StoneEqualizerModule where
-  open import Axioms.StoneDuality using (Stone; hasStoneStr)
+  open import StoneSpaces.Spectrum using (Stone; hasStoneStr)
   open StoneEqualityClosedModule using (StoneEqualityClosed)
   open ClosedInStoneIsStoneModule using (ClosedInStoneIsStone)
 
@@ -737,7 +740,7 @@ module StoneEqualizerModule where
 
 -- tex Corollary 1537 (part): pullback of Stone maps is Stone
 module StonePullbackModule where
-  open import Axioms.StoneDuality using (Stone; hasStoneStr)
+  open import StoneSpaces.Spectrum using (Stone; hasStoneStr)
   open StoneProductModule using (StoneProduct)
   open StoneEqualizerModule using (StoneEqualizer)
 

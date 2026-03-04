@@ -18,7 +18,7 @@ open import Cubical.Data.Empty renaming (rec to ex-falso)
 open import Cubical.Relation.Nullary using (¬_)
 open import Cubical.HITs.PropositionalTruncation using (∥_∥₁; squash₁; ∣_∣₁)
 open import Cubical.Algebra.BooleanRing using (BooleanRingStr)
-open import Axioms.StoneDuality using (Booleω; Sp)
+open import StoneSpaces.Spectrum using (Booleω; Sp)
 open import Cubical.Foundations.Equiv using (isEquiv)
 
 -- tex Remark after Lemma 3015: Stone spaces are I-local
@@ -85,7 +85,7 @@ module PathConnectedContractibleTC where
 module NotWLPOTC where
   import WLPO as WLPOmod
   open CantorIsStoneModule
-  open import Axioms.StoneDuality using (evaluationMap)
+  open import StoneSpaces.Spectrum using (evaluationMap)
   open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA)
   open import Cubical.Foundations.Equiv using (invEq; secEq)
   open import Cubical.Relation.Nullary using (yes; no)

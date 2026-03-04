@@ -1,7 +1,0 @@
-CHANGES0001: Initial version of countablypresentedQuotient.agda
-- Created file with imports
-- Implemented `reindex` module: given Iso X Y, constructs BooleanRingEquiv (A /Im f) (A /Im (f ∘ Iso.inv σ))
-  - Uses QB.inducedHom for both directions
-  - Proves they are inverse using QB.quotientImageHomEpi
-  - Final result: reindexEquiv
-- Pending: equivQuotient, main theorem, connection to has-Boole-ω'

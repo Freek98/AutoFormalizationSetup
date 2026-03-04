@@ -21,7 +21,7 @@ open import Cubical.Relation.Nullary using (¬_; Dec; yes; no)
 import QuotientBool as QB
 open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator; inducedBAHom; evalBAInduce; inducedBAHomUnique)
 open import CountablyPresentedBooleanRings.PresentedBoole using (BooleanRingEquiv; has-Boole-ω')
-open import Axioms.StoneDuality using (Booleω; Sp)
+open import StoneSpaces.Spectrum using (Booleω; Sp)
 open import Cubical.HITs.PropositionalTruncation using (∣_∣₁)
 open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
 import Cubical.Data.Sum as ⊎

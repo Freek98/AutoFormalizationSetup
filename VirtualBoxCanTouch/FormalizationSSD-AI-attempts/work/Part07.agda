@@ -22,7 +22,7 @@ open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
 open import Cubical.Algebra.BooleanRing.Initial using (BoolBR→)
 open import Cubical.Foundations.HLevels using (isPropΠ; isPropΣ; isSetΣ; hProp; TypeOfHLevel≡)
 import QuotientBool as QB
-open import Axioms.StoneDuality using (Booleω; Sp)
+open import StoneSpaces.Spectrum using (Booleω; Sp)
 open import Cubical.Data.Empty renaming (rec to ex-falso)
 open import CountablyPresentedBooleanRings.PresentedBoole using (idBoolHom; has-Boole-ω')
 
@@ -70,7 +70,8 @@ module ClosedPropAsSpectrum where
   closedPropAsSpectrum α = all-false→Sp α , Sp→all-false α
 
 module ClosedPropIffStone where
-  open import Axioms.StoneDuality using (hasStoneStr; Stone; isPropHasStoneStr)
+  open import StoneSpaces.Spectrum using (hasStoneStr; Stone)
+  open import Axioms.StoneDuality using (isPropHasStoneStr)
   open ClosedPropAsSpectrum
 
   closedProp→hasStoneStr : (P : hProp ℓ-zero) → isClosedProp P → hasStoneStr (fst P)
@@ -214,7 +215,8 @@ module ODiscInfrastructure where
   open import CountablyPresentedBooleanRings.PresentedBoole
     using (has-Boole-ω'; idBoolHom; isPropIsBoolRingHom)
   open import BooleanRing.BoolRingUnivalence using (IsBoolRingHom)
-  open import Axioms.StoneDuality using (SDHomVersion; evaluationMap)
+  open import StoneSpaces.Spectrum using (evaluationMap)
+  open import Axioms.StoneDuality using (SDHomVersion)
   open import Cubical.Foundations.Isomorphism using (Iso; iso; isoToEquiv)
   open import Cubical.Foundations.Function using (_∘_; idfun)
   open import Cubical.Foundations.Equiv using (invEq; isEquiv; secEq; retEq; invEquiv)
@@ -849,7 +851,7 @@ module ODiscInfrastructure where
       generator k ∎
 
 module TruncationStoneClosedComplete where
-  open import Axioms.StoneDuality using (Stone; hasStoneStr)
+  open import StoneSpaces.Spectrum using (Stone; hasStoneStr)
   open ODiscInfrastructure
 
   ¬Sp-hProp : (B : Booleω) → hProp ℓ-zero
@@ -885,7 +887,7 @@ module TruncationStoneClosedComplete where
 
 -- tex Corollary 1628: P is a closed prop ↔ P has Stone structure
 module ClosedPropIffStone' where
-  open import Axioms.StoneDuality using (hasStoneStr; Stone)
+  open import StoneSpaces.Spectrum using (hasStoneStr; Stone)
   hasStoneStr→closedProp : (P : hProp ℓ-zero) → hasStoneStr (fst P) → isClosedProp P
   hasStoneStr→closedProp P stoneP =
     transport (cong isClosedProp hpEq)
@@ -895,7 +897,8 @@ module ClosedPropIffStone' where
     hpEq = TypeOfHLevel≡ 1 (ua (PT.propTruncIdempotent≃ (snd P)))
 
 module SDDecToElemModule where
-  open import Axioms.StoneDuality using (evaluationMap; StoneDualityAxiom; SDHomVersion)
+  open import StoneSpaces.Spectrum using (evaluationMap)
+  open import Axioms.StoneDuality using (StoneDualityAxiom; SDHomVersion)
 
   DecPredOnSp : (B : Booleω) → Type ℓ-zero
   DecPredOnSp B = Sp B → Bool
@@ -2362,7 +2365,7 @@ module ODiscAxioms where
         ; colimEquiv-incl = λ n x →
           cong (invEq (fst bEquiv)) (ODiscRingDecomp.colimEquiv-incl rd n x)
         }
-  open import Axioms.StoneDuality using (SpGeneralBooleanRing)
+  open import StoneSpaces.Spectrum using (SpGeneralBooleanRing)
   SpProjection : {Q : BooleanRing ℓ-zero} (rd : ODiscRingDecomp Q) (n : ℕ)
     → SpGeneralBooleanRing Q → SpGeneralBooleanRing (ODiscRingDecomp.BN rd n)
   SpProjection rd n φ = φ ∘cr ODiscRingDecomp.fwdHom rd n
@@ -3183,7 +3186,8 @@ module ODiscAxioms where
   -- tex Corollary 1590 (scott-continuity):
   -- tex Lemma 1520: Finite sets are Stone
   module FiniteIsStoneModule where
-    open import Axioms.StoneDuality using (hasStoneStr; 2^; isPropHasStoneStr; SDHomVersion)
+    open import StoneSpaces.Spectrum using (hasStoneStr; 2^)
+    open import Axioms.StoneDuality using (isPropHasStoneStr; SDHomVersion)
     open import Cubical.Data.FinSet.Constructors using (isFinSet→)
     open import Cubical.Data.FinSet.Properties using (isFinSetBool)
     open import Cubical.Data.FinSet.Base using (card; isFinSet→isSet)
@@ -3256,7 +3260,8 @@ module ODiscAxioms where
     → ∥ Σ[ d ∈ (ℕ → ⟨ fst B ⟩) ]
         ((x : Sp B) → (∥ Σ[ c ∈ Sp C ] f c ≡ x ∥₁) ↔ ((n : ℕ) → fst x (d n) ≡ false)) ∥₁
   ImageStoneMapDecidableIntersection B C f = PT.rec squash₁ step1 kerEnum where
-    open import Axioms.StoneDuality using (SDHomVersion; evaluationMap; 2^)
+    open import StoneSpaces.Spectrum using (evaluationMap; 2^)
+    open import Axioms.StoneDuality using (SDHomVersion)
     open BooleanRingStr
     open import CountablyPresentedBooleanRings.PresentedBoole using (BooleanEquivToHom; BooleanEquivToHomInv; BooleanEquivRightInv)
     eB : BooleanRingEquiv (fst B) (2^ (Sp B))

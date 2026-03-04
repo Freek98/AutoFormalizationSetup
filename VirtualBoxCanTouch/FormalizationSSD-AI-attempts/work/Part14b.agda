@@ -23,7 +23,7 @@ open import Cubical.Data.Unit using (Unit; tt)
 open import Cubical.HITs.PropositionalTruncation using (∥_∥₁; squash₁; ∣_∣₁)
 import Cubical.HITs.PropositionalTruncation as PT
 open import Cubical.Data.Int using (ℤ)
-open import Axioms.StoneDuality using (Booleω; Sp; Stone; hasStoneStr)
+open import StoneSpaces.Spectrum using (Booleω; Sp; Stone; hasStoneStr)
 open import Cubical.Algebra.AbGroup.Instances.Int using (ℤAbGroup)
 open import Cubical.Algebra.AbGroup.Base using (AbGroup; AbGroupStr; AbGroup→Group)
 open import Cubical.Homotopy.EilenbergMacLane.Base using (EM; 0ₖ; hLevelEM)
@@ -42,7 +42,7 @@ eilenberg-stone-vanish S = ST.elim (λ _ → isSetPathImplicit) step
   open import Cubical.Homotopy.EilenbergMacLane.Properties using (isConnectedEM)
   open import Cubical.Homotopy.Connected using (isConnectedPath)
   open import Cubical.Foundations.Equiv using (isContr→Equiv)
-  open import Axioms.StoneDuality using (Sp; Booleω; isSetSp)
+  open import StoneSpaces.Spectrum using (Sp; Booleω; isSetSp)
   open ClosedInStoneIsStoneModule using (ClosedInStoneIsStone)
 
   |S| = fst S
@@ -189,7 +189,7 @@ module CechEilenberg0Agree {ℓ : Level} (S' : Type ℓ) (T : S' → Type ℓ) (
 H¹-total-vanish : (cover : CechCover)
   → H¹-vanishes (Σ (fst (CechCover.X cover)) (λ x → fst (CechCover.S cover x)))
 H¹-total-vanish cover = eilenberg-stone-vanish totalStone
-  where open import Axioms.StoneDuality using (Stone)
+  where open import StoneSpaces.Spectrum using (Stone)
         totalStone : Stone
         totalStone = Σ _ (λ x → fst (CechCover.S cover x)) , CechCover.total-is-Stone cover
 

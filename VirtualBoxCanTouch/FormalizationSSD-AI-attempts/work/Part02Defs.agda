@@ -26,7 +26,8 @@ open import Cubical.HITs.PropositionalTruncation as PT
 open import Cubical.Algebra.CommRing
 open import Cubical.Algebra.BooleanRing
 open import Cubical.Algebra.BooleanRing.Instances.Bool
-open import Axioms.StoneDuality using (StoneDualityAxiom; Sp; Booleω)
+open import StoneSpaces.Spectrum using (Sp; Booleω)
+open import Axioms.StoneDuality using (StoneDualityAxiom)
 
 import OmnisciencePrinciples.Markov as MarkovLib
 
@@ -37,8 +38,10 @@ import QuotientBool as QB
 open import Cubical.Data.Nat.Bijections.Sum using (ℕ⊎ℕ≅ℕ)
 import Cubical.Data.Sum as ⊎
 
+-- Axiom-independent definitions
+
 module SpectrumEmptyImpliesTrivial (SD : StoneDualityAxiom) (B : Booleω) (spEmpty : Sp B → ⊥) where
-  open import Axioms.StoneDuality using (evaluationMap)
+  open import StoneSpaces.Spectrum using (evaluationMap)
 
   emptyFunContr : isContr (Sp B → Bool)
   emptyFunContr = (λ sp → ex-falso (spEmpty sp)) , λ f → funExt (λ sp → ex-falso (spEmpty sp))
@@ -69,6 +72,8 @@ Bool-Booleω = BoolBR , ∣ is-cp-2 ∣₁
 Sp-Bool-inhabited : ∥ Sp Bool-Booleω ∥₁
 Sp-Bool-inhabited = ∣ idBoolHom BoolBR ∣₁
 
+-- Dependent Choice axiom type (tex Axiom 355, axDependentChoice)
+
 SeqLimit : {ℓ : Level} → (E : ℕ → Type ℓ) → ((n : ℕ) → E (suc n) → E n) → Type ℓ
 SeqLimit E p = Σ[ f ∈ ((n : ℕ) → E n) ] ((n : ℕ) → p n (f (suc n)) ≡ f n)
 
@@ -86,6 +91,8 @@ CountableChoiceAxiom {ℓ} = (A : ℕ → Type ℓ)
   → ((n : ℕ) → ∥ A n ∥₁)
   → ∥ ((n : ℕ) → A n) ∥₁
 
+-- SurjectionsAreFormalSurjections axiom type (tex line 294-297)
+
 isInjectiveBoolHom : (B C : Booleω) → BoolHom (fst B) (fst C) → Type ℓ-zero
 isInjectiveBoolHom B C g = (x y : ⟨ fst B ⟩) → fst g x ≡ fst g y → x ≡ y
 
@@ -98,6 +105,8 @@ SurjectionsAreFormalSurjectionsAxiom : Type (ℓ-suc ℓ-zero)
 SurjectionsAreFormalSurjectionsAxiom = (B C : Booleω) (g : BoolHom (fst B) (fst C)) →
   isInjectiveBoolHom B C g ↔ isSurjectiveSpHom B C g
 
+-- Local Choice axiom type (tex Axiom 348, AxLocalChoice)
+
 isSurjectiveSpMap : {B C : Booleω} → (Sp C → Sp B) → Type ℓ-zero
 isSurjectiveSpMap {B} {C} q = (h : Sp B) → ∥ Σ[ h' ∈ Sp C ] q h' ≡ h ∥₁
 
@@ -107,6 +116,8 @@ LocalChoiceAxiom = (B : Booleω) (P : Sp B → Type ℓ-zero)
   → ((s : Sp B) → ∥ P s ∥₁)
   → ∥ Σ[ C ∈ Booleω ] Σ[ q ∈ (Sp C → Sp B) ]
       (isSurjectiveSpMap {B} {C} q × ((t : Sp C) → P (q t))) ∥₁
+
+-- Utility definitions (axiom-independent)
 
 data Reveal_·_is_ {A : Type₀} {B : A → Type₀} (f : (x : A) → B x) (x : A) (y : B x) : Type₀ where
   [_] : f x ≡ y → Reveal f · x is y
@@ -221,4 +232,3 @@ record FoundationalAxioms : Type (ℓ-suc (ℓ-suc ℓ-zero)) where
     sd-axiom : StoneDualityAxiom
     surj-formal-axiom : SurjectionsAreFormalSurjectionsAxiom
     localChoice-axiom : LocalChoiceAxiom
-

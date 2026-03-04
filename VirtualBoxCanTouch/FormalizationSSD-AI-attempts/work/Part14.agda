@@ -15,7 +15,7 @@ module StoneCommuteDeloopingModule where
   open import Cubical.Homotopy.EilenbergMacLane.Properties using (isConnectedEM)
   open import Cubical.Homotopy.Connected using (isConnectedPath)
   open import Cubical.HITs.Truncation.Properties using (propTruncTrunc1Iso)
-  open import Axioms.StoneDuality using (Stone; hasStoneStr)
+  open import StoneSpaces.Spectrum using (Stone; hasStoneStr)
   open import Cubical.Foundations.Prelude
   open import Cubical.Foundations.HLevels
   open import Cubical.Foundations.Equiv using (isEquiv; invEquiv; isPropIsEquiv)

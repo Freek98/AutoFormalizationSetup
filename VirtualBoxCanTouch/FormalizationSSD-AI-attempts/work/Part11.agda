@@ -23,14 +23,14 @@ open import Cubical.Data.Sum using (_⊎_)
 open import Cubical.Relation.Nullary using (¬_)
 open import Cubical.HITs.PropositionalTruncation using (∥_∥₁; squash₁; ∣_∣₁)
 import Cubical.HITs.PropositionalTruncation as PT
-open import Axioms.StoneDuality using (Booleω; Sp)
+open import StoneSpaces.Spectrum using (Booleω; Sp)
 open import Cubical.Algebra.BooleanRing using (BoolHom; BooleanRingStr)
 open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
 open import Cubical.Algebra.CommRing using (_∘cr_)
 open import CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω'; _is-presented-by_/_; BooleanRingEquiv; invBooleanRingEquiv; idBoolEquiv; has-Countability-structure)
 
 module CompactHausdorffModule where
-  open import Axioms.StoneDuality using (Stone; hasStoneStr)
+  open import StoneSpaces.Spectrum using (Stone; hasStoneStr)
   open import Cubical.Functions.Surjection using (isSurjection)
 
   record hasCHausStr (X : Type ℓ-zero) : Type (ℓ-suc ℓ-zero) where
@@ -52,7 +52,7 @@ module CompactHausdorffModule where
     open StoneEqualityClosedModule
 
 module CompactHausdorffClosedModule where
-  open import Axioms.StoneDuality using (Stone; hasStoneStr)
+  open import StoneSpaces.Spectrum using (Stone; hasStoneStr)
   open import Cubical.Functions.Surjection using (isSurjection)
   open CompactHausdorffModule
   open InhabitedClosedSubSpaceClosedModule
@@ -71,7 +71,7 @@ module CompactHausdorffClosedModule where
     Aₓ-closed s = closedAnd (B s) ((q s ≡ x) , isSetX (q s) x) (B-closed s) (equalityClosed (q s) x)
 
 module InhabitedClosedSubSpaceClosedCHausModule where
-  open import Axioms.StoneDuality using (Stone; hasStoneStr)
+  open import StoneSpaces.Spectrum using (Stone; hasStoneStr)
   open import Cubical.Functions.Surjection using (isSurjection)
   open CompactHausdorffModule
   open InhabitedClosedSubSpaceClosedModule
@@ -149,7 +149,7 @@ module AllOpenSubspaceOpenModule where
 module CHausFiniteIntersectionPropertyModule where
   open CompactHausdorffModule
   open import Cubical.Functions.Surjection using (isSurjection)
-  open import Axioms.StoneDuality using (Stone; hasStoneStr; Booleω; Sp)
+  open import StoneSpaces.Spectrum using (Stone; hasStoneStr; Booleω; Sp)
   open import Cubical.Data.Nat.Bijections.Product using (ℕ×ℕ≅ℕ)
   open ClosedInStoneIsStoneModule using (closedFamilyChoice)
   open SDDecToElemModule
@@ -543,7 +543,7 @@ module CompactHausdorffTopologyModule where
   open CHausFiniteIntersectionPropertyModule using (countableIntersectionClosed)
   open ClosedInStoneIsStoneModule using (closedFamilyChoice)
   open import Cubical.Functions.Surjection using (isSurjection)
-  open import Axioms.StoneDuality using (Stone)
+  open import StoneSpaces.Spectrum using (Stone)
   open import Cubical.Data.Bool using (not; _and_)
   open import Cubical.Foundations.Function using (_∘_)
   open import Cubical.Foundations.Univalence using (hPropExt)
@@ -722,7 +722,7 @@ module CHausSeperationOfClosedByOpensModule where
   open CompactHausdorffClosedModule
   open StoneSeparatedModule
   open import Cubical.Functions.Surjection using (isSurjection)
-  open import Axioms.StoneDuality using (Stone; hasStoneStr)
+  open import StoneSpaces.Spectrum using (Stone; hasStoneStr)
 
   areDisjoint : {X : Type ℓ-zero}
     → (A B : X → hProp ℓ-zero) → Type ℓ-zero
@@ -838,7 +838,7 @@ module CHausSeperationOfClosedByOpensModule where
 
 module SigmaCompactHausdorffModule where
   open CompactHausdorffModule
-  open import Axioms.StoneDuality using (Stone; hasStoneStr)
+  open import StoneSpaces.Spectrum using (Stone; hasStoneStr)
   open import Cubical.Functions.Surjection using (isSurjection)
   open import Cubical.Foundations.Equiv using (equivFun; invEq; retEq)
   open StoneAsClosedSubsetOfCantorModule
@@ -1023,7 +1023,8 @@ module AlgebraCompactHausdorffCountablyPresentedModule where
   open CompactHausdorffModule
   open AllOpenSubspaceOpenModule
   open ODiscAxioms
-  open import Axioms.StoneDuality using (2^; Stone; hasStoneStr; SDHomVersion)
+  open import StoneSpaces.Spectrum using (2^; Stone; hasStoneStr)
+  open import Axioms.StoneDuality using (SDHomVersion)
   open import Cubical.Functions.Surjection using (isSurjection)
   open import Cubical.Relation.Nullary using (Dec; yes; no)
   open import Cubical.Data.Bool using (_≟_)
@@ -1134,7 +1135,7 @@ module AlgebraCompactHausdorffCountablyPresentedModule where
 module ConnectedComponentModule where
   open CompactHausdorffModule
   open AlgebraCompactHausdorffCountablyPresentedModule
-  open import Axioms.StoneDuality using (2^)
+  open import StoneSpaces.Spectrum using (2^)
   open import CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω'; BooleanEquivToHomInv)
   open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator)
   open import BooleanRing.FreeBooleanRing.freeBATerms using (equalityFromEqualityOnGenerators)
@@ -1459,7 +1460,8 @@ module ConnectedComponentConnectedModule where
 module StoneCompactHausdorffTotallyDisconnectedModule where
   open CompactHausdorffModule
   open ConnectedComponentModule
-  open import Axioms.StoneDuality using (Stone; hasStoneStr; Sp; Booleω; evaluationMap; isPropHasStoneStr; 2^; SDHomVersion; isSetBoolHom)
+  open import StoneSpaces.Spectrum using (Stone; hasStoneStr; Sp; Booleω; evaluationMap; 2^; isSetBoolHom)
+  open import Axioms.StoneDuality using (isPropHasStoneStr; SDHomVersion)
 
   isTotallyDisconnected : CHaus → Type ℓ-zero
   isTotallyDisconnected X =
@@ -1673,7 +1675,7 @@ module StoneCompactHausdorffTotallyDisconnectedModule where
       ev-equiv = ev , isEmbedding×isSurjection→isEquiv (ev-emb , ev-surj)
 
 module StoneSigmaClosedModule where
-  open import Axioms.StoneDuality using (Stone; hasStoneStr)
+  open import StoneSpaces.Spectrum using (Stone; hasStoneStr)
   open CompactHausdorffModule
   open SigmaCompactHausdorffModule
   open StoneCompactHausdorffTotallyDisconnectedModule

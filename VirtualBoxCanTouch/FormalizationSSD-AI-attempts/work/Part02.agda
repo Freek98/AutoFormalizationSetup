@@ -29,7 +29,8 @@ open import Cubical.HITs.PropositionalTruncation as PT
 open import Cubical.Algebra.CommRing
 open import Cubical.Algebra.BooleanRing
 open import Cubical.Algebra.BooleanRing.Instances.Bool
-open import Axioms.StoneDuality using (StoneDualityAxiom; Sp; Booleω)
+open import StoneSpaces.Spectrum using (Sp; Booleω)
+open import Axioms.StoneDuality using (StoneDualityAxiom)
 
 import OmnisciencePrinciples.Markov as MarkovLib
 
@@ -107,7 +108,7 @@ quotientBySeqHasBooleω B d = PT.rec squash₁ construct (snd B)
       step2-equiv = commRingPath→boolRingEquiv
                       (freeBA ℕ QB./Im (⊎.rec f g))
                       ((freeBA ℕ QB./Im f) QB./Im (fst QB.quotientImageHom ∘ g))
-                      (cong BooleanRing→CommRing (BoolQuotientEquiv (freeBA ℕ) f g))
+                      (BoolQuotientEquiv (freeBA ℕ) f g)
 
       h≡rec∘decode-pointwise : (n : ℕ) → h n ≡ ⊎.rec f g (decode n)
       h≡rec∘decode-pointwise n with decode n
@@ -312,7 +313,7 @@ quotientPreservesBooleω α = quotientBySeqHasBooleω Bool-Booleω α
 mp-from-SD : StoneDualityAxiom → MarkovPrinciple
 mp-from-SD SD α α≠0 = MarkovLib.extractFirstHitInBinarySequence.extract α (MarkovLib.∃αn α (trivialQuotient→1∈I BoolCR (IQ.genIdeal BoolCR α) (sym 0≡1-CR)))
   where
-  open import Axioms.StoneDuality using (evaluationMap)
+  open import StoneSpaces.Spectrum using (evaluationMap)
   open import CommRingQuotients.TrivialIdeal using (trivialQuotient→1∈I)
   import Cubical.Algebra.CommRing.Quotient.ImageQuotient as IQ
 
@@ -584,4 +585,3 @@ openSubsetTransitive : {T : Type₀}
                      → isOpenSubset (λ t → (∥ Σ[ v ∈ ⟨ V t ⟩ ] ⟨ W t v ⟩ ∥₁) , squash₁)
 openSubsetTransitive V Vopen W Wopen t =
   openSigmaOpen (V t) (Vopen t) (W t) (Wopen t)
-

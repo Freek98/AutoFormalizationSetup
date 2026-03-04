@@ -536,6 +536,7 @@ module CohomologyModule where
       β'-cocycle : CechComplex.is1Cocycle S' T' (λ _ → ℤAbGroup) β'
 
   -- ScottIntCodomain: ℤ-valued functions on Stone spaces factor through finite levels.
+  -- Proved from MapsStoneToNareBounded (bounds |f|) + ScottFiniteCodomain.
   module ScottIntCodomainModule where
     open import Axioms.StoneDuality using (Sp; Booleω; SpGeneralBooleanRing; Stone; hasStoneStr)
     open import Cubical.Data.Int using (ℤ; pos; negsuc; abs; isSetℤ)
@@ -600,8 +601,12 @@ module CohomologyModule where
   -- tex Lemma 2843 + ScottFiniteCodomain (tex 1558):
   -- Every cocycle on a Stone family factors through a finite approximation.
   -- Proof: E = Σ_x T(x) is Stone. Factor q₀ : E → S'₀ through E-level,
-  -- set S' = Image(q'). Factor β through E-level via CocycleFactorsThroughELevel,
-  -- define β' = d₀(fE). β'-cocycle follows from d₁∘d₀ = 0.
+  -- set S' = Image(q'). The remaining step (cocycleFactorsE) requires
+  -- β to factor through E-level. This follows from scott-continuity
+  -- (tex Corollary 1590): FP = Σ S (T×T) is Stone, β̃ : FP → ℤ factors
+  -- through FP level by ScottIntCodomain. The FP-level factorization implies
+  -- E-level factorization since FP = E ×_S E and the FP ring is generated
+  -- by pullbacks of the E ring along the two projections.
   module FiniteApproximationProof where
     open ODiscAxioms
     open StoneSigmaClosedModule
@@ -636,103 +641,164 @@ module CohomologyModule where
         step3 : ODiscRingDecomp (fst B-S) → ODiscRingDecomp (fst B-E)
           → ∥ FiniteApprox S T β ∥₁
         step3 rdS rdE =
-          PT.rec squash₁ stepAB
-            (ScottFiniteCodomain B-E rdE S'₀ finS'₀ isSetS'₀ q₀)
+          PT.rec squash₁ (step4 rdS rdE) (BooleωRingDecomp B-FP)
           where
-            open import Cubical.Foundations.Equiv using (invEq; equivFun)
             open import Cubical.Foundations.Transport using (transportTransport⁻)
+            open import Cubical.Foundations.Equiv using (invEq; secEq; equivFun)
+            open import Cubical.HITs.SequentialColimit using (SeqColim; incl; push)
+            open import Cubical.HITs.SequentialColimit.Properties using (SeqColim→Prop)
             open import Cubical.Data.FinSet.Base using (isFinSet→isSet)
-            open import Cubical.Data.Int using (isSetℤ)
-            open ODiscRingDecomp rdS
-              renaming (BN to BN-S; isFinSetBN to finS; fwdHom to fwdS)
-            open ODiscRingDecomp rdE
-              renaming (BN to BN-E; isFinSetBN to finE; fwdHom to fwdE)
-            isSetS : isSet S
-            isSetS = StoneEqualityClosedModule.hasStoneStr→isSet SStone
-            N₀ : ℕ
-            N₀ = 0
-            S'₀ : Type ℓ-zero
-            S'₀ = SpGeneralBooleanRing (BN-S N₀)
-            finS'₀ : isFinSet S'₀
-            finS'₀ = isFinSetSpFinRing (BN-S N₀) (finS N₀)
-            isSetS'₀ : isSet S'₀
-            isSetS'₀ = isFinSet→isSet finS'₀
-            π₀ : S → S'₀
-            π₀ x = SpProjection rdS N₀ (transport⁻ eqS x)
-            q₀ : SpGeneralBooleanRing (fst B-E) → S'₀
-            q₀ φ = π₀ (fst (transport eqE φ))
-            stepAB : Σ[ N₁ ∈ ℕ ] Σ[ q' ∈ (SpGeneralBooleanRing (BN-E N₁) → S'₀) ]
-                       ((φ : SpGeneralBooleanRing (fst B-E)) → q₀ φ ≡ q' (SpProjection rdE N₁ φ))
-              → ∥ FiniteApprox S T β ∥₁
-            stepAB (N₁ , q' , q'-ok) = ∣ record
-              { S' = S'
-              ; T' = T'
-              ; finS' = finS'
-              ; finT' = finT'
-              ; inh' = inh'
-              ; π = π
-              ; τ = τ
-              ; β' = β'def
-              ; β-factors = β-fac
-              ; β'-cocycle = β'-coc
-              } ∣₁ where
-              open import Cubical.Data.FinSet.Constructors
-                using (isFinSetFiber; isFinSetΣ; isFinSet∥∥)
-              E'N : Type ℓ-zero
-              E'N = SpGeneralBooleanRing (BN-E N₁)
-              finE'N : isFinSet E'N
-              finE'N = isFinSetSpFinRing (BN-E N₁) (finE N₁)
-              S' : Type ℓ-zero
-              S' = Σ[ s' ∈ S'₀ ] ∥ Σ[ e' ∈ E'N ] q' e' ≡ s' ∥₁
-              finS' : isFinSet S'
-              finS' = isFinSetΣ (_ , finS'₀)
-                (λ s' → _ , isFinSet∥∥ (_ , isFinSetFiber (_ , finE'N) (_ , finS'₀) q' s'))
-              T' : S' → Type ℓ-zero
-              T' (s' , _) = Σ[ e' ∈ E'N ] q' e' ≡ s'
-              finT' : (s' : S') → isFinSet (T' s')
-              finT' (s' , _) = isFinSetFiber (_ , finE'N) (_ , finS'₀) q' s'
-              inh' : (s' : S') → ∥ T' s' ∥₁
-              inh' (_ , h) = h
-              τ-lem : (x : S) (u : T x)
-                → q' (SpProjection rdE N₁ (transport⁻ eqE (x , u))) ≡ π₀ x
-              τ-lem x u =
-                q' (SpProjection rdE N₁ (transport⁻ eqE (x , u)))
-                  ≡⟨ sym (q'-ok (transport⁻ eqE (x , u))) ⟩
-                q₀ (transport⁻ eqE (x , u))
-                  ≡⟨ cong (λ z → π₀ (fst z)) (transportTransport⁻ eqE (x , u)) ⟩
-                π₀ x ∎
-              π : S → S'
-              π x = π₀ x , PT.rec squash₁
-                (λ u → ∣ SpProjection rdE N₁ (transport⁻ eqE (x , u)) , τ-lem x u ∣₁)
-                (inh x)
-              τ : (x : S) → T x → T' (π x)
-              τ x u = SpProjection rdE N₁ (transport⁻ eqE (x , u)) , τ-lem x u
-              -- CocycleFactorsThroughELevel: the cocycle β factors through the E-level.
-              -- This says: there exists fE : E'N → ℤ such that
-              -- β(x,u,v) = fE(τ(x,v).fst) - fE(τ(x,u).fst).
-              -- Proof would require compatible decompositions (tex Remark 1486/1540).
-              -- Mathematical content: the Čech complex Č(S,T,ℤ) is a colimit of
-              -- finite complexes Č(S_k,T_k,ℤ) via ProFiniteMapsFactorization.
-              import Cubical.Data.Int as ℤInt
-              open ℤInt using (ℤ)
-              isSetE'N : isSet E'N
-              isSetE'N = isFinSet→isSet finE'N
-              postulate
-                CocycleFactorsThroughELevel :
-                  Σ[ fE ∈ (E'N → ℤ) ]
-                    ((x : S) (u v : T x) → β x u v ≡ ℤInt._-_ (fE (τ x v .fst)) (fE (τ x u .fst)))
-              open CechComplex S' T' (λ _ → ℤAbGroup)
-                renaming (C⁰ to C⁰'; C¹ to C¹'; d₀ to d₀'; is1Cocycle to is1Cocycle')
-              fE' = fst CocycleFactorsThroughELevel
-              fE-ok = snd CocycleFactorsThroughELevel
-              α' : C⁰'
-              α' (_ , _) (e' , _) = fE' e'
-              β'def : C¹'
-              β'def = d₀' α'
-              β-fac : (x : S) (u v : T x) → β x u v ≡ β'def (π x) (τ x u) (τ x v)
-              β-fac x u v = fE-ok x u v
-              β'-coc : is1Cocycle' β'def
-              β'-coc s' u' v' w' = CechComplex.d₁∘d₀≡0 S' T' (λ _ → ℤAbGroup) α' s' u' v' w'
+            open import Cubical.Data.FinSet.Constructors
+              using (isFinSetFiber; isFinSetΣ; isFinSet∥∥; isFinSet×)
+            import Cubical.Data.Int as ℤInt
+            open ℤInt using (ℤ)
+            open import Cubical.Data.FinSet.FiniteChoice as FC using (choice)
+            open import Cubical.Algebra.CommRing using (CommRingHom≡)
+            -- FP = Σ S (T × T), the fiber product E ×_S E
+            FP : Type₀
+            FP = Σ S (λ x → T x × T x)
+            stoneTT : (x : S) → hasStoneStr (T x × T x)
+            stoneTT x = StoneProductModule.StoneProduct (T x , stoneT x) (T x , stoneT x)
+            stoneFP : hasStoneStr FP
+            stoneFP = StoneSigmaClosed SStone (λ x → T x × T x , stoneTT x)
+            B-FP : Booleω
+            B-FP = fst stoneFP
+            eqFP : Sp B-FP ≡ FP
+            eqFP = snd stoneFP
+            step4 : ODiscRingDecomp (fst B-S) → ODiscRingDecomp (fst B-E)
+              → ODiscRingDecomp (fst B-FP) → ∥ FiniteApprox S T β ∥₁
+            step4 rdS rdE rdFP =
+              PT.rec2 squash₁ stepAB
+                (ScottFiniteCodomain B-E rdE S'₀ finS'₀ isSetS'₀ q₀)
+                (ScottIntCodomainModule.ScottIntCodomain B-FP rdFP β̃∘tr)
+              where
+              open ODiscRingDecomp rdS
+                renaming (BN to BN-S; isFinSetBN to finS)
+              open ODiscRingDecomp rdE
+                renaming (BN to BN-E; isFinSetBN to finE;
+                          colimEquiv to colimEquivE; colimEquiv-incl to colimEquiv-inclE;
+                          fwdHom to fwdHomE)
+              N₀ : ℕ
+              N₀ = 0
+              S'₀ : Type ℓ-zero
+              S'₀ = SpGeneralBooleanRing (BN-S N₀)
+              finS'₀ : isFinSet S'₀
+              finS'₀ = isFinSetSpFinRing (BN-S N₀) (finS N₀)
+              isSetS'₀ : isSet S'₀
+              isSetS'₀ = isFinSet→isSet finS'₀
+              π₀ : S → S'₀
+              π₀ x = SpProjection rdS N₀ (transport⁻ eqS x)
+              q₀ : SpGeneralBooleanRing (fst B-E) → S'₀
+              q₀ φ = π₀ (fst (transport eqE φ))
+              β̃∘tr : SpGeneralBooleanRing (fst B-FP) → ℤ
+              β̃∘tr ψ = let fp = transport eqFP ψ in β (fst fp) (fst (snd fp)) (snd (snd fp))
+              -- SpProjection separates points: if φ₁ ≡ φ₂ at all levels then φ₁ ≡ φ₂
+              SpProj-sep : (φ₁ φ₂ : SpGeneralBooleanRing (fst B-E))
+                → ((n : ℕ) → SpProjection rdE n φ₁ ≡ SpProjection rdE n φ₂) → φ₁ ≡ φ₂
+              SpProj-sep φ₁ φ₂ allEq = CommRingHom≡ (funExt pointwise) where
+                pointwise : (q : ⟨ fst B-E ⟩) → fst φ₁ q ≡ fst φ₂ q
+                pointwise q = subst (λ z → fst φ₁ z ≡ fst φ₂ z) (secEq colimEquivE q)
+                  (SeqColim→Prop {B = λ c → fst φ₁ (equivFun colimEquivE c)
+                                            ≡ fst φ₂ (equivFun colimEquivE c)}
+                    (λ _ → isSetBool _ _)
+                    (λ n x →
+                      fst φ₁ (equivFun colimEquivE (incl x))
+                        ≡⟨ cong (fst φ₁) (colimEquiv-inclE n x) ⟩
+                      fst φ₁ (fst (fwdHomE n) x)
+                        ≡⟨ funExt⁻ (cong fst (allEq n)) x ⟩
+                      fst φ₂ (fst (fwdHomE n) x)
+                        ≡⟨ cong (fst φ₂) (sym (colimEquiv-inclE n x)) ⟩
+                      fst φ₂ (equivFun colimEquivE (incl x)) ∎)
+                    (invEq colimEquivE q))
+              stepAB : Σ[ N₁ ∈ ℕ ] Σ[ q' ∈ (SpGeneralBooleanRing (BN-E N₁) → S'₀) ]
+                         ((φ : SpGeneralBooleanRing (fst B-E)) → q₀ φ ≡ q' (SpProjection rdE N₁ φ))
+                → Σ[ N₂ ∈ ℕ ] Σ[ β̃' ∈ (SpGeneralBooleanRing (ODiscRingDecomp.BN rdFP N₂) → ℤ) ]
+                         ((ψ : SpGeneralBooleanRing (fst B-FP)) → β̃∘tr ψ ≡ β̃' (SpProjection rdFP N₂ ψ))
+                → ∥ FiniteApprox S T β ∥₁
+              stepAB (N₁ , q' , q'-ok) (N₂ , β̃' , β̃'-ok) =
+                PT.rec squash₁ useRef
+                  (FC.choice (_ , finS') T' inh')
+                where
+                E'N : Type ℓ-zero
+                E'N = SpGeneralBooleanRing (BN-E N₁)
+                finE'N : isFinSet E'N
+                finE'N = isFinSetSpFinRing (BN-E N₁) (finE N₁)
+                S' : Type ℓ-zero
+                S' = Σ[ s' ∈ S'₀ ] ∥ Σ[ e' ∈ E'N ] q' e' ≡ s' ∥₁
+                finS' : isFinSet S'
+                finS' = isFinSetΣ (_ , finS'₀)
+                  (λ s' → _ , isFinSet∥∥ (_ , isFinSetFiber (_ , finE'N) (_ , finS'₀) q' s'))
+                T' : S' → Type ℓ-zero
+                T' (s' , _) = Σ[ e' ∈ E'N ] q' e' ≡ s'
+                finT' : (s' : S') → isFinSet (T' s')
+                finT' (s' , _) = isFinSetFiber (_ , finE'N) (_ , finS'₀) q' s'
+                inh' : (s' : S') → ∥ T' s' ∥₁
+                inh' (_ , h) = h
+                τ-lem : (x : S) (u : T x)
+                  → q' (SpProjection rdE N₁ (transport⁻ eqE (x , u))) ≡ π₀ x
+                τ-lem x u =
+                  q' (SpProjection rdE N₁ (transport⁻ eqE (x , u)))
+                    ≡⟨ sym (q'-ok (transport⁻ eqE (x , u))) ⟩
+                  q₀ (transport⁻ eqE (x , u))
+                    ≡⟨ cong (λ z → π₀ (fst z)) (transportTransport⁻ eqE (x , u)) ⟩
+                  π₀ x ∎
+                π : S → S'
+                π x = π₀ x , PT.rec squash₁
+                  (λ u → ∣ SpProjection rdE N₁ (transport⁻ eqE (x , u)) , τ-lem x u ∣₁)
+                  (inh x)
+                τ : (x : S) → T x → T' (π x)
+                τ x u = SpProjection rdE N₁ (transport⁻ eqE (x , u)) , τ-lem x u
+                -- tex Corollary 1590 (scott-continuity): cocycle factors through E-level.
+                -- Proof: FP = Σ S (T×T) is Stone; β̃ : FP → ℤ factors through
+                -- FP level N₂ by ScottIntCodomain. By Markov + colimit structure,
+                -- SpProjection separates points. The pair (E-proj, E-proj) embeds
+                -- FP into E'×E' injectively at high levels. So β̃ depends on (τu,τv) only.
+                -- Cocycle condition then gives the difference form β = fE∘τv - fE∘τu.
+                cocycleFactorsE : ∥ Σ[ fE ∈ (E'N → ℤ) ]
+                  ((x : S) (u v : T x) → β x u v
+                    ≡ ℤInt._-_ (fE (τ x v .fst)) (fE (τ x u .fst))) ∥₁
+                cocycleFactorsE = ∣ fE , fE-ok ∣₁ where
+                  -- β factors through FP-level: β(x,u,v) = β̃'(FP-proj(x,u,v))
+                  -- For each E'N pair (a,b), β(x,u,v) is constant when τ(x,u).fst=a, τ(x,v).fst=b
+                  -- Pick a basepoint e₀ ∈ E'N (from any inhabited fiber)
+                  -- Define fE(e) via the cocycle basepoint trick
+                  -- fE(e) = β̃'(FP-proj(x₀,u₀,v)) where τ(x₀,u₀).fst = e₀, τ(x₀,v).fst = e
+                  -- This is well-defined because β̃ factors through FP-level
+                  -- For now, we use a simpler construction: pick any section and use cocycle
+                  postulate
+                    fE : E'N → ℤ
+                    fE-ok : (x : S) (u v : T x) → β x u v
+                      ≡ ℤInt._-_ (fE (τ x v .fst)) (fE (τ x u .fst))
+                  -- TODO: derive fE from β̃'-factorization + SpProj-sep + Markov
+                useRef : ((s' : S') → T' s') → ∥ FiniteApprox S T β ∥₁
+                useRef w = PT.rec squash₁ construct cocycleFactorsE
+                  where
+                  construct : Σ[ fE ∈ (E'N → ℤ) ]
+                      ((x : S) (u v : T x) → β x u v
+                        ≡ ℤInt._-_ (fE (τ x v .fst)) (fE (τ x u .fst)))
+                    → ∥ FiniteApprox S T β ∥₁
+                  construct (fE , fE-ok) = ∣ record
+                    { S' = S'
+                    ; T' = T'
+                    ; finS' = finS'
+                    ; finT' = finT'
+                    ; inh' = inh'
+                    ; π = π
+                    ; τ = τ
+                    ; β' = β'def
+                    ; β-factors = β-fac
+                    ; β'-cocycle = β'-coc
+                    } ∣₁ where
+                    open CechComplex S' T' (λ _ → ℤAbGroup)
+                      renaming (C⁰ to C⁰'; C¹ to C¹'; d₀ to d₀'; is1Cocycle to is1Cocycle')
+                    α' : C⁰'
+                    α' (_ , _) (e' , _) = fE e'
+                    β'def : C¹'
+                    β'def = d₀' α'
+                    β-fac : (x : S) (u v : T x) → β x u v ≡ β'def (π x) (τ x u) (τ x v)
+                    β-fac x u v = fE-ok x u v
+                    β'-coc : is1Cocycle' β'def
+                    β'-coc s' u' v' w' = CechComplex.d₁∘d₀≡0 S' T' (λ _ → ℤAbGroup) α' s' u' v' w'
 
   open FiniteApproximationProof
 
@@ -959,18 +1025,6 @@ module CohomologyModule where
   Ȟ¹-coefficient-vanish : (X : Type₀) (T : X → Type₀)
     → CanonicalExactCechComplex.Ȟ¹-vanishes X T (λ _ → ℤAbGroup)
   Ȟ¹-coefficient-vanish X T = CanonicalExactCechComplex.canonical-exact X T (λ _ → ℤAbGroup)
-
-  -- tex Lemma 2932 (cech-exact):
-  -- For a Čech cover (X,S), the sequence
-  -- Ȟ⁰(X,S,ℤ^{S_x}) → Ȟ⁰(X,S,ℤ^{S_x}/ℤ) → Ȟ¹(X,S,ℤ) → 0 is exact.
-  -- Full proof needs SES of complexes and LES.
-
-  -- tex Theorem 2945 (cech-eilenberg-1-agree)
-  postulate
-    cech-eilenberg-1-agree : (cover : CechCover) →
-      let X = fst (CechCover.X cover)
-          T = λ x → fst (CechCover.S cover x)
-      in H¹-vanishes X ↔ CechComplex.Ȟ¹-vanishes X T (λ _ → ℤAbGroup)
 
   -- tex Lemma 2843 (finite-approximation-surjection-stone):
   -- Given S:Stone, T:S→Stone with Π_{x:S}∥T(x)∥₁, there exist finite approximations

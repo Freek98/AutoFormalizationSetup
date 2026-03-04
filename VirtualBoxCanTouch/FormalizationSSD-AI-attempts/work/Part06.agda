@@ -25,7 +25,7 @@ open import Cubical.Relation.Nullary
 open import Cubical.HITs.PropositionalTruncation as PT
 import QuotientBool as QB
 open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA)
-open import Axioms.StoneDuality using (Booleω; Sp; hasStoneStr)
+open import StoneSpaces.Spectrum using (Booleω; Sp; hasStoneStr)
 
 open import BooleanRing.FreeBooleanRing.freeBATerms using (equalityFromEqualityOnGenerators)
 

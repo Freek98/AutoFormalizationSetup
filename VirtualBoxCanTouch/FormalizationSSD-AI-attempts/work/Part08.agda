@@ -23,13 +23,13 @@ open import Cubical.HITs.PropositionalTruncation as PT using (∣_∣₁; ∥_�
 open import Cubical.Algebra.BooleanRing using (BooleanRing; BooleanRingStr; BoolHom)
 open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
 open import Cubical.Algebra.CommRing using (CommRingHom; IsCommRingHom; _$cr_; CommRingHom≡; _∘cr_)
-open import Axioms.StoneDuality using (Booleω; Sp)
+open import StoneSpaces.Spectrum using (Booleω; Sp)
 open import CountablyPresentedBooleanRings.PresentedBoole using (BooleanRingEquiv; has-Boole-ω'; BooleanEquivToHomInv; BooleanEquivLeftInv; idBoolHom; invBooleanRingEquiv)
 open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator; freeBA-universal-property)
 import QuotientBool as QB
 
 module StoneEqualityClosedModule where
-  open import Axioms.StoneDuality using (Stone; hasStoneStr; isSetBoolHom)
+  open import StoneSpaces.Spectrum using (Stone; hasStoneStr; isSetBoolHom)
 
   hasStoneStr→isSet : (S : Stone) → isSet (fst S)
   hasStoneStr→isSet (X , B , SpB≡X) = subst isSet SpB≡X (isSetBoolHom (fst B) BoolBR)

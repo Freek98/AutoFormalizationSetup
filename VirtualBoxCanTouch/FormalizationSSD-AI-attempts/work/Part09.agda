@@ -20,13 +20,14 @@ open import Cubical.HITs.PropositionalTruncation as PT using (∣_∣₁; ∥_�
 open import Cubical.Algebra.BooleanRing using (BooleanRing; BooleanRingStr; BoolHom; BooleanRing→CommRing; module BooleanAlgebraStr)
 open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
 open import CountablyPresentedBooleanRings.PresentedBoole using (BooleanRingEquiv; has-Boole-ω')
-open import Axioms.StoneDuality using (Booleω; Sp)
+open import StoneSpaces.Spectrum using (Booleω; Sp)
 open import Cubical.Foundations.Isomorphism using (Iso; iso; invIso; isoToPath)
 open import Cubical.Algebra.CommRing using (CommRing; CommRingStr; CommRing→Ring)
 open import Cubical.Algebra.Ring.Properties using (module RingTheory)
 
 module ClosedInStoneIsStoneModule where
-  open import Axioms.StoneDuality using (Stone; hasStoneStr; isPropHasStoneStr; isSetBoolHom)
+  open import StoneSpaces.Spectrum using (Stone; hasStoneStr; isSetBoolHom)
+  open import Axioms.StoneDuality using (isPropHasStoneStr)
   open import Cubical.Foundations.HLevels using (isPropΠ)
   open import Cubical.Foundations.Transport using (transportTransport⁻; transport⁻Transport)
   open import Cubical.Foundations.Isomorphism using (iso; isoToEquiv)
@@ -209,7 +210,7 @@ module ClosedInStoneIsStoneModule where
         SpC≡ΣA = ua SpC≃ΣA
 
 module InhabitedClosedSubSpaceClosedModule where
-  open import Axioms.StoneDuality using (Stone; hasStoneStr)
+  open import StoneSpaces.Spectrum using (Stone; hasStoneStr)
   open ClosedInStoneIsStoneModule
   open TruncationStoneClosedComplete
 
@@ -220,7 +221,7 @@ module InhabitedClosedSubSpaceClosedModule where
     TruncationStoneClosed (Σ (fst S) (λ x → fst (A x)) , ClosedInStoneIsStone S A A-closed)
 
 module ClosedSigmaClosedDerived where
-  open import Axioms.StoneDuality using (Stone; hasStoneStr)
+  open import StoneSpaces.Spectrum using (Stone; hasStoneStr)
   open ClosedPropIffStone
   open InhabitedClosedSubSpaceClosedModule
 
@@ -368,7 +369,7 @@ module IdealBound (B : BooleanRing ℓ-zero) (d : ℕ → ⟨ B ⟩) where
 
 -- tex Lemma 1824 (StoneSeperated)
 module StoneSeparatedModule where
-  open import Axioms.StoneDuality using (Stone; hasStoneStr; isSetBoolHom)
+  open import StoneSpaces.Spectrum using (Stone; hasStoneStr; isSetBoolHom)
   open StoneClosedSubsetsModule
   open SDDecToElemModule
   open ClosedInStoneIsStoneModule using (closedFamilyChoice)
@@ -619,7 +620,7 @@ module StoneSeparatedModule where
           true ∎
 
 module CantorIsStoneModule where
-  open import Axioms.StoneDuality using (Stone; hasStoneStr; SpGeneralBooleanRing)
+  open import StoneSpaces.Spectrum using (Stone; hasStoneStr; SpGeneralBooleanRing)
   open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA; freeBA-universal-property)
   import QuotientBool as QB
   open import CommRingQuotients.IdealTerms using (isInIdeal; isImage; iszero; isSum; isMul; idealDecomp)
@@ -704,7 +705,7 @@ module CantorIsStoneModule where
   CantorIsStone = freeBA-ℕ-Booleω , Sp-freeBA-ℕ-≡-Cantor
 
 module MapsStoneToNareBoundedModule where
-  open import Axioms.StoneDuality using (Stone; hasStoneStr; isSetBoolHom)
+  open import StoneSpaces.Spectrum using (Stone; hasStoneStr; isSetBoolHom)
   open StoneClosedSubsetsModule
   open SDDecToElemModule
   open import Cubical.Data.Bool using (Dec→Bool; true≢false; false≢true)

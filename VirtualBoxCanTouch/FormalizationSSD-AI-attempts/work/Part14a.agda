@@ -28,11 +28,11 @@ open import Cubical.Data.Int using (ℤ)
 open import Cubical.Algebra.BooleanRing using (BoolHom; BooleanRingStr; BooleanRing; BooleanRing→CommRing)
 open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
 open import Cubical.Algebra.CommRing using (_∘cr_; CommRingStr; CommRing→Ring; IsCommRingHom)
-open import Axioms.StoneDuality using (Booleω; Sp; Stone; hasStoneStr)
+open import StoneSpaces.Spectrum using (Booleω; Sp; Stone; hasStoneStr)
 open import CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω'; BooleanRingEquiv)
 
 module CohomologyModule where
-  open import Axioms.StoneDuality using (Stone; hasStoneStr)
+  open import StoneSpaces.Spectrum using (Stone; hasStoneStr)
   open CompactHausdorffModule using (CHaus)
 
   open import Cubical.Algebra.AbGroup.Instances.Int using (ℤAbGroup)
@@ -531,7 +531,7 @@ module CohomologyModule where
       β'-cocycle : CechComplex.is1Cocycle S' T' (λ _ → ℤAbGroup) β'
 
   module ScottIntCodomainModule where
-    open import Axioms.StoneDuality using (Sp; Booleω; SpGeneralBooleanRing; Stone; hasStoneStr)
+    open import StoneSpaces.Spectrum using (Sp; Booleω; SpGeneralBooleanRing; Stone; hasStoneStr)
     open import Cubical.Data.Int using (ℤ; pos; negsuc; abs; isSetℤ)
     open import Cubical.Data.Nat.Order using (_<_; suc-<)
     open import Cubical.Data.Nat.Order.Inductive using (<→<ᵗ)
@@ -595,7 +595,7 @@ module CohomologyModule where
   module FiniteApproximationProof where
     open ODiscAxioms
     open StoneSigmaClosedModule
-    open import Axioms.StoneDuality using (Sp; Booleω; SpGeneralBooleanRing)
+    open import StoneSpaces.Spectrum using (Sp; Booleω; SpGeneralBooleanRing)
 
     finite-approximation : (S : Type ℓ-zero) (T : S → Type ℓ-zero)
       → hasStoneStr S → ((x : S) → hasStoneStr (T x)) → ((x : S) → ∥ T x ∥₁)
