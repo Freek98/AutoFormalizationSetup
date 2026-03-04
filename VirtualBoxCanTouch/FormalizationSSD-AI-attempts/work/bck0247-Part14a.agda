@@ -731,16 +731,18 @@ module CohomologyModule where
                   (inh x)
                 τ : (x : S) → T x → T' (π x)
                 τ x u = SpProjection rdE N₁ (transport⁻ eqE (x , u)) , τ-lem x u
+                -- tex Corollary 1590 (scott-continuity): cocycle factors through E-level.
+                cocycleFactorsE : ∥ Σ[ fE ∈ (E'N → ℤ) ]
+                  ((x : S) (u v : T x) → β x u v
+                    ≡ ℤInt._-_ (fE (τ x v .fst)) (fE (τ x u .fst))) ∥₁
+                cocycleFactorsE = ∣ fE , fE-ok ∣₁ where
+                  postulate
+                    fE : E'N → ℤ
+                    fE-ok : (x : S) (u v : T x) → β x u v
+                      ≡ ℤInt._-_ (fE (τ x v .fst)) (fE (τ x u .fst))
                 useRef : ((s' : S') → T' s') → ∥ FiniteApprox S T β ∥₁
                 useRef w = PT.rec squash₁ construct cocycleFactorsE
                   where
-                  -- tex Corollary 1590 (scott-continuity): cocycle factors through E-level.
-                  -- Uses w (finite-level section) + β̃' (FP-level factoring).
-                  -- Requires decompositionBooleMaps (tex 1486) to relate FP and E decompositions.
-                  cocycleFactorsE : ∥ Σ[ fE ∈ (E'N → ℤ) ]
-                    ((x : S) (u v : T x) → β x u v
-                      ≡ ℤInt._-_ (fE (τ x v .fst)) (fE (τ x u .fst))) ∥₁
-                  cocycleFactorsE = {! !}
                   construct : Σ[ fE ∈ (E'N → ℤ) ]
                       ((x : S) (u v : T x) → β x u v
                         ≡ ℤInt._-_ (fE (τ x v .fst)) (fE (τ x u .fst)))

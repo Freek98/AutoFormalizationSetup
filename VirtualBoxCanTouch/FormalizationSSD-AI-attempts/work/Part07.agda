@@ -1253,15 +1253,6 @@ module ODiscAxioms where
     colimSeparation : {n m : ℕ} (a : obj S' n) (b : obj S' m) → incl a ≡ incl b
       → ∥ Σ[ N ∈ ℕ ] Σ[ le₁ ∈ n ≤ N ] Σ[ le₂ ∈ m ≤ N ] (liftTo le₁ a ≡ liftTo le₂ b) ∥₁
     colimSeparation a b p = effective isPropEvEq isEquivRelEvEq _ _ (cong fwd p)
-        isos : (n : ℕ) → Iso (obj S n) (Fin (sz n))
-        isos n = equivToIso (finEquivs n)
-        comm : (n : ℕ) (a : obj S n) → fmp n (Iso.fun (isos n) a) ≡ Iso.fun (isos (suc n)) (map S a)
-        comm n a = cong (λ z → equivFun (finEquivs (suc n)) (map S z)) (retEq (finEquivs n) a)
-        seqIso : SequenceIso S (mkFinSeq sz fmp)
-        seqIso = isos , comm
-        colimEquiv : SeqColim (mkFinSeq sz fmp) ≃ SeqColim S
-        colimEquiv = isoToEquiv (invIso (sequenceEquiv→ColimIso
-          (SequenceIso→SequenceEquiv seqIso)))
   subSeqEquiv : (S' : Sequence ℓ-zero) (ℓ' : ℕ → ℕ)
     → (setStages : (n : ℕ) → isSet (obj S' n))
     → (mono : (k : ℕ) → ℓ' k ≤ ℓ' (suc k))
