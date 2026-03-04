@@ -1,4 +1,5 @@
 name: FormalizationSSD
 include: .
+  FormalizationSSD
   /FormalizationSSD
 depend: cubical-0.9
