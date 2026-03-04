@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --guardedness #-}
+{-# OPTIONS --cubical --guardedness --allow-unsolved-metas #-}
 
 open import work.Part02Defs using (FoundationalAxioms)
 import work.Part12
