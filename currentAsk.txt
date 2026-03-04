@@ -107,4 +107,16 @@ I want you to finish a proof of the following: If i'm given a Boolean Ring (but 
 
 ❯ There is in the mounted version of FormalizationSSD a file called NfinCofin   
   (in CountablyPresentedBooleanRing/Examples). I want you to finish the proof   
-  that conjunction is preserved.
+ ────────────────────────────────────────────────────────────────────────────────
+❯ okay wait I realized something, I don't want to prove that after all, I only 
+  need that the induced map to the presentation is a morphism I think (in the   
+  end I want them to form an equivalence, and I need this result to show that   
+  that it's sufficient for one round trip to see that they agree on             
+  generators)                    that conjunction is preserved.
+  -- This is wrong I think and it decided it didn't need permissions. 
+
+❯ You are in a virtual box working on a library called formalizationSSD. I     
+  have decided to restructure your work. I used to copy the files to this       
+  directory, but I instead now mounted a copy here. Please make sure you can    
+  read /FormalizationSSD and run agda on those files. When you've done that,    
+  clean up the files here that are also present in /FormalizationSSD. 

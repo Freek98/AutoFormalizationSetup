@@ -36,7 +36,7 @@ open import Cubical.Algebra.CommRing.Instances.Unit
 open import QuickFixes
 
 module QuickBooleanFix where
-  open BooleanAlgebraStr (snd BoolBR)
+  open BooleanAlgebraStr BoolBR
   claim : (a b : Bool) → (a ∨ b) ≡ a or b
   claim false false = refl
   claim false true  = refl
@@ -51,7 +51,7 @@ booleanStructureOnBinarySequences = pointWiseStructure ℕ (λ _ → Bool) (λ _
 
 
 module ℕFinCofin where
-  open BooleanAlgebraStr (snd ℙℕ)
+  open BooleanAlgebraStr ℙℕ
 
   isZeroFrom : ℕ → binarySequence → Type
   isZeroFrom n α = ∀ (k : ℕ) → (k ≥ n) → α k ≡ false
@@ -199,7 +199,7 @@ module PresentationℕfinCofin where
   
   module _ where
     open BooleanRingStr (snd ℙℕ) 
-    open BooleanAlgebraStr (snd ℙℕ)
+    open BooleanAlgebraStr ℙℕ
     δn∧δm=0 : (n : ℕ) → (m : ℕ) → ((n ≡ m) → ⊥) → (k : ℕ) → (δSequence n k) and (δSequence m k) ≡ false 
     δn∧δm=0 zero zero n≠m _ = ex-falso (n≠m refl)
     δn∧δm=0 zero _ n≠m (suc k) = refl
@@ -255,7 +255,7 @@ module PresentationℕfinCofin where
     presentation→ℕFinCof = inducedHom ℕfinCofinBA freeℕ→ℕFinCof relationsRespected 
   
   module FinCofinℕ→freeBAℕ where
-    open BooleanAlgebraStr (snd $ freeBA ℕ) 
+    open BooleanAlgebraStr (freeBA ℕ)
     open BooleanRingStr (snd $ freeBA ℕ) 
     singleEntry : (α : binarySequence) → (m : ℕ) → ⟨ freeBA ℕ ⟩
     singleEntry α m = if α m then generator m else 𝟘 
