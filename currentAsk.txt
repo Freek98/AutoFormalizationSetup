@@ -143,10 +143,7 @@ I want you to finish a proof of the following: If i'm given a Boolean Ring (but 
   It's okay if they are long. So clean up and continue. btw, you were using     
   the wrong library, and another agent is fixing that so if mistakes arrive     
   from there, fix them.                                                         
-─────────────────────────────────────
 
-
-────────────────────────────────────────────────────────────────────────────────
 ❯ Hej I got a tip to use the universal properties of Quotients instead. I like 
   this suggestion a lot, and think you should implement it. The goal is to      
   show that if you have a quotient Q of a boolean Ring B by the image of some   
@@ -154,3 +151,6 @@ I want you to finish a proof of the following: If i'm given a Boolean Ring (but 
   property : (if X isa boolean ring, we have a map from B -> X sending          
   everthing in the image of f to 0, then we have a map from C to X) must be     
   equivalent to Q.           
+
+❯ looks good, now induce it to streamline the proof that NFinCofin is          
+  equivalent to it's presentation.     
