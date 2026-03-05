@@ -154,3 +154,10 @@ I want you to finish a proof of the following: If i'm given a Boolean Ring (but 
 
 ❯ looks good, now induce it to streamline the proof that NFinCofin is          
   equivalent to it's presentation.     
+
+❯ Okay but now you use your old work for this extension property. I want you   
+  to *refactor* the proof of the equivlanece. I'm okay if you delete your own   
+  old work (and maybe even mine, don't worry I've backed it all up where you    
+  can't touch it). I want the resulting proof for the presentation being        
+  correct to be as short and quickly compiling as possible. (without using      
+  postulates of course).       
