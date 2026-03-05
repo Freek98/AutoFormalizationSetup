@@ -113,10 +113,44 @@ I want you to finish a proof of the following: If i'm given a Boolean Ring (but 
   end I want them to form an equivalence, and I need this result to show that   
   that it's sufficient for one round trip to see that they agree on             
   generators)                    that conjunction is preserved.
-  -- This is wrong I think and it decided it didn't need permissions. 
+  -- This is wrong I think and it decided it didn't need permissions, so didn't do much :(
 
 ❯ You are in a virtual box working on a library called formalizationSSD. I     
   have decided to restructure your work. I used to copy the files to this       
   directory, but I instead now mounted a copy here. Please make sure you can    
   read /FormalizationSSD and run agda on those files. When you've done that,    
   clean up the files here that are also present in /FormalizationSSD. 
+
+❯ hej there is both in the mounted /FormalizationSSD and here a file called    
+  NFinCofin. I want you to do two things: clean up this directory so you don't  
+  have copies from the mounted folder, and then finish the proofs in            
+  NFinCofin.                                                                    
+───────────────────────
+
+❯ I see that you're still using an outdated version of the cubical library.    
+  You are in a virtual machine and have somehow set up a way to run my cubical  
+  library on the host machine. However, mine is on a different branch and you   
+  seem to work with the main branch. Please make it so you follow the host      
+  machine's branch.                                                             
+──────────────────────────────
+
+
+❯ I see you still have a hole for the intersection of cofinite case. As a      
+  suggestion, use deMorgan and prove that the union is also preserved. While    
+  you're at it, I think you can make use of more library code (classification   
+  of Boolean algebra morphisms, \negInvol come to mind immediately). Also I'm   
+  not sure all the names are good, please use some more descriptive names.      
+  It's okay if they are long. So clean up and continue. btw, you were using     
+  the wrong library, and another agent is fixing that so if mistakes arrive     
+  from there, fix them.                                                         
+─────────────────────────────────────
+
+
+────────────────────────────────────────────────────────────────────────────────
+❯ Hej I got a tip to use the universal properties of Quotients instead. I like 
+  this suggestion a lot, and think you should implement it. The goal is to      
+  show that if you have a quotient Q of a boolean Ring B by the image of some   
+  function f, then any boolean ring C that has the following universal          
+  property : (if X isa boolean ring, we have a map from B -> X sending          
+  everthing in the image of f to 0, then we have a map from C to X) must be     
+  equivalent to Q.           
