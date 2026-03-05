@@ -1,0 +1,31 @@
+CHANGES0005 - NFinCofin application module (+177 lines, 1316→1493)
+
+work.agda (1493 lines) - Added NFinCofinApplication module instantiating OrthogonalGens for NFinCofin.
+
+New import:
+- FormalizationSSD QuotientBool (as QB2)
+- FormalizationSSD NFinCofin (PresentationℕfinCofin, Relations)
+
+New module NFinCofinApplication:
+1. Opaque unfolding lemmas for includeBATermsSurj:
+   - incl-Tvar, incl-0, incl-1, incl-+, incl--, incl-·
+2. P = presentation ring, gP = generators, BR-P/BR-Free module aliases
+3. relations-compute: relations(n,m) = gen(n)·gen(m) when n≠m (with discreteℕ dispatch)
+4. gP-ortho: distinct generators multiply to zero (via relations-compute + QB2.zeroOnImage)
+5. π homomorphism properties opened: π-pres·, π-pres0, π-pres+, π-pres1, π-pres-
+6. interp-eq: interpretInB t ≡ fst π (fst includeBATermsSurj t) (induction on terms)
+   - Key: -T case uses BooleanAlgebraStr.-IsId P to go through presentation negation
+7. interpretP-surj: surjectivity of interpretInB (via compSurjection)
+8. open OrthogonalGens P gP gP-ortho public
+9. Application theorems:
+   - presentation-classification: every element is ∥ finJoin ns ⊎ finMeetNeg ns ∥₁
+   - presentation-normalForm: every element has an OrthoNF
+   - presentation-CNF: every element has a simplified CNF
+   - presentation-DNF: every element has a simplified DNF
+
+This directly addresses the CLAUDE.md requirement:
+"show that any element in the presentation of NFinCofin can be written in CNF,
+and then argue that there is either only conjunctions of negations of generators,
+or disjunctions of non-negated generators"
+
+Status: All compiling, no postulates, no holes. Full verification passed.
