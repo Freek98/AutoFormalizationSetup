@@ -4,7 +4,6 @@ module formalization.StoneDuality.NFinCofin.Presentation where
 open import formalization.StoneDuality.NFinCofin.Definitions
 
 open import formalization.Library.BooleanRing.BooleanRingMaps
-open import formalization.Library.QuickFixes using (mkBooleanRingEquiv)
 open import formalization.Library.BooleanRing.SubBooleanRing
 open import formalization.Library.BooleanRing.AlgebraicFacts
 open import formalization.Library.BooleanRing.FreeBooleanRing.FreeBool
@@ -16,8 +15,6 @@ open import Cubical.Foundations.Prelude hiding (_∨_ ; _∧_)
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Function
 open import Cubical.Foundations.Structure
-open import Cubical.Foundations.Isomorphism
-open import Cubical.Foundations.Equiv
 
 open import Cubical.Algebra.BooleanRing
 open import Cubical.Algebra.CommRing
@@ -858,26 +855,52 @@ roundtrip-pre-on-free = funExt⁻ (cong fst
     (funExt λ n → cong ℕFinCof→Presentation (sym (funExt⁻ (cong fst p→fc∘π≡fH) (generator n))) ∙ composite-on-gen n))
   ∙ inducedBAHomUnique ℕ presentation (λ n → fst π (generator n)) π refl))
 
-roundtrip-presentation : (x : ⟨ presentation ⟩) →
-  ℕFinCof→Presentation (fst presentation→ℕFinCof x) ≡ x
-roundtrip-presentation = funExt⁻ (QB.quotientImageHomEpi
-  (⟨ presentation ⟩ , isSetQ)
-  (funExt λ t →
-    cong ℕFinCof→Presentation (funExt⁻ (cong fst p→fc∘π≡fH) t)
-    ∙ roundtrip-pre-on-free t))
+-- ===== Final equivalence via universal property =====
+-- We show ℕfinCofinBA has the universal property of presentation = freeBA ℕ /Im relations,
+-- then apply the general QuotientCharacterization theorem.
 
--- ===== Final equivalence =====
-
-ℕFinCof≅Presentation : Iso ⟨ ℕfinCofinBA ⟩ ⟨ presentation ⟩
-ℕFinCof≅Presentation = iso ℕFinCof→Presentation (fst presentation→ℕFinCof) roundtrip-presentation roundtrip-ℕFinCof
+open import formalization.Library.BooleanRing.BooleanRingQuotients.QuotientUniversalProperty
 
 private
-  fwdIsEquiv : isEquiv (fst presentation→ℕFinCof)
-  fwdIsEquiv = isoToIsEquiv (iso (fst presentation→ℕFinCof) ℕFinCof→Presentation
-    roundtrip-ℕFinCof roundtrip-presentation)
+  -- ℕFinCof→PresentationHom ∘cr freeℕ→ℕFinCof ≡ π
+  ℕFinCof→Pres-comp-freeℕ≡π : ℕFinCof→PresentationHom ∘cr freeℕ→ℕFinCof ≡ π
+  ℕFinCof→Pres-comp-freeℕ≡π = CommRingHom≡ (funExt roundtrip-pre-on-free)
 
-  fwdBoolEquiv : BooleanRingEquiv presentation ℕfinCofinBA
-  fwdBoolEquiv = mkBooleanRingEquiv presentation ℕfinCofinBA presentation→ℕFinCof fwdIsEquiv
+  -- Universal property of ℕfinCofinBA:
+  -- For any S and g : BoolHom (freeBA ℕ) S killing relations, produce BoolHom ℕfinCofinBA S
+  ℕFinCof-induce : (S : BooleanRing ℓ-zero) (g : BoolHom (freeBA ℕ) S)
+    (g-zero : ∀ (p : ℕ × ℕ) → g $cr relations p ≡ BooleanRingStr.𝟘 (snd S)) →
+    BoolHom ℕfinCofinBA S
+  ℕFinCof-induce S g g-zero = QB.inducedHom S g g-zero ∘cr ℕFinCof→PresentationHom
 
-ℕFinCof=Presentation : BooleanRingEquiv ℕfinCofinBA presentation
-ℕFinCof=Presentation = invBooleanRingEquiv presentation ℕfinCofinBA fwdBoolEquiv
+  -- Computation: ℕFinCof-induce S g ∘cr freeℕ→ℕFinCof ≡ g
+  -- Proof: at the function level, compose through π using roundtrip-pre-on-free + evalInduce
+  opaque
+    unfolding QB.inducedHom
+    unfolding QB.quotientImageHom
+    ℕFinCof-eval : (S : BooleanRing ℓ-zero) (g : BoolHom (freeBA ℕ) S)
+      (g-zero : ∀ (p : ℕ × ℕ) → g $cr relations p ≡ BooleanRingStr.𝟘 (snd S)) →
+      ℕFinCof-induce S g g-zero ∘cr freeℕ→ℕFinCof ≡ g
+    ℕFinCof-eval S g g-zero = CommRingHom≡ (funExt λ t →
+      cong (fst (QB.inducedHom S g g-zero)) (roundtrip-pre-on-free t)
+      ∙ funExt⁻ (cong fst (QB.evalInduce {f = relations} S)) t)
+
+  -- Uniqueness: freeℕ→ℕFinCof has a section (fH-section), so two maps agreeing
+  -- after precomposing with it must be equal pointwise
+  ℕFinCof-unique : (S : BooleanRing ℓ-zero) (g : BoolHom (freeBA ℕ) S)
+    (g-zero : ∀ (p : ℕ × ℕ) → g $cr relations p ≡ BooleanRingStr.𝟘 (snd S))
+    (h : BoolHom ℕfinCofinBA S) → g ≡ h ∘cr freeℕ→ℕFinCof →
+    ℕFinCof-induce S g g-zero ≡ h
+  ℕFinCof-unique S g g-zero h p = CommRingHom≡ (funExt λ x →
+    cong (fst (ℕFinCof-induce S g g-zero)) (sym (fH-section x))
+    ∙ funExt⁻ (cong fst (ℕFinCof-eval S g g-zero)) (ℕFinCof→FreeℕMap x)
+    ∙ funExt⁻ (cong fst p) (ℕFinCof→FreeℕMap x)
+    ∙ cong (fst h) (fH-section x))
+
+open QuotientCharacterization
+  (freeBA ℕ) relations ℕfinCofinBA
+  freeℕ→ℕFinCof relationsRespected
+  ℕFinCof-induce ℕFinCof-eval ℕFinCof-unique
+
+ℕFinCof=Presentation : BooleanRingEquiv presentation ℕfinCofinBA
+ℕFinCof=Presentation = quotientUniversalPropertyEquiv
