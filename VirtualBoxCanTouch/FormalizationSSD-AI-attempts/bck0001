@@ -1,0 +1,758 @@
+{-# OPTIONS --cubical --guardedness #-}
+
+module work where
+
+open import Cubical.Foundations.Prelude hiding (_∨_ ; _∧_)
+open import Cubical.Foundations.Structure
+open import Cubical.Foundations.Function using (_∘_)
+open import Cubical.Data.List using (List; []; _∷_; _++_; map)
+open import Cubical.Data.Bool using (Bool; true; false; not; isSetBool; true≢false; false≢true; _⊕_; _and_; if_then_else_)
+open import Cubical.Data.Nat using (ℕ; zero; suc; discreteℕ)
+open import Cubical.Data.Sigma hiding (_∨_ ; _∧_)
+open import Cubical.Data.Empty renaming (rec to ex-falso)
+open import Cubical.Relation.Nullary using (¬_; Dec; yes; no)
+open import Cubical.HITs.PropositionalTruncation as PT using (∣_∣₁; ∥_∥₁; squash₁)
+open import Cubical.Algebra.BooleanRing
+open import Cubical.Algebra.CommRing
+open import Cubical.Functions.Surjection using (isSurjection; compSurjection)
+open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator; inducedBAHom; evalBAInduce)
+open import BooleanRing.FreeBooleanRing.freeBATerms using (includeBATermsSurj; freeBATerms)
+open import BooleanRing.FreeBooleanRing.SurjectiveTerms using (Tvar; Tconst; _+T_; -T_; _·T_)
+
+-- ═══════════════════════════════════════════════════════════════
+-- Part 1: General CNF/DNF Data Types for Free Boolean Algebras
+-- ═══════════════════════════════════════════════════════════════
+
+-- A literal: (generator index, is-positive?)
+-- (n , true) represents generator n
+-- (n , false) represents ¬(generator n)
+Literal : Type₀
+Literal = ℕ × Bool
+
+-- A clause is a list of literals
+Clause : Type₀
+Clause = List Literal
+
+-- DNF: disjunction (∨) of conjunction (∧) clauses
+DNF : Type₀
+DNF = List Clause
+
+-- CNF: conjunction (∧) of disjunction (∨) clauses
+CNF : Type₀
+CNF = List Clause
+
+-- ═══════════════════════════════════════════════════════════════
+-- Part 2: Evaluation of CNF/DNF in any Boolean Ring
+-- ═══════════════════════════════════════════════════════════════
+
+module EvalNF (B : BooleanRing ℓ-zero) (gen : ℕ → ⟨ B ⟩) where
+  private
+    module BA = BooleanAlgebraStr B
+    module BR = BooleanRingStr (snd B)
+
+  _∧B_ : ⟨ B ⟩ → ⟨ B ⟩ → ⟨ B ⟩
+  _∧B_ = BR._·_
+
+  _∨B_ : ⟨ B ⟩ → ⟨ B ⟩ → ⟨ B ⟩
+  _∨B_ = BA._∨_
+
+  ¬B_ : ⟨ B ⟩ → ⟨ B ⟩
+  ¬B_ = BA.¬_
+
+  𝟘B : ⟨ B ⟩
+  𝟘B = BR.𝟘
+
+  𝟙B : ⟨ B ⟩
+  𝟙B = BR.𝟙
+
+  evalLit : Literal → ⟨ B ⟩
+  evalLit (n , true)  = gen n
+  evalLit (n , false) = ¬B (gen n)
+
+  negateLit : Literal → Literal
+  negateLit (n , b) = (n , not b)
+
+  evalConjClause : Clause → ⟨ B ⟩
+  evalConjClause [] = 𝟙B
+  evalConjClause (l ∷ ls) = evalLit l ∧B evalConjClause ls
+
+  evalDisjClause : Clause → ⟨ B ⟩
+  evalDisjClause [] = 𝟘B
+  evalDisjClause (l ∷ ls) = evalLit l ∨B evalDisjClause ls
+
+  evalDNF : DNF → ⟨ B ⟩
+  evalDNF [] = 𝟘B
+  evalDNF (c ∷ cs) = evalConjClause c ∨B evalDNF cs
+
+  evalCNF : CNF → ⟨ B ⟩
+  evalCNF [] = 𝟙B
+  evalCNF (c ∷ cs) = evalDisjClause c ∧B evalCNF cs
+
+-- ═══════════════════════════════════════════════════════════════
+-- Part 3: Boolean Expression Intermediate Representation
+-- ═══════════════════════════════════════════════════════════════
+
+data BoolExpr : Type₀ where
+  BLit   : Literal → BoolExpr
+  BTrue  : BoolExpr
+  BFalse : BoolExpr
+  BAnd   : BoolExpr → BoolExpr → BoolExpr
+  BOr    : BoolExpr → BoolExpr → BoolExpr
+  BNot   : BoolExpr → BoolExpr
+
+module EvalBoolExpr (B : BooleanRing ℓ-zero) (gen : ℕ → ⟨ B ⟩) where
+  open EvalNF B gen
+
+  evalBE : BoolExpr → ⟨ B ⟩
+  evalBE (BLit l) = evalLit l
+  evalBE BTrue = 𝟙B
+  evalBE BFalse = 𝟘B
+  evalBE (BAnd a b) = evalBE a ∧B evalBE b
+  evalBE (BOr a b) = evalBE a ∨B evalBE b
+  evalBE (BNot a) = ¬B (evalBE a)
+
+-- ═══════════════════════════════════════════════════════════════
+-- Part 4: Conversion from freeBATerms to BoolExpr
+-- ═══════════════════════════════════════════════════════════════
+
+-- In a boolean ring: + is XOR, · is AND, - is identity
+-- XOR(a,b) = (a ∧ ¬b) ∨ (¬a ∧ b)
+termToBoolExpr : freeBATerms ℕ → BoolExpr
+termToBoolExpr (Tvar n) = BLit (n , true)
+termToBoolExpr (Tconst false) = BFalse
+termToBoolExpr (Tconst true) = BTrue
+termToBoolExpr (-T t) = termToBoolExpr t
+termToBoolExpr (t ·T s) = BAnd (termToBoolExpr t) (termToBoolExpr s)
+termToBoolExpr (t +T s) =
+  let t' = termToBoolExpr t
+      s' = termToBoolExpr s
+  in BOr (BAnd t' (BNot s')) (BAnd (BNot t') s')
+
+-- ═══════════════════════════════════════════════════════════════
+-- Part 5: Negation Normal Form (NNF) Conversion
+-- ═══════════════════════════════════════════════════════════════
+
+toNNF : BoolExpr → BoolExpr
+toNNFneg : BoolExpr → BoolExpr
+
+toNNF (BLit l) = BLit l
+toNNF BTrue = BTrue
+toNNF BFalse = BFalse
+toNNF (BAnd a b) = BAnd (toNNF a) (toNNF b)
+toNNF (BOr a b) = BOr (toNNF a) (toNNF b)
+toNNF (BNot a) = toNNFneg a
+
+toNNFneg (BLit (n , b)) = BLit (n , not b)
+toNNFneg BTrue = BFalse
+toNNFneg BFalse = BTrue
+toNNFneg (BAnd a b) = BOr (toNNFneg a) (toNNFneg b)
+toNNFneg (BOr a b) = BAnd (toNNFneg a) (toNNFneg b)
+toNNFneg (BNot a) = toNNF a
+
+-- ═══════════════════════════════════════════════════════════════
+-- Part 6: NNF to DNF Conversion
+-- ═══════════════════════════════════════════════════════════════
+
+singletonDNF : Literal → DNF
+singletonDNF l = (l ∷ []) ∷ []
+
+trueDNF : DNF
+trueDNF = [] ∷ []
+
+falseDNF : DNF
+falseDNF = []
+
+orDNF : DNF → DNF → DNF
+orDNF = _++_
+
+andDNF : DNF → DNF → DNF
+andDNF [] _ = []
+andDNF (_ ∷ _) [] = []
+andDNF (c₁ ∷ cs₁) cs₂ = map (c₁ ++_) cs₂ ++ andDNF cs₁ cs₂
+
+nnfToDNF : BoolExpr → DNF
+nnfToDNFneg : BoolExpr → DNF
+
+nnfToDNF (BLit l) = singletonDNF l
+nnfToDNF BTrue = trueDNF
+nnfToDNF BFalse = falseDNF
+nnfToDNF (BAnd a b) = andDNF (nnfToDNF a) (nnfToDNF b)
+nnfToDNF (BOr a b) = orDNF (nnfToDNF a) (nnfToDNF b)
+nnfToDNF (BNot a) = nnfToDNFneg a
+
+nnfToDNFneg (BLit (n , b)) = singletonDNF (n , not b)
+nnfToDNFneg BTrue = falseDNF
+nnfToDNFneg BFalse = trueDNF
+nnfToDNFneg (BAnd a b) = orDNF (nnfToDNFneg a) (nnfToDNFneg b)
+nnfToDNFneg (BOr a b) = andDNF (nnfToDNFneg a) (nnfToDNFneg b)
+nnfToDNFneg (BNot a) = nnfToDNF a
+
+-- ═══════════════════════════════════════════════════════════════
+-- Part 7: NNF to CNF Conversion
+-- ═══════════════════════════════════════════════════════════════
+
+singletonCNF : Literal → CNF
+singletonCNF l = (l ∷ []) ∷ []
+
+trueCNF : CNF
+trueCNF = []
+
+falseCNF : CNF
+falseCNF = [] ∷ []
+
+andCNF : CNF → CNF → CNF
+andCNF = _++_
+
+orCNF : CNF → CNF → CNF
+orCNF [] _ = []
+orCNF (_ ∷ _) [] = []
+orCNF (c₁ ∷ cs₁) cs₂ = map (c₁ ++_) cs₂ ++ orCNF cs₁ cs₂
+
+nnfToCNF : BoolExpr → CNF
+nnfToCNFneg : BoolExpr → CNF
+
+nnfToCNF (BLit l) = singletonCNF l
+nnfToCNF BTrue = trueCNF
+nnfToCNF BFalse = falseCNF
+nnfToCNF (BAnd a b) = andCNF (nnfToCNF a) (nnfToCNF b)
+nnfToCNF (BOr a b) = orCNF (nnfToCNF a) (nnfToCNF b)
+nnfToCNF (BNot a) = nnfToCNFneg a
+
+nnfToCNFneg (BLit (n , b)) = singletonCNF (n , not b)
+nnfToCNFneg BTrue = falseCNF
+nnfToCNFneg BFalse = trueCNF
+nnfToCNFneg (BAnd a b) = orCNF (nnfToCNFneg a) (nnfToCNFneg b)
+nnfToCNFneg (BOr a b) = andCNF (nnfToCNFneg a) (nnfToCNFneg b)
+nnfToCNFneg (BNot a) = nnfToCNF a
+
+-- ═══════════════════════════════════════════════════════════════
+-- Part 8: Full Pipeline: freeBATerms → DNF / CNF
+-- ═══════════════════════════════════════════════════════════════
+
+termToDNF : freeBATerms ℕ → DNF
+termToDNF t = nnfToDNF (toNNF (termToBoolExpr t))
+
+termToCNF : freeBATerms ℕ → CNF
+termToCNF t = nnfToCNF (toNNF (termToBoolExpr t))
+
+-- ═══════════════════════════════════════════════════════════════
+-- Part 9: Correctness Proofs
+-- ═══════════════════════════════════════════════════════════════
+
+module Correctness (B : BooleanRing ℓ-zero) (gen : ℕ → ⟨ B ⟩) where
+  open EvalNF B gen
+  open EvalBoolExpr B gen
+
+  private
+    module BA = BooleanAlgebraStr B
+    module BR = BooleanRingStr (snd B)
+    module RT where
+      open import Cubical.Algebra.Ring.Properties using (module RingTheory)
+      open RingTheory (CommRing→Ring (BooleanRing→CommRing B)) public
+
+  isSetB : isSet ⟨ B ⟩
+  isSetB = BR.is-set
+
+  -- Useful shorthands for identities
+  0-absorbs-left : (x : ⟨ B ⟩) → 𝟘B ∧B x ≡ 𝟘B
+  0-absorbs-left = RT.0LeftAnnihilates
+
+  0-absorbs-right : (x : ⟨ B ⟩) → x ∧B 𝟘B ≡ 𝟘B
+  0-absorbs-right = RT.0RightAnnihilates
+
+  -- ═══ xor-as-bool: a + b = (a ∧ ¬b) ∨ (¬a ∧ b) ═══
+  xor-as-bool : (a b : ⟨ B ⟩) → BR._+_ a b ≡ (a ∧B (¬B b)) ∨B ((¬B a) ∧B b)
+  xor-as-bool a b = sym rhs≡lhs
+    where
+      ab  = a ∧B b
+      a¬b = a ∧B (¬B b)
+      ¬ab = (¬B a) ∧B b
+
+      -- Cross product (a·¬b)·(¬a·b) = 0 by rearranging to (a·¬a)·... = 0
+      cross-zero : a¬b ∧B ¬ab ≡ 𝟘B
+      cross-zero =
+        a¬b ∧B ¬ab
+          ≡⟨ BR.·Assoc a¬b (¬B a) b ⟩
+        (a¬b ∧B (¬B a)) ∧B b
+          ≡⟨ cong (_∧B b) (sym (BR.·Assoc a (¬B b) (¬B a))) ⟩
+        (a ∧B ((¬B b) ∧B (¬B a))) ∧B b
+          ≡⟨ cong (λ z → (a ∧B z) ∧B b) (BR.·Comm (¬B b) (¬B a)) ⟩
+        (a ∧B ((¬B a) ∧B (¬B b))) ∧B b
+          ≡⟨ cong (_∧B b) (BR.·Assoc a (¬B a) (¬B b)) ⟩
+        ((a ∧B (¬B a)) ∧B (¬B b)) ∧B b
+          ≡⟨ cong (λ z → (z ∧B (¬B b)) ∧B b) BA.¬Cancels∧R ⟩
+        (𝟘B ∧B (¬B b)) ∧B b
+          ≡⟨ cong (_∧B b) (0-absorbs-left (¬B b)) ⟩
+        𝟘B ∧B b
+          ≡⟨ 0-absorbs-left b ⟩
+        𝟘B ∎
+
+      -- a·(1+b) = a + ab
+      expand-a¬b : a¬b ≡ BR._+_ a ab
+      expand-a¬b =
+        a ∧B (¬B b)
+          ≡⟨ BR.·DistR+ a 𝟙B b ⟩
+        BR._+_ (a ∧B 𝟙B) ab
+          ≡⟨ cong (λ z → BR._+_ z ab) (BR.·IdR a) ⟩
+        BR._+_ a ab ∎
+
+      -- (1+a)·b = b + ab
+      expand-¬ab : ¬ab ≡ BR._+_ b ab
+      expand-¬ab =
+        (¬B a) ∧B b
+          ≡⟨ BR.·DistL+ 𝟙B a b ⟩
+        BR._+_ (𝟙B ∧B b) ab
+          ≡⟨ cong (λ z → BR._+_ z ab) (BR.·IdL b) ⟩
+        BR._+_ b ab ∎
+
+      -- (a + ab) + (b + ab) = a + b  via reassociation and char 2
+      sum-simplify : BR._+_ (BR._+_ a ab) (BR._+_ b ab) ≡ BR._+_ a b
+      sum-simplify =
+        BR._+_ (BR._+_ a ab) (BR._+_ b ab)
+          ≡⟨ BR.+Assoc (BR._+_ a ab) b ab ⟩
+        BR._+_ (BR._+_ (BR._+_ a ab) b) ab
+          ≡⟨ cong (λ z → BR._+_ z ab) (sym (BR.+Assoc a ab b)) ⟩
+        BR._+_ (BR._+_ a (BR._+_ ab b)) ab
+          ≡⟨ cong (λ z → BR._+_ (BR._+_ a z) ab) (BR.+Comm ab b) ⟩
+        BR._+_ (BR._+_ a (BR._+_ b ab)) ab
+          ≡⟨ cong (λ z → BR._+_ z ab) (BR.+Assoc a b ab) ⟩
+        BR._+_ (BR._+_ (BR._+_ a b) ab) ab
+          ≡⟨ sym (BR.+Assoc (BR._+_ a b) ab ab) ⟩
+        BR._+_ (BR._+_ a b) (BR._+_ ab ab)
+          ≡⟨ cong (BR._+_ (BR._+_ a b)) BA.characteristic2 ⟩
+        BR._+_ (BR._+_ a b) 𝟘B
+          ≡⟨ BR.+IdR (BR._+_ a b) ⟩
+        BR._+_ a b ∎
+
+      -- Main chain: RHS → LHS
+      rhs≡lhs : a¬b ∨B ¬ab ≡ BR._+_ a b
+      rhs≡lhs =
+        a¬b ∨B ¬ab
+          ≡⟨ cong (BR._+_ (BR._+_ a¬b ¬ab)) cross-zero ⟩
+        BR._+_ (BR._+_ a¬b ¬ab) 𝟘B
+          ≡⟨ BR.+IdR (BR._+_ a¬b ¬ab) ⟩
+        BR._+_ a¬b ¬ab
+          ≡⟨ cong₂ BR._+_ expand-a¬b expand-¬ab ⟩
+        BR._+_ (BR._+_ a ab) (BR._+_ b ab)
+          ≡⟨ sum-simplify ⟩
+        BR._+_ a b ∎
+
+  negateLit-correct : (l : Literal) → evalLit (negateLit l) ≡ ¬B (evalLit l)
+  negateLit-correct (n , true) = refl
+  negateLit-correct (n , false) = sym BA.¬Invol
+
+  -- Interpretation of freeBATerms in B
+  interpretInB : freeBATerms ℕ → ⟨ B ⟩
+  interpretInB (Tvar n) = gen n
+  interpretInB (Tconst false) = 𝟘B
+  interpretInB (Tconst true) = 𝟙B
+  interpretInB (t +T s) = BR._+_ (interpretInB t) (interpretInB s)
+  interpretInB (-T t) = interpretInB t
+  interpretInB (t ·T s) = (interpretInB t) ∧B (interpretInB s)
+
+  -- termToBoolExpr preserves semantics
+  termToBoolExpr-correct : (t : freeBATerms ℕ) → evalBE (termToBoolExpr t) ≡ interpretInB t
+  termToBoolExpr-correct (Tvar n) = refl
+  termToBoolExpr-correct (Tconst false) = refl
+  termToBoolExpr-correct (Tconst true) = refl
+  termToBoolExpr-correct (-T t) = termToBoolExpr-correct t
+  termToBoolExpr-correct (t ·T s) =
+    cong₂ _∧B_ (termToBoolExpr-correct t) (termToBoolExpr-correct s)
+  termToBoolExpr-correct (t +T s) =
+    let t' = termToBoolExpr t ; s' = termToBoolExpr s
+        tv = interpretInB t ; sv = interpretInB s
+    in
+    evalBE (BOr (BAnd t' (BNot s')) (BAnd (BNot t') s'))
+      ≡⟨ cong₂ _∨B_ (cong₂ _∧B_ (termToBoolExpr-correct t) (cong ¬B_ (termToBoolExpr-correct s)))
+                      (cong₂ _∧B_ (cong ¬B_ (termToBoolExpr-correct t)) (termToBoolExpr-correct s)) ⟩
+    (tv ∧B (¬B sv)) ∨B ((¬B tv) ∧B sv)
+      ≡⟨ sym (xor-as-bool tv sv) ⟩
+    BR._+_ tv sv ∎
+
+  -- toNNF / toNNFneg preserve semantics
+  toNNF-correct : (e : BoolExpr) → evalBE (toNNF e) ≡ evalBE e
+  toNNFneg-correct : (e : BoolExpr) → evalBE (toNNFneg e) ≡ ¬B (evalBE e)
+
+  toNNF-correct (BLit l) = refl
+  toNNF-correct BTrue = refl
+  toNNF-correct BFalse = refl
+  toNNF-correct (BAnd a b) = cong₂ _∧B_ (toNNF-correct a) (toNNF-correct b)
+  toNNF-correct (BOr a b) = cong₂ _∨B_ (toNNF-correct a) (toNNF-correct b)
+  toNNF-correct (BNot a) = toNNFneg-correct a
+
+  toNNFneg-correct (BLit (n , true)) = refl
+  toNNFneg-correct (BLit (n , false)) = sym BA.¬Invol
+  toNNFneg-correct BTrue = sym BA.¬1≡0
+  toNNFneg-correct BFalse = sym (BR.+IdR 𝟙B)
+  toNNFneg-correct (BAnd a b) =
+    evalBE (BOr (toNNFneg a) (toNNFneg b))
+      ≡⟨ cong₂ _∨B_ (toNNFneg-correct a) (toNNFneg-correct b) ⟩
+    (¬B evalBE a) ∨B (¬B evalBE b)
+      ≡⟨ sym BA.DeMorgan¬∧ ⟩
+    ¬B (evalBE a ∧B evalBE b) ∎
+  toNNFneg-correct (BOr a b) =
+    evalBE (BAnd (toNNFneg a) (toNNFneg b))
+      ≡⟨ cong₂ _∧B_ (toNNFneg-correct a) (toNNFneg-correct b) ⟩
+    (¬B evalBE a) ∧B (¬B evalBE b)
+      ≡⟨ sym BA.DeMorgan¬∨ ⟩
+    ¬B (evalBE a ∨B evalBE b) ∎
+  toNNFneg-correct (BNot a) =
+    evalBE (toNNF a)
+      ≡⟨ toNNF-correct a ⟩
+    evalBE a
+      ≡⟨ sym BA.¬Invol ⟩
+    ¬B (¬B evalBE a) ∎
+
+  -- ═══ DNF correctness infrastructure ═══
+
+  evalConjClause-++ : (c₁ c₂ : Clause) →
+    evalConjClause (c₁ ++ c₂) ≡ evalConjClause c₁ ∧B evalConjClause c₂
+  evalConjClause-++ [] c₂ = sym (BR.·IdL (evalConjClause c₂))
+  evalConjClause-++ (l ∷ ls) c₂ =
+    evalLit l ∧B evalConjClause (ls ++ c₂)
+      ≡⟨ cong (evalLit l ∧B_) (evalConjClause-++ ls c₂) ⟩
+    evalLit l ∧B (evalConjClause ls ∧B evalConjClause c₂)
+      ≡⟨ BR.·Assoc (evalLit l) (evalConjClause ls) (evalConjClause c₂) ⟩
+    (evalLit l ∧B evalConjClause ls) ∧B evalConjClause c₂ ∎
+
+  evalDisjClause-++ : (c₁ c₂ : Clause) →
+    evalDisjClause (c₁ ++ c₂) ≡ evalDisjClause c₁ ∨B evalDisjClause c₂
+  evalDisjClause-++ [] c₂ = sym BA.∨IdL
+  evalDisjClause-++ (l ∷ ls) c₂ =
+    evalLit l ∨B evalDisjClause (ls ++ c₂)
+      ≡⟨ cong (evalLit l ∨B_) (evalDisjClause-++ ls c₂) ⟩
+    evalLit l ∨B (evalDisjClause ls ∨B evalDisjClause c₂)
+      ≡⟨ BA.∨Assoc ⟩
+    (evalLit l ∨B evalDisjClause ls) ∨B evalDisjClause c₂ ∎
+
+  evalDNF-++ : (d₁ d₂ : DNF) →
+    evalDNF (d₁ ++ d₂) ≡ evalDNF d₁ ∨B evalDNF d₂
+  evalDNF-++ [] d₂ = sym BA.∨IdL
+  evalDNF-++ (c ∷ cs) d₂ =
+    evalConjClause c ∨B evalDNF (cs ++ d₂)
+      ≡⟨ cong (evalConjClause c ∨B_) (evalDNF-++ cs d₂) ⟩
+    evalConjClause c ∨B (evalDNF cs ∨B evalDNF d₂)
+      ≡⟨ BA.∨Assoc ⟩
+    (evalConjClause c ∨B evalDNF cs) ∨B evalDNF d₂ ∎
+
+  evalDNF-map-prepend : (c₁ : Clause) (d₂ : DNF) →
+    evalDNF (map (c₁ ++_) d₂) ≡ evalConjClause c₁ ∧B evalDNF d₂
+  evalDNF-map-prepend c₁ [] = sym (0-absorbs-right (evalConjClause c₁))
+  evalDNF-map-prepend c₁ (c₂ ∷ cs₂) =
+    evalConjClause (c₁ ++ c₂) ∨B evalDNF (map (c₁ ++_) cs₂)
+      ≡⟨ cong₂ _∨B_ (evalConjClause-++ c₁ c₂) (evalDNF-map-prepend c₁ cs₂) ⟩
+    (evalConjClause c₁ ∧B evalConjClause c₂) ∨B (evalConjClause c₁ ∧B evalDNF cs₂)
+      ≡⟨ sym BA.∧DistR∨ ⟩
+    evalConjClause c₁ ∧B (evalConjClause c₂ ∨B evalDNF cs₂) ∎
+
+  andDNF-correct : (d₁ d₂ : DNF) →
+    evalDNF (andDNF d₁ d₂) ≡ evalDNF d₁ ∧B evalDNF d₂
+  andDNF-correct [] d₂ = sym (0-absorbs-left (evalDNF d₂))
+  andDNF-correct (c₁ ∷ cs₁) [] = sym (0-absorbs-right (evalConjClause c₁ ∨B evalDNF cs₁))
+  andDNF-correct (c₁ ∷ cs₁) (c₂ ∷ cs₂) =
+    evalDNF (map (c₁ ++_) (c₂ ∷ cs₂) ++ andDNF cs₁ (c₂ ∷ cs₂))
+      ≡⟨ evalDNF-++ (map (c₁ ++_) (c₂ ∷ cs₂)) (andDNF cs₁ (c₂ ∷ cs₂)) ⟩
+    evalDNF (map (c₁ ++_) (c₂ ∷ cs₂)) ∨B evalDNF (andDNF cs₁ (c₂ ∷ cs₂))
+      ≡⟨ cong₂ _∨B_ (evalDNF-map-prepend c₁ (c₂ ∷ cs₂)) (andDNF-correct cs₁ (c₂ ∷ cs₂)) ⟩
+    (evalConjClause c₁ ∧B evalDNF (c₂ ∷ cs₂)) ∨B (evalDNF cs₁ ∧B evalDNF (c₂ ∷ cs₂))
+      ≡⟨ sym BA.∧DistL∨ ⟩
+    (evalConjClause c₁ ∨B evalDNF cs₁) ∧B evalDNF (c₂ ∷ cs₂) ∎
+
+  singletonDNF-eval : (l : Literal) → evalDNF (singletonDNF l) ≡ evalLit l
+  singletonDNF-eval l =
+    (evalLit l ∧B 𝟙B) ∨B 𝟘B
+      ≡⟨ BA.∨IdR ⟩
+    evalLit l ∧B 𝟙B
+      ≡⟨ BR.·IdR (evalLit l) ⟩
+    evalLit l ∎
+
+  nnfToDNF-correct : (e : BoolExpr) → evalDNF (nnfToDNF e) ≡ evalBE e
+  nnfToDNFneg-correct : (e : BoolExpr) → evalDNF (nnfToDNFneg e) ≡ ¬B (evalBE e)
+
+  nnfToDNF-correct (BLit l) = singletonDNF-eval l
+  nnfToDNF-correct BTrue =
+    𝟙B ∨B 𝟘B
+      ≡⟨ BA.∨IdR ⟩
+    𝟙B ∎
+  nnfToDNF-correct BFalse = refl
+  nnfToDNF-correct (BAnd a b) =
+    evalDNF (andDNF (nnfToDNF a) (nnfToDNF b))
+      ≡⟨ andDNF-correct (nnfToDNF a) (nnfToDNF b) ⟩
+    evalDNF (nnfToDNF a) ∧B evalDNF (nnfToDNF b)
+      ≡⟨ cong₂ _∧B_ (nnfToDNF-correct a) (nnfToDNF-correct b) ⟩
+    evalBE a ∧B evalBE b ∎
+  nnfToDNF-correct (BOr a b) =
+    evalDNF (nnfToDNF a ++ nnfToDNF b)
+      ≡⟨ evalDNF-++ (nnfToDNF a) (nnfToDNF b) ⟩
+    evalDNF (nnfToDNF a) ∨B evalDNF (nnfToDNF b)
+      ≡⟨ cong₂ _∨B_ (nnfToDNF-correct a) (nnfToDNF-correct b) ⟩
+    evalBE a ∨B evalBE b ∎
+  nnfToDNF-correct (BNot a) = nnfToDNFneg-correct a
+
+  nnfToDNFneg-correct (BLit (n , true)) =
+    singletonDNF-eval (n , false)
+  nnfToDNFneg-correct (BLit (n , false)) =
+    evalDNF (singletonDNF (n , true))
+      ≡⟨ singletonDNF-eval (n , true) ⟩
+    gen n
+      ≡⟨ sym BA.¬Invol ⟩
+    ¬B (¬B (gen n)) ∎
+  nnfToDNFneg-correct BTrue = sym BA.¬1≡0
+  nnfToDNFneg-correct BFalse =
+    𝟙B ∨B 𝟘B
+      ≡⟨ BA.∨IdR ⟩
+    𝟙B
+      ≡⟨ sym (BR.+IdR 𝟙B) ⟩
+    ¬B 𝟘B ∎
+  nnfToDNFneg-correct (BAnd a b) =
+    evalDNF (nnfToDNFneg a ++ nnfToDNFneg b)
+      ≡⟨ evalDNF-++ (nnfToDNFneg a) (nnfToDNFneg b) ⟩
+    evalDNF (nnfToDNFneg a) ∨B evalDNF (nnfToDNFneg b)
+      ≡⟨ cong₂ _∨B_ (nnfToDNFneg-correct a) (nnfToDNFneg-correct b) ⟩
+    (¬B (evalBE a)) ∨B (¬B (evalBE b))
+      ≡⟨ sym BA.DeMorgan¬∧ ⟩
+    ¬B (evalBE a ∧B evalBE b) ∎
+  nnfToDNFneg-correct (BOr a b) =
+    evalDNF (andDNF (nnfToDNFneg a) (nnfToDNFneg b))
+      ≡⟨ andDNF-correct (nnfToDNFneg a) (nnfToDNFneg b) ⟩
+    evalDNF (nnfToDNFneg a) ∧B evalDNF (nnfToDNFneg b)
+      ≡⟨ cong₂ _∧B_ (nnfToDNFneg-correct a) (nnfToDNFneg-correct b) ⟩
+    (¬B (evalBE a)) ∧B (¬B (evalBE b))
+      ≡⟨ sym BA.DeMorgan¬∨ ⟩
+    ¬B (evalBE a ∨B evalBE b) ∎
+  nnfToDNFneg-correct (BNot a) =
+    evalDNF (nnfToDNF a)
+      ≡⟨ nnfToDNF-correct a ⟩
+    evalBE a
+      ≡⟨ sym BA.¬Invol ⟩
+    ¬B (¬B (evalBE a)) ∎
+
+  -- ═══ CNF correctness infrastructure ═══
+
+  evalCNF-++ : (c₁ c₂ : CNF) →
+    evalCNF (c₁ ++ c₂) ≡ evalCNF c₁ ∧B evalCNF c₂
+  evalCNF-++ [] c₂ = sym (BR.·IdL (evalCNF c₂))
+  evalCNF-++ (c ∷ cs) c₂ =
+    evalDisjClause c ∧B evalCNF (cs ++ c₂)
+      ≡⟨ cong (evalDisjClause c ∧B_) (evalCNF-++ cs c₂) ⟩
+    evalDisjClause c ∧B (evalCNF cs ∧B evalCNF c₂)
+      ≡⟨ BR.·Assoc (evalDisjClause c) (evalCNF cs) (evalCNF c₂) ⟩
+    (evalDisjClause c ∧B evalCNF cs) ∧B evalCNF c₂ ∎
+
+  evalCNF-map-prepend : (c₁ : Clause) (cnf₂ : CNF) →
+    evalCNF (map (c₁ ++_) cnf₂) ≡ evalDisjClause c₁ ∨B evalCNF cnf₂
+  evalCNF-map-prepend c₁ [] = sym BA.1Absorbs∨R
+  evalCNF-map-prepend c₁ (c₂ ∷ cs₂) =
+    evalDisjClause (c₁ ++ c₂) ∧B evalCNF (map (c₁ ++_) cs₂)
+      ≡⟨ cong₂ _∧B_ (evalDisjClause-++ c₁ c₂) (evalCNF-map-prepend c₁ cs₂) ⟩
+    (evalDisjClause c₁ ∨B evalDisjClause c₂) ∧B (evalDisjClause c₁ ∨B evalCNF cs₂)
+      ≡⟨ sym BA.∨DistR∧ ⟩
+    evalDisjClause c₁ ∨B (evalDisjClause c₂ ∧B evalCNF cs₂) ∎
+
+  orCNF-correct : (cnf₁ cnf₂ : CNF) →
+    evalCNF (orCNF cnf₁ cnf₂) ≡ evalCNF cnf₁ ∨B evalCNF cnf₂
+  orCNF-correct [] cnf₂ = sym BA.1Absorbs∨L
+  orCNF-correct (c₁ ∷ cs₁) [] = sym BA.1Absorbs∨R
+  orCNF-correct (c₁ ∷ cs₁) (c₂ ∷ cs₂) =
+    evalCNF (map (c₁ ++_) (c₂ ∷ cs₂) ++ orCNF cs₁ (c₂ ∷ cs₂))
+      ≡⟨ evalCNF-++ (map (c₁ ++_) (c₂ ∷ cs₂)) (orCNF cs₁ (c₂ ∷ cs₂)) ⟩
+    evalCNF (map (c₁ ++_) (c₂ ∷ cs₂)) ∧B evalCNF (orCNF cs₁ (c₂ ∷ cs₂))
+      ≡⟨ cong₂ _∧B_ (evalCNF-map-prepend c₁ (c₂ ∷ cs₂)) (orCNF-correct cs₁ (c₂ ∷ cs₂)) ⟩
+    (evalDisjClause c₁ ∨B evalCNF (c₂ ∷ cs₂)) ∧B (evalCNF cs₁ ∨B evalCNF (c₂ ∷ cs₂))
+      ≡⟨ sym BA.∨Distr∧R ⟩
+    (evalDisjClause c₁ ∧B evalCNF cs₁) ∨B evalCNF (c₂ ∷ cs₂) ∎
+
+  singletonCNF-eval : (l : Literal) → evalCNF (singletonCNF l) ≡ evalLit l
+  singletonCNF-eval l =
+    (evalLit l ∨B 𝟘B) ∧B 𝟙B
+      ≡⟨ BR.·IdR _ ⟩
+    evalLit l ∨B 𝟘B
+      ≡⟨ BA.∨IdR ⟩
+    evalLit l ∎
+
+  nnfToCNF-correct : (e : BoolExpr) → evalCNF (nnfToCNF e) ≡ evalBE e
+  nnfToCNFneg-correct : (e : BoolExpr) → evalCNF (nnfToCNFneg e) ≡ ¬B (evalBE e)
+
+  nnfToCNF-correct (BLit l) = singletonCNF-eval l
+  nnfToCNF-correct BTrue = refl
+  nnfToCNF-correct BFalse =
+    𝟘B ∧B 𝟙B
+      ≡⟨ 0-absorbs-left 𝟙B ⟩
+    𝟘B ∎
+  nnfToCNF-correct (BAnd a b) =
+    evalCNF (nnfToCNF a ++ nnfToCNF b)
+      ≡⟨ evalCNF-++ (nnfToCNF a) (nnfToCNF b) ⟩
+    evalCNF (nnfToCNF a) ∧B evalCNF (nnfToCNF b)
+      ≡⟨ cong₂ _∧B_ (nnfToCNF-correct a) (nnfToCNF-correct b) ⟩
+    evalBE a ∧B evalBE b ∎
+  nnfToCNF-correct (BOr a b) =
+    evalCNF (orCNF (nnfToCNF a) (nnfToCNF b))
+      ≡⟨ orCNF-correct (nnfToCNF a) (nnfToCNF b) ⟩
+    evalCNF (nnfToCNF a) ∨B evalCNF (nnfToCNF b)
+      ≡⟨ cong₂ _∨B_ (nnfToCNF-correct a) (nnfToCNF-correct b) ⟩
+    evalBE a ∨B evalBE b ∎
+  nnfToCNF-correct (BNot a) = nnfToCNFneg-correct a
+
+  nnfToCNFneg-correct (BLit (n , true)) =
+    singletonCNF-eval (n , false)
+  nnfToCNFneg-correct (BLit (n , false)) =
+    evalCNF (singletonCNF (n , true))
+      ≡⟨ singletonCNF-eval (n , true) ⟩
+    gen n
+      ≡⟨ sym BA.¬Invol ⟩
+    ¬B (¬B (gen n)) ∎
+  nnfToCNFneg-correct BTrue =
+    𝟘B ∧B 𝟙B
+      ≡⟨ 0-absorbs-left 𝟙B ⟩
+    𝟘B
+      ≡⟨ sym BA.¬1≡0 ⟩
+    ¬B 𝟙B ∎
+  nnfToCNFneg-correct BFalse = sym (BR.+IdR 𝟙B)
+  nnfToCNFneg-correct (BAnd a b) =
+    evalCNF (orCNF (nnfToCNFneg a) (nnfToCNFneg b))
+      ≡⟨ orCNF-correct (nnfToCNFneg a) (nnfToCNFneg b) ⟩
+    evalCNF (nnfToCNFneg a) ∨B evalCNF (nnfToCNFneg b)
+      ≡⟨ cong₂ _∨B_ (nnfToCNFneg-correct a) (nnfToCNFneg-correct b) ⟩
+    (¬B (evalBE a)) ∨B (¬B (evalBE b))
+      ≡⟨ sym BA.DeMorgan¬∧ ⟩
+    ¬B (evalBE a ∧B evalBE b) ∎
+  nnfToCNFneg-correct (BOr a b) =
+    evalCNF (nnfToCNFneg a ++ nnfToCNFneg b)
+      ≡⟨ evalCNF-++ (nnfToCNFneg a) (nnfToCNFneg b) ⟩
+    evalCNF (nnfToCNFneg a) ∧B evalCNF (nnfToCNFneg b)
+      ≡⟨ cong₂ _∧B_ (nnfToCNFneg-correct a) (nnfToCNFneg-correct b) ⟩
+    (¬B (evalBE a)) ∧B (¬B (evalBE b))
+      ≡⟨ sym BA.DeMorgan¬∨ ⟩
+    ¬B (evalBE a ∨B evalBE b) ∎
+  nnfToCNFneg-correct (BNot a) =
+    evalCNF (nnfToCNF a)
+      ≡⟨ nnfToCNF-correct a ⟩
+    evalBE a
+      ≡⟨ sym BA.¬Invol ⟩
+    ¬B (¬B (evalBE a)) ∎
+
+  -- ═══ Full pipeline correctness ═══
+
+  termToDNF-correct : (t : freeBATerms ℕ) → evalDNF (termToDNF t) ≡ interpretInB t
+  termToDNF-correct t =
+    evalDNF (nnfToDNF (toNNF (termToBoolExpr t)))
+      ≡⟨ nnfToDNF-correct (toNNF (termToBoolExpr t)) ⟩
+    evalBE (toNNF (termToBoolExpr t))
+      ≡⟨ toNNF-correct (termToBoolExpr t) ⟩
+    evalBE (termToBoolExpr t)
+      ≡⟨ termToBoolExpr-correct t ⟩
+    interpretInB t ∎
+
+  termToCNF-correct : (t : freeBATerms ℕ) → evalCNF (termToCNF t) ≡ interpretInB t
+  termToCNF-correct t =
+    evalCNF (nnfToCNF (toNNF (termToBoolExpr t)))
+      ≡⟨ nnfToCNF-correct (toNNF (termToBoolExpr t)) ⟩
+    evalBE (toNNF (termToBoolExpr t))
+      ≡⟨ toNNF-correct (termToBoolExpr t) ⟩
+    evalBE (termToBoolExpr t)
+      ≡⟨ termToBoolExpr-correct t ⟩
+    interpretInB t ∎
+
+-- ═══════════════════════════════════════════════════════════════
+-- Part 10: Surjectivity — Every element has a DNF/CNF
+-- ═══════════════════════════════════════════════════════════════
+
+module Surjectivity (B : BooleanRing ℓ-zero) (gen : ℕ → ⟨ B ⟩)
+  (terms-surj : isSurjection (λ (t : freeBATerms ℕ) → Correctness.interpretInB B gen t))
+  where
+  open Correctness B gen
+  open EvalNF B gen
+
+  dnfExists : (x : ⟨ B ⟩) → ∥ Σ[ d ∈ DNF ] evalDNF d ≡ x ∥₁
+  dnfExists x = PT.map
+    (λ { (t , eq) → termToDNF t , termToDNF-correct t ∙ eq })
+    (terms-surj x)
+
+  cnfExists : (x : ⟨ B ⟩) → ∥ Σ[ c ∈ CNF ] evalCNF c ≡ x ∥₁
+  cnfExists x = PT.map
+    (λ { (t , eq) → termToCNF t , termToCNF-correct t ∙ eq })
+    (terms-surj x)
+
+-- ═══════════════════════════════════════════════════════════════
+-- Part 11: Helper Functions
+-- ═══════════════════════════════════════════════════════════════
+
+-- Check if a clause contains only positive literals
+allPositive : Clause → Bool
+allPositive [] = true
+allPositive ((_ , true)  ∷ ls) = allPositive ls
+allPositive ((_ , false) ∷ ls) = false
+
+-- Check if a clause contains only negative literals
+allNegative : Clause → Bool
+allNegative [] = true
+allNegative ((_ , false) ∷ ls) = allNegative ls
+allNegative ((_ , true)  ∷ ls) = false
+
+-- Extract generator indices from a clause (discarding polarity)
+generatorIndices : Clause → List ℕ
+generatorIndices [] = []
+generatorIndices ((n , _) ∷ ls) = n ∷ generatorIndices ls
+
+-- A DNF where every clause has all positive literals = disjunction of conjunctions of generators
+-- A CNF where every clause has all negative literals = conjunction of disjunctions of negated generators
+
+-- For the NFinCofin application:
+-- In B∞ (where distinct generators are orthogonal), the simplified form is either:
+-- (a) joinForm: finJoin of generators (all-positive single-literal clauses in DNF)
+-- (b) meetNegForm: finMeet of negated generators (all-negative single-literal clauses in CNF)
+
+-- Convert a list of naturals to a clause of positive literals
+positiveLiterals : List ℕ → Clause
+positiveLiterals [] = []
+positiveLiterals (n ∷ ns) = (n , true) ∷ positiveLiterals ns
+
+-- Convert a list of naturals to a clause of negative literals
+negativeLiterals : List ℕ → Clause
+negativeLiterals [] = []
+negativeLiterals (n ∷ ns) = (n , false) ∷ negativeLiterals ns
+
+-- A "simple DNF" is a single clause of positive literals
+-- Evaluates to: g_n₁ ∧ g_n₂ ∧ ... ∧ g_nₖ
+-- In B∞ with orthogonal generators: this is 𝟘 unless the clause has ≤ 1 literal
+
+-- A "join form DNF" has each clause being a single positive literal
+-- i.e., ((n₁,true) ∷ []) ∷ ((n₂,true) ∷ []) ∷ ... ∷ []
+-- Evaluates to: g_n₁ ∨ g_n₂ ∨ ... ∨ g_nₖ
+joinFormDNF : List ℕ → DNF
+joinFormDNF [] = []
+joinFormDNF (n ∷ ns) = ((n , true) ∷ []) ∷ joinFormDNF ns
+
+-- A "meet-neg form CNF" has each clause being a single negative literal
+-- i.e., ((n₁,false) ∷ []) ∷ ((n₂,false) ∷ []) ∷ ... ∷ []
+-- Evaluates to: ¬g_n₁ ∧ ¬g_n₂ ∧ ... ∧ ¬g_nₖ
+meetNegFormCNF : List ℕ → CNF
+meetNegFormCNF [] = []
+meetNegFormCNF (n ∷ ns) = ((n , false) ∷ []) ∷ meetNegFormCNF ns
+
+-- Evaluation lemmas for join/meet forms
+module JoinMeetEval (B : BooleanRing ℓ-zero) (gen : ℕ → ⟨ B ⟩) where
+  open EvalNF B gen
+  private
+    module BA = BooleanAlgebraStr B
+    module BR = BooleanRingStr (snd B)
+
+  evalDNF-joinForm : (ns : List ℕ) →
+    evalDNF (joinFormDNF ns) ≡ evalDisjClause (positiveLiterals ns)
+  evalDNF-joinForm [] = refl
+  evalDNF-joinForm (n ∷ ns) =
+    (gen n ∧B 𝟙B) ∨B evalDNF (joinFormDNF ns)
+      ≡⟨ cong (_∨B evalDNF (joinFormDNF ns)) (BR.·IdR (gen n)) ⟩
+    gen n ∨B evalDNF (joinFormDNF ns)
+      ≡⟨ cong (gen n ∨B_) (evalDNF-joinForm ns) ⟩
+    gen n ∨B evalDisjClause (positiveLiterals ns) ∎
+
+  evalCNF-meetNegForm : (ns : List ℕ) →
+    evalCNF (meetNegFormCNF ns) ≡ evalConjClause (negativeLiterals ns)
+  evalCNF-meetNegForm [] = refl
+  evalCNF-meetNegForm (n ∷ ns) =
+    ((¬B gen n) ∨B 𝟘B) ∧B evalCNF (meetNegFormCNF ns)
+      ≡⟨ cong (_∧B evalCNF (meetNegFormCNF ns)) BA.∨IdR ⟩
+    (¬B gen n) ∧B evalCNF (meetNegFormCNF ns)
+      ≡⟨ cong ((¬B gen n) ∧B_) (evalCNF-meetNegForm ns) ⟩
+    (¬B gen n) ∧B evalConjClause (negativeLiterals ns) ∎

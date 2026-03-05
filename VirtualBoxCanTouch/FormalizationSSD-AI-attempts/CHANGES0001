@@ -1,0 +1,26 @@
+CHANGES0001 - First compiling version of CNF/DNF infrastructure
+
+work.agda (758 lines) - Full CNF/DNF data types, conversion pipeline, and correctness proofs.
+
+Key components:
+1. Data types: Literal (ℕ × Bool), Clause (List Literal), DNF/CNF (List Clause)
+2. Evaluation modules: EvalNF (evalLit, evalConjClause, evalDisjClause, evalDNF, evalCNF)
+3. BoolExpr intermediate representation with eval
+4. termToBoolExpr: freeBATerms → BoolExpr (+ as XOR → (a∧¬b)∨(¬a∧b))
+5. toNNF/toNNFneg: NNF conversion with De Morgan
+6. nnfToDNF/nnfToDNFneg: DNF conversion (mutual recursion handles BNot properly)
+7. nnfToCNF/nnfToCNFneg: CNF conversion (mutual recursion handles BNot properly)
+8. Full pipeline: termToDNF/termToCNF = nnfTo{D,C}NF ∘ toNNF ∘ termToBoolExpr
+9. Correctness proofs for all stages including:
+   - xor-as-bool: a + b = (a ∧ ¬b) ∨ (¬a ∧ b) using complement-zero + ring manipulation
+   - nnfToDNF(neg)-correct, nnfToCNF(neg)-correct (mutual recursion)
+   - termToDNF-correct, termToCNF-correct (full pipeline)
+10. Surjectivity: dnfExists/cnfExists for any BooleanRing with surjective term interpretation
+11. Helper functions: allPositive, allNegative, generatorIndices, joinFormDNF, meetNegFormCNF
+12. JoinMeetEval: evalDNF-joinForm, evalCNF-meetNegForm
+
+Fixes from previous session:
+- xor-as-bool: complete rewrite using where-clauses (cross-zero, expand-a¬b/¬ab, sum-simplify)
+- ·Assoc: removed incorrect `sym` (lines 397, 478)
+- ∨Assoc: removed incorrect `sym` (lines 407, 417)
+- nnfToDNF/nnfToCNF: added mutual nnfToDNFneg/nnfToCNFneg to properly handle BNot case

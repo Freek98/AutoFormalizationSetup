@@ -1,0 +1,25 @@
+CHANGES0003 - Complete OrthogonalGens correctness proofs (+201 lines, 1021→1222)
+
+work.agda (1222 lines) - All OrthogonalGens operations now have full correctness proofs.
+
+New components added to OrthogonalGens module:
+1. absorb→neg-zero: a·b = a implies a·¬b = 0 (via ·DistR+, characteristic2)
+2. orthog→neg-absorb: a·b = 0 implies a·¬b = a (via ·DistR+, +IdR)
+3. finJoin-∖L: finJoin(ns \ ms) = finJoin(ns) · ¬(finJoin(ms))
+   - Induction with `with n ∈? ms in eq`, uses absorb→neg-zero / orthog→neg-absorb
+4. finJoin-△L: finJoin(ns △ ms) = finJoin(ns) + finJoin(ms)
+   - Uses finJoin-++, finJoin-∖L, xor-as-bool (from Correctness module)
+5. finMeetNeg-++: finMeetNeg(ns ++ ms) = finMeetNeg(ns) · finMeetNeg(ms)
+6. ¬+b≡a+¬: ¬a + b = a + ¬b (negation hops across XOR)
+7. ¬-+-left: ¬(a+b) = a + ¬b
+8. ¬+¬≡+: ¬a + ¬b = a + b (via ¬+b≡a+¬ and ¬Invol)
+9. meet-onf-correct: 4 cases (Join/Join via ∩L, Join/MeetNeg via ∖L, MeetNeg/Join via ∖L+comm, MeetNeg/MeetNeg via ++)
+10. xor-onf-correct: 4 cases (Join/Join via △L, others via deMorgan + ¬-+-left + ¬+¬≡+)
+11. normalizeToONF-correct: full pipeline correctness (Tvar, Tconst, +T, -T, ·T)
+12. orthoNFExists: any element in image of interpretInB has an OrthoNF (via surjectivity + normalizeToONF-correct)
+
+Key proof technique: finJoin-△L uses xor-as-bool to relate symmetric difference to XOR.
+The xor cases for mixed Join/MeetNeg use deMorgan-finMeetNeg to convert between finJoin and finMeetNeg,
+then ¬-+-left and ¬+¬≡+ to simplify negations in XOR.
+
+Status: All compiling, no postulates, no holes.

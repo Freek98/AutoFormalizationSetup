@@ -1,0 +1,23 @@
+CHANGES0004 - Helper functions and bridge lemmas (+94 lines, 1222→1316)
+
+work.agda (1316 lines) - Added helper functions, classification theorem, and DNF/CNF bridges.
+
+New imports:
+- Cubical.Data.Sum (⊎, inl, inr) for classification disjunction
+
+New components in OrthogonalGens:
+1. evalConj-negLits: evalConjClause (negativeLiterals ns) = finMeetNeg ns (inductive bridge)
+2. evalDisj-posLits: evalDisjClause (positiveLiterals ns) = finJoin ns (inductive bridge)
+3. classifyElement: every element is ∥ (joinForm ns) ⊎ (meetNegForm ns) ∥₁
+4. getIndices: extract index list from OrthoNF
+5. isJoinForm: Bool check for which form
+6. orthoNF-to-DNF/CNF: convert OrthoNF to general DNF/CNF data types
+7. orthoNF-to-DNF-correct / orthoNF-to-CNF-correct: evaluation correctness
+8. simplifiedDNFExists: every element has a simplified DNF
+9. simplifiedCNFExists: every element has a simplified CNF
+
+The classifyElement theorem is the key result from CLAUDE.md:
+"argue that there is either only conjunctions of negations of generators,
+or disjunctions of non-negated generators"
+
+Status: All compiling, no postulates, no holes.
