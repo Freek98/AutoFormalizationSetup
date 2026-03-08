@@ -1,0 +1,12 @@
+CHANGES0254: Fix ill-typed with abstraction in f-kernel's all-bits-false
+
+The `with α n in αn-eq` pattern failed because `α n` (= φ-seq x n) appears
+deep inside the SubBooleanAlgebra type chain and can't be properly abstracted.
+
+Fix: Extracted `αn-true→absurd` as a standalone function that takes `α n ≡ true`
+as a hypothesis, then used `not-true→false` helper to conclude `α n ≡ false`
+without any `with` abstraction on `α n`.
+
+Also added `not-true→false : (b : Bool) → ¬ (b ≡ true) → b ≡ false` helper.
+
+Compilation: submitted for full verification, pending result.

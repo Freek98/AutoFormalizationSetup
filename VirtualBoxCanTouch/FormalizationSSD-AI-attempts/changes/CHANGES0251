@@ -1,0 +1,5 @@
+CHANGES0251: Fix import ordering in Omniscience.agda
+
+- Moved Cubical imports (BooleanRing, CommRing, Prelude, Structure) before char2 definitions
+- char2-B∞ and char2-B∞×B∞ use ⟨_⟩ from Structure, which wasn't in scope at line 9
+- No other changes from bck0250

@@ -1121,25 +1121,6 @@ private
         ≡⟨ sym (Bridge.φ_FC-on-gen n) ⟩
       fst Bridge.φ_FC (g∞ n) ∎
 
--- Any generator sent to zero by f leads to contradiction
-private
-  not-true→false : (b : Bool) → ¬ (b ≡ true) → b ≡ false
-  not-true→false false _ = refl
-  not-true→false true p = ex-falso (p refl)
-
-  f-gen-absurd : (n : ℕ) → fst f (g∞ n) ≡ (𝟘∞ , 𝟘∞) → ⊥
-  f-gen-absurd n f-gen-n=0 with isEven n in parity
-  ... | true =
-    let k = half n
-        eq : fst f (g∞ n) ≡ (g∞ k , 𝟘∞)
-        eq = subst (λ m → fst f (g∞ m) ≡ (g∞ k , 𝟘∞)) (isEven→even n (builtin→Path-Bool parity)) (f-even-gen k)
-    in g∞-nonzero k (cong fst (sym eq ∙ f-gen-n=0))
-  ... | false =
-    let k = half n
-        eq : fst f (g∞ n) ≡ (𝟘∞ , g∞ k)
-        eq = subst (λ m → fst f (g∞ m) ≡ (𝟘∞ , g∞ k)) (isEven→odd n (builtin→Path-Bool parity)) (f-odd-gen k)
-    in g∞-nonzero k (cong snd (sym eq ∙ f-gen-n=0))
-
 -- f has trivial kernel: f(x) = (0,0) → x = 0
 -- Proof via B∞ ≅ ℕfinCofinBA: if any bit α(n) of φ_FC(x) were true,
 -- then g∞(n) · x = g∞(n), so f(g∞(n)) = f(g∞(n) · x) = f(g∞(n)) · f(x) = 0,
@@ -1150,26 +1131,39 @@ f-kernel x fx=0 = φ_FC-injective x 𝟘∞
   where
   α = φ-seq x
 
-  αn-true→absurd : (n : ℕ) → α n ≡ true → ⊥
-  αn-true→absurd n αn=true =
-    let gen-absorb : g∞ n ·∞ x ≡ g∞ n
-        gen-absorb = αn-true→gen-absorb x n αn=true
-        f-gen-n=0 : fst f (g∞ n) ≡ (𝟘∞ , 𝟘∞)
-        f-gen-n=0 =
-          fst f (g∞ n)
-            ≡⟨ cong (fst f) (sym gen-absorb) ⟩
-          fst f (g∞ n ·∞ x)
-            ≡⟨ IsCommRingHom.pres· (snd f) (g∞ n) x ⟩
-          (fst f (g∞ n)) ·× (fst f x)
-            ≡⟨ cong ((fst f (g∞ n)) ·×_) fx=0 ⟩
-          (fst f (g∞ n)) ·× (𝟘∞ , 𝟘∞)
-            ≡⟨ cong₂ _,_ (0∞-absorbs-right (fst (fst f (g∞ n))))
-                          (0∞-absorbs-right (snd (fst f (g∞ n)))) ⟩
-          (𝟘∞ , 𝟘∞) ∎
-    in f-gen-absurd n f-gen-n=0
-
   all-bits-false : (n : ℕ) → α n ≡ false
-  all-bits-false n = not-true→false (α n) (αn-true→absurd n)
+  all-bits-false n with α n in αn-eq
+  ... | false = refl
+  ... | true = ex-falso (g∞-nonzero n gen-n=0)
+    where
+    gen-absorb : g∞ n ·∞ x ≡ g∞ n
+    gen-absorb = αn-true→gen-absorb x n (builtin→Path-Bool αn-eq)
+
+    f-gen-n=0 : fst f (g∞ n) ≡ (𝟘∞ , 𝟘∞)
+    f-gen-n=0 =
+      fst f (g∞ n)
+        ≡⟨ cong (fst f) (sym gen-absorb) ⟩
+      fst f (g∞ n ·∞ x)
+        ≡⟨ IsCommRingHom.pres· (snd f) (g∞ n) x ⟩
+      (fst f (g∞ n)) ·× (fst f x)
+        ≡⟨ cong ((fst f (g∞ n)) ·×_) fx=0 ⟩
+      (fst f (g∞ n)) ·× (𝟘∞ , 𝟘∞)
+        ≡⟨ cong₂ _,_ (0∞-absorbs-right (fst (fst f (g∞ n))))
+                      (0∞-absorbs-right (snd (fst f (g∞ n)))) ⟩
+      (𝟘∞ , 𝟘∞) ∎
+
+    gen-n=0 : g∞ n ≡ 𝟘∞
+    gen-n=0 with isEven n in parity
+    ... | true =
+      let k = half n
+          eq : fst f (g∞ n) ≡ (g∞ k , 𝟘∞)
+          eq = subst (λ m → fst f (g∞ m) ≡ (g∞ k , 𝟘∞)) (sym (isEven→even n parity)) (f-even-gen k)
+      in ex-falso (g∞-nonzero k (cong fst (sym eq ∙ f-gen-n=0)))
+    ... | false =
+      let k = half n
+          eq : fst f (g∞ n) ≡ (𝟘∞ , g∞ k)
+          eq = subst (λ m → fst f (g∞ m) ≡ (𝟘∞ , g∞ k)) (sym (isEven→odd n parity)) (f-odd-gen k)
+      in ex-falso (g∞-nonzero k (cong snd (sym eq ∙ f-gen-n=0)))
 
 f-injective : (x y : ⟨ B∞ ⟩) → fst f x ≡ fst f y → x ≡ y
 f-injective x y fx=fy =
@@ -1352,8 +1346,7 @@ f-no-retraction r retract = go (snd (fst Bridge.φ_FC r01)) (snd (fst Bridge.φ_
     fin-prod : NFC.isFinite (α₁ NFC.∧ α₂)
     fin-prod = NFC.constant0 (λ k _ → funExt⁻ (cong fst prod-zero) k)
     cof-prod : NFC.isCofinite (α₁ NFC.∧ α₂)
-    cof-prod = subst NFC.isFinite (sym (NFC.DeMorgan¬∧ {x = α₁} {y = α₂}))
-      (NFC.finiteClosedByUnion (NFC.¬ α₁) (NFC.¬ α₂) c₁ c₂)
+    cof-prod = let NFC.Cof c = NFC.FinCofin-∧-cl α₁ α₂ (NFC.Cof c₁) (NFC.Cof c₂) in c
   -- r01 finite: bounded support, but α₁(2k+1) = true for all k → contradiction
   go (NFC.Fin fin₁) _ = bound-contradiction fin₁
     where

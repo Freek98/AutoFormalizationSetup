@@ -1,0 +1,10 @@
+CHANGES0252: Fix compilation errors in Omniscience.agda rewrite
+
+Fixes from bck0251:
+1. Renamed FC≡ → FC-eq to avoid conflict with FinCofinAlgebra.agda:885
+2. Replaced Pres.δSequence with fst (Pres.singleton n) — δSequence is defined in
+   BasicDefinitions.agda, not re-exported by Presentation.agda
+3. Replaced |> ex-falso with ex-falso (...) — _|>_ not in scope (only _∘_ imported from Function)
+4. Added --lossy-unification to Bridge.agda to speed up type-checking (Presentation.agda uses it too)
+
+Compilation: submitted for full verification, pending result.

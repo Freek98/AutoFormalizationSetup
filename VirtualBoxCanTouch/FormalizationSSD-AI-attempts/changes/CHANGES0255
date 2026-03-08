@@ -1,0 +1,17 @@
+CHANGES0255: Extract f-gen-absurd to avoid ill-typed with in f-kernel
+
+The `with isEven n in parity` inside `gen-n=0` (nested in `αn-true→absurd`)
+failed because `αn=true : φ-seq x n ≡ true` was in context, and `φ-seq x n`
+contains deep SubBooleanAlgebra/φ_FC terms that prevent `with` from abstracting
+`isEven n` consistently.
+
+Fix: Extracted `f-gen-absurd : (n : ℕ) → fst f (g∞ n) ≡ (𝟘∞ , 𝟘∞) → ⊥` as a
+standalone private function outside `f-kernel`. This function's context doesn't
+include any φ_FC terms, so `with isEven n in parity` can abstract cleanly.
+
+The `αn-true→absurd` function now builds `f-gen-n=0` proof via `let` and passes
+it to `f-gen-absurd`.
+
+Line count: bck0254=1383, bck0255=1383 (same size, just restructured).
+
+Compilation: submitted for full verification, pending result.

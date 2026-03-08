@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --guardedness --lossy-unification #-}
+{-# OPTIONS --cubical --guardedness #-}
 
 open import formalization.StoneDuality.AxiomDefs using (FoundationalAxioms)
 
@@ -25,7 +25,7 @@ import formalization.StoneDuality.NFinCofin.Presentation as Pres
 open import Cubical.Foundations.Function using (_∘_)
 open import Cubical.Data.Sigma
 open import Cubical.Data.Nat renaming (_+_ to _+ℕ_ ; _·_ to _·ℕ_)
-open import Cubical.Data.Bool using (Bool; true; false; _⊕_; _and_; _or_; not; true≢false; false≢true; Bool→Type)
+open import Cubical.Data.Bool using (Bool; true; false; _⊕_; _and_; _or_; not; true≢false; false≢true)
 open import Cubical.Relation.Nullary using (¬_; Dec; yes; no)
 import formalization.Library.QuotientBool as QB
 open import formalization.Library.BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator; inducedBAHom; evalBAInduce; inducedBAHomUnique)
@@ -1091,23 +1091,18 @@ private
   αn-true→gen-absorb x n αn=true = φ_FC-injective (g∞ n ·∞ x) (g∞ n) eq-in-FC
     where
     singleton-absorb : FC._·_ (Pres.singleton n) (fst Bridge.φ_FC x) ≡ Pres.singleton n
-    singleton-absorb =
-      -- Use cong fst on mul-in-FC from gen-absorb→bit-true direction:
-      -- We need FC._·_ (singleton n) α = singleton n.
-      -- Proof: g∞ n · x = g∞ n in B∞ (proved via gen-absorb→bit-true ∘ αn=true roundtrip)
-      -- Then apply φ_FC homomorphism.
-      -- But this is circular! Instead, we exploit the concrete representation.
-      -- In ℕfinCofinBA, elements are (seq, proof). Equality is Σ≡Prop.
-      -- FC._·_ (δn, pn) (α, pα) = (δn ∧ α, ...) where ∧ is pointwise AND.
-      -- We need δn ∧ α ≡ δn pointwise, i.e., (n ≡ᵇ k) and α(k) ≡ n ≡ᵇ k.
-      -- Since (b and c ≡ b) ↔ (b ≡ true → c ≡ true), this follows from αn=true.
-      FC-eq (funExt (λ k → and-absorb-lemma (fst (Pres.singleton n) k) (φ-seq x k)
-                              (λ p → subst (λ m → φ-seq x m ≡ true) (≡ᵇ→≡ (subst Bool→Type (sym p) tt)) αn=true)))
+    singleton-absorb = FC-eq (funExt helper)
       where
-      -- b and c ≡ b when b ≡ true → c ≡ true
-      and-absorb-lemma : (b c : Bool) → (b ≡ true → c ≡ true) → b and c ≡ b
-      and-absorb-lemma false c _ = refl
-      and-absorb-lemma true c f = f refl
+      helper : (k : ℕ) → fst (FC._·_ (Pres.singleton n) (fst Bridge.φ_FC x)) k
+                        ≡ fst (Pres.singleton n) k
+      helper k with discreteℕ n k
+      ... | yes refl =
+        cong (_and φ-seq x n) (Pres.δnn=1 n)
+        ∙ αn=true
+        ∙ sym (Pres.δnn=1 n)
+      ... | no n≢k =
+        cong (_and φ-seq x k) (Pres.δnm=0 n k n≢k)
+        ∙ sym (Pres.δnm=0 n k n≢k)
 
     eq-in-FC : fst Bridge.φ_FC (g∞ n ·∞ x) ≡ fst Bridge.φ_FC (g∞ n)
     eq-in-FC =
@@ -1121,25 +1116,6 @@ private
         ≡⟨ sym (Bridge.φ_FC-on-gen n) ⟩
       fst Bridge.φ_FC (g∞ n) ∎
 
--- Any generator sent to zero by f leads to contradiction
-private
-  not-true→false : (b : Bool) → ¬ (b ≡ true) → b ≡ false
-  not-true→false false _ = refl
-  not-true→false true p = ex-falso (p refl)
-
-  f-gen-absurd : (n : ℕ) → fst f (g∞ n) ≡ (𝟘∞ , 𝟘∞) → ⊥
-  f-gen-absurd n f-gen-n=0 with isEven n in parity
-  ... | true =
-    let k = half n
-        eq : fst f (g∞ n) ≡ (g∞ k , 𝟘∞)
-        eq = subst (λ m → fst f (g∞ m) ≡ (g∞ k , 𝟘∞)) (isEven→even n (builtin→Path-Bool parity)) (f-even-gen k)
-    in g∞-nonzero k (cong fst (sym eq ∙ f-gen-n=0))
-  ... | false =
-    let k = half n
-        eq : fst f (g∞ n) ≡ (𝟘∞ , g∞ k)
-        eq = subst (λ m → fst f (g∞ m) ≡ (𝟘∞ , g∞ k)) (isEven→odd n (builtin→Path-Bool parity)) (f-odd-gen k)
-    in g∞-nonzero k (cong snd (sym eq ∙ f-gen-n=0))
-
 -- f has trivial kernel: f(x) = (0,0) → x = 0
 -- Proof via B∞ ≅ ℕfinCofinBA: if any bit α(n) of φ_FC(x) were true,
 -- then g∞(n) · x = g∞(n), so f(g∞(n)) = f(g∞(n) · x) = f(g∞(n)) · f(x) = 0,
@@ -1150,26 +1126,39 @@ f-kernel x fx=0 = φ_FC-injective x 𝟘∞
   where
   α = φ-seq x
 
-  αn-true→absurd : (n : ℕ) → α n ≡ true → ⊥
-  αn-true→absurd n αn=true =
-    let gen-absorb : g∞ n ·∞ x ≡ g∞ n
-        gen-absorb = αn-true→gen-absorb x n αn=true
-        f-gen-n=0 : fst f (g∞ n) ≡ (𝟘∞ , 𝟘∞)
-        f-gen-n=0 =
-          fst f (g∞ n)
-            ≡⟨ cong (fst f) (sym gen-absorb) ⟩
-          fst f (g∞ n ·∞ x)
-            ≡⟨ IsCommRingHom.pres· (snd f) (g∞ n) x ⟩
-          (fst f (g∞ n)) ·× (fst f x)
-            ≡⟨ cong ((fst f (g∞ n)) ·×_) fx=0 ⟩
-          (fst f (g∞ n)) ·× (𝟘∞ , 𝟘∞)
-            ≡⟨ cong₂ _,_ (0∞-absorbs-right (fst (fst f (g∞ n))))
-                          (0∞-absorbs-right (snd (fst f (g∞ n)))) ⟩
-          (𝟘∞ , 𝟘∞) ∎
-    in f-gen-absurd n f-gen-n=0
-
   all-bits-false : (n : ℕ) → α n ≡ false
-  all-bits-false n = not-true→false (α n) (αn-true→absurd n)
+  all-bits-false n with α n in αn-eq
+  ... | false = refl
+  ... | true = ex-falso (g∞-nonzero n gen-n=0)
+    where
+    gen-absorb : g∞ n ·∞ x ≡ g∞ n
+    gen-absorb = αn-true→gen-absorb x n (builtin→Path-Bool αn-eq)
+
+    f-gen-n=0 : fst f (g∞ n) ≡ (𝟘∞ , 𝟘∞)
+    f-gen-n=0 =
+      fst f (g∞ n)
+        ≡⟨ cong (fst f) (sym gen-absorb) ⟩
+      fst f (g∞ n ·∞ x)
+        ≡⟨ IsCommRingHom.pres· (snd f) (g∞ n) x ⟩
+      (fst f (g∞ n)) ·× (fst f x)
+        ≡⟨ cong ((fst f (g∞ n)) ·×_) fx=0 ⟩
+      (fst f (g∞ n)) ·× (𝟘∞ , 𝟘∞)
+        ≡⟨ cong₂ _,_ (0∞-absorbs-right (fst (fst f (g∞ n))))
+                      (0∞-absorbs-right (snd (fst f (g∞ n)))) ⟩
+      (𝟘∞ , 𝟘∞) ∎
+
+    gen-n=0 : g∞ n ≡ 𝟘∞
+    gen-n=0 with isEven n in parity
+    ... | true =
+      let k = half n
+          eq : fst f (g∞ n) ≡ (g∞ k , 𝟘∞)
+          eq = subst (λ m → fst f (g∞ m) ≡ (g∞ k , 𝟘∞)) (sym (isEven→even n parity)) (f-even-gen k)
+      in ex-falso (g∞-nonzero k (cong fst (sym eq ∙ f-gen-n=0)))
+    ... | false =
+      let k = half n
+          eq : fst f (g∞ n) ≡ (𝟘∞ , g∞ k)
+          eq = subst (λ m → fst f (g∞ m) ≡ (𝟘∞ , g∞ k)) (sym (isEven→odd n parity)) (f-odd-gen k)
+      in ex-falso (g∞-nonzero k (cong snd (sym eq ∙ f-gen-n=0)))
 
 f-injective : (x y : ⟨ B∞ ⟩) → fst f x ≡ fst f y → x ≡ y
 f-injective x y fx=fy =
@@ -1352,8 +1341,7 @@ f-no-retraction r retract = go (snd (fst Bridge.φ_FC r01)) (snd (fst Bridge.φ_
     fin-prod : NFC.isFinite (α₁ NFC.∧ α₂)
     fin-prod = NFC.constant0 (λ k _ → funExt⁻ (cong fst prod-zero) k)
     cof-prod : NFC.isCofinite (α₁ NFC.∧ α₂)
-    cof-prod = subst NFC.isFinite (sym (NFC.DeMorgan¬∧ {x = α₁} {y = α₂}))
-      (NFC.finiteClosedByUnion (NFC.¬ α₁) (NFC.¬ α₂) c₁ c₂)
+    cof-prod = let NFC.Cof c = NFC.FinCofin-∧-cl α₁ α₂ (NFC.Cof c₁) (NFC.Cof c₂) in c
   -- r01 finite: bounded support, but α₁(2k+1) = true for all k → contradiction
   go (NFC.Fin fin₁) _ = bound-contradiction fin₁
     where

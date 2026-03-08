@@ -1,0 +1,39 @@
+CHANGES0256: Omniscience.agda rewrite complete — uses B∞ ≅ ℕfinCofinBA
+
+Successfully rewrote the key proofs in Omniscience.agda to use the
+NFinCofin presentation (Bridge.agda's B∞≅ℕfinCofinBA isomorphism)
+instead of the ad-hoc normal form analysis from NormalForms.agda.
+
+Key changes from the original version:
+
+1. NEW IMPORTS: Bridge, NFC.Definitions, NFC.Presentation
+   (replacing dependence on NormalForms.agda)
+
+2. NEW INFRASTRUCTURE (private, ~lines 1057-1123):
+   - φ-seq : B∞ → (ℕ → Bool) — characteristic sequence via φ_FC
+   - φ_FC-injective — injectivity from roundtrip
+   - gen-absorb→bit-true : g∞(n)·x = g∞(n) → φ-seq(x)(n) = true
+   - αn-true→gen-absorb : φ-seq(x)(n) = true → g∞(n)·x = g∞(n)
+     (uses and-absorb-lemma to avoid ill-typed with abstraction)
+   - FC-eq : Σ≡Prop for ℕfinCofinBA equality
+
+3. f-kernel (trivial kernel proof):
+   - Old: normal form analysis + truncation elimination
+   - New: φ_FC-injective + all-bits-false (via not-true→false helper)
+   - f-gen-absurd extracted as standalone function to avoid
+     ill-typed with abstraction from φ_FC terms in context
+
+4. f-no-retraction (no retraction proof):
+   - Old: normal form analysis on r(0,1) and r(1,0)
+   - New: direct case analysis on isFiniteOrCofinite (non-truncated!)
+   - Cof-Cof case: directly constructs cofinite witness for product
+     using DeMorgan¬∧ + finiteClosedByUnion (no pattern matching on
+     isFiniteOrCofinite needed)
+   - Fin cases: bounded support contradicts infinitely many true bits
+
+5. FLAGS: Added --lossy-unification (needed for φ_FC type-checking speed)
+
+All other code (f definition, LLPO transport, parity lemmas, etc.) unchanged.
+
+Line count: bck0256=1385 lines (vs original ~1373, +12 lines net)
+Compilation: SUCCESS (both Omniscience.agda and downstream OpenClosed.agda)

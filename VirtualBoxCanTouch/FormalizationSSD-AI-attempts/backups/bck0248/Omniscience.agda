@@ -1,31 +1,20 @@
-{-# OPTIONS --cubical --guardedness --lossy-unification #-}
+{-# OPTIONS --cubical --guardedness #-}
 
 open import formalization.StoneDuality.AxiomDefs using (FoundationalAxioms)
 
 module formalization.StoneDuality.Omniscience (fa : FoundationalAxioms) where
 
 open import formalization.StoneDuality.FinCofinAlgebra fa public
+open import formalization.StoneDuality.NormalForms fa using (char2-B∞ ; char2-B∞×B∞ ; normalFormExists-trunc) public
 
 open import Cubical.Algebra.BooleanRing
 open import Cubical.Algebra.CommRing
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Structure
-
--- char2 lemmas (trivial from Boolean ring structure)
-char2-B∞ : (x : ⟨ B∞ ⟩) → x +∞ x ≡ 𝟘∞
-char2-B∞ x = BooleanAlgebraStr.characteristic2 (snd B∞) {x}
-
-char2-B∞×B∞ : (z : ⟨ B∞×B∞ ⟩) → z +× z ≡ (𝟘∞ , 𝟘∞)
-char2-B∞×B∞ (a , b) = cong₂ _,_ (char2-B∞ a) (char2-B∞ b)
-
--- Import the B∞ ≅ ℕfinCofinBA isomorphism from the Bridge module
-import formalization.StoneDuality.NFinCofin.Bridge fa as Bridge
-import formalization.StoneDuality.NFinCofin.Definitions as NFC
-import formalization.StoneDuality.NFinCofin.Presentation as Pres
 open import Cubical.Foundations.Function using (_∘_)
 open import Cubical.Data.Sigma
 open import Cubical.Data.Nat renaming (_+_ to _+ℕ_ ; _·_ to _·ℕ_)
-open import Cubical.Data.Bool using (Bool; true; false; _⊕_; _and_; _or_; not; true≢false; false≢true; Bool→Type)
+open import Cubical.Data.Bool using (Bool; true; false; _⊕_; _and_; _or_; not; true≢false; false≢true)
 open import Cubical.Relation.Nullary using (¬_; Dec; yes; no)
 import formalization.Library.QuotientBool as QB
 open import formalization.Library.BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator; inducedBAHom; evalBAInduce; inducedBAHomUnique)
@@ -1054,122 +1043,106 @@ splitByParity-nonempty (n ∷ ns) evens=[] odds=[] = splitByParity-nonempty-aux 
           [] ∎
     in ex-falso (¬cons≡nil contradiction)
 
--- Via B∞ ≅ ℕfinCofinBA: the "characteristic sequence" of x ∈ B∞
-private
-  module FC = BooleanRingStr (snd NFC.ℕfinCofinBA)
-  FC-eq : {a b : ⟨ NFC.ℕfinCofinBA ⟩} → fst a ≡ fst b → a ≡ b
-  FC-eq = Σ≡Prop NFC.isPropisFiniteOrCofinite
+f-kernel-joinForm : (ns : List ℕ) →
+  let (evens , odds) = splitByParity ns
+  in fst f (finJoin∞ ns) ≡ (𝟘∞ , 𝟘∞) → ns ≡ []
+f-kernel-joinForm ns fx=0 =
+  let evens = splitByParity-evens ns
+      odds = splitByParity-odds ns
 
-  φ-seq : ⟨ B∞ ⟩ → (ℕ → Bool)
-  φ-seq x = fst (fst Bridge.φ_FC x)
+      f-eq : fst f (finJoin∞ ns) ≡ (finJoin∞ evens , finJoin∞ odds)
+      f-eq = f-on-finJoin ns
 
-  φ_FC-injective : (x y : ⟨ B∞ ⟩) → fst Bridge.φ_FC x ≡ fst Bridge.φ_FC y → x ≡ y
-  φ_FC-injective x y p =
-    sym (Bridge.roundtrip-B∞ x) ∙ cong (fst Bridge.ψ_FC) p ∙ Bridge.roundtrip-B∞ y
+      f-split : (finJoin∞ evens , finJoin∞ odds) ≡ (𝟘∞ , 𝟘∞)
+      f-split =
+        (finJoin∞ evens , finJoin∞ odds)
+          ≡⟨ sym f-eq ⟩
+        fst f (finJoin∞ ns)
+          ≡⟨ fx=0 ⟩
+        (𝟘∞ , 𝟘∞) ∎
 
-  -- Key lemma: g∞(n) · x = g∞(n) implies φ-seq(x)(n) = true
-  -- Proof: apply φ_FC to both sides; singleton(n) · φ_FC(x) = singleton(n);
-  --        at position n: δ(n,n) and α(n) = δ(n,n), hence α(n) = true
-  gen-absorb→bit-true : (x : ⟨ B∞ ⟩) (n : ℕ) → g∞ n ·∞ x ≡ g∞ n → φ-seq x n ≡ true
-  gen-absorb→bit-true x n absorb =
-    let mul-in-FC : FC._·_ (Pres.singleton n) (fst Bridge.φ_FC x) ≡ Pres.singleton n
-        mul-in-FC =
-          cong (λ z → FC._·_ z (fst Bridge.φ_FC x)) (sym (Bridge.φ_FC-on-gen n))
-          ∙ sym (IsCommRingHom.pres· (snd Bridge.φ_FC) (g∞ n) x)
-          ∙ cong (fst Bridge.φ_FC) absorb
-          ∙ Bridge.φ_FC-on-gen n
-        -- At position n: δ(n,n) and α(n) = δ(n,n)
-        at-n : fst (FC._·_ (Pres.singleton n) (fst Bridge.φ_FC x)) n ≡ fst (Pres.singleton n) n
-        at-n = funExt⁻ (cong fst mul-in-FC) n
-        -- Substitute true for δ(n,n): true and α(n) = true, i.e., α(n) = true
-    in subst (λ d → d and φ-seq x n ≡ d) (Pres.δnn=1 n) at-n
+      evens-join=0 : finJoin∞ evens ≡ 𝟘∞
+      evens-join=0 = cong fst f-split
 
-  -- Reverse direction: if φ-seq(x)(n) = true, then g∞(n) · x = g∞(n)
-  -- Proof: in ℕfinCofinBA, singleton(n) · α = singleton(n) when α(n) = true
-  --        since φ_FC is injective, this lifts to B∞
-  αn-true→gen-absorb : (x : ⟨ B∞ ⟩) (n : ℕ) → φ-seq x n ≡ true → g∞ n ·∞ x ≡ g∞ n
-  αn-true→gen-absorb x n αn=true = φ_FC-injective (g∞ n ·∞ x) (g∞ n) eq-in-FC
-    where
-    singleton-absorb : FC._·_ (Pres.singleton n) (fst Bridge.φ_FC x) ≡ Pres.singleton n
-    singleton-absorb =
-      -- Use cong fst on mul-in-FC from gen-absorb→bit-true direction:
-      -- We need FC._·_ (singleton n) α = singleton n.
-      -- Proof: g∞ n · x = g∞ n in B∞ (proved via gen-absorb→bit-true ∘ αn=true roundtrip)
-      -- Then apply φ_FC homomorphism.
-      -- But this is circular! Instead, we exploit the concrete representation.
-      -- In ℕfinCofinBA, elements are (seq, proof). Equality is Σ≡Prop.
-      -- FC._·_ (δn, pn) (α, pα) = (δn ∧ α, ...) where ∧ is pointwise AND.
-      -- We need δn ∧ α ≡ δn pointwise, i.e., (n ≡ᵇ k) and α(k) ≡ n ≡ᵇ k.
-      -- Since (b and c ≡ b) ↔ (b ≡ true → c ≡ true), this follows from αn=true.
-      FC-eq (funExt (λ k → and-absorb-lemma (fst (Pres.singleton n) k) (φ-seq x k)
-                              (λ p → subst (λ m → φ-seq x m ≡ true) (≡ᵇ→≡ (subst Bool→Type (sym p) tt)) αn=true)))
-      where
-      -- b and c ≡ b when b ≡ true → c ≡ true
-      and-absorb-lemma : (b c : Bool) → (b ≡ true → c ≡ true) → b and c ≡ b
-      and-absorb-lemma false c _ = refl
-      and-absorb-lemma true c f = f refl
+      odds-join=0 : finJoin∞ odds ≡ 𝟘∞
+      odds-join=0 = cong snd f-split
 
-    eq-in-FC : fst Bridge.φ_FC (g∞ n ·∞ x) ≡ fst Bridge.φ_FC (g∞ n)
-    eq-in-FC =
-      fst Bridge.φ_FC (g∞ n ·∞ x)
-        ≡⟨ IsCommRingHom.pres· (snd Bridge.φ_FC) (g∞ n) x ⟩
-      FC._·_ (fst Bridge.φ_FC (g∞ n)) (fst Bridge.φ_FC x)
-        ≡⟨ cong (λ z → FC._·_ z (fst Bridge.φ_FC x)) (Bridge.φ_FC-on-gen n) ⟩
-      FC._·_ (Pres.singleton n) (fst Bridge.φ_FC x)
-        ≡⟨ singleton-absorb ⟩
-      Pres.singleton n
-        ≡⟨ sym (Bridge.φ_FC-on-gen n) ⟩
-      fst Bridge.φ_FC (g∞ n) ∎
+      evens=[] : evens ≡ []
+      evens=[] = finJoin∞-zero→empty evens evens-join=0
 
--- Any generator sent to zero by f leads to contradiction
-private
-  not-true→false : (b : Bool) → ¬ (b ≡ true) → b ≡ false
-  not-true→false false _ = refl
-  not-true→false true p = ex-falso (p refl)
+      odds=[] : odds ≡ []
+      odds=[] = finJoin∞-zero→empty odds odds-join=0
 
-  f-gen-absurd : (n : ℕ) → fst f (g∞ n) ≡ (𝟘∞ , 𝟘∞) → ⊥
-  f-gen-absurd n f-gen-n=0 with isEven n in parity
-  ... | true =
-    let k = half n
-        eq : fst f (g∞ n) ≡ (g∞ k , 𝟘∞)
-        eq = subst (λ m → fst f (g∞ m) ≡ (g∞ k , 𝟘∞)) (isEven→even n (builtin→Path-Bool parity)) (f-even-gen k)
-    in g∞-nonzero k (cong fst (sym eq ∙ f-gen-n=0))
-  ... | false =
-    let k = half n
-        eq : fst f (g∞ n) ≡ (𝟘∞ , g∞ k)
-        eq = subst (λ m → fst f (g∞ m) ≡ (𝟘∞ , g∞ k)) (isEven→odd n (builtin→Path-Bool parity)) (f-odd-gen k)
-    in g∞-nonzero k (cong snd (sym eq ∙ f-gen-n=0))
+  in splitByParity-nonempty ns evens=[] odds=[]
 
--- f has trivial kernel: f(x) = (0,0) → x = 0
--- Proof via B∞ ≅ ℕfinCofinBA: if any bit α(n) of φ_FC(x) were true,
--- then g∞(n) · x = g∞(n), so f(g∞(n)) = f(g∞(n) · x) = f(g∞(n)) · f(x) = 0,
--- contradicting g∞(n) ≠ 0.
-f-kernel : (x : ⟨ B∞ ⟩) → fst f x ≡ (𝟘∞ , 𝟘∞) → x ≡ 𝟘∞
-f-kernel x fx=0 = φ_FC-injective x 𝟘∞
-    (FC-eq (funExt all-bits-false) ∙ sym (IsCommRingHom.pres0 (snd Bridge.φ_FC)))
+f-kernel-normalForm : (nf : B∞-NormalForm) → fst f ⟦ nf ⟧nf ≡ (𝟘∞ , 𝟘∞) → ⟦ nf ⟧nf ≡ 𝟘∞
+f-kernel-normalForm (joinForm ns) fx=0 =
+  cong finJoin∞ (f-kernel-joinForm ns fx=0)
+f-kernel-normalForm (meetNegForm ns) fx=0 =
+  ex-falso (f-meetNeg-nonzero fx=0)
   where
-  α = φ-seq x
+  h' : ⟨ B∞×B∞ ⟩ → Bool
+  h' (a , b) = h₀ $cr a
 
-  αn-true→absurd : (n : ℕ) → α n ≡ true → ⊥
-  αn-true→absurd n αn=true =
-    let gen-absorb : g∞ n ·∞ x ≡ g∞ n
-        gen-absorb = αn-true→gen-absorb x n αn=true
-        f-gen-n=0 : fst f (g∞ n) ≡ (𝟘∞ , 𝟘∞)
-        f-gen-n=0 =
-          fst f (g∞ n)
-            ≡⟨ cong (fst f) (sym gen-absorb) ⟩
-          fst f (g∞ n ·∞ x)
-            ≡⟨ IsCommRingHom.pres· (snd f) (g∞ n) x ⟩
-          (fst f (g∞ n)) ·× (fst f x)
-            ≡⟨ cong ((fst f (g∞ n)) ·×_) fx=0 ⟩
-          (fst f (g∞ n)) ·× (𝟘∞ , 𝟘∞)
-            ≡⟨ cong₂ _,_ (0∞-absorbs-right (fst (fst f (g∞ n))))
-                          (0∞-absorbs-right (snd (fst f (g∞ n)))) ⟩
-          (𝟘∞ , 𝟘∞) ∎
-    in f-gen-absurd n f-gen-n=0
+  h'-on-f-neg-gen-even : (k : ℕ) → h' (fst f (¬∞ (g∞ (2 ·ℕ k)))) ≡ true
+  h'-on-f-neg-gen-even k =
+    h' (fst f (¬∞ (g∞ (2 ·ℕ k))))
+      ≡⟨ cong h' (f-pres-neg (g∞ (2 ·ℕ k))) ⟩
+    h' (¬∞ (fst (fst f (g∞ (2 ·ℕ k)))) , ¬∞ (snd (fst f (g∞ (2 ·ℕ k)))))
+      ≡⟨ cong (λ x → h' (¬∞ (fst x) , ¬∞ (snd x))) (f-even-gen k) ⟩
+    h₀ $cr (¬∞ (g∞ k))
+      ≡⟨ h₀-on-neg-gen k ⟩
+    true ∎
 
-  all-bits-false : (n : ℕ) → α n ≡ false
-  all-bits-false n = not-true→false (α n) (αn-true→absurd n)
+  h'-on-f-neg-gen-odd : (k : ℕ) → h' (fst f (¬∞ (g∞ (suc (2 ·ℕ k))))) ≡ true
+  h'-on-f-neg-gen-odd k =
+    h' (fst f (¬∞ (g∞ (suc (2 ·ℕ k)))))
+      ≡⟨ cong h' (f-pres-neg (g∞ (suc (2 ·ℕ k)))) ⟩
+    h' (¬∞ (fst (fst f (g∞ (suc (2 ·ℕ k))))) , ¬∞ (snd (fst f (g∞ (suc (2 ·ℕ k))))))
+      ≡⟨ cong (λ x → h' (¬∞ (fst x) , ¬∞ (snd x))) (f-odd-gen k) ⟩
+    h₀ $cr (¬∞ 𝟘∞)
+      ≡⟨ h-pres-neg-Bool h₀ 𝟘∞ ⟩
+    not (h₀ $cr 𝟘∞)
+      ≡⟨ cong not (IsCommRingHom.pres0 (snd h₀)) ⟩
+    true ∎
+
+  h'-on-f-neg-gen : (n : ℕ) → h' (fst f (¬∞ (g∞ n))) ≡ true
+  h'-on-f-neg-gen n = h'-on-f-neg-gen-aux (isEven n) refl
+    where
+    h'-on-f-neg-gen-aux : (b : Bool) → isEven n ≡ b → h' (fst f (¬∞ (g∞ n))) ≡ true
+    h'-on-f-neg-gen-aux true even-n =
+      subst (λ m → h' (fst f (¬∞ (g∞ m))) ≡ true) (isEven→even n even-n) (h'-on-f-neg-gen-even (half n))
+    h'-on-f-neg-gen-aux false odd-n =
+      subst (λ m → h' (fst f (¬∞ (g∞ m))) ≡ true) (isEven→odd n odd-n) (h'-on-f-neg-gen-odd (half n))
+
+  h'-pres-· : (x y : ⟨ B∞×B∞ ⟩) → h' (x ·× y) ≡ (h' x) and (h' y)
+  h'-pres-· (a₁ , b₁) (a₂ , b₂) = IsCommRingHom.pres· (snd h₀) a₁ a₂
+
+  h'-on-f-finMeetNeg : (ms : List ℕ) → h' (fst f (finMeetNeg∞ ms)) ≡ true
+  h'-on-f-finMeetNeg [] =
+    h' (fst f 𝟙∞)
+      ≡⟨ cong h' f-pres1 ⟩
+    h₀ $cr 𝟙∞
+      ≡⟨ IsCommRingHom.pres1 (snd h₀) ⟩
+    true ∎
+  h'-on-f-finMeetNeg (m ∷ ms) =
+    h' (fst f ((¬∞ (g∞ m)) ∧∞ (finMeetNeg∞ ms)))
+      ≡⟨ cong h' (IsCommRingHom.pres· (snd f) (¬∞ (g∞ m)) (finMeetNeg∞ ms)) ⟩
+    h' ((fst f (¬∞ (g∞ m))) ·× (fst f (finMeetNeg∞ ms)))
+      ≡⟨ h'-pres-· (fst f (¬∞ (g∞ m))) (fst f (finMeetNeg∞ ms)) ⟩
+    (h' (fst f (¬∞ (g∞ m)))) and (h' (fst f (finMeetNeg∞ ms)))
+      ≡⟨ cong₂ _and_ (h'-on-f-neg-gen m) (h'-on-f-finMeetNeg ms) ⟩
+    true ∎
+
+  f-meetNeg-nonzero : fst f (finMeetNeg∞ ns) ≡ (𝟘∞ , 𝟘∞) → ⊥
+  f-meetNeg-nonzero f-meetNeg=0 = false≢true
+    (sym (IsCommRingHom.pres0 (snd h₀))
+     ∙ subst (λ z → h' z ≡ true) f-meetNeg=0 (h'-on-f-finMeetNeg ns))
+
+f-kernel-from-trunc : (x : ⟨ B∞ ⟩) → fst f x ≡ (𝟘∞ , 𝟘∞) → x ≡ 𝟘∞
+f-kernel-from-trunc x fx=0 = PT.rec (BooleanRingStr.is-set (snd B∞) x 𝟘∞)
+  (λ pair → sym (snd pair) ∙ f-kernel-normalForm (fst pair) (cong (fst f) (snd pair) ∙ fx=0))
+  (normalFormExists-trunc x)
 
 f-injective : (x y : ⟨ B∞ ⟩) → fst f x ≡ fst f y → x ≡ y
 f-injective x y fx=fy =
@@ -1187,7 +1160,7 @@ f-injective x y fx=fy =
         (𝟘∞ , 𝟘∞) ∎
 
       xy=0 : xy-diff ≡ 𝟘∞
-      xy=0 = f-kernel xy-diff f-xy-diff
+      xy=0 = f-kernel-from-trunc xy-diff f-xy-diff
 
       x=y : x ≡ y
       x=y =
@@ -1260,21 +1233,27 @@ llpo-from-SD α = PT.map transport-llpo (llpo-from-SD-aux h)
   transport-llpo (⊎.inr odds) = ⊎.inr (λ k → sym (seq-eq (suc (2 ·ℕ k))) ∙ odds k)
 
 -- tex Lemma 600: The map f : B∞ → B∞×B∞ does not have a retraction
--- Proof via B∞ ≅ ℕfinCofinBA: r(0,1) and r(1,0) can be classified as finite or cofinite.
--- If either is finite: its support is bounded, but the retraction forces infinitely many
--- odd (resp. even) generators to be in the support. Contradiction.
--- If both cofinite: their product is cofinite (hence nonzero), but r(0,1)·r(1,0) = 0. Contradiction.
+open import formalization.StoneDuality.NormalForms fa using (_∈?_; gen-notin-finJoin; meet-nf-correct) renaming (B∞-NormalForm to NF; joinForm to JF; meetNegForm to MNF)
+open import Cubical.Data.Nat.Order using (_<_; _≤_; ¬m<m; ≤-refl; ≤-suc; ≤-trans)
 
-open import Cubical.Data.Nat.Order using (_<_; _≤_; ¬m<m; ≤-refl; ≤-suc; ≤-trans; zero-≤)
+sucSum : List ℕ → ℕ
+sucSum [] = 0
+sucSum (n ∷ ns) = suc n +ℕ sucSum ns
+
+sucSum-bound : (m : ℕ) (ns : List ℕ) → m ∈? ns ≡ true → m < sucSum ns
+sucSum-bound m [] prf = ex-falso (false≢true prf)
+sucSum-bound m (n ∷ ns) prf with discreteℕ m n
+... | yes m≡n = subst (_< suc n +ℕ sucSum ns) (sym m≡n)
+                  (sucSum ns , +-comm (sucSum ns) (suc n))
+... | no _ = let (k , kp) = sucSum-bound m ns prf
+             in suc n +ℕ k , sym (+-assoc (suc n) k (suc m)) ∙ cong (suc n +ℕ_) kp
 
 f-no-retraction : (r : BoolHom B∞×B∞ B∞) → ¬ ((x : ⟨ B∞ ⟩) → fst r (fst f x) ≡ x)
-f-no-retraction r retract = go (snd (fst Bridge.φ_FC r01)) (snd (fst Bridge.φ_FC r10))
+f-no-retraction r retract = PT.rec2 isProp⊥ go
+    (normalFormExists-trunc r01) (normalFormExists-trunc r10)
   where
   r01 = fst r (𝟘∞ , 𝟙∞)
   r10 = fst r (𝟙∞ , 𝟘∞)
-
-  α₁ = φ-seq r01
-  α₂ = φ-seq r10
 
   r-on-gen-odd : (k : ℕ) → fst r (𝟘∞ , g∞ k) ≡ g∞ (suc (2 ·ℕ k))
   r-on-gen-odd k =
@@ -1292,7 +1271,7 @@ f-no-retraction r retract = go (snd (fst Bridge.φ_FC r01)) (snd (fst Bridge.φ_
       ≡⟨ retract (g∞ (2 ·ℕ k)) ⟩
     g∞ (2 ·ℕ k) ∎
 
-  -- g_{2k+1} · r(0,1) = g_{2k+1}
+  -- g_{2k+1} ≤ r(0,1): since (0,g_k) · (0,1) = (0,g_k) in B∞×B∞
   odd-gen-below-r01 : (k : ℕ) → g∞ (suc (2 ·ℕ k)) ·∞ r01 ≡ g∞ (suc (2 ·ℕ k))
   odd-gen-below-r01 k =
     g∞ (suc (2 ·ℕ k)) ·∞ r01
@@ -1328,58 +1307,53 @@ f-no-retraction r retract = go (snd (fst Bridge.φ_FC r01)) (snd (fst Bridge.φ_
       ≡⟨ IsCommRingHom.pres0 (snd r) ⟩
     𝟘∞ ∎
 
-  -- Via ℕfinCofinBA: odd generators are "in" r01, even generators are "in" r10
-  α₁-odd-true : (k : ℕ) → α₁ (suc (2 ·ℕ k)) ≡ true
-  α₁-odd-true k = gen-absorb→bit-true r01 (suc (2 ·ℕ k)) (odd-gen-below-r01 k)
+  n≤2n : (n : ℕ) → n ≤ 2 ·ℕ n
+  n≤2n n = n +ℕ 0 , +-comm (n +ℕ 0) n
 
-  α₂-even-true : (k : ℕ) → α₂ (2 ·ℕ k) ≡ true
-  α₂-even-true k = gen-absorb→bit-true r10 (2 ·ℕ k) (even-gen-below-r10 k)
+  above-sucSum-not-in : (m : ℕ) (ns : List ℕ) → sucSum ns ≤ m → m ∈? ns ≡ false
+  above-sucSum-not-in m ns S≤m with m ∈? ns in eq'
+  ... | false = refl
+  ... | true = ex-falso (¬m<m {m}
+    (≤-trans (sucSum-bound m ns (builtin→Path-Bool eq')) S≤m))
 
-  go : NFC.isFiniteOrCofinite α₁ → NFC.isFiniteOrCofinite α₂ → ⊥
-  -- Both cofinite: product of cofinite elements is cofinite, hence nonzero
-  go (NFC.Cof c₁) (NFC.Cof c₂) = NFC.Finite≢Cofinite (α₁ NFC.∧ α₂) fin-prod cof-prod
+  go : (Σ NF λ nf₁ → ⟦ nf₁ ⟧nf ≡ r01) → (Σ NF λ nf₂ → ⟦ nf₂ ⟧nf ≡ r10) → ⊥
+  -- Both meetNegForm: product is meetNegForm, nonzero
+  go (MNF ms₁ , eq₁) (MNF ms₂ , eq₂) = finMeetNeg∞-nonzero (ms₁ ++ ms₂) prod=0
     where
-    -- r01 · r10 = 0, so φ_FC(r01) · φ_FC(r10) = 0, meaning α₁ ∧ α₂ is finite (= zero = constant0)
-    prod-zero : FC._·_ (fst Bridge.φ_FC r01) (fst Bridge.φ_FC r10) ≡ FC.𝟘
-    prod-zero =
-      FC._·_ (fst Bridge.φ_FC r01) (fst Bridge.φ_FC r10)
-        ≡⟨ sym (IsCommRingHom.pres· (snd Bridge.φ_FC) r01 r10) ⟩
-      fst Bridge.φ_FC (r01 ·∞ r10)
-        ≡⟨ cong (fst Bridge.φ_FC) r01·r10≡0 ⟩
-      fst Bridge.φ_FC 𝟘∞
-        ≡⟨ IsCommRingHom.pres0 (snd Bridge.φ_FC) ⟩
-      FC.𝟘 ∎
-    fin-prod : NFC.isFinite (α₁ NFC.∧ α₂)
-    fin-prod = NFC.constant0 (λ k _ → funExt⁻ (cong fst prod-zero) k)
-    cof-prod : NFC.isCofinite (α₁ NFC.∧ α₂)
-    cof-prod = subst NFC.isFinite (sym (NFC.DeMorgan¬∧ {x = α₁} {y = α₂}))
-      (NFC.finiteClosedByUnion (NFC.¬ α₁) (NFC.¬ α₂) c₁ c₂)
-  -- r01 finite: bounded support, but α₁(2k+1) = true for all k → contradiction
-  go (NFC.Fin fin₁) _ = bound-contradiction fin₁
+    prod=0 : finMeetNeg∞ (ms₁ ++ ms₂) ≡ 𝟘∞
+    prod=0 =
+      finMeetNeg∞ (ms₁ ++ ms₂)
+        ≡⟨ meet-nf-correct (MNF ms₁) (MNF ms₂) ⟩
+      finMeetNeg∞ ms₁ ·∞ finMeetNeg∞ ms₂
+        ≡⟨ cong₂ _·∞_ eq₁ eq₂ ⟩
+      r01 ·∞ r10
+        ≡⟨ r01·r10≡0 ⟩
+      𝟘∞ ∎
+  -- r01 is joinForm: find fresh odd not in ns, contradiction
+  go (JF ns , eq) _ = g∞-nonzero (suc (2 ·ℕ k)) gen=0
     where
-    bound-contradiction : NFC.isFinite α₁ → ⊥
-    bound-contradiction fin₁ =
-      let (N , bound) = NFC.finite→Bounded α₁ fin₁
-          -- Pick k = N, so 2k+1 = 2N+1 ≥ N
-          k = N
-          big-enough : N ≤ suc (2 ·ℕ k)
-          big-enough = suc (N +ℕ 0) , cong suc (+-comm (N +ℕ 0) N)
-          α₁-false : α₁ (suc (2 ·ℕ k)) ≡ false
-          α₁-false = bound (suc (2 ·ℕ k)) big-enough
-          α₁-true : α₁ (suc (2 ·ℕ k)) ≡ true
-          α₁-true = α₁-odd-true k
-      in true≢false (sym α₁-true ∙ α₁-false)
-  -- r10 finite: bounded support, but α₂(2k) = true for all k → contradiction
-  go _ (NFC.Fin fin₂) = bound-contradiction fin₂
+    k = sucSum ns
+    gen=0 : g∞ (suc (2 ·ℕ k)) ≡ 𝟘∞
+    gen=0 =
+      g∞ (suc (2 ·ℕ k))
+        ≡⟨ sym (odd-gen-below-r01 k) ⟩
+      g∞ (suc (2 ·ℕ k)) ·∞ r01
+        ≡⟨ cong (g∞ (suc (2 ·ℕ k)) ·∞_) (sym eq) ⟩
+      g∞ (suc (2 ·ℕ k)) ·∞ finJoin∞ ns
+        ≡⟨ gen-notin-finJoin (suc (2 ·ℕ k)) ns
+             (above-sucSum-not-in (suc (2 ·ℕ k)) ns (≤-trans (n≤2n k) (≤-suc ≤-refl))) ⟩
+      𝟘∞ ∎
+  -- r10 is joinForm: symmetric, find fresh even not in ns
+  go (MNF _ , _) (JF ns , eq) = g∞-nonzero (2 ·ℕ k) gen=0
     where
-    bound-contradiction : NFC.isFinite α₂ → ⊥
-    bound-contradiction fin₂ =
-      let (N , bound) = NFC.finite→Bounded α₂ fin₂
-          k = N
-          big-enough : N ≤ 2 ·ℕ k
-          big-enough = (N +ℕ 0) , +-comm (N +ℕ 0) N
-          α₂-false : α₂ (2 ·ℕ k) ≡ false
-          α₂-false = bound (2 ·ℕ k) big-enough
-          α₂-true : α₂ (2 ·ℕ k) ≡ true
-          α₂-true = α₂-even-true k
-      in true≢false (sym α₂-true ∙ α₂-false)
+    k = sucSum ns
+    gen=0 : g∞ (2 ·ℕ k) ≡ 𝟘∞
+    gen=0 =
+      g∞ (2 ·ℕ k)
+        ≡⟨ sym (even-gen-below-r10 k) ⟩
+      g∞ (2 ·ℕ k) ·∞ r10
+        ≡⟨ cong (g∞ (2 ·ℕ k) ·∞_) (sym eq) ⟩
+      g∞ (2 ·ℕ k) ·∞ finJoin∞ ns
+        ≡⟨ gen-notin-finJoin (2 ·ℕ k) ns
+             (above-sucSum-not-in (2 ·ℕ k) ns (n≤2n k)) ⟩
+      𝟘∞ ∎

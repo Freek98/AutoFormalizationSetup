@@ -1132,12 +1132,12 @@ private
   ... | true =
     let k = half n
         eq : fst f (g∞ n) ≡ (g∞ k , 𝟘∞)
-        eq = subst (λ m → fst f (g∞ m) ≡ (g∞ k , 𝟘∞)) (isEven→even n (builtin→Path-Bool parity)) (f-even-gen k)
+        eq = subst (λ m → fst f (g∞ m) ≡ (g∞ k , 𝟘∞)) (sym (isEven→even n parity)) (f-even-gen k)
     in g∞-nonzero k (cong fst (sym eq ∙ f-gen-n=0))
   ... | false =
     let k = half n
         eq : fst f (g∞ n) ≡ (𝟘∞ , g∞ k)
-        eq = subst (λ m → fst f (g∞ m) ≡ (𝟘∞ , g∞ k)) (isEven→odd n (builtin→Path-Bool parity)) (f-odd-gen k)
+        eq = subst (λ m → fst f (g∞ m) ≡ (𝟘∞ , g∞ k)) (sym (isEven→odd n parity)) (f-odd-gen k)
     in g∞-nonzero k (cong snd (sym eq ∙ f-gen-n=0))
 
 -- f has trivial kernel: f(x) = (0,0) → x = 0
@@ -1352,8 +1352,7 @@ f-no-retraction r retract = go (snd (fst Bridge.φ_FC r01)) (snd (fst Bridge.φ_
     fin-prod : NFC.isFinite (α₁ NFC.∧ α₂)
     fin-prod = NFC.constant0 (λ k _ → funExt⁻ (cong fst prod-zero) k)
     cof-prod : NFC.isCofinite (α₁ NFC.∧ α₂)
-    cof-prod = subst NFC.isFinite (sym (NFC.DeMorgan¬∧ {x = α₁} {y = α₂}))
-      (NFC.finiteClosedByUnion (NFC.¬ α₁) (NFC.¬ α₂) c₁ c₂)
+    cof-prod = let NFC.Cof c = NFC.FinCofin-∧-cl α₁ α₂ (NFC.Cof c₁) (NFC.Cof c₂) in c
   -- r01 finite: bounded support, but α₁(2k+1) = true for all k → contradiction
   go (NFC.Fin fin₁) _ = bound-contradiction fin₁
     where

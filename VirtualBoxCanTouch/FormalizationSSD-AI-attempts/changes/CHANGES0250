@@ -1,0 +1,26 @@
+CHANGES0250: Rewrite Omniscience.agda to use NFinCofin Bridge instead of NormalForms
+
+Summary:
+- Removed dependency on NormalForms.agda (normalFormExists-trunc no longer imported)
+- Added imports for Bridge, NFC.Definitions, and Pres (NFinCofin.Presentation)
+- Defined char2-B∞ and char2-B∞×B∞ inline (trivial from Boolean ring structure)
+
+New private helper section (replaces old f-kernel-from-trunc infrastructure):
+- FC module alias, FC≡ (Σ≡Prop for ℕfinCofinBA)
+- φ-seq: extracts the characteristic sequence ℕ → Bool from φ_FC(x)
+- φ_FC-injective: injectivity of φ_FC via roundtrip
+- gen-absorb→bit-true: g∞(n)·x = g∞(n) ⟹ φ-seq(x)(n) = true
+- αn-true→gen-absorb: φ-seq(x)(n) = true ⟹ g∞(n)·x = g∞(n)
+
+f-kernel rewritten:
+- Uses φ_FC-injective + all-bits-false (by case split on α(n))
+- Each true bit leads to g∞(n)·x = g∞(n), hence f(g∞(n)) = 0, contradicting g∞-nonzero
+- Much simpler than the old normalFormExists-trunc + joinForm/meetNegForm approach
+
+f-no-retraction rewritten:
+- Uses isFiniteOrCofinite classification (non-truncated prop) directly
+- Fixed: α₁-odd-true and α₂-even-true now use gen-absorb→bit-true (previously had buggy inline copies)
+- Fixed: arithmetic proofs for N ≤ suc(2·N) and N ≤ 2·N (previously wrong)
+- Three cases: both-cofinite (product contradiction), Fin α₁ (bounded vs infinite), Fin α₂ (bounded vs infinite)
+
+Compilation status: submitted for verification, pending result.
