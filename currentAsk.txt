@@ -180,3 +180,11 @@ I want you to finish a proof of the following: If i'm given a Boolean Ring (but 
   presentation. When you're done, conclude that NFinCofin is countably          
   presented (hint in Cubical.Data.Nat.Bijections there is a proof that N x N    
   is N).      
+
+❯ Can you clean up the work, there are some useless results now. If you need    
+  help for a good definition of clean, see Cleaning.md                          
+──────────────────────────────────────────────────────────
+
+❯ Okay I want you to write the file again as PresentationNew.agda using the    
+  universal property as early as possible and I think you don't need to do all  
+  the same steps now.  
