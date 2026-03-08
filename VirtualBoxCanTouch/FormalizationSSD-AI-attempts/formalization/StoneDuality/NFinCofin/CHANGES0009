@@ -1,0 +1,29 @@
+CHANGES0009: Use solve! tactic, eliminate remaining funExt⁻ (cong fst) patterns
+=================================================================================
+
+bck0008 (711 lines) → bck0009 (704 lines): net -7 lines
+
+LINE COUNT DECREASE JUSTIFIED — solve! replaces verbose manual proofs with
+single-line tactic calls. No useful theorems removed.
+All theorems preserved. Full verification passed.
+
+REPLACED WITH solve!:
+
+1. rearrange-sum: was 4-line manual associativity/commutativity chain,
+   now `solve! (BooleanRing→CommRing (freeBA ℕ))` (-3 lines)
+
+2. rearrange-∨: was 3-line ∨Assoc/∨Comm chain,
+   now `solve! (BooleanRing→CommRing (freeBA ℕ))` (-2 lines)
+
+3. ·-distrib-¬: was `·DistR+ ∙ cong ... (·IdR)`,
+   now `solve! (BooleanRing→CommRing presentation)` (same lines)
+
+REPLACED funExt⁻ (cong fst p) k WITH cong (λ x → fst x k) p:
+
+4. fH-∨-pointwise: cong (λ x → fst x k) (fH-pres-∨ a b)
+5. eval-singleEntry-neq: cong (λ x → fst x k) (eval-gen m), cong ... FH.pres0
+6. eval-singleEntry-diag: cong (λ x → fst x m) (eval-gen m), cong ... FH.pres0
+
+ADDED:
+- Import: Cubical.Tactics.CommRingSolver
+- CLAUDE.md: added solve! preference to Coding Preferences section

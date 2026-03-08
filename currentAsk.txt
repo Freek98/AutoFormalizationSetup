@@ -188,3 +188,127 @@ I want you to finish a proof of the following: If i'm given a Boolean Ring (but 
 ❯ Okay I want you to write the file again as PresentationNew.agda using the    
   universal property as early as possible and I think you don't need to do all  
   the same steps now.  
+
+❯ also I prefer to work not with opening many modules with a name and then      
+renaming, but using derived instances. Do you understand this or should I show  
+it to you?     
+
+  ❯ oh also I see you use Trichotomy (=N) when splitting on <= or < would       
+suffice. You could use \leq-split instead in those cases. Example in          
+eval-embedUpTo-fst                                                            
+❯ Also, I prefer equational reasoning over just composition of equalities     
+so I can see the intermediate steps See for example eval-embedUpTo-above
+
+❯ I saw you're doing a large rewrite in one go to change all the names. This    
+  is in principle not wrong, but when a human would do it, they could make use  
+  of just doing find and replace. If something would still go wrong, they     
+  would use the agda system to see what went wrong. Is there a way I can train
+  you to use the agda system better?
+1. Find-and-replace: I should use the Edit tool with replace_all for renamings
+   instead of rewriting entire files. That's safer and mirrors what a human     
+  would do with find-and-replace.                                               
+  2. Incremental changes + compile: Instead of rewriting 685 lines in one go, I 
+  should make small edits, compile after each, and use Agda's error messages to 
+  fix issues. When something breaks, the error message tells me exactly what's  
+  wrong.                                                                        
+  3. Holes for diagnostics: When I'm unsure about a term's type, I can insert {!
+   !} and compile to see the goal/context, rather than guessing.                
+  4. Small batches: Change a few related things at a time, compile, fix, repeat.
+
+  I'll save this as a workflow preference. Let me continue with the pending
+  changes using this approach — small edits with compile checks between them.
+
+
+Also I have many questions to you right now, and some of those could be done  
+  in parallel by parallel agents. How could I use you better?
+
+  Now to answer your second question: How to use me better with parallel work.  
+                                                                                
+  You can give me multiple independent tasks in a single message and I'll launch
+   parallel agents. For example:                                                
+  - "In parallel: (1) replace Trichotomy with splitℕ-≤ in eval-embedUpTo-fst,   
+  (2) convert eval-embedUpTo-above to equational reasoning style"               
+  - Or: "In parallel: (1) search for all uses of X in the codebase, (2) check if
+   lemma Y exists in the Cubical library"
+
+  The key constraint: parallel agents work on isolated copies (worktrees), so
+  their edits don't conflict. For edits to the same file, it's better to do them
+   sequentially. For research/exploration tasks, parallel is great.
+
+  For your current workflow, good parallel patterns would be:
+  - Research in parallel: "Find all uses of Trichotomy" + "Find the type of
+  Dichotomyℕ" + "Check what ≤-split returns"
+  - Independent file edits: changes to different files simultaneously
+  - Research + edit: one agent researches while I edit something unrelated
+
+❯ question: do you yourself handle these parallel agents? Like do you have your 
+ own edit-questions queue internally?                                           
+                                                                                
+● To answer your question: Yes, I can launch multiple agents in a single message
+   and they run concurrently as subprocesses. I don't have an internal queue    
+  exactly — I send multiple tool calls in one response, they execute in         
+  parallel, and I get all the results back together. For research tasks         
+  (searching the codebase, checking library definitions), this works great. For 
+  edits to the same file, it's better to do them sequentially since they'd
+  conflict.
+
+  The main limitation: I can only launch agents when I'm "speaking" — I can't
+  queue up work while waiting for results. So the parallelism is per-response,
+  not background task management.
+
+  Now let me continue converting more proofs. Let me look at some of the longer
+  ∙ chains that would benefit most:
+
+And how do I make sure these workflow preferences persist along sessions on   
+different machines ?                                                            
+
+● Bash(timeout 60 /project/agda PresentationNew.agda 2>&1; RC=$?; if [ $RC -eq
+      124 ]; then echo "TIMEOUT after 1min"; elif [ $RC -eq 0 ]; then echo
+      "SUCCESS"; else ech…)                                                     
+  ⎿  Checking formalization.StoneDuality.NFinCofin.PresentationNew (/CanTou
+     ch/FormalizationSSD-AI-attempts/formalization/StoneDuality/NFinCofin/P     
+     resentationNew.agda).                                        
+     SUCCESS                          
+  ⎿  (timeout 2m)                                                               
+                                                                                
+● To answer your question about persisting workflow preferences across machines:
+                                                                                
+  There are two mechanisms:                                                     
+                                                                                
+  1. CLAUDE.md (checked into the repo) — This is already in your repo at        
+  /CanTouch/FormalizationSSD-AI-attempts/CLAUDE.md. Since it's in git, it
+  persists across any machine that clones the repo. I always read it at the     
+  start of every conversation. 
+  This is the best place for project-wide
+  preferences like "use equational reasoning", "use splitℕ-≤ over Trichotomy",
+  "use instance resolution over module renaming".
+  2. Memory files (per-machine, at ~/.claude/projects/.../memory/) — These are
+  local to a machine and don't sync. They're good for machine-specific notes but
+   NOT for cross-machine persistence.
+
+  So for your workflow preferences to persist across machines, add them to
+  CLAUDE.md. Want me to add the preferences we discussed (equational reasoning,
+  splitℕ-≤, incremental edits, use Agda holes for diagnostics) to your
+  CLAUDE.md?
+
+I answered yes to that. 
+❯ There's still some places which could improve with equaitonal reasoning, and  
+smarter compositions. For example, on line 674, I now see some equality         
+composition in a funExt call which even uses funExt^-. You can also use         
+equaitonal reasoning within funExt and CommRingHom=
+
+❯ Also if proofs should be obvious in any rings, like rearrrange-\vee, you      
+  could use the CommRing solve! tactic. This is more human readable. You can   
+  add this to the permanent settings also.
+    ❯ For example usage of solve!, see the BooleanRing file in cubical            
+ also is there a way to get you to see what's efficient and nice by using the  
+agda system? For example, reload the file and see if the loading slows down or  
+gets faster ? It added stuff to the claude.md file for this also. 
+
+❯ As you see I'm now editing the file a bit. I want to put all the              
+implementation details in a big module (which I've already done) so nothing is  
+exposed, but there is the choice of a user to expose it. However, everything in 
+ private blocks is then not exposed. So get rid of all the private blocks for   
+me, and make sure you always work in this manner.
+❯ note again you can do one change and then a quick check all the time          
+

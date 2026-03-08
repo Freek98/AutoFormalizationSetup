@@ -1,0 +1,30 @@
+CHANGES0008: Equational reasoning in extension proofs, eliminate funExt⁻∘cong fst
+===============================================================================
+
+bck0007 (703 lines) → bck0008 (711 lines): net +8 lines
+
+LINE COUNT INCREASE JUSTIFIED — equational reasoning is more verbose but readable.
+All theorems preserved. Full verification passed.
+
+CONVERTED TO EQUATIONAL REASONING:
+
+1. roundtrip-pre-on-free: was `funExt⁻ (cong fst (p₁ ∙ p₂))`, now
+   `cong (λ h → fst h t) (compBH ≡⟨ ... ⟩ inducedBAHom ... ≡⟨ ... ⟩ π ∎)`.
+   Shows the intermediate step through inducedBAHom explicitly.
+
+2. extensionCommutes: was `∙` chain with `funExt⁻ (cong fst ...)`, now
+   `≡⟨ ⟩` chain inside CommRingHom≡ (funExt λ t → ...).
+   Shows ind applied to roundtrip result, then QB.evalInduce.
+
+3. extensionUnique: replaced `funExt⁻ (cong fst p) y` with
+   `cong (λ h → fst h y) p` — more direct, no funExt⁻ detour.
+
+REPLACED funExt⁻ (cong fst p) k PATTERN:
+
+4. All `funExt⁻ (cong fst p) k` replaced with `cong (λ x → fst x k) p`:
+   - fH-∨-pointwise: fH-pres-∨
+   - eval-singleEntry-neq: eval-gen, FH.pres0
+   - eval-singleEntry-diag: eval-gen, FH.pres0
+
+Only remaining funExt⁻ is eval-gen (line 76), which uses funExt⁻ on a
+plain function equality (evalBAInduce), not composed with cong fst.

@@ -1,0 +1,33 @@
+CHANGES0007: Style improvements - splitℕ-≤ and equational reasoning
+===================================================================
+
+bck0006 (696 lines) → bck0007 (703 lines): net +7 lines
+
+LINE COUNT INCREASE JUSTIFIED — equational reasoning is more verbose but more readable.
+All theorems and definitions preserved. Full verification passed.
+
+REPLACED Trichotomy WITH splitℕ-≤:
+
+1. eval-embedUpTo-fst: replaced `case (k =ℕ n)` (lt/eq/gt, 3 cases)
+   with `case (splitℕ-≤ k n)` (inl k≤n / inr n<k, 2 cases).
+   lt and eq both called eval-embedUpTo-below, now merged into single inl case.
+
+2. F2FM-to-embedUpTo: replaced `with p =ℕ n` (lt/eq/gt, 3 cases)
+   with `with splitℕ-≤ p n` (inl p≤n / inr n<p, 2 cases).
+   lt and eq both yielded p≤n, now merged. gt (contradiction) stays as inr.
+
+3. pres∧-FF: replaced `with n =ℕ m` (lt/eq/gt, 3 cases)
+   with `with splitℕ-≤ n m` (inl n≤m / inr m<n, 2 cases).
+   lt and eq both used π-embedUpTo-prod α β n m with different n≤m proofs,
+   now merged into single inl case.
+
+4. pres∨-FinFin: kept Trichotomy — all three cases have genuinely different
+   proof structures (different bounds, different rewriting steps).
+
+CONVERTED TO EQUATIONAL REASONING:
+
+5. eval-embedUpTo-above (suc case): 2-step ∙ chain → ≡⟨ ⟩ chain
+6. section-cofinite: 3-step ∙ chain → ≡⟨ ⟩ chain with intermediates
+7. relationsRespected (no ¬p case): 3-step ∙ chain → ≡⟨ ⟩ chain
+8. π-SE-times-eU-above (suc case): 4-step ∙ chain → ≡⟨ ⟩ chain with let bindings
+9. extensionUnique: 4-step ∙ chain → ≡⟨ ⟩ chain with let bindings

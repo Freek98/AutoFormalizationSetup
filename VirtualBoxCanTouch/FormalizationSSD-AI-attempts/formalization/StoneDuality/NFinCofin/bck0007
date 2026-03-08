@@ -5,6 +5,7 @@ open import formalization.StoneDuality.NFinCofin.Definitions
 
 open import formalization.Library.BooleanRing.BooleanRingMaps
 open import formalization.Library.BooleanRing.FreeBooleanRing.FreeBool
+  using (freeBA; generator; inducedBAHom; evalBAInduce; inducedBAHomUnique)
 import formalization.Library.BooleanRing.BooleanRingQuotients.QuotientBool as QB
 open import formalization.Library.BooleanRing.BooleanRingQuotients.UniversalProperty
 open import formalization.Library.BasicDefinitions
@@ -18,7 +19,6 @@ open import Cubical.Foundations.Isomorphism using (Iso)
 
 open import Cubical.Algebra.BooleanRing
 open import Cubical.Algebra.CommRing
-open import Cubical.Tactics.CommRingSolver
 
 open import Cubical.Data.Empty renaming (rec to ex-falso)
 open import Cubical.Data.Sum
@@ -31,6 +31,7 @@ open import Cubical.Data.Nat.Order renaming (_≟_ to _=ℕ_)
 open import Cubical.Data.Nat.Bijections.Product using (ℕ×ℕ≅ℕ)
 open import Cubical.HITs.PropositionalTruncation using (∣_∣₁)
 open import formalization.Library.CountablyPresentedBooleanRings.Definitions
+  using (is-countably-presented-alt)
 
 open BooleanRingStr ⦃...⦄
 open BooleanAlgebraStr ⦃...⦄
@@ -42,13 +43,60 @@ instance
 FC≡ : {a b : ⟨ ℕfinCofinBA ⟩} → fst a ≡ fst b → a ≡ b
 FC≡ = Σ≡Prop isPropisFiniteOrCofinite
 
+δnn=1 : (n : ℕ) → δSequence n n ≡ true
+δnn=1 zero = refl
+δnn=1 (suc n) = δnn=1 n
+
+δnm=0 : (n m : ℕ) → (n ≡ m → ⊥) → δSequence n m ≡ false
+δnm=0 zero zero x = ex-falso (x refl)
+δnm=0 zero (suc m) x = refl
+δnm=0 (suc n) zero x = refl
+δnm=0 (suc n) (suc m) x = δnm=0 n m (x ∘ cong suc)
+
+δn∧δm=0 : (n m : ℕ) → (n ≡ m → ⊥) → (k : ℕ) → (δSequence n k) and (δSequence m k) ≡ false
+δn∧δm=0 zero zero n≠m _ = ex-falso (n≠m refl)
+δn∧δm=0 zero _ n≠m (suc k) = refl
+δn∧δm=0 (suc n) _ n≠m zero = refl
+δn∧δm=0 _ (suc m) n≠m zero = and-zeroʳ _
+δn∧δm=0 _ zero n≠m (suc k) = and-zeroʳ _
+δn∧δm=0 (suc n) (suc m) n≠m (suc k) = δn∧δm=0 n m (n≠m ∘ cong suc) k
+
+δSequenceFinite : (n : ℕ) → isFinite (δSequence n)
+δSequenceFinite n = last1 n (δnn=1 n) λ k k>n → δnm=0 n k (<→≢ k>n)
+
+singleton : (n : ℕ) → ⟨ ℕfinCofinBA ⟩
+singleton n = δSequence n , Fin (δSequenceFinite n)
+
+freeℕ→ℕFinCof : BoolHom (freeBA ℕ) ℕfinCofinBA
+freeℕ→ℕFinCof = inducedBAHom ℕ ℕfinCofinBA singleton
+
+private
+  module FH = IsCommRingHom (snd freeℕ→ℕFinCof)
+  eval-gen : (n : ℕ) → fst freeℕ→ℕFinCof (generator n) ≡ singleton n
+  eval-gen n = funExt⁻ (evalBAInduce ℕ ℕfinCofinBA singleton) n
+
 relations : ℕ × ℕ → ⟨ freeBA ℕ ⟩
 relations (n , m) with discreteℕ n m
 ... | yes _ = 𝟘
 ... | no ¬p = generator n ∧ generator m
 
+relationsRespected : ∀ (p : ℕ × ℕ) → freeℕ→ℕFinCof $cr (relations p) ≡ 𝟘
+relationsRespected (n , m) with discreteℕ n m
+... | yes _ = FH.pres0
+... | no ¬p =
+  fst freeℕ→ℕFinCof (generator n · generator m)
+    ≡⟨ FH.pres· (generator n) (generator m) ⟩
+  fst freeℕ→ℕFinCof (generator n) · fst freeℕ→ℕFinCof (generator m)
+    ≡⟨ cong₂ _·_ (eval-gen n) (eval-gen m) ⟩
+  singleton n · singleton m
+    ≡⟨ FC≡ (funExt (δn∧δm=0 n m ¬p)) ⟩
+  𝟘 ∎
+
 relationsℕ : ℕ → ⟨ freeBA ℕ ⟩
 relationsℕ = relations ∘ Iso.inv ℕ×ℕ≅ℕ
+
+relationsℕRespected : ∀ n → freeℕ→ℕFinCof $cr (relationsℕ n) ≡ 𝟘
+relationsℕRespected n = relationsRespected (Iso.inv ℕ×ℕ≅ℕ n)
 
 presentation : BooleanRing ℓ-zero
 presentation = (freeBA ℕ) QB./Im relationsℕ
@@ -56,76 +104,31 @@ presentation = (freeBA ℕ) QB./Im relationsℕ
 instance
   _ = snd presentation
 
-module NFinCofinPresentation where
-  δnn=1 : (n : ℕ) → δSequence n n ≡ true
-  δnn=1 zero = refl
-  δnn=1 (suc n) = δnn=1 n
+π : BoolHom (freeBA ℕ) presentation
+π = QB.quotientImageHom
 
-  δnm=0 : (n m : ℕ) → (n ≡ m → ⊥) → δSequence n m ≡ false
-  δnm=0 zero zero x = ex-falso (x refl)
-  δnm=0 zero (suc m) x = refl
-  δnm=0 (suc n) zero x = refl
-  δnm=0 (suc n) (suc m) x = δnm=0 n m (x ∘ cong suc)
-
-  δn∧δm=0 : (n m : ℕ) → (n ≡ m → ⊥) → (k : ℕ) → (δSequence n k) and (δSequence m k) ≡ false
-  δn∧δm=0 zero zero n≠m _ = ex-falso (n≠m refl)
-  δn∧δm=0 zero _ n≠m (suc k) = refl
-  δn∧δm=0 (suc n) _ n≠m zero = refl
-  δn∧δm=0 _ (suc m) n≠m zero = and-zeroʳ _
-  δn∧δm=0 _ zero n≠m (suc k) = and-zeroʳ _
-  δn∧δm=0 (suc n) (suc m) n≠m (suc k) = δn∧δm=0 n m (n≠m ∘ cong suc) k
-
-  δSequenceFinite : (n : ℕ) → isFinite (δSequence n)
-  δSequenceFinite n = last1 n (δnn=1 n) λ k k>n → δnm=0 n k (<→≢ k>n)
-
-  singleton : (n : ℕ) → ⟨ ℕfinCofinBA ⟩
-  singleton n = δSequence n , Fin (δSequenceFinite n)
-
-  freeℕ→ℕFinCof : BoolHom (freeBA ℕ) ℕfinCofinBA
-  freeℕ→ℕFinCof = inducedBAHom ℕ ℕfinCofinBA singleton
-
-  module FH = IsCommRingHom (snd freeℕ→ℕFinCof)
-  eval-gen : (n : ℕ) → fst freeℕ→ℕFinCof (generator n) ≡ singleton n
-  eval-gen n = funExt⁻ (evalBAInduce ℕ ℕfinCofinBA singleton) n
-
-  relationsRespected : ∀ (p : ℕ × ℕ) → freeℕ→ℕFinCof $cr (relations p) ≡ 𝟘
-  relationsRespected (n , m) with discreteℕ n m
-  ... | yes _ = FH.pres0
-  ... | no ¬p =
-    fst freeℕ→ℕFinCof (generator n · generator m)
-      ≡⟨ FH.pres· (generator n) (generator m) ⟩
-    fst freeℕ→ℕFinCof (generator n) · fst freeℕ→ℕFinCof (generator m)
-      ≡⟨ cong₂ _·_ (eval-gen n) (eval-gen m) ⟩
-    singleton n · singleton m
-      ≡⟨ FC≡ (funExt (δn∧δm=0 n m ¬p)) ⟩
-    𝟘 ∎
-
-  relationsℕRespected : ∀ n → freeℕ→ℕFinCof $cr (relationsℕ n) ≡ 𝟘
-  relationsℕRespected n = relationsRespected (Iso.inv ℕ×ℕ≅ℕ n)
-
-  π : BoolHom (freeBA ℕ) presentation
-  π = QB.quotientImageHom
-
+private
   module ΠH = IsCommRingHom (snd π)
 
-  singleEntry : (α : binarySequence) → (m : ℕ) → ⟨ freeBA ℕ ⟩
-  singleEntry α m = if α m then generator m else 𝟘
+singleEntry : (α : binarySequence) → (m : ℕ) → ⟨ freeBA ℕ ⟩
+singleEntry α m = if α m then generator m else 𝟘
 
-  embedUpTo : (α : binarySequence) → (m : ℕ) → ⟨ freeBA ℕ ⟩
-  embedUpTo α zero = singleEntry α 0
-  embedUpTo α (suc m) = embedUpTo α m ∨ singleEntry α (suc m)
+embedUpTo : (α : binarySequence) → (m : ℕ) → ⟨ freeBA ℕ ⟩
+embedUpTo α zero = singleEntry α 0
+embedUpTo α (suc m) = embedUpTo α m ∨ singleEntry α (suc m)
 
-  Finite→FreeℕMap : (α : binarySequence) → isFinite α → ⟨ freeBA ℕ ⟩
-  Finite→FreeℕMap α (constant0 _) = 𝟘
-  Finite→FreeℕMap α (last1 n _ _) = embedUpTo α n
+Finite→FreeℕMap : (α : binarySequence) → isFinite α → ⟨ freeBA ℕ ⟩
+Finite→FreeℕMap α (constant0 _) = 𝟘
+Finite→FreeℕMap α (last1 n _ _) = embedUpTo α n
 
-  ℕFinCof→FreeℕMap : ⟨ ℕfinCofinBA ⟩ → ⟨ freeBA ℕ ⟩
-  ℕFinCof→FreeℕMap (α , Fin αf) = Finite→FreeℕMap α αf
-  ℕFinCof→FreeℕMap (α , Cof αc) = ¬ (Finite→FreeℕMap (¬ α) αc)
+ℕFinCof→FreeℕMap : ⟨ ℕfinCofinBA ⟩ → ⟨ freeBA ℕ ⟩
+ℕFinCof→FreeℕMap (α , Fin αf) = Finite→FreeℕMap α αf
+ℕFinCof→FreeℕMap (α , Cof αc) = ¬ (Finite→FreeℕMap (¬ α) αc)
 
-  ℕFinCof→Presentation : ⟨ ℕfinCofinBA ⟩ → ⟨ presentation ⟩
-  ℕFinCof→Presentation = fst π ∘ ℕFinCof→FreeℕMap
+ℕFinCof→Presentation : ⟨ ℕfinCofinBA ⟩ → ⟨ presentation ⟩
+ℕFinCof→Presentation = fst π ∘ ℕFinCof→FreeℕMap
 
+private
   module FHAlg = isBoolAlgHom (freeBA ℕ) ℕfinCofinBA (fst freeℕ→ℕFinCof) (snd freeℕ→ℕFinCof)
   fH-pres-∨ = FHAlg.pres∨
   fH-pres-¬ = FHAlg.pres¬
@@ -134,84 +137,89 @@ module NFinCofinPresentation where
     fst (fst freeℕ→ℕFinCof (a ∨ b)) k ≡
     fst (fst freeℕ→ℕFinCof a) k or fst (fst freeℕ→ℕFinCof b) k
   fH-∨-pointwise a b k =
-    cong (λ x → fst x k) (fH-pres-∨ a b)
+    funExt⁻ (cong fst (fH-pres-∨ a b)) k
     ∙ QuickBooleanFix.claim (fst (fst freeℕ→ℕFinCof a) k) (fst (fst freeℕ→ℕFinCof b) k)
 
-  eval-singleEntry-neq : (m k : ℕ) (α : binarySequence) → (m ≡ k → ⊥) →
-    fst (fst freeℕ→ℕFinCof (singleEntry α m)) k ≡ false
-  eval-singleEntry-neq m k α m≠k with α m
-  ... | true  = cong (λ x → fst x k) (eval-gen m) ∙ δnm=0 m k m≠k
-  ... | false = cong (λ x → fst x k) FH.pres0
+eval-singleEntry-neq : (m k : ℕ) (α : binarySequence) → (m ≡ k → ⊥) →
+  fst (fst freeℕ→ℕFinCof (singleEntry α m)) k ≡ false
+eval-singleEntry-neq m k α m≠k with α m
+... | true  = funExt⁻ (cong fst (eval-gen m)) k ∙ δnm=0 m k m≠k
+... | false = funExt⁻ (cong fst FH.pres0) k
 
-  eval-singleEntry-diag : (m : ℕ) (α : binarySequence) →
-    fst (fst freeℕ→ℕFinCof (singleEntry α m)) m ≡ α m
-  eval-singleEntry-diag m α with α m
-  ... | true  = cong (λ x → fst x m) (eval-gen m) ∙ δnn=1 m
-  ... | false = cong (λ x → fst x m) FH.pres0
+eval-singleEntry-diag : (m : ℕ) (α : binarySequence) →
+  fst (fst freeℕ→ℕFinCof (singleEntry α m)) m ≡ α m
+eval-singleEntry-diag m α with α m
+... | true  = funExt⁻ (cong fst (eval-gen m)) m ∙ δnn=1 m
+... | false = funExt⁻ (cong fst FH.pres0) m
 
-  opaque
-    eval-embedUpTo-above : (α : binarySequence) (n k : ℕ) → k > n →
-      fst (fst freeℕ→ℕFinCof (embedUpTo α n)) k ≡ false
-    eval-embedUpTo-above α zero k k>0 =
-      eval-singleEntry-neq 0 k α (<→≢ k>0)
-    eval-embedUpTo-above α (suc n) k k>sn =
-      fst (fst freeℕ→ℕFinCof (embedUpTo α n ∨ singleEntry α (suc n))) k
-        ≡⟨ fH-∨-pointwise (embedUpTo α n) (singleEntry α (suc n)) k ⟩
-      fst (fst freeℕ→ℕFinCof (embedUpTo α n)) k or
-        fst (fst freeℕ→ℕFinCof (singleEntry α (suc n))) k
-        ≡⟨ cong₂ _or_ (eval-embedUpTo-above α n k (≤-trans ≤-sucℕ k>sn))
-                       (eval-singleEntry-neq (suc n) k α (<→≢ k>sn)) ⟩
-      false ∎
+opaque
+  eval-embedUpTo-above : (α : binarySequence) (n k : ℕ) → k > n →
+    fst (fst freeℕ→ℕFinCof (embedUpTo α n)) k ≡ false
+  eval-embedUpTo-above α zero k k>0 =
+    eval-singleEntry-neq 0 k α (<→≢ k>0)
+  eval-embedUpTo-above α (suc n) k k>sn =
+    fst (fst freeℕ→ℕFinCof (embedUpTo α n ∨ singleEntry α (suc n))) k
+      ≡⟨ fH-∨-pointwise (embedUpTo α n) (singleEntry α (suc n)) k ⟩
+    fst (fst freeℕ→ℕFinCof (embedUpTo α n)) k or
+      fst (fst freeℕ→ℕFinCof (singleEntry α (suc n))) k
+      ≡⟨ cong₂ _or_ (eval-embedUpTo-above α n k (≤-trans ≤-sucℕ k>sn))
+                     (eval-singleEntry-neq (suc n) k α (<→≢ k>sn)) ⟩
+    false ∎
 
-    eval-embedUpTo-below : (α : binarySequence) (n k : ℕ) → k ≤ n →
-      fst (fst freeℕ→ℕFinCof (embedUpTo α n)) k ≡ α k
-    eval-embedUpTo-below α zero k k≤0 =
-      subst (λ k' → fst (fst freeℕ→ℕFinCof (singleEntry α 0)) k' ≡ α k')
-            (sym (≤0→≡0 k≤0)) (eval-singleEntry-diag 0 α)
-    eval-embedUpTo-below α (suc n) k k≤sn =
-      fH-∨-pointwise (embedUpTo α n) (singleEntry α (suc n)) k
-      ∙ (case (≤-split k≤sn) return (λ _ →
-          fst (fst freeℕ→ℕFinCof (embedUpTo α n)) k or
-          fst (fst freeℕ→ℕFinCof (singleEntry α (suc n))) k ≡ α k) of λ
-        { (inl k<sn) →
-            cong₂ _or_ (eval-embedUpTo-below α n k (pred-≤-pred k<sn))
-                        (eval-singleEntry-neq (suc n) k α λ eq → <→≢ k<sn (sym eq))
-            ∙ or-identityʳ (α k)
-        ; (inr k=sn) →
-            cong₂ _or_ (eval-embedUpTo-above α n k (subst (_> n) (sym k=sn) ≤-refl))
-                        (subst (λ k' → fst (fst freeℕ→ℕFinCof (singleEntry α (suc n))) k' ≡ α k')
-                               (sym k=sn)
-                               (eval-singleEntry-diag (suc n) α))
-        })
+opaque
+  eval-embedUpTo-below : (α : binarySequence) (n k : ℕ) → k ≤ n →
+    fst (fst freeℕ→ℕFinCof (embedUpTo α n)) k ≡ α k
+  eval-embedUpTo-below α zero k k≤0 =
+    subst (λ k' → fst (fst freeℕ→ℕFinCof (singleEntry α 0)) k' ≡ α k')
+          (sym (≤0→≡0 k≤0)) (eval-singleEntry-diag 0 α)
+  eval-embedUpTo-below α (suc n) k k≤sn =
+    fH-∨-pointwise (embedUpTo α n) (singleEntry α (suc n)) k
+    ∙ (case (≤-split k≤sn) return (λ _ →
+        fst (fst freeℕ→ℕFinCof (embedUpTo α n)) k or
+        fst (fst freeℕ→ℕFinCof (singleEntry α (suc n))) k ≡ α k) of λ
+      { (inl k<sn) →
+          cong₂ _or_ (eval-embedUpTo-below α n k (pred-≤-pred k<sn))
+                      (eval-singleEntry-neq (suc n) k α λ eq → <→≢ k<sn (sym eq))
+          ∙ or-identityʳ (α k)
+      ; (inr k=sn) →
+          cong₂ _or_ (eval-embedUpTo-above α n k (subst (_> n) (sym k=sn) ≤-refl))
+                      (subst (λ k' → fst (fst freeℕ→ℕFinCof (singleEntry α (suc n))) k' ≡ α k')
+                             (sym k=sn)
+                             (eval-singleEntry-diag (suc n) α))
+      })
 
-    eval-embedUpTo-fst : (α : binarySequence) (n : ℕ) (bound : isZeroFrom (suc n) α) →
-      fst (fst freeℕ→ℕFinCof (embedUpTo α n)) ≡ α
-    eval-embedUpTo-fst α n bound = funExt λ k →
-      case (splitℕ-≤ k n) return (λ _ → fst (fst freeℕ→ℕFinCof (embedUpTo α n)) k ≡ α k) of λ
-        { (inl k≤n) → eval-embedUpTo-below α n k k≤n
-        ; (inr n<k) → eval-embedUpTo-above α n k n<k ∙ sym (bound k n<k)
-        }
+opaque
+  unfolding eval-embedUpTo-above
+  unfolding eval-embedUpTo-below
+  eval-embedUpTo-fst : (α : binarySequence) (n : ℕ) (bound : isZeroFrom (suc n) α) →
+    fst (fst freeℕ→ℕFinCof (embedUpTo α n)) ≡ α
+  eval-embedUpTo-fst α n bound = funExt λ k →
+    case (splitℕ-≤ k n) return (λ _ → fst (fst freeℕ→ℕFinCof (embedUpTo α n)) k ≡ α k) of λ
+      { (inl k≤n) → eval-embedUpTo-below α n k k≤n
+      ; (inr n<k) → eval-embedUpTo-above α n k n<k ∙ sym (bound k n<k)
+      }
 
-  section-finite : (α : binarySequence) (αf : isFinite α) →
-    fst freeℕ→ℕFinCof (Finite→FreeℕMap α αf) ≡ (α , Fin αf)
-  section-finite α (constant0 α=0) = FH.pres0 ∙ FC≡ (funExt (λ k → sym (α=0 k zero-≤)))
-  section-finite α (last1 n αn=1 α>n=0) = FC≡ (eval-embedUpTo-fst α n α>n=0)
+section-finite : (α : binarySequence) (αf : isFinite α) →
+  fst freeℕ→ℕFinCof (Finite→FreeℕMap α αf) ≡ (α , Fin αf)
+section-finite α (constant0 α=0) = FH.pres0 ∙ FC≡ (funExt (λ k → sym (α=0 k zero-≤)))
+section-finite α (last1 n αn=1 α>n=0) = FC≡ (eval-embedUpTo-fst α n α>n=0)
 
-  section-cofinite : (α : binarySequence) (αc : isCofinite α) →
-    fst freeℕ→ℕFinCof (¬ (Finite→FreeℕMap (¬ α) αc)) ≡ (α , Cof αc)
-  section-cofinite α αc =
-    fst freeℕ→ℕFinCof (¬ (Finite→FreeℕMap (¬ α) αc))
-      ≡⟨ fH-pres-¬ (Finite→FreeℕMap (¬ α) αc) ⟩
-    ¬ fst freeℕ→ℕFinCof (Finite→FreeℕMap (¬ α) αc)
-      ≡⟨ cong ¬_ (section-finite (¬ α) αc) ⟩
-    ¬ (¬ α , Fin αc)
-      ≡⟨ FC≡ (funExt (λ k → notnot (α k))) ⟩
-    (α , Cof αc) ∎
+section-cofinite : (α : binarySequence) (αc : isCofinite α) →
+  fst freeℕ→ℕFinCof (¬ (Finite→FreeℕMap (¬ α) αc)) ≡ (α , Cof αc)
+section-cofinite α αc =
+  fst freeℕ→ℕFinCof (¬ (Finite→FreeℕMap (¬ α) αc))
+    ≡⟨ fH-pres-¬ (Finite→FreeℕMap (¬ α) αc) ⟩
+  ¬ fst freeℕ→ℕFinCof (Finite→FreeℕMap (¬ α) αc)
+    ≡⟨ cong ¬_ (section-finite (¬ α) αc) ⟩
+  ¬ (¬ α , Fin αc)
+    ≡⟨ FC≡ (funExt (λ k → notnot (α k))) ⟩
+  (α , Cof αc) ∎
 
-  fH-section : (x : ⟨ ℕfinCofinBA ⟩) → fst freeℕ→ℕFinCof (ℕFinCof→FreeℕMap x) ≡ x
-  fH-section (α , Fin αf) = section-finite α αf
-  fH-section (α , Cof αc) = section-cofinite α αc
+fH-section : (x : ⟨ ℕfinCofinBA ⟩) → fst freeℕ→ℕFinCof (ℕFinCof→FreeℕMap x) ≡ x
+fH-section (α , Fin αf) = section-finite α αf
+fH-section (α , Cof αc) = section-cofinite α αc
 
+private
   singleEntry-δ-diag : (n : ℕ) → singleEntry (δSequence n) n ≡ generator n
   singleEntry-δ-diag n with δSequence n n | δnn=1 n
   ... | true  | _ = refl
@@ -338,6 +346,8 @@ module NFinCofinPresentation where
         ≡⟨ ∨IdL ⟩
       𝟘 ∎
 
+  opaque
+    unfolding π-SE-times-eU-above
     π-SE-times-eU-below : (α β : binarySequence) (i m : ℕ) → i ≤ m →
       fst π (singleEntry α i · embedUpTo β m) ≡ fst π (singleEntry (λ k → α k and β k) i)
     π-SE-times-eU-below α β i zero i≤0 =
@@ -364,6 +374,9 @@ module NFinCofinPresentation where
             ∙ ∨IdL
         })
 
+  opaque
+    unfolding π-SE-times-eU-below
+    unfolding π-SE-times-eU-above
     π-embedUpTo-prod : (α β : binarySequence) (n m : ℕ) → n ≤ m →
       fst π (embedUpTo α n · embedUpTo β m)
       ≡ fst π (embedUpTo (λ k → α k and β k) n)
@@ -422,6 +435,7 @@ module NFinCofinPresentation where
       where abf : isFinite (λ k → α k and β k)
             abf = intersectionWithFiniteIsFinite α β (last1 n αn α>n)
 
+private
   embedUpToFlat : (α : binarySequence) → (m : ℕ) → ⟨ freeBA ℕ ⟩
   embedUpToFlat α zero = singleEntry α 0
   embedUpToFlat α (suc m) = embedUpToFlat α m + singleEntry α (suc m)
@@ -437,7 +451,12 @@ module NFinCofinPresentation where
 
   rearrange-sum : (a b c d : ⟨ freeBA ℕ ⟩) →
     (a + b) + (c + d) ≡ (a + c) + (b + d)
-  rearrange-sum a b c d = solve! (BooleanRing→CommRing (freeBA ℕ))
+  rearrange-sum a b c d =
+    sym (+Assoc a b (c + d))
+    ∙ cong (a +_) (+Assoc b c d
+                       ∙ cong (_+ d) (+Comm b c)
+                       ∙ sym (+Assoc c b d))
+    ∙ +Assoc a c (b + d)
 
   flat-and-split : (α β : binarySequence) (n : ℕ) →
     embedUpToFlat α n + embedUpToFlat (λ k → α k and not (β k)) n
@@ -468,6 +487,8 @@ module NFinCofinPresentation where
       ∙ cong (_+ fst π (singleEntry γ (suc n))) (π-eU-to-flat γ n)
       ∙ sym (ΠH.pres+ (embedUpToFlat γ n) (singleEntry γ (suc n)))
 
+  opaque
+    unfolding π-eU-to-flat
     π-eU-and-split : (α β : binarySequence) (n : ℕ) →
       fst π (embedUpTo (λ k → α k and β k) n)
       ≡ fst π (embedUpTo α n + embedUpTo (λ k → α k and not (β k)) n)
@@ -479,7 +500,7 @@ module NFinCofinPresentation where
       ∙ sym (ΠH.pres+ (embedUpTo α n) (embedUpTo (λ k → α k and not (β k)) n))
 
   ·-distrib-¬ : (a b : ⟨ presentation ⟩) → a · (𝟙 + b) ≡ a + a · b
-  ·-distrib-¬ a b = solve! (BooleanRing→CommRing presentation)
+  ·-distrib-¬ a b = ·DistR+ a 𝟙 b ∙ cong (_+ (a · b)) (·IdR a)
 
   opaque
     unfolding pres∧-FF
@@ -524,7 +545,10 @@ module NFinCofinPresentation where
 
   rearrange-∨ : (a b c d : ⟨ freeBA ℕ ⟩) →
     (a ∨ b) ∨ (c ∨ d) ≡ (a ∨ c) ∨ (b ∨ d)
-  rearrange-∨ a b c d = solve! (BooleanRing→CommRing (freeBA ℕ))
+  rearrange-∨ a b c d =
+    ∨Assoc
+    ∙ cong (_∨ d) (sym ∨Assoc ∙ cong (a ∨_) ∨Comm ∙ ∨Assoc)
+    ∙ sym ∨Assoc
 
   embedUpTo-or-split : (α β : binarySequence) (n : ℕ) →
     embedUpTo (λ k → α k or β k) n ≡ embedUpTo α n ∨ embedUpTo β n
@@ -611,30 +635,28 @@ module NFinCofinPresentation where
      ∙ cong (fst π) DeMorgan¬∨
      ∙ ΠH.pres· (¬ a) (¬ b)
 
-  ℕFinCof→PresentationIsHom : IsCommRingHom
-    (BooleanRingStr→CommRingStr (snd ℕfinCofinBA))
-    ℕFinCof→Presentation
-    (BooleanRingStr→CommRingStr (snd presentation))
-  ℕFinCof→PresentationIsHom =
-    FromPres¬∧.isBoolRingHom ℕfinCofinBA presentation ℕFinCof→Presentation
-      pres¬-map pres∧-map
+ℕFinCof→PresentationIsHom : IsCommRingHom
+  (BooleanRingStr→CommRingStr (snd ℕfinCofinBA))
+  ℕFinCof→Presentation
+  (BooleanRingStr→CommRingStr (snd presentation))
+ℕFinCof→PresentationIsHom =
+  FromPres¬∧.isBoolRingHom ℕfinCofinBA presentation ℕFinCof→Presentation
+    pres¬-map pres∧-map
 
-  ℕFinCof→PresentationHom : BoolHom ℕfinCofinBA presentation
-  ℕFinCof→PresentationHom = ℕFinCof→Presentation , ℕFinCof→PresentationIsHom
+ℕFinCof→PresentationHom : BoolHom ℕfinCofinBA presentation
+ℕFinCof→PresentationHom = ℕFinCof→Presentation , ℕFinCof→PresentationIsHom
 
+private
   compBH : BoolHom (freeBA ℕ) presentation
   compBH = ℕFinCof→PresentationHom ∘cr freeℕ→ℕFinCof
 
   roundtrip-pre-on-free : (t : ⟨ freeBA ℕ ⟩) →
     ℕFinCof→Presentation (fst freeℕ→ℕFinCof t) ≡ fst π t
-  roundtrip-pre-on-free t = cong (λ h → fst h t)
-    (compBH
-      ≡⟨ sym (inducedBAHomUnique ℕ presentation (λ n → fst π (generator n))
-              compBH
-              (funExt λ n → cong ℕFinCof→Presentation (eval-gen n) ∙ singleton→gen n)) ⟩
-    inducedBAHom ℕ presentation (λ n → fst π (generator n))
-      ≡⟨ inducedBAHomUnique ℕ presentation (λ n → fst π (generator n)) π refl ⟩
-    π ∎)
+  roundtrip-pre-on-free = funExt⁻ (cong fst
+    (sym (inducedBAHomUnique ℕ presentation (λ n → fst π (generator n))
+      compBH
+      (funExt λ n → cong ℕFinCof→Presentation (eval-gen n) ∙ singleton→gen n))
+    ∙ inducedBAHomUnique ℕ presentation (λ n → fst π (generator n)) π refl))
 
   extensionMap : (S : BooleanRing ℓ-zero) (g : BoolHom (freeBA ℕ) S)
     (g-zero : ∀ n → g $cr (relationsℕ n) ≡ BooleanRingStr.𝟘 (snd S))
@@ -648,33 +670,27 @@ module NFinCofinPresentation where
       (g-zero : ∀ n → g $cr (relationsℕ n) ≡ BooleanRingStr.𝟘 (snd S))
       → extensionMap S g g-zero ∘cr freeℕ→ℕFinCof ≡ g
     extensionCommutes S g g-zero = CommRingHom≡ (funExt λ t →
-      let ind = fst (QB.inducedHom S g g-zero)
-      in
-      ind (ℕFinCof→Presentation (fst freeℕ→ℕFinCof t))
-        ≡⟨ cong ind (roundtrip-pre-on-free t) ⟩
-      ind (fst π t)
-        ≡⟨ cong (λ h → fst h t) (QB.evalInduce S {g} {g-zero}) ⟩
-      fst g t ∎)
+      cong (fst (QB.inducedHom S g g-zero)) (roundtrip-pre-on-free t)
+      ∙ funExt⁻ (cong fst (QB.evalInduce S {g} {g-zero})) t)
 
-    extensionUnique : (S : BooleanRing ℓ-zero) (g : BoolHom (freeBA ℕ) S)
-      (g-zero : ∀ n → g $cr (relationsℕ n) ≡ BooleanRingStr.𝟘 (snd S))
-      (h : BoolHom ℕfinCofinBA S) → g ≡ h ∘cr freeℕ→ℕFinCof
-      → extensionMap S g g-zero ≡ h
-    extensionUnique S g g-zero h g≡h∘φ = CommRingHom≡ $ funExt λ x →
-      let ext = fst (extensionMap S g g-zero)
-          y = ℕFinCof→FreeℕMap x
-      in
-      ext x
-        ≡⟨ cong ext (sym (fH-section x)) ⟩
-      ext (fst freeℕ→ℕFinCof y)
-        ≡⟨ cong (λ h → fst h y) (extensionCommutes S g g-zero) ⟩
-      fst g y
-        ≡⟨ cong (λ h → fst h y) g≡h∘φ ⟩
-      fst h (fst freeℕ→ℕFinCof y)
-        ≡⟨ cong (fst h) (fH-section x) ⟩
-      fst h x ∎
+  extensionUnique : (S : BooleanRing ℓ-zero) (g : BoolHom (freeBA ℕ) S)
+    (g-zero : ∀ n → g $cr (relationsℕ n) ≡ BooleanRingStr.𝟘 (snd S))
+    (h : BoolHom ℕfinCofinBA S) → g ≡ h ∘cr freeℕ→ℕFinCof
+    → extensionMap S g g-zero ≡ h
+  extensionUnique S g g-zero h g≡h∘φ = CommRingHom≡ (funExt λ x →
+    let ext = fst (extensionMap S g g-zero)
+        y = ℕFinCof→FreeℕMap x
+    in
+    ext x
+      ≡⟨ cong ext (sym (fH-section x)) ⟩
+    ext (fst freeℕ→ℕFinCof y)
+      ≡⟨ funExt⁻ (cong fst (extensionCommutes S g g-zero)) y ⟩
+    fst g y
+      ≡⟨ funExt⁻ (cong fst g≡h∘φ) y ⟩
+    fst h (fst freeℕ→ℕFinCof y)
+      ≡⟨ cong (fst h) (fH-section x) ⟩
+    fst h x ∎)
 
-open NFinCofinPresentation
 open UniversalProperty
   (freeBA ℕ) relationsℕ ℕfinCofinBA freeℕ→ℕFinCof relationsℕRespected
   extensionMap extensionCommutes extensionUnique
@@ -682,9 +698,6 @@ open UniversalProperty
 ℕFinCof=Presentation : BooleanRingEquiv presentation ℕfinCofinBA
 ℕFinCof=Presentation = quotientUniversalPropertyEquiv
 
-ℕFinCof-has-quotient-freeℕ-presentation : has-quotient-of-freeℕ-presentation ℕfinCofinBA
-ℕFinCof-has-quotient-freeℕ-presentation .fst = relationsℕ
-ℕFinCof-has-quotient-freeℕ-presentation .snd = invBooleanRingEquiv presentation ℕfinCofinBA ℕFinCof=Presentation 
-
 ℕfinCofinIsCountablyPresented : is-countably-presented-alt ℕfinCofinBA
-ℕfinCofinIsCountablyPresented =  ∣ ℕFinCof-has-quotient-freeℕ-presentation ∣₁ 
+ℕfinCofinIsCountablyPresented =
+  ∣ relationsℕ , invBooleanRingEquiv presentation ℕfinCofinBA ℕFinCof=Presentation ∣₁

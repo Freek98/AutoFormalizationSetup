@@ -27,8 +27,8 @@ booleanStructureOnBinarySequences = pointWiseStructure ℕ (λ _ → Bool) (λ _
 ℙℕ : BooleanRing ℓ-zero
 ℙℕ = binarySequence , booleanStructureOnBinarySequences
 
-open BooleanAlgebraStr (snd ℙℕ) public
-open BooleanRingStr booleanStructureOnBinarySequences public
+open BooleanAlgebraStr (snd ℙℕ) 
+open BooleanRingStr booleanStructureOnBinarySequences
 
 module QuickBooleanFix where
   open BooleanAlgebraStr (snd BoolBR) using () renaming (_∨_ to _∨B_)

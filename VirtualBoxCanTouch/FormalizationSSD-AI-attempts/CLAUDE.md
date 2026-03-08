@@ -29,13 +29,28 @@
 
 ### Proof Style
 
-* You CAN use a **declarative / equational-reasoning style** (chain-of-steps), but tactic scripts are also OK.
+* **Prefer equational reasoning** (`≡⟨ ⟩` chains) over composition of equalities (`∙`), so intermediate steps are visible.
   * Keep proofs readable: small lemmas + step-by-step rewrites.
 * If a proof is blocked, **don’t handwave**:
 
   * factor out the missing step as a lemma with a clear statement,
   * or temporarily leave a hole open, and come back to it later. 
   * You have a tendency to proof things in the comments. Comments do not count, they are not trustworthy. **Only** agda-code that has been checked is trustworthy. 
+
+### Coding Preferences
+
+* **Instance resolution over module renaming**: Use `open BooleanRingStr ⦃...⦄` with `instance _ = snd R` instead of `module M = BooleanRingStr (snd R) ; open M renaming (...)`. Bare names like `_+_`, `∨IdL` disambiguate by argument type.
+* **Two-way splits over Trichotomy**: Use `splitℕ-≤` or `Dichotomyℕ` when only two cases are needed (e.g., `k ≤ n` vs `k > n`), instead of three-way `_≟_` / Trichotomy.
+* **Incremental edits**: For renamings, use find-and-replace (Edit with replace_all) rather than full file rewrites. Make small batches of changes and compile-check after each.
+* **Use Agda holes for diagnostics**: When unsure about a goal type, insert `{! !}` and compile to see the goal and context.
+* **Use `solve!` for ring identities**: For equations that hold in any CommRing (rearranging sums, distributing products, etc.), use `solve! (BooleanRing→CommRing R)` from `Cubical.Tactics.CommRingSolver` instead of manual associativity/commutativity chains.
+* **No `private` blocks inside enclosing modules**: When implementation details are wrapped in a named module (e.g., `module NFinCofinPresentation where`), don't use `private` inside it — the module itself controls visibility. Users who `open` the module get everything; users who don't get nothing.
+
+### Using Agda as Feedback
+
+* **Time compilations**: Use `time /project/agda file.agda` after changes to detect performance regressions. If type-checking gets dramatically slower, investigate (e.g., bad unfolding in opaque blocks, expensive normalizations).
+* **Holes for goal inspection**: Insert `{! !}` and compile to see the expected type and context — don't guess.
+* **Error messages as guidance**: When unification fails, read the error carefully ("Cannot unify X with Y") to understand exactly what Agda sees vs expects, rather than guessing at fixes.
 
 ### Syntax Rules (Agda)
 
