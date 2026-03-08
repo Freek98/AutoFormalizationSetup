@@ -5,6 +5,7 @@ module formalization.Library.BooleanRing.BooleanRingQuotients.QuotientBool where
 {- This module restricts the quotients of commutative rings to quotients of Boolean rings -}
 
 open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.Structure
 open import Cubical.Foundations.HLevels
 open import Cubical.Functions.Surjection

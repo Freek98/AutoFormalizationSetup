@@ -108,7 +108,7 @@ interpretB∞-eq-composition (-T t) =
   interpretB∞ t
     ≡⟨ interpretB∞-eq-composition t ⟩
   π∞-from-terms t
-    ≡⟨ cong (fst π∞) (BooleanAlgebraStr.-IsId (freeBA ℕ) {x = fst includeBATermsSurj t}) ⟩
+    ≡⟨ cong (fst π∞) (BooleanAlgebraStr.-IsId (snd (freeBA ℕ)) {x = fst includeBATermsSurj t}) ⟩
   fst π∞ (BooleanRingStr.-_ (snd (freeBA ℕ)) (fst includeBATermsSurj t))
     ≡⟨ cong (fst π∞) (sym (includeBATerms-- t)) ⟩
   π∞-from-terms (-T t) ∎
@@ -169,7 +169,7 @@ normalizeTerm (-T t) = normalizeTerm t
 normalizeTerm (t ·T s) = meet-nf (normalizeTerm t) (normalizeTerm s)
 
 private
-  module BA∞ = BooleanAlgebraStr B∞
+  module BA∞ = BooleanAlgebraStr (snd B∞)
   +B∞-IdR = BooleanRingStr.+IdR (snd B∞)
   +B∞-IdL = BooleanRingStr.+IdL (snd B∞)
   ·B∞-IdR = BooleanRingStr.·IdR (snd B∞)
@@ -420,7 +420,7 @@ normalFormExists-trunc x = PT.map
   (interpretB∞-surjective x)
 
 char2-B∞ : (x : ⟨ B∞ ⟩) → x +∞ x ≡ 𝟘∞
-char2-B∞ x = BooleanAlgebraStr.characteristic2 B∞ {x}
+char2-B∞ x = BooleanAlgebraStr.characteristic2 (snd B∞) {x}
 
 char2-B∞×B∞ : (z : ⟨ B∞×B∞ ⟩) → z +× z ≡ (𝟘∞ , 𝟘∞)
 char2-B∞×B∞ (a , b) = cong₂ _,_ (char2-B∞ a) (char2-B∞ b)
@@ -522,7 +522,7 @@ module φ-injectivity where
       fcXor (fst φ x) (fst φ y)
         ≡⟨ cong (λ z → fcXor (fst φ x) z) (sym p) ⟩
       fcXor (fst φ x) (fst φ x)
-        ≡⟨ BooleanAlgebraStr.characteristic2 FinCofBR {fst φ x} ⟩
+        ≡⟨ BooleanAlgebraStr.characteristic2 (snd FinCofBR) {fst φ x} ⟩
       fcEmpty ∎
 
   ψ∘φ-proved : (x : ⟨ B∞ ⟩) → FinCof→B∞.ψ-fun (fst φ x) ≡ x

@@ -276,14 +276,14 @@ opaque
 -- Finite join in a Boolean ring (defined using ring ops directly)
 finJoinBR : (B : BooleanRing ℓ-zero) → (ℕ → ⟨ B ⟩) → ℕ → ⟨ B ⟩
 finJoinBR B d zero = BooleanRingStr.𝟘 (snd B)
-finJoinBR B d (suc n) = BooleanAlgebraStr._∨_ B (d n) (finJoinBR B d n)
+finJoinBR B d (suc n) = BooleanAlgebraStr._∨_ (snd B) (d n) (finJoinBR B d n)
 
 -- General ideal bound: from 0≡1 in B/d, extract N with finJoinBR d N ≡ 1
 module IdealBound (B : BooleanRing ℓ-zero) (d : ℕ → ⟨ B ⟩) where
   private
     R = BooleanRing→CommRing B
     module CRS = CommRingStr (snd R)
-    module BA = BooleanAlgebraStr B
+    module BA = BooleanAlgebraStr (snd B)
     𝟘B = BooleanRingStr.𝟘 (snd B)
     _∨B_ = BA._∨_
     _·B_ = CRS._·_
@@ -429,7 +429,7 @@ module StoneSeparatedModule where
     mainProof F-wit G-wit = PT.rec squash₁ fromIdeal idealMem
       where
       private
-        module BA = BooleanAlgebraStr (fst B)
+        module BA = BooleanAlgebraStr (snd (fst B))
 
       f-pred : ℕ → Sp B → Bool
       f-pred n x = fst (F-wit (transport SpB≡S x)) n
@@ -514,7 +514,7 @@ module StoneSeparatedModule where
       private
         𝟙B = BooleanRingStr.𝟙 (snd (fst B))
         𝟘B = BooleanRingStr.𝟘 (snd (fst B))
-        _∨B_ = BooleanAlgebraStr._∨_ (fst B)
+        _∨B_ = BooleanAlgebraStr._∨_ (snd (fst B))
         R = BooleanRing→CommRing (fst B)
         module CRS = CommRingStr (snd R)
         _·B_ = CRS._·_
@@ -534,7 +534,7 @@ module StoneSeparatedModule where
       fPartOfD (suc n) = ⊎.rec (λ j → f-elem j ∨B fPartOfD n) (λ _ → fPartOfD n) (decode n)
 
       private
-        _∨Bool_ = BooleanAlgebraStr._∨_ BoolBR
+        _∨Bool_ = BooleanAlgebraStr._∨_ (snd BoolBR)
 
       -- Split: fJ n = fPartOfD n ∨ gPartOfD n
       fJ-split : (n : ℕ) → fJ n ≡ fPartOfD n ∨B gPartOfD n
@@ -629,7 +629,7 @@ module StoneSeparatedModule where
                                        (subst (λ z → fst (F z)) (sym (transportTransport⁻ SpB≡S y)) y∈F) j ⟩
                 false ∎
           in fst x (gPartOfD N)
-            ≡⟨ sym (BooleanAlgebraStr.∨IdL BoolBR) ⟩
+            ≡⟨ sym (BooleanAlgebraStr.∨IdL (snd BoolBR)) ⟩
           false ∨Bool fst x (gPartOfD N)
             ≡⟨ cong (_∨Bool fst x (gPartOfD N)) (sym (fPartOfD-false x f-false' N)) ⟩
           fst x (fPartOfD N) ∨Bool fst x (gPartOfD N)
@@ -752,15 +752,15 @@ module MapsStoneToNareBoundedModule where
     Dec→Bool-false (yes p) ¬p = Empty.rec (¬p p)
     Dec→Bool-false (no _) _ = refl
 
-    _∨Bool_ = BooleanAlgebraStr._∨_ BoolBR
+    _∨Bool_ = BooleanAlgebraStr._∨_ (snd BoolBR)
 
     boolhom-∨ : (B' : Booleω) (x : Sp B') (a b : ⟨ fst B' ⟩)
-      → fst x (BooleanAlgebraStr._∨_ (fst B') a b) ≡ fst x a ∨Bool fst x b
+      → fst x (BooleanAlgebraStr._∨_ (snd (fst B')) a b) ≡ fst x a ∨Bool fst x b
     boolhom-∨ B' x a b =
       let _+S_ = CommRingStr._+_ (snd (BooleanRing→CommRing BoolBR))
           _+B'_ = CommRingStr._+_ (snd (BooleanRing→CommRing (fst B')))
           _·B'_ = CommRingStr._·_ (snd (BooleanRing→CommRing (fst B')))
-      in fst x (BooleanAlgebraStr._∨_ (fst B') a b)
+      in fst x (BooleanAlgebraStr._∨_ (snd (fst B')) a b)
         ≡⟨ IsCommRingHom.pres+ (snd x) (a +B' b) (a ·B' b) ⟩
       fst x (a +B' b) +S fst x (a ·B' b)
         ≡⟨ cong₂ _+S_ (IsCommRingHom.pres+ (snd x) a b)
@@ -772,7 +772,7 @@ module MapsStoneToNareBoundedModule where
       → fst x (finJoinBR (fst B') d' N) ≡ false
     joinAllFalse B' d' x zero _ = IsCommRingHom.pres0 (snd x)
     joinAllFalse B' d' x (suc N) allF =
-      fst x (BooleanAlgebraStr._∨_ (fst B') (d' N) (finJoinBR (fst B') d' N))
+      fst x (BooleanAlgebraStr._∨_ (snd (fst B')) (d' N) (finJoinBR (fst B') d' N))
         ≡⟨ boolhom-∨ B' x (d' N) (finJoinBR (fst B') d' N) ⟩
       fst x (d' N) ∨Bool fst x (finJoinBR (fst B') d' N)
         ≡⟨ cong₂ _∨Bool_ (allF N (0 , refl)) (joinAllFalse B' d' x N (λ n h → allF n (≤-suc h))) ⟩

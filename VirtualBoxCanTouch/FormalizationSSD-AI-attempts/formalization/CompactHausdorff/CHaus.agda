@@ -301,7 +301,7 @@ module CHausFiniteIntersectionPropertyModule where
 
         -- Algebraic abbreviations
         private
-          module BA = BooleanAlgebraStr B
+          module BA = BooleanAlgebraStr (snd B)
           R = BooleanRing→CommRing B
           module CRS = CommRingStr (snd R)
           𝟘B = BooleanRingStr.𝟘 (snd B)
@@ -310,7 +310,7 @@ module CHausFiniteIntersectionPropertyModule where
           _·B_ = CRS._·_
           _+B_ = CRS._+_
           fJ = finJoinBR B
-          _∨Bool_ = BooleanAlgebraStr._∨_ BoolBR
+          _∨Bool_ = BooleanAlgebraStr._∨_ (snd BoolBR)
 
         -- r · fJ d N = r  →  r · fJ d (suc N) = r
         leq-suc : {r : ⟨ B ⟩} (N : ℕ) → r ·B fJ d N ≡ r → r ·B fJ d (suc N) ≡ r

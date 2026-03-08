@@ -287,7 +287,7 @@ module B∞×B∞-Presentation where
                 ·IdR to ·IdRQ ; ·IdL to ·IdLQ ;
                 +IdR to +IdRQ ; +IdL to +IdLQ ;
                 +InvR to +InvRQ)
-    open BooleanAlgebraStr B∞×B∞-Q using ()
+    open BooleanAlgebraStr (snd B∞×B∞-Q) using ()
       renaming (∧AnnihilR to AnnihilRQ ; ∧AnnihilL to AnnihilLQ ;
                 characteristic2 to char2Q)
     _+B_ = BooleanRingStr._+_ (snd B∞)
@@ -375,7 +375,7 @@ module B∞×B∞-Presentation where
         ≡⟨ +AssocQ a c (b +Q d) ⟩
       (a +Q c) +Q (b +Q d) ∎
   IsCommRingHom.pres- ψ-hom (a , b) =
-    cong ψ-fun (sym (BooleanAlgebraStr.-IsId B∞×B∞)) ∙ BooleanAlgebraStr.-IsId B∞×B∞-Q
+    cong ψ-fun (sym (BooleanAlgebraStr.-IsId (snd B∞×B∞))) ∙ BooleanAlgebraStr.-IsId (snd B∞×B∞-Q)
   IsCommRingHom.pres· ψ-hom (a₁ , b₁) (a₂ , b₂) =
     eQ ·Q fst ψL (a₁ ·B a₂) +Q eQ' ·Q fst ψR (b₁ ·B b₂)
       ≡⟨ cong₂ (λ x y → eQ ·Q x +Q eQ' ·Q y)

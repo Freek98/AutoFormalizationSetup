@@ -27,7 +27,7 @@ import formalization.Library.BooleanRing.FreeBooleanRing.FreeBool as FB
 open  import formalization.Library.BooleanRing.FreeBooleanRing.SurjectiveTerms
 open  import formalization.Library.BooleanRing.FreeBooleanRing.freeBATerms
 
-open import formalization.Library.QuotientBool as QB
+open import formalization.Library.BooleanRing.BooleanRingQuotients.QuotientBool as QB
 import Cubical.HITs.SetQuotients as SQ
 import Cubical.Algebra.CommRing.Quotient.ImageQuotient as IQ
 open import Cubical.Algebra.CommRing.Ideal
@@ -79,7 +79,9 @@ is-countably-presented-alt : (B : BooleanRing ℓ-zero) → Type₀
 is-countably-presented-alt B = ∥ has-quotient-of-freeℕ-presentation B ∥₁
 
 countablyPresentedBooleanRing : Type (ℓ-suc ℓ-zero)
-countablyPresentedBooleanRing = Σ[ B ∈ BooleanRing ℓ-zero ] (is-countably-presented B)
+countablyPresentedBooleanRing = Σ[ B ∈ BooleanRing ℓ-zero ] (is-countably-presented-alt B)
+-- We used alt to keep the hierarchy levels low in agda. We show later that is-countably-presented-lat is equivalent to is-countably-presented. 
+
 
 -- Remark 1.4 can also be in another file. Evertyhing that comes after this line should be put somewhere else at some point.
 countℕ : has-Countability-structure ℕ

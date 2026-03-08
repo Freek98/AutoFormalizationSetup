@@ -30,7 +30,7 @@ open  import formalization.Library.BooleanRing.FreeBooleanRing.FreeBool
 open  import formalization.Library.BooleanRing.FreeBooleanRing.SurjectiveTerms
 open  import formalization.Library.BooleanRing.FreeBooleanRing.freeBATerms
 
-open import formalization.Library.QuotientBool
+open import formalization.Library.BooleanRing.BooleanRingQuotients.QuotientBool
 import Cubical.HITs.SetQuotients as SQ
 import Cubical.Algebra.CommRing.Quotient.ImageQuotient as IQ
 open import Cubical.Algebra.CommRing.Ideal

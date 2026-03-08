@@ -12,9 +12,6 @@ open import Cubical.Data.Empty as ⊥ renaming (rec to ex-falso ; rec* to empty-
 {- I got a unification problem for using rec* in EmptyQuotient, 
 -- which is needed as that's what the image quotient uses, which maybe was a design mistake
 -}
-open import Cubical.Data.Nat renaming (_+_ to _+ℕ_ ; _·_ to _·ℕ_)
-open import Cubical.Data.Nat.Order 
-open <-Reasoning
 
 open import Cubical.Foundations.Structure
 open import Cubical.Foundations.Prelude
@@ -37,8 +34,8 @@ import formalization.Library.BooleanRing.FreeBooleanRing.FreeBool as FB
 open  import formalization.Library.BooleanRing.FreeBooleanRing.SurjectiveTerms
 open  import formalization.Library.BooleanRing.FreeBooleanRing.freeBATerms
 
-open import formalization.Library.QuotientBool as QB
---open import formalization.Library.NaturalNumbersProperties.NBijection
+open import formalization.Library.BooleanRing.BooleanRingQuotients.QuotientBool as QB
+--open import NaturalNumbersProperties.NBijection
 import Cubical.HITs.SetQuotients as SQ
 import Cubical.Algebra.CommRing.Quotient.ImageQuotient as IQ
 open import Cubical.Algebra.CommRing.Ideal
@@ -95,7 +92,7 @@ freeNonTriv {A} = map→2→nontriv (freeBA A) free→2
 
 private module _ {ℓ : Level} {B : BooleanRing ℓ} where
   open BooleanRingStr (snd B) 
-  open BooleanAlgebraStr B
+  open BooleanAlgebraStr (snd B)
   01+closed : (a b : ⟨ B ⟩) → (a ≡ 𝟘) ⊎ (a ≡ 𝟙) → (b ≡ 𝟘) ⊎ (b ≡ 𝟙) → (a + b ≡ 𝟘) ⊎ (a + b ≡ 𝟙)
   01+closed a b (inl a=0) (inl b=0) = inl $ 
     a + b ≡⟨ cong₂ (λ a b → a + b) a=0 b=0 ⟩ 
@@ -178,3 +175,5 @@ is-cp-free⊥ = free-on-countable-has-freeℕ-presentation ⊥ count⊥
 is-cp-2 : has-Boole-ω' BoolBR
 is-cp-2 = subst has-Boole-ω' free⊥=2 is-cp-free⊥ 
 
+BoolCP : countablyPresentedBooleanRing
+BoolCP = BoolBR , ∣ is-cp-2 ∣₁

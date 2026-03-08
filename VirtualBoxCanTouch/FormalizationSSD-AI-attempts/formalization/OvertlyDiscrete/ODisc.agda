@@ -599,7 +599,7 @@ module ODiscInfrastructure where
 
   -- Part G: Finite join in freeBA ℕ and ideal characterization
   private
-    open BooleanAlgebraStr freeBA-ℕ using (∧AbsorbL∨; ∨AbsorbL∧; ∧DistR∨; ∨Comm; ∨IdR; ∧AnnihilR; ∧AnnihilL; ∧Comm; characteristic2; ∧Idem) renaming (_∨_ to _∨F_)
+    open BooleanAlgebraStr (snd freeBA-ℕ) using (∧AbsorbL∨; ∨AbsorbL∧; ∧DistR∨; ∨Comm; ∨IdR; ∧AnnihilR; ∧AnnihilL; ∧Comm; characteristic2; ∧Idem) renaming (_∨_ to _∨F_)
 
     finJoinF : (ℕ → ⟨ freeBA-ℕ ⟩) → ℕ → ⟨ freeBA-ℕ ⟩
     finJoinF g zero = g zero
@@ -678,7 +678,7 @@ module ODiscInfrastructure where
   booleω-equality-open B a b = PT.rec squash₁ construct (snd B)
     where
     open BooleanRingStr (snd (fst B)) using () renaming (_+_ to _+B_; 𝟘 to 0B; is-set to isSetB; +IdR to +IdRB; +Comm to +CommB; +Assoc to +AssocB)
-    char2B = BooleanAlgebraStr.characteristic2 (fst B)
+    char2B = BooleanAlgebraStr.characteristic2 (snd (fst B))
 
     c : ⟨ fst B ⟩
     c = a +B b
@@ -736,7 +736,7 @@ module ODiscInfrastructure where
       inIdeal→πQ≡0 ._ (IQ.mul {r} {x} gx) =
         IsCommRingHom.pres· πQ-hom r x
         ∙ cong (BooleanRingStr._·_ (snd (freeBA-ℕ QB./Im f)) (πQ r)) (inIdeal→πQ≡0 x gx)
-        ∙ BooleanAlgebraStr.∧AnnihilR (freeBA-ℕ QB./Im f)
+        ∙ BooleanAlgebraStr.∧AnnihilR (snd (freeBA-ℕ QB./Im f))
         where πQ-hom = snd (QB.quotientImageHom {B = freeBA-ℕ} {f = f})
       inIdeal→πQ≡0 _ (IQ.squash gx gy i) =
         BooleanRingStr.is-set (snd (freeBA-ℕ QB./Im f)) _ _ (inIdeal→πQ≡0 _ gx) (inIdeal→πQ≡0 _ gy) i
@@ -1975,10 +1975,10 @@ module ODiscAxioms where
       {n : ℕ} (g : DF.Fin n → ⟨ B' ⟩) → isFinSet ⟨ B' QB./Im g ⟩
     isFinSet-BRquot B' finB {n} g = BRQ.result where
       module BRQ where
-        open BooleanAlgebraStr B' renaming (_∨_ to _∨B_; _∧_ to _·B_)
-        CR : CommRing ℓ-zero
-        CR = BooleanRing→CommRing B'
-        private module CRS = CommRingStr (snd CR)
+        open BooleanAlgebraStr (snd B') renaming (_∨_ to _∨B_; _∧_ to _·B_)
+        CR' : CommRing ℓ-zero
+        CR' = BooleanRing→CommRing B'
+        private module CRS = CommRingStr (snd CR')
         infixl 6 _+B_
         _+B_ : ⟨ B' ⟩ → ⟨ B' ⟩ → ⟨ B' ⟩
         _+B_ = CRS._+_
@@ -1987,7 +1987,7 @@ module ODiscAxioms where
         𝟘' : ⟨ B' ⟩
         𝟘' = CRS.0r
         genI : ⟨ B' ⟩ → Type
-        genI = IQ.generatedIdeal CR g
+        genI = IQ.generatedIdeal CR' g
         disc = isFinSet→Discrete finB
         go : (i : ℕ) → i ≤ n → ⟨ B' ⟩
         go zero _ = 𝟘'
@@ -2344,7 +2344,7 @@ module ODiscAxioms where
         char2-eq {B'} a b p =
           a ≡⟨ sym (BooleanRingStr.+IdR (snd B') a) ⟩
           a +B' BooleanRingStr.𝟘 (snd B')
-            ≡⟨ cong (a +B'_) (sym (BooleanAlgebraStr.characteristic2 B' {b})) ⟩
+            ≡⟨ cong (a +B'_) (sym (BooleanAlgebraStr.characteristic2 (snd B') {b})) ⟩
           a +B' (b +B' b)
             ≡⟨ BooleanRingStr.+Assoc (snd B') a b b ⟩
           (a +B' b) +B' b ≡⟨ cong (_+B' b) p ⟩
@@ -2371,7 +2371,7 @@ module ODiscAxioms where
             {B = freeBA (DF.Fin (M K'))} {f = relN K'})) r x
           ∙ cong (BooleanRingStr._·_ (snd (BN K')) (πBN K' r))
               (ideal→zero K' gx)
-          ∙ BooleanAlgebraStr.∧AnnihilR (BN K')
+          ∙ BooleanAlgebraStr.∧AnnihilR (snd (BN K'))
         ideal→zero K' (IQ.squash gx gy i) =
           BooleanRingStr.is-set (snd (BN K')) _ _
             (ideal→zero K' gx) (ideal→zero K' gy) i
@@ -2399,7 +2399,7 @@ module ODiscAxioms where
               πQd≡0 = IsCommRingHom.pres+ (snd πQ) ι₁a₁ ι₂a₂
                 ∙ cong₂ _+Q_ ev₁ ev₂
                 ∙ cong (_+Q fst (fwdHom n₂) x₂) eq
-                ∙ BooleanAlgebraStr.characteristic2 Q
+                ∙ BooleanAlgebraStr.characteristic2 (snd Q)
               d-in-I : IQ.generatedIdeal CR-ℕ f d
               d-in-I = QB.fromKernel {B = freeBA ℕ} {f = f} πQd≡0
               in PT.rec (isSetSC _ _)
@@ -3318,7 +3318,7 @@ module ODiscAxioms where
               φ-diff=0 : fst φ diff ≡ 0B
               φ-diff=0 = pres+ (snd φ) a b
                 ∙ cong₂ (BooleanRingStr._+_ (snd B)) φa≡φb refl
-                ∙ BooleanAlgebraStr.characteristic2 B
+                ∙ BooleanAlgebraStr.characteristic2 (snd B)
               diff-in-ideal = ker⊆ideal diff φ-diff=0
               πdiff=0 : π diff ≡ BooleanRingStr.𝟘 (snd Q)
               πdiff=0 = QB.toKernel {f = r} diff-in-ideal
@@ -3327,7 +3327,7 @@ module ODiscAxioms where
               πa+πb=0 = sym (pres+ πHom a b) ∙ πdiff=0
             in sym (BooleanRingStr.+IdR (snd Q) _)
               ∙ cong (BooleanRingStr._+_ (snd Q) (π a))
-                  (sym (BooleanAlgebraStr.characteristic2 Q))
+                  (sym (BooleanAlgebraStr.characteristic2 (snd Q)))
               ∙ BooleanRingStr.+Assoc (snd Q) _ _ _
               ∙ cong (λ z → BooleanRingStr._+_ (snd Q) z (π b)) πa+πb=0
               ∙ BooleanRingStr.+IdL (snd Q) _
@@ -3547,7 +3547,7 @@ module ODiscAxioms where
       char2-eq {B'} a b p =
         a ≡⟨ sym (BooleanRingStr.+IdR (snd B') a) ⟩
         (a +Q BooleanRingStr.𝟘 (snd B'))
-          ≡⟨ cong (a +Q_) (sym (BooleanAlgebraStr.characteristic2 B' {b})) ⟩
+          ≡⟨ cong (a +Q_) (sym (BooleanAlgebraStr.characteristic2 (snd B') {b})) ⟩
         (a +Q (b +Q b))
           ≡⟨ BooleanRingStr.+Assoc (snd B') a b b ⟩
         ((a +Q b) +Q b)
@@ -3559,7 +3559,7 @@ module ODiscAxioms where
       eq→sum0 : {B' : BooleanRing ℓ-zero} (a b : ⟨ B' ⟩)
         → a ≡ b → BooleanRingStr._+_ (snd B') a b ≡ BooleanRingStr.𝟘 (snd B')
       eq→sum0 {B'} a b p = cong (BooleanRingStr._+_ (snd B') a) (sym p)
-        ∙ BooleanAlgebraStr.characteristic2 B'
+        ∙ BooleanAlgebraStr.characteristic2 (snd B')
       -- π-kills-ker: elements in Ker(g) map to 0 under π
       π-kills-gen : (n : ℕ) → fst π (d n) ≡ BooleanRingStr.𝟘 (snd B/d)
       π-kills-gen n = QB.zeroOnImage n

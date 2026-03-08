@@ -89,7 +89,7 @@ module Bool²-presentation where
 
   private
     open BooleanRingStr (snd Bool²-quotient) using () renaming (_+_ to _+Q_ ; _·_ to _·Q_ ; 𝟘 to 𝟘Q ; 𝟙 to 𝟙Q)
-    open BooleanAlgebraStr Bool²-quotient using () renaming (characteristic2 to char2Q-raw ; ∧AnnihilL to annihilLQ ; ∧AnnihilR to annihilRQ)
+    open BooleanAlgebraStr (snd Bool²-quotient) using () renaming (characteristic2 to char2Q-raw ; ∧AnnihilL to annihilLQ ; ∧AnnihilR to annihilRQ)
     open import Cubical.Tactics.CommRingSolver
     open import Cubical.HITs.SetQuotients as SQ
 
@@ -225,7 +225,7 @@ module Bool²-presentation where
     ; pres1 = refl
     ; pres+ = Bool²→quotient-pres+
     ; pres· = Bool²→quotient-pres·
-    ; pres- = λ _ → BooleanAlgebraStr.-IsId Bool²-quotient
+    ; pres- = λ _ → BooleanAlgebraStr.-IsId (snd Bool²-quotient)
     }
 
   roundtrip-Bool² : (x : ⟨ Bool² ⟩) → fst quotient→Bool² (Bool²→quotient-fun x) ≡ x
@@ -551,10 +551,10 @@ f-pres-join a b =
   (fst f a) ∨× (fst f b) ∎
 
 zero-join-left : (x : ⟨ B∞ ⟩) → 𝟘∞ ∨∞ x ≡ x
-zero-join-left _ = BooleanAlgebraStr.∨IdL B∞
+zero-join-left _ = BooleanAlgebraStr.∨IdL (snd B∞)
 
 zero-join-right : (x : ⟨ B∞ ⟩) → x ∨∞ 𝟘∞ ≡ x
-zero-join-right _ = BooleanAlgebraStr.∨IdR B∞
+zero-join-right _ = BooleanAlgebraStr.∨IdR (snd B∞)
 
 isEven≡isEvenB : (n : ℕ) → isEven n ≡ isEvenB n
 isEven≡isEvenB zero = refl

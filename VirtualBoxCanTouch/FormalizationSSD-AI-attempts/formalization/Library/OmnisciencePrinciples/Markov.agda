@@ -1,8 +1,9 @@
-{-# OPTIONS --cubical -WnoUselessAbstract  -WnoUnsupportedIndexedMatch -WnoInteractionMetaBoundaries --guardedness #-}
+{-# OPTIONS --cubical --guardedness #-}
 
 module formalization.Library.OmnisciencePrinciples.Markov where 
 
 open import formalization.Library.Axioms.StoneDuality
+open import formalization.Library.StoneSpaces.Spectrum
 open import formalization.Library.AntiEquivalence
 
 open import Cubical.Functions.Fixpoint
@@ -32,7 +33,7 @@ open  import formalization.Library.BooleanRing.FreeBooleanRing.FreeBool
 open  import formalization.Library.BooleanRing.FreeBooleanRing.SurjectiveTerms
 open  import formalization.Library.BooleanRing.FreeBooleanRing.freeBATerms
 
-open import formalization.Library.QuotientBool as QB
+open import formalization.Library.BooleanRing.BooleanRingQuotients.QuotientBool as QB
 import Cubical.HITs.SetQuotients as SQ
 import Cubical.Algebra.CommRing.Quotient.ImageQuotient as IQ
 open import Cubical.Algebra.CommRing.Ideal
