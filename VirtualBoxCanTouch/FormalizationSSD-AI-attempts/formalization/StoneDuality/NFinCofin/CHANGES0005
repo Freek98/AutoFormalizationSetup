@@ -1,0 +1,33 @@
+CHANGES0005: Cleanup per Cleaning.md rules
+===================================================================
+
+bck0004 (871 lines) → bck0005 (759 lines): net -112 lines
+
+LINE COUNT DECREASE JUSTIFIED — no useful theorems or definitions removed.
+All removed content was: comments, unused functions, unused imports, unused opens.
+Every theorem and definition from bck0004 is still present and compiling.
+
+REMOVED (unused functions):
+- eval-singleEntry-true : evaluated singleEntry when α m = true (unused after refactoring)
+- eval-singleEntry-false : evaluated singleEntry when α m = false (unused after refactoring)
+
+REMOVED (unused imports):
+- Cubical.HITs.SetQuotients (was imported as SQ, never used)
+- _=B_ from Cubical.Data.Bool (not used)
+
+REMOVED (unused opens):
+- isSetFC = FC.is-set (never referenced)
+- isSetQ = P.is-set (never referenced)
+
+REMOVED (unused let bindings):
+- or-eq in pres∧-map Cof/Cof case (inlined into the proof)
+- rhs-eq in the same case (inlined into the proof)
+
+REMOVED (all comments):
+- Per Cleaning.md rule 4: removed all comments as none referenced tex theorems
+
+FIXED:
+- Restored type annotations on `abf` in opaque block pres∧-FF-core
+  (required by Agda: "Types of opaque definitions are never inferred")
+
+STATUS: Compiles successfully (quick check passed).
