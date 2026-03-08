@@ -161,3 +161,22 @@ I want you to finish a proof of the following: If i'm given a Boolean Ring (but 
   can't touch it). I want the resulting proof for the presentation being        
   correct to be as short and quickly compiling as possible. (without using      
   postulates of course).       
+
+❯ Hej you are in a virtual box in a shared project. I have changed your         
+  setup so that your old Library is now a mounted repository in                
+  /FormalizationSSD. As a consequence, the files you created don't run          
+  anymore. Please fix it and make it so they will also when I share the         
+  SharedWithHostFolder via git to another host machine.       
+
+────────────────────────────────────────────────────────────────────────── ▪▪▪ ─
+❯ I want you to rewrite Presentation. It should make use of the universal      
+  property described in                                                         
+  /FormalizationSSD/BooleanRing/BooleanRingQuotients/UnviersalProperty. I       
+  think this can be used to make it shorter.
+
+❯ I feel you're not rewriting, you have used the old results to derive the new 
+  results. I want you to remove the old way of doing it and instead only        
+  prove the new way. So have one new NFinCofin file where you prove the         
+  presentation. When you're done, conclude that NFinCofin is countably          
+  presented (hint in Cubical.Data.Nat.Bijections there is a proof that N x N    
+  is N).      

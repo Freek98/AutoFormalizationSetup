@@ -177,6 +177,7 @@ eval-singleEntry-false m α αm=f with α m
 -- Key evaluation lemma: embedUpTo, at the pointwise level
 -- We prove two pointwise lemmas, then derive the main result.
 
+open import Cubical.Data.Nat.Properties using (snotz; injSuc)
 
 -- Helper: fH(singleEntry α m) is false at k when m ≠ k
 eval-singleEntry-neq : (m k : ℕ) (α : binarySequence) → (m ≡ k → ⊥) →

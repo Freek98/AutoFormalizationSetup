@@ -1,0 +1,23 @@
+CHANGES0004: Add countably presented result via ℕ-indexed relations
+===================================================================
+
+bck0003 (852 lines) → bck0004 (871 lines): net +19 lines
+
+ADDED:
+- Import: Cubical.Foundations.Isomorphism (Iso), Cubical.Data.Nat.Bijections.Product (ℕ×ℕ≅ℕ),
+  Cubical.HITs.PropositionalTruncation (∣_∣₁), CountablyPresentedBooleanRings.Definitions
+- relationsℕ : ℕ → ⟨ freeBA ℕ ⟩ (= relations ∘ Iso.inv ℕ×ℕ≅ℕ)
+- relationsℕRespected : ∀ n → freeℕ→ℕFinCof $cr (relationsℕ n) ≡ 𝟘fc
+- ℕfinCofinIsCountablyPresented : is-countably-presented-alt ℕfinCofinBA
+
+CHANGED:
+- presentation now defined as freeBA ℕ QB./Im relationsℕ (ℕ-indexed, not ℕ×ℕ-indexed)
+- gen-orth: proof goes through Iso.ret ℕ×ℕ≅ℕ to connect relationsℕ to relations
+- extensionMap/extensionCommutes/extensionUnique: g-zero now ℕ-indexed
+- UniversalProperty module instantiated with relationsℕ instead of relations
+- φ-zero = relationsℕRespected (was relationsRespected)
+
+KEY BENEFIT: The presentation is now a quotient of freeBA ℕ by an ℕ-indexed
+function, which directly matches the is-countably-presented-alt definition.
+This lets us conclude ℕfinCofinBA is countably presented without any
+additional equivalence between quotients.

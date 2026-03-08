@@ -1,0 +1,33 @@
+CHANGES0002: Rewrite Presentation.agda to use UniversalProperty module
+===================================================================
+
+bck0001 (854 lines) → bck0002 (852 lines): net -2 lines
+
+Line count is nearly the same because the hard work (ℕFinCof→PresentationIsHom)
+remains unchanged. The structural improvement is in how the final equivalence
+is obtained.
+
+REMOVED:
+- presentation→ℕFinCof : explicit forward hom (now constructed internally by UP module)
+- p→fc∘π≡fH : opaque evaluation lemma for the forward hom (no longer needed)
+- roundtrip-ℕFinCof : forward roundtrip proof (handled by UP module internally)
+- composite-on-gen : used p→fc∘π≡fH, replaced by simpler singleton→gen
+- roundtrip-presentation : backward roundtrip proof (handled by UP module internally)
+- ℕFinCof=Presentation via isoToEquiv : explicit equivalence construction (replaced by UP)
+
+ADDED:
+- Import of UniversalProperty module
+- singleton→gen : simpler version of composite-on-gen (1 line proof, no p→fc∘π≡fH needed)
+- extensionMap : defines the extension for the universal property
+- extensionCommutes : proves extension ∘ φ = g (via roundtrip-pre-on-free + evalInduce)
+- extensionUnique : proves uniqueness of extension (via fH-section)
+- Open UniversalProperty module to get quotientUniversalPropertyEquiv
+
+SIMPLIFIED:
+- roundtrip-pre-on-free: proof argument simplified (uses eval-gen + singleton→gen
+  instead of p→fc∘π≡fH + old composite-on-gen)
+
+KEY BENEFIT: The equivalence construction is now delegated to the reusable
+UniversalProperty module. The Presentation file only needs to show that
+ℕfinCofinBA satisfies the universal property (extension, commutes, unique),
+rather than manually constructing both directions + both roundtrips + isoToEquiv.

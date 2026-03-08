@@ -29,12 +29,6 @@ open import Cubical.Data.Nat.Order renaming (_≟_ to _=ℕ_)
 
 import Cubical.HITs.SetQuotients as SQ
 
-open import Cubical.Foundations.Isomorphism using (Iso)
-open import Cubical.Data.Nat.Bijections.Product using (ℕ×ℕ≅ℕ)
-open import Cubical.HITs.PropositionalTruncation using (∣_∣₁)
-open import formalization.Library.CountablyPresentedBooleanRings.Definitions
-  using (is-countably-presented-alt)
-
 -- ===== Abbreviations =====
 private
   module FC = BooleanRingStr (snd ℕfinCofinBA)
@@ -105,16 +99,10 @@ relationsRespected (n , m) with discreteℕ n m
   ∙ cong₂ _·fc_ (eval-gen n) (eval-gen m)
   ∙ FC≡ (funExt (δn∧δm=0 n m ¬p))
 
-relationsℕ : ℕ → ⟨ freeBA ℕ ⟩
-relationsℕ = relations ∘ Iso.inv ℕ×ℕ≅ℕ
-
-relationsℕRespected : ∀ n → freeℕ→ℕFinCof $cr (relationsℕ n) ≡ 𝟘fc
-relationsℕRespected n = relationsRespected (Iso.inv ℕ×ℕ≅ℕ n)
-
 -- ===== The presentation =====
 
 presentation : BooleanRing ℓ-zero
-presentation = (freeBA ℕ) QB./Im relationsℕ
+presentation = (freeBA ℕ) QB./Im relations
 
 π : BoolHom (freeBA ℕ) presentation
 π = QB.quotientImageHom
@@ -177,6 +165,7 @@ eval-singleEntry-false m α αm=f with α m
 -- Key evaluation lemma: embedUpTo, at the pointwise level
 -- We prove two pointwise lemmas, then derive the main result.
 
+open import Cubical.Data.Nat.Properties using (snotz; injSuc)
 
 -- Helper: fH(singleEntry α m) is false at k when m ≠ k
 eval-singleEntry-neq : (m k : ℕ) (α : binarySequence) → (m ≡ k → ⊥) →
@@ -355,10 +344,7 @@ private
   ... | no _ = refl
 
   gen-orth : (i j : ℕ) → (i ≡ j → ⊥) → fst π (generator i ·free generator j) ≡ 𝟘Q
-  gen-orth i j i≠j =
-    cong (fst π) (sym (relations-neq i j i≠j)
-                  ∙ sym (cong relations (Iso.ret ℕ×ℕ≅ℕ (i , j))))
-    ∙ QB.zeroOnImage (Iso.fun ℕ×ℕ≅ℕ (i , j))
+  gen-orth i j i≠j = sym (cong (fst π) (relations-neq i j i≠j)) ∙ QB.zeroOnImage (i , j)
 
   -- singleEntry product at the same index (in freeBA, no quotient needed)
   SE-prod-diag : (α β : binarySequence) (m : ℕ) →
@@ -831,10 +817,10 @@ roundtrip-pre-on-free = funExt⁻ (cong fst
 -- We show ℕfinCofinBA satisfies the universal property of freeBA ℕ /Im relations.
 
 private
-  φ-zero = relationsℕRespected
+  φ-zero = relationsRespected
 
   extensionMap : (S : BooleanRing ℓ-zero) (g : BoolHom (freeBA ℕ) S)
-    (g-zero : ∀ n → g $cr (relationsℕ n) ≡ BooleanRingStr.𝟘 (snd S))
+    (g-zero : ∀ (p : ℕ × ℕ) → g $cr (relations p) ≡ BooleanRingStr.𝟘 (snd S))
     → BoolHom ℕfinCofinBA S
   extensionMap S g g-zero = QB.inducedHom S g g-zero ∘cr ℕFinCof→PresentationHom
 
@@ -842,14 +828,14 @@ private
     unfolding QB.inducedHom
     unfolding QB.quotientImageHom
     extensionCommutes : (S : BooleanRing ℓ-zero) (g : BoolHom (freeBA ℕ) S)
-      (g-zero : ∀ n → g $cr (relationsℕ n) ≡ BooleanRingStr.𝟘 (snd S))
+      (g-zero : ∀ (p : ℕ × ℕ) → g $cr (relations p) ≡ BooleanRingStr.𝟘 (snd S))
       → extensionMap S g g-zero ∘cr freeℕ→ℕFinCof ≡ g
     extensionCommutes S g g-zero = CommRingHom≡ (funExt λ t →
       cong (fst (QB.inducedHom S g g-zero)) (roundtrip-pre-on-free t)
       ∙ funExt⁻ (cong fst (QB.evalInduce S {g} {g-zero})) t)
 
   extensionUnique : (S : BooleanRing ℓ-zero) (g : BoolHom (freeBA ℕ) S)
-    (g-zero : ∀ n → g $cr (relationsℕ n) ≡ BooleanRingStr.𝟘 (snd S))
+    (g-zero : ∀ (p : ℕ × ℕ) → g $cr (relations p) ≡ BooleanRingStr.𝟘 (snd S))
     (h : BoolHom ℕfinCofinBA S) → g ≡ h ∘cr freeℕ→ℕFinCof
     → extensionMap S g g-zero ≡ h
   extensionUnique S g g-zero h g≡h∘φ = CommRingHom≡ (funExt λ x →
@@ -859,12 +845,8 @@ private
     ∙ cong (fst h) (fH-section x))
 
 open UniversalProperty
-  (freeBA ℕ) relationsℕ ℕfinCofinBA freeℕ→ℕFinCof φ-zero
+  (freeBA ℕ) relations ℕfinCofinBA freeℕ→ℕFinCof φ-zero
   extensionMap extensionCommutes extensionUnique
 
 ℕFinCof=Presentation : BooleanRingEquiv presentation ℕfinCofinBA
 ℕFinCof=Presentation = quotientUniversalPropertyEquiv
-
-ℕfinCofinIsCountablyPresented : is-countably-presented-alt ℕfinCofinBA
-ℕfinCofinIsCountablyPresented =
-  ∣ relationsℕ , invBooleanRingEquiv presentation ℕfinCofinBA ℕFinCof=Presentation ∣₁
