@@ -1,0 +1,53 @@
+CHANGES0006: PresentationNew.agda - rewrite of Presentation.agda
+===================================================================
+
+Presentation.agda (759 lines) → PresentationNew.agda (696 lines): net -63 lines
+
+All theorems and definitions from Presentation.agda are preserved.
+Full verification passed.
+
+SIMPLIFICATIONS APPLIED:
+
+1. Eliminated F2F-nn/embedUpTo-nn/singleEntry-nn block (-20 lines)
+   Previously: 24 lines proving Finite→FreeℕMap respects not-not via three
+   intermediate lemmas (singleEntry-nn, embedUpTo-nn, F2F-nn).
+   Now: 4 lines using cong₂ Finite→FreeℕMap + isProp→PathP, same pattern
+   as already used in pres∨-FinFin.
+
+2. Inlined pred≢ℕ (-2 lines)
+   Was: pred≢ℕ n m sn≢sm n=m = sn≢sm (cong suc n=m)
+   Now: directly use (x ∘ cong suc) at call sites in δnm=0 and δn∧δm=0.
+
+3. Inlined eU-SE-orth into π-eU-to-flat (-5 lines)
+   Was: separate opaque block for eU-SE-orth, then π-eU-to-flat unfolding it.
+   Now: eU-SE-orth proof inlined directly into the ∨-as-+ call in π-eU-to-flat,
+   both under single opaque unfolding π-SE-times-eU-above.
+
+4. Inlined ∨fc-pointwise into fH-∨-pointwise (-3 lines)
+   Was: separate ∨fc-pointwise function + fH-∨-pointwise calling it.
+   Now: QuickBooleanFix.claim called directly in fH-∨-pointwise.
+
+5. Merged pres∧-FF-core into pres∧-FF (-8 lines)
+   Was: separate pres∧-FF-core (opaque unfolding π-embedUpTo-prod) + pres∧-FF
+   (opaque unfolding pres∧-FF-core).
+   Now: single pres∧-FF (opaque unfolding π-embedUpTo-prod) with all cases inline.
+   The lt/eq cases share the same proof structure but kept as separate `with` branches
+   (merging via helper failed due to opaque block type inference constraints).
+
+6. Composed consecutive cong (fst π) in pres∨-FinFin (-5 lines)
+   Three cases (lt/eq/gt) had 3 consecutive cong (fst π) steps each.
+   Now merged into single cong (fst π) (p1 ∙ p2 ∙ p3).
+
+7. Consolidated private blocks (-10 lines)
+   Merged several adjacent private blocks. Module aliases P, PAlg, ΠH
+   now in same private block. Singleton→gen helpers and pres¬/∧ helpers
+   in single private block.
+
+8. Removed φ-zero alias (-2 lines)
+   Was: φ-zero = relationsℕRespected (private alias).
+   Now: relationsℕRespected used directly in UP module open.
+
+STRUCTURAL CHANGES:
+- BoolAlgMorphism import moved to top-level imports (was mid-file)
+- Module aliases consolidated into fewer private blocks
+- Overall flow unchanged: setup → backward map → section → hom → UP → result
