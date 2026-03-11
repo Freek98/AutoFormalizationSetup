@@ -1,0 +1,36 @@
+This file is to redo some work on LLPO in a way that's more pointed towards the end result. It is quickly jotted down to give to the AI while I'm away. 
+
+The proof of LLPO goes in the following steps: 
+\begin{itemize}
+  \item We first show that $\mathbb N_\infty$, the space of binary sequences hitting 1 at most one is the Spectrum of a Boolean algebra $B_\infty$ with the following properties:
+    \begin{itemize}
+      \item Every $x$ in $B_\infty$ has a "normal form" of being either "finite" or "cofinite". subset of $\mathbb N$
+      \item To define a Boolean map $B_\infty \to C$, it is sufficient to define a functin $\mathbb N \to C$ with the property that $f(g_n) \wedge f(g_m) = 0$ for all $n \neq m$. 
+      \item The value of the resulting map $B_\infty \to C$ sends the singletons $\{n\}$ to $f(n)$, and this completely determines the values of the map. 
+    \end{itemize}
+  \item We need to have $B_\infty \times B_\infty$ as countably presented Boolean Ring, for which we want that: 
+    \begin{itemize}
+      \item countably presented Boolean rings are closed under products. 
+      \item The duality between countably presented Boolean rings and Stone spaces sends products to sums, so 
+        $Sp (B_\infty \times B_\infty) = Sp (B_\infty) + Sp (B_\infty)= \mathbb N_\infty + \mathbb N_\infty$
+    \end{itemize}
+  \item Using the properties, we define a Boolean map $B_\infty \to B_\infty \times B_\infty$ with the following properties: 
+    \begin{itemize} 
+      \item it sends a singleton $\{n\}$ to $(\{(n-1)/2\},\emptyset)$ if $n$ is odd, and to $(\emptyset, \{n/2\})$ if $n$ is even.
+      \item This map is injective for the following reason: 
+        \begin{itemize}
+          \item For a map of Boolean rings to be injective it is sufficient to check that if fx = 0 , then x = 0. 
+          \item We use that Boolean rings are lattices, and in particular posets. 
+          \item By making a case distinction on x, we can prove that if x contains any  number n, we have that f(x) \geq f(\{n\
+              ), which isn't zero, and therefore f(x) is also non-zero. So if f(x) = 0, then x doesn't contain any n, and thus must equal to empty set. 
+        \end{itemize}
+      \item This map corresponds to the map $\mathbb N_\infty + \mathbb N_\infty \to \mathbb N_\infty$ which  now should satisfy the following properties: 
+        \begin{itemize}
+          \item It sends a sequence $\alpha$ on the left to the sequence sending even numbers to 0 and odd numbers $2n+1$ to $\alpha_n$. 
+          \item A sequence on the right gets sends to a sequence which is 0 on all the odds. 
+          \item The map is surjective due to surjections being formal surjections. 
+        \end{itemize}
+      \item From this it follows that every sequence in $\mathbb N_\infty$ is merely 0 on all odds or 0 on all evens. 
+        (if we didn't have a surjection, but an explict inverse for each value, we could decide which one is true, but we only merely have such an inverse for each $n$, so this should be PT.rec of some map $\forall x fiber f x \to 0onOdds x \uplus 0onEvens x$.
+    \end{itemize}
+\end{itemize}
