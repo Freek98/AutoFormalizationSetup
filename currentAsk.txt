@@ -323,3 +323,7 @@ me, and make sure you always work in this manner.
   your process, so if you make inbetween plans, please leave some summaries of  
   those plans as files in a folder called LLPOwork (also write your             
   formalization in that folder).          
+
+  ❯ great thanks, I'll look at it later, but for now I want you to make a file    
+  about the anti-equivalence seperate and include the results on products       
+  there. So continue working on the category theory aspect while I'm away.
