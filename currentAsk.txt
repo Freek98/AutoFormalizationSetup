@@ -312,3 +312,14 @@ exposed, but there is the choice of a user to expose it. However, everything in
 me, and make sure you always work in this manner.
 ❯ note again you can do one change and then a quick check all the time          
 
+
+❯ in LLPO.tex you see a new formalization order. Some work in this direction   
+  has already been done, but I want a clean rewrite of LLPO from the axioms of  
+  Stone duality and surjections are formal surjections. This might require      
+  some rewriting of Ninfty, it should be oriented to formalizing the proof in   
+  LLPO.tex. Please work on that and change your claude.md file to remember      
+  that this is your current goal. While you're working on it, I might be away,  
+  so keep working and never ask for permissions. But I do want to inspect       
+  your process, so if you make inbetween plans, please leave some summaries of  
+  those plans as files in a folder called LLPOwork (also write your             
+  formalization in that folder).          
