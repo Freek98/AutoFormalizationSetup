@@ -1,0 +1,29 @@
+CHANGES0003: LLPO proof completed (modulo 3 postulates)
+
+Key progress:
+- Fixed even→eq and odd→eq: suc(suc n) vs zero cases use znots/snotz
+- interleave-gen-orth no longer postulated (was already proved, just needed even→eq/odd→eq fix)
+- f-free-respects-rels no longer postulated (was already proved)
+- LLPO proof written and compiles!
+
+New lemmas:
+- prod-0x-factor, prod-x0-factor, prod-idem-sum: key product ring identities
+- interleave-gen-even/odd: interleave-gen(double k) = evenGen k, etc.
+- f-eval: fst f (gB∞ n) ≡ interleave-gen n (via QB.evalInduce)
+- α-and-false: hits1AtMostOnce implies α(n) AND α(m) = false for n ≠ m
+- LLPO proof structure:
+  1. α → g_α (BoolHom freeBA ℕ → BoolBR) via inducedBAHom
+  2. g_α respects relations → φ_α (BoolHom B∞ → BoolBR) via QB.inducedHom
+  3. Axiom gives surjection Sp(B∞×B∞) → Sp(B∞), get γ with γ∘f = φ_α
+  4. Dichotomy on γ(1,0): if true → α zero on evens; if false → α zero on odds
+  5. Key trick: (0,x) = (0,1)·(0,x), so γ(0,1)=false implies γ(0,x)=false
+
+Removed postulates: interleave-gen-orth, f-free-respects-rels, LLPO main theorem
+Removed postulates: SpProd→Sum, SpSum→Prod, SpProd≅Sum (not needed for LLPO!)
+
+Remaining postulates (3):
+1. f-injective: (x y : ⟨ B∞ ⟩) → fst f x ≡ fst f y → x ≡ y
+2. B∞×B∞-cp: is-countably-presented-alt B∞×B∞
+3. (none from Parts 6-7 anymore)
+
+File grew from 393 to 536 lines.

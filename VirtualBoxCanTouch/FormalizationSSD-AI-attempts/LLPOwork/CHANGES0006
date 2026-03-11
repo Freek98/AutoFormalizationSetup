@@ -1,0 +1,22 @@
+CHANGES0006: B∞×B∞ presentation structure built, 4 postulates remain
+
+Key progress:
+- φ-free-respects-rels fully proven (all 5 relation families map to 0)
+- pr-unfold lemma: Iso.ret connects prod-relations to case-family
+- prod-fam0/prod-fam1: left/right orthogonality in Q-prod
+- left-free-respects/right-free-respects: fully proven
+  (left/right embeddings respect B∞'s relations)
+- left/right : BoolHom B∞ Q-prod constructed
+- [e]·[1+e]≡0 and [e]+[1+e]≡1: orthogonal idempotent decomposition
+- ψ-fun defined: ψ(b,c) = left(b)·[e] + right(c)·[1+e]
+- ψ-pres1 proven
+- gt-left/gt-right computation lemmas for gen-target
+- gB∞-mul-zero: orthogonality lifted from gen-orth via π pres·
+
+Remaining postulates (4):
+1. ψ-pres+ : ψ preserves addition (ring identity, uses orthogonal idempotents)
+2. ψ-pres· : ψ preserves multiplication (ring identity, uses [e]·[1+e]=0)
+3. roundtrip1 : φ̄(ψ(x)) = x for all x ∈ B∞×B∞
+4. roundtrip2 : ψ(φ̄(x)) = x for all x ∈ Q-prod
+
+File grew from 728 (bck0004/0005) to 1040 lines (bck0006).

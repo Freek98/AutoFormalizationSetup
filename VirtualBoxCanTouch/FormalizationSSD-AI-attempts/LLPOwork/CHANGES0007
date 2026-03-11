@@ -1,0 +1,27 @@
+CHANGES0007: ψ-pres+ and ψ-pres· proven! Only roundtrip1/2 remain.
+
+Key progress:
+- ψ-pres+ proven: uses ·DistL+ for distribution + swap4 lemma for rearranging sums
+- ψ-pres· proven: uses ·4-rearrange (commutativity of 4-term product),
+  [e]·[1+e]=0, [1+e]·[e]=0, ·Idem [e], [1+e]-idem, ∧AnnihilR
+- orth-idem-mul helper: (a·e + b·f)(c·e + d·f) = ac·e + bd·f
+  for orthogonal idempotents e, f
+- [1+e]·[e]≡0 and [1+e]-idem added as helper lemmas
+- char2-cancel: a + b = 0 implies a = b (in char 2)
+- cf-zero: case-family maps to 0 via pr-unfold + zeroOnImage
+- [e]·left-gen: [e] · π-prod(gen(suc(2n))) = π-prod(gen(suc(2n)))
+  (from relation family 3)
+- [e]·right-gen: [e] · π-prod(gen(suc(suc(2n)))) = 0
+  (from relation family 4)
+- left-eval, right-eval: evaluation of left/right on B∞ generators
+- φ-bar-comp: φ-bar ∘ π-prod = φ-free (evalInduce)
+
+Remaining postulates (2, now holes):
+1. roundtrip1 : φ-bar(ψ(x)) = x for all x ∈ B∞×B∞
+2. roundtrip2 : ψ(φ-bar(x)) = x for all x ∈ Q-prod
+
+Strategy for roundtrip2: use quotientImageHomEpi to reduce to
+  checking on generators π-prod(gen n) for all n.
+Strategy for roundtrip1: show componentwise via B∞'s quotient epi.
+
+File grew from 1040 (bck0006) to 1174 lines (bck0007).

@@ -1,0 +1,23 @@
+CHANGES0004: f-injective proof compiles! Only 1 postulate remains.
+
+Key fixes:
+- Moved f-eval/f-eval-quotient before f-gen-nonzero (was out of scope)
+- Renamed FH module to FHom (name clash with NFinCofin's FH)
+- Fixed singleton-mul/singleton-mul-zero: used J with δnn=1 instead of
+  raw subst (n ≡ᵇ n doesn't reduce for variable n)
+- Fixed f-gen-nonzero: cubical paths can't be pattern-matched, so used
+  with-based elimination (elim-even-odd) instead of ⊎ pattern matching
+- Fixed f-kernel-trivial: properly used retEq/invEq to transfer
+  seq-zero-is-zero result back through the equivalence e
+- Fixed cong composition order in case-split true
+- Fixed +Assoc direction in f-injective
+
+New definitions:
+- ig-even, ig-odd: interleave-gen even/odd with explicit proof argument
+- elim-even-odd: helper for Bool case analysis avoiding path matching
+- e⁻¹, e⁻¹-zero: inverse of equivalence and its behavior on zero
+
+Remaining postulate (1):
+1. B∞×B∞-cp: is-countably-presented-alt B∞×B∞
+
+File grew from 536 (bck0003) to 728 lines (bck0004).

@@ -1,0 +1,28 @@
+CHANGES0001: Initial skeleton of LLPO formalization
+
+File: LLPOwork/LLPO.agda (326 lines, compiles successfully)
+
+Structure:
+- Part 0: ℕ∞ definition (hits1AtMostOnce, avoiding broken Ninfty import)
+- Part 1: B∞ = presentation from NFinCofin, shown countably presented
+- Part 2: _×BR_ product of Boolean rings (fully defined, compiles)
+- Part 3: Interleaving map interleave-gen : ℕ → B∞×B∞
+  - evenGen k = (𝟘, gB∞ k), oddGen k = (gB∞ k, 𝟘)
+  - interleave-gen uses isEven/half from Cubical.Data.Nat
+  - Orthogonality postulated (component lemmas also postulated)
+  - f-free = inducedBAHom, f = descended via QB.inducedHom
+- Part 4: Injectivity of f (postulated)
+- Part 5: B∞×B∞ countably presented (postulated)
+- Part 6: Sp(A×B) ≅ Sp(A) ⊎ Sp(B) (postulated)
+- Part 7: LLPO statement and main theorem (postulated)
+
+Key postulates to eliminate:
+1. interleave-gen-orth (and component lemmas) - straightforward but with-abstraction tricky
+2. f-free-respects-rels → depends on 1
+3. f-injective → needs lattice/normal form argument
+4. B∞×B∞-cp → needs ℕ+ℕ≅ℕ combined generators/relations
+5. SpProd≅Sum → needs orthogonal idempotent decomposition argument
+6. LLPO → the final assembly
+
+Avoided importing StoneSpaces.Examples.Ninfty due to broken dependency chain
+(AntiEquivalence → Axioms.StoneDuality → CategoryTheory.StuffFromStoneAboutBAs has unsolved metas)

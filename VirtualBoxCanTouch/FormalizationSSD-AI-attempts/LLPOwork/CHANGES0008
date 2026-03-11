@@ -1,0 +1,38 @@
+CHANGES0008: LLPO FORMALIZATION COMPLETE! Zero postulates, zero holes.
+
+All remaining postulates eliminated:
+- roundtrip1 (φ-bar ∘ ψ = id on B∞×B∞): PROVEN
+- roundtrip2 (ψ ∘ φ-bar = id on Q-prod): PROVEN
+
+Key techniques for roundtrip2:
+- quotientImageHomEpi for Q-prod: reduces to showing ψ ∘ φ-bar ∘ π-prod = π-prod
+- inducedBAHomUnique: two BoolHoms from freeBA ℕ agreeing on generators are equal
+- ψ-on-gen: case analysis on n=0, n=suc(even), n=suc(odd) with explicit
+  double-half / suc-double-half path lemmas
+- Key identities: [e]·left-gen = left-gen (family 3), [e]·right-gen = 0 (family 4),
+  mul-e (x·[e]=x from [e]·x=x), mul-1+e (x·[1+e]=x from [e]·x=0)
+
+Key techniques for roundtrip1:
+- Decompose into component equalities: pr₁ ∘ φ-bar ∘ left = id and pr₂ ∘ φ-bar ∘ right = id
+- Each shown via inducedBAHomUnique + quotientImageHomEpi for B∞
+- Multiplication by (1,0) and (0,1) kills the unwanted components
+- No need to compute full φ-bar(left(b)) = (b, aug(b)); just need relevant projections
+
+New definitions added:
+- double-half, suc-double-half: inverse of half for even/odd numbers
+- char2-cancel: a+b=0 → a=b in char 2
+- cf-zero: case-family maps to 0 in Q-prod
+- [e]·left-gen, [e]·right-gen: idempotent absorption on generators
+- mul-e, mul-1+e: multiplication absorption by orthogonal idempotents
+- ψ-on-gen: ψ(gen-target n) = π-prod(gen n)
+- ψ∘φ-free≡π: ψ ∘ φ-free = π-prod as BoolHoms
+- pr₁∘φ∘lf, pr₂∘φ∘rf: composition BoolHoms for roundtrip1
+- φ-bar-e, φ-bar-1+e: evaluation of φ-bar on idempotents
+- pr₁∘φ-bar∘left≡id, pr₂∘φ-bar∘right≡id: key component equalities
+
+Final statistics:
+- 1330 lines, fully checked by Agda
+- 0 postulates, 0 holes
+- Complete proof: formalSurjectionsAreSurjectionsAxiom → LLPO
+
+File grew from 1174 (bck0007) to 1330 lines (bck0008).
