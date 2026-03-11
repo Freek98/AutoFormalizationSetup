@@ -8,3 +8,9 @@
 
 ❯ Rewrite the LLPO files using the new NfinCofinPresentation. This should make  
 it easier to follow the proof in the paper.   
+
+❯ In this folder, you have a folder called Library which is a copy of           
+/FormalizationSSD which you have mounted. Instead of a copy, I would like to    
+have each file symlinked (you are on a virtual machine and these files change   
+on the host.) Furthermore, I want a bash file that creates new symlinks if I    
+add files to the /FormalizationSSD library. Can you fix this?

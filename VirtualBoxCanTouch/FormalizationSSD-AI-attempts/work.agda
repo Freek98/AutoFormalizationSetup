@@ -53,7 +53,7 @@ CNF = List Clause
 
 module EvalNF (B : BooleanRing ℓ-zero) (gen : ℕ → ⟨ B ⟩) where
   private
-    module BA = BooleanAlgebraStr B
+    module BA = BooleanAlgebraStr (snd B)
     module BR = BooleanRingStr (snd B)
 
   _∧B_ : ⟨ B ⟩ → ⟨ B ⟩ → ⟨ B ⟩
@@ -250,7 +250,7 @@ module Correctness (B : BooleanRing ℓ-zero) (gen : ℕ → ⟨ B ⟩) where
   open EvalBoolExpr B gen
 
   private
-    module BA = BooleanAlgebraStr B
+    module BA = BooleanAlgebraStr (snd B)
     module BR = BooleanRingStr (snd B)
     module RT where
       open import Cubical.Algebra.Ring.Properties using (module RingTheory)
@@ -740,7 +740,7 @@ meetNegFormCNF (n ∷ ns) = ((n , false) ∷ []) ∷ meetNegFormCNF ns
 module JoinMeetEval (B : BooleanRing ℓ-zero) (gen : ℕ → ⟨ B ⟩) where
   open EvalNF B gen
   private
-    module BA = BooleanAlgebraStr B
+    module BA = BooleanAlgebraStr (snd B)
     module BR = BooleanRingStr (snd B)
 
   evalDNF-joinForm : (ns : List ℕ) →
@@ -783,7 +783,7 @@ module OrthogonalGens
   open JoinMeetEval B gen
 
   private
-    module BA = BooleanAlgebraStr B
+    module BA = BooleanAlgebraStr (snd B)
     module BR = BooleanRingStr (snd B)
 
   -- ═══ Key orthogonality lemmas ═══
@@ -1326,13 +1326,13 @@ module OrthogonalGens
 -- or a meet of negated generators (cofinite set).
 
 open import CountablyPresentedBooleanRings.Examples.NFinCofin
-  using (module PresentationℕfinCofin; module ℕFinCofin)
-import QuotientBool as QB2
+  using (module NFinCofinPresentation; module DefinitionFinCofin;
+         ℕfinCofinBA; relations; presentation)
+import BooleanRing.BooleanRingQuotients.QuotientBool as QB2
 
 module NFinCofinApplication where
-  open PresentationℕfinCofin
-  open ℕFinCofin using (ℕfinCofinBA; isFiniteOrCofinite)
-  open Relations
+  open NFinCofinPresentation
+  open DefinitionFinCofin using (isFiniteOrCofinite)
 
   private
     module BR-Free = BooleanRingStr (snd (freeBA ℕ))
@@ -1369,8 +1369,7 @@ module NFinCofinApplication where
   private
     module BR-P = BooleanRingStr (snd P)
 
-  π : BoolHom (freeBA ℕ) P
-  π = QB2.quotientImageHom
+  -- π is already provided by NFinCofinPresentation
 
   π-surj : isSurjection (fst π)
   π-surj = QB2.quotientImageHomSurjective
@@ -1398,9 +1397,7 @@ module NFinCofinApplication where
     BR-P._·_ (fst π (generator m)) (fst π (generator n))
       ≡⟨ sym (π-pres· (generator m) (generator n)) ⟩
     fst π (BR-Free._·_ (generator m) (generator n))
-      ≡⟨ cong (fst π) (sym (relations-compute m n m≠n)) ⟩
-    fst π (relations (m , n))
-      ≡⟨ QB2.zeroOnImage (m , n) ⟩
+      ≡⟨ gen-orth m n m≠n ⟩
     BR-P.𝟘 ∎
 
   -- interpretInB agrees with π ∘ includeBATermsSurj
@@ -1437,7 +1434,7 @@ module NFinCofinApplication where
       interpretInB t
         ≡⟨ interp-eq t ⟩
       fst π (fst includeBATermsSurj t)
-        ≡⟨ BooleanAlgebraStr.-IsId P ⟩
+        ≡⟨ BooleanAlgebraStr.-IsId (snd P) ⟩
       BR-P.-_ (fst π (fst includeBATermsSurj t))
         ≡⟨ sym (π-pres- (fst includeBATermsSurj t)) ⟩
       fst π (BR-Free.-_ (fst includeBATermsSurj t))
