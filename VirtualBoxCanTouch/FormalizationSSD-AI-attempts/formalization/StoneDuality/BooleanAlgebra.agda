@@ -17,15 +17,15 @@ open import Cubical.Data.Nat.Order
 open import Cubical.Data.Sigma
 open import Cubical.Data.Empty renaming (rec to ex-falso)
 open import Cubical.Data.Bool using (Bool; true; false; _and_; true≢false)
-import formalization.Library.QuotientBool as QB
-open import formalization.Library.BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator; inducedBAHom; evalBAInduce)
-open import formalization.Library.CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω'; idBoolEquiv)
-open import formalization.Library.Axioms.StoneDuality using (Booleω; Sp)
+import QuotientBool as QB
+open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator; inducedBAHom; evalBAInduce)
+open import CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω'; idBoolEquiv)
+open import Axioms.StoneDuality using (Booleω; Sp)
 open import Cubical.HITs.PropositionalTruncation using (∣_∣₁)
 open import Cubical.Relation.Nullary using (¬_; Dec; yes; no)
 
 module B∞-construction where
-  open import formalization.Library.BooleanRing.FreeBooleanRing.FreeBool using (generator)
+  open import BooleanRing.FreeBooleanRing.FreeBool using (generator)
   open BooleanRingStr (snd (freeBA ℕ)) using (_·_ ; 𝟘)
 
   gen : ℕ → ⟨ freeBA ℕ ⟩

@@ -17,12 +17,12 @@ open import Cubical.Data.Bool using (Bool; true; false; isSetBool; true≢false;
 open import Cubical.Relation.Nullary using (¬_; Dec; yes; no)
 open import Cubical.HITs.PropositionalTruncation as PT using (∣_∣₁; ∥_∥₁; rec)
 open import Cubical.Data.List using (List; []; _∷_; _++_)
-import formalization.Library.QuotientBool as QB
-open import formalization.Library.BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator)
+import QuotientBool as QB
+open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator)
 open import Cubical.Data.Empty renaming (rec to ex-falso)
 open import Cubical.Functions.Surjection using (isSurjection ; compSurjection)
-open import formalization.Library.BooleanRing.FreeBooleanRing.freeBATerms using (includeBATermsSurj ; freeBATerms)
-open import formalization.Library.BooleanRing.FreeBooleanRing.SurjectiveTerms using (Tvar; Tconst; _+T_; -T_; _·T_)
+open import BooleanRing.FreeBooleanRing.freeBATerms using (includeBATermsSurj ; freeBATerms)
+open import BooleanRing.FreeBooleanRing.SurjectiveTerms using (Tvar; Tconst; _+T_; -T_; _·T_)
 
 private
   opaque
@@ -530,7 +530,7 @@ module φ-injectivity where
 
 open φ-injectivity public using (ψ∘φ-proved; φ-inj)
 
-open import formalization.Library.CountablyPresentedBooleanRings.PresentedBoole using (BooleanRingEquiv)
+open import CountablyPresentedBooleanRings.PresentedBoole using (BooleanRingEquiv)
 open import Cubical.Foundations.Isomorphism using (iso; isoToIsEquiv)
 private
   φ' = B∞→FinCof.φ

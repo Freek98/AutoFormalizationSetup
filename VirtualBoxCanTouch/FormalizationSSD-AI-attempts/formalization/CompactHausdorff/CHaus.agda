@@ -24,16 +24,16 @@ open import Cubical.Data.Sum using (_⊎_)
 open import Cubical.Relation.Nullary using (¬_)
 open import Cubical.HITs.PropositionalTruncation using (∥_∥₁; squash₁; ∣_∣₁)
 import Cubical.HITs.PropositionalTruncation as PT
-open import formalization.Library.Axioms.StoneDuality using (Booleω; Sp)
+open import Axioms.StoneDuality using (Booleω; Sp)
 open import Cubical.Algebra.BooleanRing using (BoolHom; BooleanRingStr)
 open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
 open import Cubical.Algebra.CommRing using (_∘cr_)
-open import formalization.Library.CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω'; _is-presented-by_/_; BooleanRingEquiv; invBooleanRingEquiv; idBoolEquiv; has-Countability-structure)
+open import CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω'; _is-presented-by_/_; BooleanRingEquiv; invBooleanRingEquiv; idBoolEquiv; has-Countability-structure)
 
 -- Compact Hausdorff Spaces (tex Definition at line 1898)
 
 module CompactHausdorffModule where
-  open import formalization.Library.Axioms.StoneDuality using (Stone; hasStoneStr)
+  open import Axioms.StoneDuality using (Stone; hasStoneStr)
   open import Cubical.Functions.Surjection using (isSurjection)
 
   record hasCHausStr (X : Type ℓ-zero) : Type (ℓ-suc ℓ-zero) where
@@ -57,7 +57,7 @@ module CompactHausdorffModule where
 -- CompactHausdorffClosed (tex Lemma 1906)
 
 module CompactHausdorffClosedModule where
-  open import formalization.Library.Axioms.StoneDuality using (Stone; hasStoneStr)
+  open import Axioms.StoneDuality using (Stone; hasStoneStr)
   open import Cubical.Functions.Surjection using (isSurjection)
   open CompactHausdorffModule
   open InhabitedClosedSubSpaceClosedModule
@@ -78,7 +78,7 @@ module CompactHausdorffClosedModule where
 -- InhabitedClosedSubSpaceClosedCHaus (tex Corollary 1930)
 
 module InhabitedClosedSubSpaceClosedCHausModule where
-  open import formalization.Library.Axioms.StoneDuality using (Stone; hasStoneStr)
+  open import Axioms.StoneDuality using (Stone; hasStoneStr)
   open import Cubical.Functions.Surjection using (isSurjection)
   open CompactHausdorffModule
   open InhabitedClosedSubSpaceClosedModule
@@ -160,15 +160,15 @@ module AllOpenSubspaceOpenModule where
 module CHausFiniteIntersectionPropertyModule where
   open CompactHausdorffModule
   open import Cubical.Functions.Surjection using (isSurjection)
-  open import formalization.Library.Axioms.StoneDuality using (Stone; hasStoneStr; Booleω; Sp)
+  open import Axioms.StoneDuality using (Stone; hasStoneStr; Booleω; Sp)
   open import Cubical.Data.Nat.Bijections.Product using (ℕ×ℕ≅ℕ)
   open ClosedInStoneIsStoneModule using (closedFamilyChoice)
   open SDDecToElemModule
   open StoneClosedSubsetsModule
   -- finJoinBR and 0≡1-quotient→1∈ideal are now top-level in Part09
   import Cubical.Algebra.CommRing.Quotient.ImageQuotient as IQ
-  open import formalization.Library.CommRingQuotients.IdealTerms using (isInIdeal; isImage; iszero; isSum; isMul; idealDecomp)
-  import formalization.Library.QuotientBool as QB
+  open import CommRingQuotients.IdealTerms using (isInIdeal; isImage; iszero; isSum; isMul; idealDecomp)
+  import QuotientBool as QB
   open import Cubical.Algebra.CommRing using (_$cr_; CommRingStr; IsCommRingHom; CommRing→Ring)
   open import Cubical.Algebra.BooleanRing using (BooleanRing; BooleanRingStr; BoolHom; BooleanRing→CommRing; module BooleanAlgebraStr)
   open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
@@ -579,7 +579,7 @@ module CompactHausdorffTopologyModule where
   open CHausFiniteIntersectionPropertyModule using (countableIntersectionClosed)
   open ClosedInStoneIsStoneModule using (closedFamilyChoice)
   open import Cubical.Functions.Surjection using (isSurjection)
-  open import formalization.Library.Axioms.StoneDuality using (Stone)
+  open import Axioms.StoneDuality using (Stone)
   open import Cubical.Data.Bool using (not; _and_)
   open import Cubical.Foundations.Function using (_∘_)
   open import Cubical.Foundations.Univalence using (hPropExt)
@@ -776,7 +776,7 @@ module CHausSeperationOfClosedByOpensModule where
   open CompactHausdorffClosedModule
   open StoneSeparatedModule
   open import Cubical.Functions.Surjection using (isSurjection)
-  open import formalization.Library.Axioms.StoneDuality using (Stone; hasStoneStr)
+  open import Axioms.StoneDuality using (Stone; hasStoneStr)
 
   areDisjoint : {X : Type ℓ-zero}
     → (A B : X → hProp ℓ-zero) → Type ℓ-zero
@@ -901,7 +901,7 @@ module CHausSeperationOfClosedByOpensModule where
 
 module SigmaCompactHausdorffModule where
   open CompactHausdorffModule
-  open import formalization.Library.Axioms.StoneDuality using (Stone; hasStoneStr)
+  open import Axioms.StoneDuality using (Stone; hasStoneStr)
   open import Cubical.Functions.Surjection using (isSurjection)
   open import Cubical.Foundations.Equiv using (equivFun; invEq; retEq)
   open StoneAsClosedSubsetOfCantorModule
@@ -1092,7 +1092,7 @@ module AlgebraCompactHausdorffCountablyPresentedModule where
   open CompactHausdorffModule
   open AllOpenSubspaceOpenModule
   open ODiscAxioms
-  open import formalization.Library.Axioms.StoneDuality using (2^; Stone; hasStoneStr; SDHomVersion)
+  open import Axioms.StoneDuality using (2^; Stone; hasStoneStr; SDHomVersion)
   open import Cubical.Functions.Surjection using (isSurjection)
   open import Cubical.Relation.Nullary using (Dec; yes; no)
   open import Cubical.Data.Bool using (_≟_)
@@ -1213,11 +1213,11 @@ module AlgebraCompactHausdorffCountablyPresentedModule where
 module ConnectedComponentModule where
   open CompactHausdorffModule
   open AlgebraCompactHausdorffCountablyPresentedModule
-  open import formalization.Library.Axioms.StoneDuality using (2^)
-  open import formalization.Library.CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω'; BooleanEquivToHomInv)
-  open import formalization.Library.BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator)
-  open import formalization.Library.BooleanRing.FreeBooleanRing.freeBATerms using (equalityFromEqualityOnGenerators)
-  open import formalization.Library.QuotientBool using (quotientImageHom; quotientImageHomSurjective; _/Im_)
+  open import Axioms.StoneDuality using (2^)
+  open import CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω'; BooleanEquivToHomInv)
+  open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator)
+  open import BooleanRing.FreeBooleanRing.freeBATerms using (equalityFromEqualityOnGenerators)
+  open import QuotientBool using (quotientImageHom; quotientImageHomSurjective; _/Im_)
   open import Cubical.Algebra.CommRing using (_∘cr_; IsCommRingHom)
   open import Cubical.Algebra.BooleanRing using (BoolHom)
   open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
@@ -1542,7 +1542,7 @@ module ConnectedComponentConnectedModule where
 module StoneCompactHausdorffTotallyDisconnectedModule where
   open CompactHausdorffModule
   open ConnectedComponentModule
-  open import formalization.Library.Axioms.StoneDuality using (Stone; hasStoneStr; Sp; Booleω; evaluationMap; isPropHasStoneStr; 2^; SDHomVersion; isSetBoolHom)
+  open import Axioms.StoneDuality using (Stone; hasStoneStr; Sp; Booleω; evaluationMap; isPropHasStoneStr; 2^; SDHomVersion; isSetBoolHom)
 
   isTotallyDisconnected : CHaus → Type ℓ-zero
   isTotallyDisconnected X =
@@ -1758,7 +1758,7 @@ module StoneCompactHausdorffTotallyDisconnectedModule where
 -- StoneSigmaClosedModule (tex Theorem 2214, stone-sigma-closed)
 
 module StoneSigmaClosedModule where
-  open import formalization.Library.Axioms.StoneDuality using (Stone; hasStoneStr)
+  open import Axioms.StoneDuality using (Stone; hasStoneStr)
   open CompactHausdorffModule
   open SigmaCompactHausdorffModule
   open StoneCompactHausdorffTotallyDisconnectedModule

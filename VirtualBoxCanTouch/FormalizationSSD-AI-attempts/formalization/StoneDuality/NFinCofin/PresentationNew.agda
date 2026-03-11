@@ -3,12 +3,12 @@ module formalization.StoneDuality.NFinCofin.PresentationNew where
 
 open import formalization.StoneDuality.NFinCofin.Definitions
 
-open import formalization.Library.BooleanRing.BooleanRingMaps
-open import formalization.Library.BooleanRing.FreeBooleanRing.FreeBool
-import formalization.Library.BooleanRing.BooleanRingQuotients.QuotientBool as QB
-open import formalization.Library.BooleanRing.BooleanRingQuotients.UniversalProperty
-open import formalization.Library.BasicDefinitions
-open import formalization.Library.BooleanRing.BoolAlgMorphism
+open import BooleanRing.BooleanRingMaps
+open import BooleanRing.FreeBooleanRing.FreeBool
+import BooleanRing.BooleanRingQuotients.QuotientBool as QB
+open import BooleanRing.BooleanRingQuotients.UniversalProperty
+open import BasicDefinitions
+open import BooleanRing.BoolAlgMorphism
 
 open import Cubical.Foundations.Prelude hiding (_∨_ ; _∧_)
 open import Cubical.Foundations.HLevels
@@ -30,7 +30,7 @@ open import Cubical.Relation.Nullary hiding (¬_)
 open import Cubical.Data.Nat.Order renaming (_≟_ to _=ℕ_)
 open import Cubical.Data.Nat.Bijections.Product using (ℕ×ℕ≅ℕ)
 open import Cubical.HITs.PropositionalTruncation using (∣_∣₁)
-open import formalization.Library.CountablyPresentedBooleanRings.Definitions
+open import CountablyPresentedBooleanRings.Definitions
 
 open BooleanRingStr ⦃...⦄
 open BooleanAlgebraStr ⦃...⦄

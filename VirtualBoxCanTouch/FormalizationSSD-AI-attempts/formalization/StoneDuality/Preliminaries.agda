@@ -19,9 +19,9 @@ open import Cubical.HITs.PropositionalTruncation as PT
 
 open import Cubical.Algebra.CommRing
 open import Cubical.Algebra.BooleanRing
-import formalization.Library.QuotientBool as QB
+import QuotientBool as QB
 import Cubical.Data.Sum as ⊎
-open import formalization.Library.BooleanRing.BooleanRingQuotients.QuotientConclusions using (quotientEquivBool) public
+open import BooleanRing.BooleanRingQuotients.QuotientConclusions using (quotientEquivBool) public
 
 BoolQuotientEquiv : (A : BooleanRing ℓ-zero) (f g : ℕ → ⟨ A ⟩) →
     BooleanRing→CommRing (A QB./Im (⊎.rec f g)) ≡

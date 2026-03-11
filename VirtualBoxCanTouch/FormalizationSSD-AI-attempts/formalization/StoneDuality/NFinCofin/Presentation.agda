@@ -3,12 +3,12 @@ module formalization.StoneDuality.NFinCofin.Presentation where
 
 open import formalization.StoneDuality.NFinCofin.Definitions
 
-open import formalization.Library.BooleanRing.BooleanRingMaps
-open import formalization.Library.BooleanRing.FreeBooleanRing.FreeBool
+open import BooleanRing.BooleanRingMaps
+open import BooleanRing.FreeBooleanRing.FreeBool
   using (freeBA; generator; inducedBAHom; evalBAInduce; inducedBAHomUnique)
-import formalization.Library.BooleanRing.BooleanRingQuotients.QuotientBool as QB
-open import formalization.Library.BooleanRing.BooleanRingQuotients.UniversalProperty
-open import formalization.Library.BasicDefinitions
+import BooleanRing.BooleanRingQuotients.QuotientBool as QB
+open import BooleanRing.BooleanRingQuotients.UniversalProperty
+open import BasicDefinitions
 
 open import Cubical.Foundations.Prelude hiding (_∨_ ; _∧_)
 open import Cubical.Foundations.HLevels
@@ -30,7 +30,7 @@ open import Cubical.Data.Nat.Order renaming (_≟_ to _=ℕ_)
 open import Cubical.Foundations.Isomorphism using (Iso)
 open import Cubical.Data.Nat.Bijections.Product using (ℕ×ℕ≅ℕ)
 open import Cubical.HITs.PropositionalTruncation using (∣_∣₁)
-open import formalization.Library.CountablyPresentedBooleanRings.Definitions
+open import CountablyPresentedBooleanRings.Definitions
   using (is-countably-presented-alt)
 
 private
@@ -255,7 +255,7 @@ private
 singleton→gen : (n : ℕ) → ℕFinCof→Presentation (singleton n) ≡ fst π (generator n)
 singleton→gen n = cong (fst π) (embedUpTo-δ-n n)
 
-open import formalization.Library.BooleanRing.BoolAlgMorphism
+open import BooleanRing.BoolAlgMorphism
 
 private
   singleEntry-nn : (α : binarySequence) (k : ℕ) →

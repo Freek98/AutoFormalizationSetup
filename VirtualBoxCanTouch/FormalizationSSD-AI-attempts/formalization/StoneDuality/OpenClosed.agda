@@ -23,11 +23,11 @@ open import Cubical.Foundations.Univalence using (ua)
 open import Cubical.Data.Sigma
 open import Cubical.Relation.Nullary
 open import Cubical.HITs.PropositionalTruncation as PT
-import formalization.Library.QuotientBool as QB
-open import formalization.Library.BooleanRing.FreeBooleanRing.FreeBool using (freeBA)
-open import formalization.Library.Axioms.StoneDuality using (Booleω; Sp; hasStoneStr)
+import QuotientBool as QB
+open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA)
+open import Axioms.StoneDuality using (Booleω; Sp; hasStoneStr)
 
-open import formalization.Library.BooleanRing.FreeBooleanRing.freeBATerms using (equalityFromEqualityOnGenerators)
+open import BooleanRing.FreeBooleanRing.freeBATerms using (equalityFromEqualityOnGenerators)
 
 SpB∞-to-ℕ∞-injective : (h₁ h₂ : Sp B∞-Booleω) →
   SpB∞-to-ℕ∞ h₁ ≡ SpB∞-to-ℕ∞ h₂ → h₁ ≡ h₂

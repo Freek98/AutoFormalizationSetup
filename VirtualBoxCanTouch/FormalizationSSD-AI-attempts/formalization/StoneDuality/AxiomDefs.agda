@@ -26,21 +26,21 @@ open import Cubical.HITs.PropositionalTruncation as PT
 open import Cubical.Algebra.CommRing
 open import Cubical.Algebra.BooleanRing
 open import Cubical.Algebra.BooleanRing.Instances.Bool
-open import formalization.Library.Axioms.StoneDuality using (StoneDualityAxiom; Sp; Booleω)
+open import Axioms.StoneDuality using (StoneDualityAxiom; Sp; Booleω)
 
-import formalization.Library.OmnisciencePrinciples.Markov as MarkovLib
+import OmnisciencePrinciples.Markov as MarkovLib
 
-open import formalization.Library.CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω'; BooleanRingEquiv; invBooleanRingEquiv; idBoolHom)
-open import formalization.Library.CountablyPresentedBooleanRings.Examples.Bool using (is-cp-2)
-open import formalization.Library.BooleanRing.FreeBooleanRing.FreeBool using (freeBA)
-import formalization.Library.QuotientBool as QB
+open import CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω'; BooleanRingEquiv; invBooleanRingEquiv; idBoolHom)
+open import CountablyPresentedBooleanRings.Examples.Bool using (is-cp-2)
+open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA)
+import QuotientBool as QB
 open import Cubical.Data.Nat.Bijections.Sum using (ℕ⊎ℕ≅ℕ)
 import Cubical.Data.Sum as ⊎
 
 -- Axiom-independent definitions
 
 module SpectrumEmptyImpliesTrivial (SD : StoneDualityAxiom) (B : Booleω) (spEmpty : Sp B → ⊥) where
-  open import formalization.Library.Axioms.StoneDuality using (evaluationMap)
+  open import Axioms.StoneDuality using (evaluationMap)
 
   emptyFunContr : isContr (Sp B → Bool)
   emptyFunContr = (λ sp → ex-falso (spEmpty sp)) , λ f → funExt (λ sp → ex-falso (spEmpty sp))

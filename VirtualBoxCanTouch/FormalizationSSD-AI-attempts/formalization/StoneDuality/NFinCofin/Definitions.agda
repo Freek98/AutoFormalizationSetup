@@ -1,8 +1,8 @@
 {-# OPTIONS --cubical --guardedness #-}
 module formalization.StoneDuality.NFinCofin.Definitions where
 
-open import formalization.Library.BooleanRing.BooleanRingMaps
-open import formalization.Library.BooleanRing.SubBooleanRing
+open import BooleanRing.BooleanRingMaps
+open import BooleanRing.SubBooleanRing
 open import Cubical.Data.Empty renaming (rec to ex-falso)
 open import Cubical.Data.Nat renaming (_·_ to _·ℕ_ ; _+_ to _+ℕ_)
 open import Cubical.Foundations.Prelude hiding (_∨_ ; _∧_)
@@ -14,12 +14,12 @@ open import Cubical.Algebra.CommRing
 open import Cubical.Data.Sum
 open import Cubical.Data.Sigma hiding (_∨_ ; _∧_)
 open import Cubical.Algebra.BooleanRing.Instances.Bool
-open import formalization.Library.BasicDefinitions
+open import BasicDefinitions
 open import Cubical.Relation.Nullary hiding (¬_)
 open import Cubical.Data.Bool renaming ( _≟_ to _=B_) hiding (_≤_ ; _≥_)
 open import Cubical.Foundations.Structure
 open import Cubical.Data.Nat.Order renaming (_≟_ to _=ℕ_)
-open import formalization.Library.QuickFixes
+open import QuickFixes
 
 booleanStructureOnBinarySequences : BooleanRingStr binarySequence
 booleanStructureOnBinarySequences = pointWiseStructure ℕ (λ _ → Bool) (λ _ → snd BoolBR)

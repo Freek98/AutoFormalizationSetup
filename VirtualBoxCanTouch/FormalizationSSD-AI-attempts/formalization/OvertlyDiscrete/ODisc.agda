@@ -21,10 +21,10 @@ open import Cubical.HITs.PropositionalTruncation as PT using (∣_∣₁; ∥_�
 open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
 open import Cubical.Algebra.BooleanRing.Initial using (BoolBR→)
 open import Cubical.Foundations.HLevels using (isPropΠ; isPropΣ; isSetΣ; hProp; TypeOfHLevel≡)
-import formalization.Library.QuotientBool as QB
-open import formalization.Library.Axioms.StoneDuality using (Booleω; Sp)
+import QuotientBool as QB
+open import Axioms.StoneDuality using (Booleω; Sp)
 open import Cubical.Data.Empty renaming (rec to ex-falso)
-open import formalization.Library.CountablyPresentedBooleanRings.PresentedBoole using (idBoolHom; has-Boole-ω')
+open import CountablyPresentedBooleanRings.PresentedBoole using (idBoolHom; has-Boole-ω')
 
 -- tex Lemma 251 (ClosedPropAsSpectrum)
 module ClosedPropAsSpectrum where
@@ -72,7 +72,7 @@ module ClosedPropAsSpectrum where
 -- PropositionsClosedIffStone (tex Corollary 1628)
 
 module ClosedPropIffStone where
-  open import formalization.Library.Axioms.StoneDuality using (hasStoneStr; Stone; isPropHasStoneStr)
+  open import Axioms.StoneDuality using (hasStoneStr; Stone; isPropHasStoneStr)
   open ClosedPropAsSpectrum
 
   closedProp→hasStoneStr : (P : hProp ℓ-zero) → isClosedProp P → hasStoneStr (fst P)
@@ -215,16 +215,16 @@ module LemSurjectionsFormalToCompleteness where
 
 -- ODisc Infrastructure (tex Definition 918, Lemma 1336)
 module ODiscInfrastructure where
-  open import formalization.Library.BooleanRing.FreeBooleanRing.FreeBool
+  open import BooleanRing.FreeBooleanRing.FreeBool
     using (freeBA; generator; inducedBAHom; evalBAInduce; inducedBAHomUnique)
-  open import formalization.Library.BooleanRing.FreeBooleanRing.freeBATerms
+  open import BooleanRing.FreeBooleanRing.freeBATerms
     using (freeBATerms; includeBATermsSurj; equalityFromEqualityOnGenerators)
-  open import formalization.Library.BooleanRing.FreeBooleanRing.SurjectiveTerms
+  open import BooleanRing.FreeBooleanRing.SurjectiveTerms
     using (TermsOf_[_]; Tvar; Tconst; _+T_; -T_; _·T_)
-  open import formalization.Library.CountablyPresentedBooleanRings.PresentedBoole
+  open import CountablyPresentedBooleanRings.PresentedBoole
     using (has-Boole-ω'; idBoolHom; isPropIsBoolRingHom)
-  open import formalization.Library.BooleanRing.BoolRingUnivalence using (IsBoolRingHom)
-  open import formalization.Library.Axioms.StoneDuality using (SDHomVersion; evaluationMap)
+  open import BooleanRing.BoolRingUnivalence using (IsBoolRingHom)
+  open import Axioms.StoneDuality using (SDHomVersion; evaluationMap)
   open import Cubical.Foundations.Isomorphism using (Iso; iso; isoToEquiv)
   open import Cubical.Foundations.Function using (_∘_; idfun)
   open import Cubical.Foundations.Equiv using (invEq; isEquiv; secEq; retEq; invEquiv)
@@ -235,7 +235,7 @@ module ODiscInfrastructure where
   open import Cubical.Algebra.CommRing.Instances.Bool using (BoolCR)
   open import Cubical.Algebra.CommRing.Quotient.ImageQuotient as IQ
     using (generatedIdeal)
-  import formalization.Library.QuotientBool as QB
+  import QuotientBool as QB
   open import Cubical.Algebra.CommRing.Quotient.Base using (kernel≡I; zeroOnIdeal; quotientHomSurjective)
   import Cubical.Algebra.CommRing.Kernel as CK
   open import Cubical.Data.Nat using (zero; suc; max) renaming (_+_ to _+ℕ_)
@@ -904,7 +904,7 @@ module ODiscInfrastructure where
 -- TruncationStoneClosed completion (tex Corollary 1613)
 
 module TruncationStoneClosedComplete where
-  open import formalization.Library.Axioms.StoneDuality using (Stone; hasStoneStr)
+  open import Axioms.StoneDuality using (Stone; hasStoneStr)
   open ODiscInfrastructure
 
   ¬Sp-hProp : (B : Booleω) → hProp ℓ-zero
@@ -940,7 +940,7 @@ module TruncationStoneClosedComplete where
 
 -- tex Corollary 1628: P is a closed prop ↔ P has Stone structure
 module ClosedPropIffStone' where
-  open import formalization.Library.Axioms.StoneDuality using (hasStoneStr; Stone)
+  open import Axioms.StoneDuality using (hasStoneStr; Stone)
   hasStoneStr→closedProp : (P : hProp ℓ-zero) → hasStoneStr (fst P) → isClosedProp P
   hasStoneStr→closedProp P stoneP =
     transport (cong isClosedProp hpEq)
@@ -952,7 +952,7 @@ module ClosedPropIffStone' where
 -- SDDecToElem: Stone Duality Correspondence (tex AxStoneDuality)
 
 module SDDecToElemModule where
-  open import formalization.Library.Axioms.StoneDuality using (evaluationMap; StoneDualityAxiom; SDHomVersion)
+  open import Axioms.StoneDuality using (evaluationMap; StoneDualityAxiom; SDHomVersion)
 
   DecPredOnSp : (B : Booleω) → Type ℓ-zero
   DecPredOnSp B = Sp B → Bool
@@ -1191,10 +1191,10 @@ module ODiscAxioms where
         (λ { (a , incl x) → refl ; (a , push x i) → refl })
         (λ { (incl _) → refl ; (push _ _) → refl }))
   -- freeBA(Fin k) is finite (uses SD)
-  open import formalization.Library.BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator; inducedBAHom;
+  open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator; inducedBAHom;
     inducedBAHomUnique; evalBAInduce)
-  open import formalization.Library.CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω'; idBoolHom; countℕ; BooleanRingEquiv)
-  open import formalization.Library.CountablyPresentedBooleanRings.Examples.FreeCase using (replacementFreeOnCountable)
+  open import CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω'; idBoolHom; countℕ; BooleanRingEquiv)
+  open import CountablyPresentedBooleanRings.Examples.FreeCase using (replacementFreeOnCountable)
   import Cubical.Data.Fin as DF
   open import Cubical.Foundations.Equiv using (fiber)
   open import Cubical.Data.Nat using (max) renaming (_+_ to _+ℕ_)
@@ -1865,7 +1865,7 @@ module ODiscAxioms where
   isFinSet-freeBA-Fin : (k : ℕ) → isFinSet ⟨ freeBA (DF.Fin k) ⟩
   isFinSet-freeBA-Fin k = EquivPresIsFinSet (invEquiv total-equiv) isFinSetTarget where
     open import Cubical.Foundations.Equiv.Properties using (preCompEquiv)
-    open import formalization.Library.Axioms.StoneDuality using (SDHomVersion)
+    open import Axioms.StoneDuality using (SDHomVersion)
     open BooleanRingStr
     freeBA-k = freeBA (DF.Fin k)
     freeBA-ℕ' = freeBA ℕ
@@ -2508,7 +2508,7 @@ module ODiscAxioms where
   -- Given a ring decomposition, each stage BN(n) gives a finite approximation of |B|.
   -- The spectrum projection Sp(B) → Sp(BN n) is: φ ↦ φ ∘ fwdHom(n).
   -- Sp(BN n) is finite since BN n has finite carrier.
-  open import formalization.Library.Axioms.StoneDuality using (SpGeneralBooleanRing)
+  open import Axioms.StoneDuality using (SpGeneralBooleanRing)
   SpProjection : {Q : BooleanRing ℓ-zero} (rd : ODiscRingDecomp Q) (n : ℕ)
     → SpGeneralBooleanRing Q → SpGeneralBooleanRing (ODiscRingDecomp.BN rd n)
   SpProjection rd n φ = φ ∘cr ODiscRingDecomp.fwdHom rd n
@@ -3383,7 +3383,7 @@ module ODiscAxioms where
   --   ℕ^S is the sequential colimit of ℕ^{S_n} for S = lim S_n.
   -- tex Lemma 1520: Finite sets are Stone
   module FiniteIsStoneModule where
-    open import formalization.Library.Axioms.StoneDuality using (hasStoneStr; 2^; isPropHasStoneStr; SDHomVersion)
+    open import Axioms.StoneDuality using (hasStoneStr; 2^; isPropHasStoneStr; SDHomVersion)
     open import Cubical.Data.FinSet.Constructors using (isFinSet→)
     open import Cubical.Data.FinSet.Properties using (isFinSetBool)
     open import Cubical.Data.FinSet.Base using (card; isFinSet→isSet)
@@ -3458,9 +3458,9 @@ module ODiscAxioms where
     → ∥ Σ[ d ∈ (ℕ → ⟨ fst B ⟩) ]
         ((x : Sp B) → (∥ Σ[ c ∈ Sp C ] f c ≡ x ∥₁) ↔ ((n : ℕ) → fst x (d n) ≡ false)) ∥₁
   ImageStoneMapDecidableIntersection B C f = PT.rec squash₁ step1 kerEnum where
-    open import formalization.Library.Axioms.StoneDuality using (SDHomVersion; evaluationMap; 2^)
+    open import Axioms.StoneDuality using (SDHomVersion; evaluationMap; 2^)
     open BooleanRingStr
-    open import formalization.Library.CountablyPresentedBooleanRings.PresentedBoole using (BooleanEquivToHom; BooleanEquivToHomInv; BooleanEquivRightInv)
+    open import CountablyPresentedBooleanRings.PresentedBoole using (BooleanEquivToHom; BooleanEquivToHomInv; BooleanEquivRightInv)
     -- Step 0: Get dual BoolHom g : B → C from f : Sp C → Sp B
     -- g = eC⁻¹ ∘ precomp(f) ∘ eB where eB, eC are SD evaluation equivs
     eB : BooleanRingEquiv (fst B) (2^ (Sp B))

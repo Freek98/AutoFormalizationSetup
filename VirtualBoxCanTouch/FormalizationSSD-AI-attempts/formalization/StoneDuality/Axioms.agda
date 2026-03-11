@@ -29,13 +29,13 @@ open import Cubical.HITs.PropositionalTruncation as PT
 open import Cubical.Algebra.CommRing
 open import Cubical.Algebra.BooleanRing
 open import Cubical.Algebra.BooleanRing.Instances.Bool
-open import formalization.Library.Axioms.StoneDuality using (StoneDualityAxiom; Sp; Booleω)
+open import Axioms.StoneDuality using (StoneDualityAxiom; Sp; Booleω)
 
-import formalization.Library.OmnisciencePrinciples.Markov as MarkovLib
+import OmnisciencePrinciples.Markov as MarkovLib
 
-open import formalization.Library.CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω'; BooleanRingEquiv; invBooleanRingEquiv; idBoolHom)
-open import formalization.Library.BooleanRing.FreeBooleanRing.FreeBool using (freeBA)
-import formalization.Library.QuotientBool as QB
+open import CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω'; BooleanRingEquiv; invBooleanRingEquiv; idBoolHom)
+open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA)
+import QuotientBool as QB
 open import Cubical.Data.Nat.Bijections.Sum using (ℕ⊎ℕ≅ℕ)
 import Cubical.Data.Sum as ⊎
 
@@ -312,8 +312,8 @@ quotientPreservesBooleω α = quotientBySeqHasBooleω Bool-Booleω α
 mp-from-SD : StoneDualityAxiom → MarkovPrinciple
 mp-from-SD SD α α≠0 = MarkovLib.extractFirstHitInBinarySequence.extract α (MarkovLib.∃αn α (trivialQuotient→1∈I BoolCR (IQ.genIdeal BoolCR α) (sym 0≡1-CR)))
   where
-  open import formalization.Library.Axioms.StoneDuality using (evaluationMap)
-  open import formalization.Library.CommRingQuotients.TrivialIdeal using (trivialQuotient→1∈I)
+  open import Axioms.StoneDuality using (evaluationMap)
+  open import CommRingQuotients.TrivialIdeal using (trivialQuotient→1∈I)
   import Cubical.Algebra.CommRing.Quotient.ImageQuotient as IQ
 
   BoolCR = BooleanRing→CommRing BoolBR
@@ -321,7 +321,7 @@ mp-from-SD SD α α≠0 = MarkovLib.extractFirstHitInBinarySequence.extract α (
   0≡1-BR : BooleanRingStr.𝟘 (snd (BoolBR QB./Im α)) ≡ BooleanRingStr.𝟙 (snd (BoolBR QB./Im α))
   0≡1-BR = SpectrumEmptyImpliesTrivial.0≡1-in-B SD (2/α-Booleω α) (MarkovLib.emptySp α α≠0)
 
-  open import formalization.Library.QuotientBool using (_/Im_)
+  open import QuotientBool using (_/Im_)
   opaque
     unfolding _/Im_
     0≡1-CR : CommRingStr.0r (snd (BoolCR IQ./Im α)) ≡ CommRingStr.1r (snd (BoolCR IQ./Im α))

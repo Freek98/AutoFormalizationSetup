@@ -26,10 +26,10 @@ open import Cubical.Data.Bool using (Bool; true; false; _and_)
 open import Cubical.Data.Bool.Properties using (true≢false; false≢true)
 open import Cubical.Relation.Nullary using (Dec; yes; no)
   renaming (¬_ to ¬Type_)
-import formalization.Library.QuotientBool as QB
-open import formalization.Library.BooleanRing.FreeBooleanRing.FreeBool
+import QuotientBool as QB
+open import BooleanRing.FreeBooleanRing.FreeBool
   using (freeBA; inducedBAHom; evalBAInduce; inducedBAHomUnique)
-open import formalization.Library.CountablyPresentedBooleanRings.PresentedBoole using (BooleanRingEquiv; invBooleanRingEquiv)
+open import CountablyPresentedBooleanRings.PresentedBoole using (BooleanRingEquiv; invBooleanRingEquiv)
 open import Cubical.Data.Empty renaming (rec to ex-falso)
 import Cubical.HITs.SetQuotients as SQ
 open import Cubical.Data.Nat.Bijections.Product using (ℕ×ℕ≅ℕ)

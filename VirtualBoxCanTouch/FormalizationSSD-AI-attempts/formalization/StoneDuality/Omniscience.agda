@@ -27,10 +27,10 @@ open import Cubical.Data.Sigma
 open import Cubical.Data.Nat renaming (_+_ to _+ℕ_ ; _·_ to _·ℕ_)
 open import Cubical.Data.Bool using (Bool; true; false; _⊕_; _and_; _or_; not; true≢false; false≢true; Bool→Type)
 open import Cubical.Relation.Nullary using (¬_; Dec; yes; no)
-import formalization.Library.QuotientBool as QB
-open import formalization.Library.BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator; inducedBAHom; evalBAInduce; inducedBAHomUnique)
-open import formalization.Library.CountablyPresentedBooleanRings.PresentedBoole using (BooleanRingEquiv; has-Boole-ω')
-open import formalization.Library.Axioms.StoneDuality using (Booleω; Sp)
+import QuotientBool as QB
+open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator; inducedBAHom; evalBAInduce; inducedBAHomUnique)
+open import CountablyPresentedBooleanRings.PresentedBoole using (BooleanRingEquiv; has-Boole-ω')
+open import Axioms.StoneDuality using (Booleω; Sp)
 open import Cubical.HITs.PropositionalTruncation as PT using (∣_∣₁; ∥_∥₁; rec)
 open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
 import Cubical.Data.Sum as ⊎

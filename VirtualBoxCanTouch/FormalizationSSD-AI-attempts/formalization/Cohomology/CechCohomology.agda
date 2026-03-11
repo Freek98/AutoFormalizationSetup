@@ -28,11 +28,11 @@ open import Cubical.Data.Int using (ℤ)
 open import Cubical.Algebra.BooleanRing using (BoolHom; BooleanRingStr; BooleanRing; BooleanRing→CommRing)
 open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
 open import Cubical.Algebra.CommRing using (_∘cr_; _$cr_; CommRingStr; CommRing→Ring; IsCommRingHom)
-open import formalization.Library.Axioms.StoneDuality using (Booleω; Sp; Stone; hasStoneStr)
-open import formalization.Library.CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω'; BooleanRingEquiv)
+open import Axioms.StoneDuality using (Booleω; Sp; Stone; hasStoneStr)
+open import CountablyPresentedBooleanRings.PresentedBoole using (has-Boole-ω'; BooleanRingEquiv)
 
 module CohomologyModule where
-  open import formalization.Library.Axioms.StoneDuality using (Stone; hasStoneStr)
+  open import Axioms.StoneDuality using (Stone; hasStoneStr)
   open CompactHausdorffModule using (CHaus)
 
   open import Cubical.Algebra.AbGroup.Instances.Int using (ℤAbGroup)
@@ -565,7 +565,7 @@ module CohomologyModule where
   -- ScottIntCodomain: ℤ-valued functions on Stone spaces factor through finite levels.
   -- Proved from MapsStoneToNareBounded (bounds |f|) + ScottFiniteCodomain.
   module ScottIntCodomainModule where
-    open import formalization.Library.Axioms.StoneDuality using (Sp; Booleω; SpGeneralBooleanRing; Stone; hasStoneStr)
+    open import Axioms.StoneDuality using (Sp; Booleω; SpGeneralBooleanRing; Stone; hasStoneStr)
     open import Cubical.Data.Int using (ℤ; pos; negsuc; abs; isSetℤ)
     open import Cubical.Data.Nat.Order using (_<_; suc-<)
     open import Cubical.Data.Nat.Order.Inductive using (<→<ᵗ)
@@ -637,7 +637,7 @@ module CohomologyModule where
   module FiniteApproximationProof where
     open ODiscAxioms
     open StoneSigmaClosedModule
-    open import formalization.Library.Axioms.StoneDuality using (Sp; Booleω; SpGeneralBooleanRing)
+    open import Axioms.StoneDuality using (Sp; Booleω; SpGeneralBooleanRing)
 
     finite-approximation : (S : Type ℓ-zero) (T : S → Type ℓ-zero)
       → hasStoneStr S → ((x : S) → hasStoneStr (T x)) → ((x : S) → ∥ T x ∥₁)
@@ -879,7 +879,7 @@ module CohomologyModule where
     open import Cubical.Homotopy.EilenbergMacLane.Properties using (isConnectedEM)
     open import Cubical.Homotopy.Connected using (isConnectedPath)
     open import Cubical.Foundations.Equiv using (isContr→Equiv)
-    open import formalization.Library.Axioms.StoneDuality using (Sp; Booleω; isSetSp)
+    open import Axioms.StoneDuality using (Sp; Booleω; isSetSp)
     open ClosedInStoneIsStoneModule using (ClosedInStoneIsStone)
 
     |S| = fst S
@@ -1045,7 +1045,7 @@ module CohomologyModule where
   H¹-total-vanish : (cover : CechCover)
     → H¹-vanishes (Σ (fst (CechCover.X cover)) (λ x → fst (CechCover.S cover x)))
   H¹-total-vanish cover = eilenberg-stone-vanish totalStone
-    where open import formalization.Library.Axioms.StoneDuality using (Stone)
+    where open import Axioms.StoneDuality using (Stone)
           totalStone : Stone
           totalStone = Σ _ (λ x → fst (CechCover.S cover x)) , CechCover.total-is-Stone cover
 
@@ -1075,7 +1075,7 @@ module CohomologyModule where
     open import Cubical.Homotopy.EilenbergMacLane.Properties using (isConnectedEM)
     open import Cubical.Homotopy.Connected using (isConnectedPath)
     open import Cubical.HITs.Truncation.Properties using (propTruncTrunc1Iso)
-    open import formalization.Library.Axioms.StoneDuality using (Stone; hasStoneStr)
+    open import Axioms.StoneDuality using (Stone; hasStoneStr)
 
     -- (S → BZ) is connected when H¹(S,ℤ) = 0
     BZ-funspace-connected : (S : Type ℓ-zero) → H¹-vanishes S

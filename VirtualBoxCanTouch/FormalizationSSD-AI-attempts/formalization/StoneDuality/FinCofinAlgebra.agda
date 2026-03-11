@@ -18,10 +18,10 @@ open import Cubical.Data.Sigma
 open import Cubical.Data.Bool using (Bool; true; false; _⊕_; not)
 open import Cubical.Data.Bool.Properties using (true≢false; false≢true)
 open import Cubical.Relation.Nullary using (¬_; Dec; yes; no)
-import formalization.Library.QuotientBool as QB
-open import formalization.Library.BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator; inducedBAHom; evalBAInduce; inducedBAHomUnique)
-open import formalization.Library.CountablyPresentedBooleanRings.PresentedBoole using (BooleanRingEquiv; has-Boole-ω')
-open import formalization.Library.Axioms.StoneDuality using (Booleω; Sp)
+import QuotientBool as QB
+open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA; generator; inducedBAHom; evalBAInduce; inducedBAHomUnique)
+open import CountablyPresentedBooleanRings.PresentedBoole using (BooleanRingEquiv; has-Boole-ω')
+open import Axioms.StoneDuality using (Booleω; Sp)
 open import Cubical.HITs.PropositionalTruncation using (∣_∣₁)
 open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
 import Cubical.Data.Sum as ⊎

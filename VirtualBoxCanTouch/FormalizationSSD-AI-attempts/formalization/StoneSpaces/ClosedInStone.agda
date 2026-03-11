@@ -19,15 +19,15 @@ open import Cubical.Data.Empty as Empty using (⊥)
 open import Cubical.HITs.PropositionalTruncation as PT using (∣_∣₁; ∥_∥₁; squash₁)
 open import Cubical.Algebra.BooleanRing using (BooleanRing; BooleanRingStr; BoolHom; BooleanRing→CommRing; module BooleanAlgebraStr)
 open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
-open import formalization.Library.CountablyPresentedBooleanRings.PresentedBoole using (BooleanRingEquiv; has-Boole-ω')
-open import formalization.Library.Axioms.StoneDuality using (Booleω; Sp)
+open import CountablyPresentedBooleanRings.PresentedBoole using (BooleanRingEquiv; has-Boole-ω')
+open import Axioms.StoneDuality using (Booleω; Sp)
 open import Cubical.Foundations.Isomorphism using (Iso; iso; invIso; isoToPath)
 open import Cubical.Algebra.CommRing using (CommRing; CommRingStr; CommRing→Ring)
 open import Cubical.Algebra.Ring.Properties using (module RingTheory)
 
 -- ClosedInStoneIsStone (tex Corollary 1770)
 module ClosedInStoneIsStoneModule where
-  open import formalization.Library.Axioms.StoneDuality using (Stone; hasStoneStr; isPropHasStoneStr; isSetBoolHom)
+  open import Axioms.StoneDuality using (Stone; hasStoneStr; isPropHasStoneStr; isSetBoolHom)
   open import Cubical.Foundations.HLevels using (isPropΠ)
   open import Cubical.Foundations.Transport using (transportTransport⁻; transport⁻Transport)
   open import Cubical.Foundations.Isomorphism using (iso; isoToEquiv)
@@ -213,7 +213,7 @@ module ClosedInStoneIsStoneModule where
 
 -- InhabitedClosedSubSpaceClosed (tex Corollary 1776)
 module InhabitedClosedSubSpaceClosedModule where
-  open import formalization.Library.Axioms.StoneDuality using (Stone; hasStoneStr)
+  open import Axioms.StoneDuality using (Stone; hasStoneStr)
   open ClosedInStoneIsStoneModule
   open TruncationStoneClosedComplete
 
@@ -225,7 +225,7 @@ module InhabitedClosedSubSpaceClosedModule where
 
 -- closedSigmaClosed-derived (tex Corollary ClosedDependentSums 1785)
 module ClosedSigmaClosedDerived where
-  open import formalization.Library.Axioms.StoneDuality using (Stone; hasStoneStr)
+  open import Axioms.StoneDuality using (Stone; hasStoneStr)
   open ClosedPropIffStone
   open InhabitedClosedSubSpaceClosedModule
 
@@ -260,9 +260,9 @@ closedSubsetTransitive V Vclosed W Wclosed t =
 
 -- Opaque bridge: 0≡1 in BooleanRing quotient → 1 in CommRing ideal
 import Cubical.Algebra.CommRing.Quotient.ImageQuotient as IQ
-open import formalization.Library.CommRingQuotients.IdealTerms using (isInIdeal; isImage; iszero; isSum; isMul; idealDecomp)
-open import formalization.Library.CommRingQuotients.TrivialIdeal using (trivialQuotient→1∈I)
-import formalization.Library.QuotientBool as QB
+open import CommRingQuotients.IdealTerms using (isInIdeal; isImage; iszero; isSum; isMul; idealDecomp)
+open import CommRingQuotients.TrivialIdeal using (trivialQuotient→1∈I)
+import QuotientBool as QB
 
 opaque
   unfolding QB._/Im_
@@ -380,7 +380,7 @@ module IdealBound (B : BooleanRing ℓ-zero) (d : ℕ → ⟨ B ⟩) where
 
 -- tex Lemma 1824 (StoneSeperated)
 module StoneSeparatedModule where
-  open import formalization.Library.Axioms.StoneDuality using (Stone; hasStoneStr; isSetBoolHom)
+  open import Axioms.StoneDuality using (Stone; hasStoneStr; isSetBoolHom)
   open StoneClosedSubsetsModule
   open SDDecToElemModule
   open ClosedInStoneIsStoneModule using (closedFamilyChoice)
@@ -644,11 +644,11 @@ module StoneSeparatedModule where
 
 -- StoneAsClosedSubsetOfCantor (tex Lemma 2082)
 module CantorIsStoneModule where
-  open import formalization.Library.Axioms.StoneDuality using (Stone; hasStoneStr; SpGeneralBooleanRing)
-  open import formalization.Library.BooleanRing.FreeBooleanRing.FreeBool using (freeBA; freeBA-universal-property)
-  import formalization.Library.QuotientBool as QB
-  open import formalization.Library.CommRingQuotients.IdealTerms using (isInIdeal; isImage; iszero; isSum; isMul; idealDecomp)
-  open import formalization.Library.CommRingQuotients.TrivialIdeal using (quotientFiber)
+  open import Axioms.StoneDuality using (Stone; hasStoneStr; SpGeneralBooleanRing)
+  open import BooleanRing.FreeBooleanRing.FreeBool using (freeBA; freeBA-universal-property)
+  import QuotientBool as QB
+  open import CommRingQuotients.IdealTerms using (isInIdeal; isImage; iszero; isSum; isMul; idealDecomp)
+  open import CommRingQuotients.TrivialIdeal using (quotientFiber)
   import Cubical.Algebra.CommRing.Quotient.ImageQuotient as IQ
   open import Cubical.Algebra.CommRing.Quotient.Base using (quotientHomSurjective)
   open import Cubical.HITs.PropositionalTruncation as PT
@@ -730,7 +730,7 @@ module CantorIsStoneModule where
 
 -- MapsStoneToNareBounded (tex Lemma 1568)
 module MapsStoneToNareBoundedModule where
-  open import formalization.Library.Axioms.StoneDuality using (Stone; hasStoneStr; isSetBoolHom)
+  open import Axioms.StoneDuality using (Stone; hasStoneStr; isSetBoolHom)
   open StoneClosedSubsetsModule
   open SDDecToElemModule
   open import Cubical.Data.Bool using (Dec→Bool; true≢false; false≢true)
@@ -740,7 +740,7 @@ module MapsStoneToNareBoundedModule where
   open import Cubical.Algebra.CommRing using (IsCommRingHom)
   open import Cubical.Data.Nat.Order using (_≤_; _<_; splitℕ-<; <≤-trans; ≤-suc; <→≢)
   open import Cubical.Relation.Nullary using (Dec; yes; no; ¬_)
-  import formalization.Library.QuotientBool as QB
+  import QuotientBool as QB
   import Cubical.Data.Sum as ⊎
 
   private
