@@ -1,0 +1,17 @@
+CHANGES0015: Ninfty.agda — ALL HOLES ELIMINATED (146 lines, was 144 with 2 holes)
+
+Changes to StoneSpaces/Examples/Ninfty.agda:
+- Filled neededIso .Iso.sec: the section proof that going from ℕ∞ to SpB∞ and back
+  gives the original element. Uses evalInduce (from QuotientBool) and evalBAInduce
+  (from FreeBool). The first step uses cong fst (evalInduce BoolBR) to show the
+  induced hom composed with the quotient map gives back the original hom from freeBA ℕ.
+- Filled neededIso .Iso.ret: the retraction proof that going from SpB∞ to ℕ∞ and back
+  gives the original SpB∞ morphism. Uses inducedBAHomUnique to show two homs from
+  freeBA ℕ agree (because they agree on generators by refl), then inducedHomUnique
+  to lift this to the quotient level.
+
+Key insight: fst (f ∘cr quotientImageHom) ∘ generator ≡ Sp→BinarySequence f is refl
+because Sp→BinarySequence f is defined as exactly that composition applied pointwise.
+
+Remaining holes: NONE
+File compiles successfully.

@@ -1,0 +1,23 @@
+CHANGES0018: NFinCofin.agda — PresentationClassification complete (958 lines)
+
+Completed PresentationClassification module — ALL HOLES ELIMINATED:
+
+1. Fixed π-embedUpTo-is-genDisj base cases:
+   - true case: removed spurious `cong (fst π) ∨IdR` (embedUpTo reduces to
+     generator directly when α 0 = true), proof is just `sym ∨IdR`
+   - false case: simplified from broken DeMorgan approach to just `ΠH.pres0`
+   - false/suc case: fixed `sym (++-[])` to `cong genDisj (sym (++-[]))`
+
+2. Completed π-neg-embedUpTo-is-negGenConj:
+   - Base true: ΠH-pres¬ (generator 0) ∙ sym (·IdR _)
+   - Base false: cong (fst π) ¬0≡1 ∙ ΠH.pres1
+   - Suc true: DeMorgan¬∨ + ΠH.pres· + IH + negGenConj-++
+   - Suc false: cong ¬_ ∨IdR + IH + negGenConj-++ + ·IdR
+
+3. Completed classification theorem:
+   - Uses QB.quotientElimProp to reduce to elements fst π t
+   - classify-fc: case splits on ℕfinCofin structure (Fin/Cof × constant0/last1)
+   - transport-classify: transports along roundtrip-pre-on-free
+   - Result: every element of the presentation is ∥ genDisj ⊎ negGenConj ∥₁
+
+No postulates. File compiles successfully.

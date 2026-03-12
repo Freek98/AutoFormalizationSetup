@@ -1,0 +1,25 @@
+CHANGES0010: ProductClosure.agda — backward map infrastructure
+
+Changes to ProductClosure.agda (327 → 493 lines):
+- Fixed x+x=0 proof using BooleanAlgebraStr.characteristic2 (was broken with solve!)
+- Added import for IQ (ImageQuotient) to access generatedIdeal type
+- Defined eQ, e'Q, FL, FR shorthand for backward map construction
+- Proved eQ-kills-ideal: eQ · FL(d) = 0 when d ∈ ideal(f), by induction on generatedIdeal
+- Proved e'Q-kills-ideal: e'Q · FR(d) = 0 when d ∈ ideal(g), similarly
+- Proved α-wd, β-wd: well-definedness for quotient elimination (using char2-cancel helper)
+- Defined α : A → Q and β : B → Q via quotientRec (quotient elimination)
+- Added computation rules α-β and β-β via quotientRecβ
+- Defined ψ-fun(a, b) = α(a) + β(b)
+- ψ ring hom properties (pres1, pres+, pres·) still postulated
+- Roundtrips (φ∘ψ=id, ψ∘φ=id) still postulated
+
+Changes to QuotientBool.agda:
+- Added quotientRec: set-level elimination from Boolean ring quotient (using SQ.rec)
+- Added quotientRecβ: computation rule for quotientRec on quotientImageHom image
+- Added quotientElimProp: proposition elimination from Boolean ring quotient
+
+Remaining postulates in ProductClosure.agda:
+- ψ-pres1, ψ-pres+, ψ-pres·  (ring hom properties of ψ)
+- φ∘ψ=id, ψ∘φ=id  (roundtrip proofs)
+
+File status: quick check passes; full compilation pending

@@ -1,0 +1,279 @@
+{-# OPTIONS --cubical --guardedness #-}
+
+module BooleanRing.FreeBooleanRing.NormalForms where
+
+open import Cubical.Foundations.Prelude hiding (_∨_ ; _∧_)
+open import Cubical.Foundations.Structure
+open import Cubical.Foundations.Function
+open import Cubical.Foundations.HLevels
+
+open import Cubical.Data.List.Base renaming (map to mapL)
+open import Cubical.Data.Bool hiding (_≤_ ; _≥_)
+open import Cubical.Data.Sigma
+
+open import Cubical.HITs.PropositionalTruncation as PT
+
+open import Cubical.Algebra.CommRing
+open import Cubical.Algebra.CommRing.Instances.Bool
+open import Cubical.Algebra.BooleanRing
+open import Cubical.Tactics.CommRingSolver
+
+open import BooleanRing.FreeBooleanRing.FreeBool
+open import BooleanRing.FreeBooleanRing.freeBATerms
+open import BooleanRing.FreeBooleanRing.SurjectiveTerms
+open import BooleanRing.BooleanRingMaps
+
+-- ═══════════════════════════════════════════════════════════════
+-- Types
+-- ═══════════════════════════════════════════════════════════════
+
+Literal : ∀ {ℓ} → Type ℓ → Type ℓ
+Literal A = A × Bool
+
+CNF : ∀ {ℓ} → Type ℓ → Type ℓ
+CNF A = List (List (Literal A))
+
+DNF : ∀ {ℓ} → Type ℓ → Type ℓ
+DNF A = List (List (Literal A))
+
+-- ═══════════════════════════════════════════════════════════════
+-- Syntactic operations
+-- ═══════════════════════════════════════════════════════════════
+
+negLit : ∀ {ℓ} {A : Type ℓ} → Literal A → Literal A
+negLit (a , b) = (a , not b)
+
+negLits : ∀ {ℓ} {A : Type ℓ} → List (Literal A) → List (Literal A)
+negLits [] = []
+negLits (l ∷ ls) = negLit l ∷ negLits ls
+
+orClauseCNF : ∀ {ℓ} {A : Type ℓ} → List (Literal A) → CNF A → CNF A
+orClauseCNF lits cnf = mapL (lits ++_) cnf
+
+orCNF : ∀ {ℓ} {A : Type ℓ} → CNF A → CNF A → CNF A
+orCNF [] d = []
+orCNF (c ∷ cs) d = orClauseCNF c d ++ orCNF cs d
+
+negClauseToCNF : ∀ {ℓ} {A : Type ℓ} → List (Literal A) → CNF A
+negClauseToCNF [] = []
+negClauseToCNF (l ∷ ls) = (negLit l ∷ []) ∷ negClauseToCNF ls
+
+negCNF : ∀ {ℓ} {A : Type ℓ} → CNF A → CNF A
+negCNF [] = ([] ∷ [])
+negCNF (c ∷ cs) = orCNF (negClauseToCNF c) (negCNF cs)
+
+xorCNF : ∀ {ℓ} {A : Type ℓ} → CNF A → CNF A → CNF A
+xorCNF c₁ c₂ = orCNF c₁ c₂ ++ orCNF (negCNF c₁) (negCNF c₂)
+
+termToCNF : ∀ {ℓ} {A : Type ℓ} → freeBATerms A → CNF A
+termToCNF (Tvar a) = ((a , true) ∷ []) ∷ []
+termToCNF (Tconst false) = ([] ∷ [])
+termToCNF (Tconst true) = []
+termToCNF (t₁ +T t₂) = xorCNF (termToCNF t₁) (termToCNF t₂)
+termToCNF (-T t) = termToCNF t
+termToCNF (t₁ ·T t₂) = termToCNF t₁ ++ termToCNF t₂
+
+-- ═══════════════════════════════════════════════════════════════
+-- Evaluation, correctness, and surjectivity
+-- ═══════════════════════════════════════════════════════════════
+
+module EvalCorrect {ℓ : Level} (R : BooleanRing ℓ) where
+  open BooleanRingStr (snd R)
+  open BooleanAlgebraStr (snd R) renaming (_∨_ to _∨b_; _∧_ to _∧b_)
+
+  private
+    RCR = BooleanRing→CommRing R
+
+  -- Evaluation
+  evalLit : ∀ {ℓ'} {A : Type ℓ'} → (A → ⟨ R ⟩) → Literal A → ⟨ R ⟩
+  evalLit f (a , true)  = f a
+  evalLit f (a , false) = 𝟙 + f a
+
+  evalDisjLits : ∀ {ℓ'} {A : Type ℓ'} → (A → ⟨ R ⟩) → List (Literal A) → ⟨ R ⟩
+  evalDisjLits f [] = 𝟘
+  evalDisjLits f (l ∷ ls) = evalLit f l ∨b evalDisjLits f ls
+
+  evalConjLits : ∀ {ℓ'} {A : Type ℓ'} → (A → ⟨ R ⟩) → List (Literal A) → ⟨ R ⟩
+  evalConjLits f [] = 𝟙
+  evalConjLits f (l ∷ ls) = evalLit f l · evalConjLits f ls
+
+  evalCNF : ∀ {ℓ'} {A : Type ℓ'} → (A → ⟨ R ⟩) → CNF A → ⟨ R ⟩
+  evalCNF f [] = 𝟙
+  evalCNF f (c ∷ cs) = evalDisjLits f c · evalCNF f cs
+
+  evalDNF : ∀ {ℓ'} {A : Type ℓ'} → (A → ⟨ R ⟩) → DNF A → ⟨ R ⟩
+  evalDNF f [] = 𝟘
+  evalDNF f (c ∷ cs) = evalConjLits f c ∨b evalDNF f cs
+
+  -- Correctness of evalCNF over ++
+  evalCNF-++ : ∀ {ℓ'} {A : Type ℓ'} (f : A → ⟨ R ⟩) (c₁ c₂ : CNF A) →
+    evalCNF f (c₁ ++ c₂) ≡ evalCNF f c₁ · evalCNF f c₂
+  evalCNF-++ f [] c₂ = sym (·IdL _)
+  evalCNF-++ f (c ∷ cs) c₂ = step₁ ∙ step₂
+    where
+      step₁ : evalDisjLits f c · evalCNF f (cs ++ c₂) ≡ evalDisjLits f c · (evalCNF f cs · evalCNF f c₂)
+      step₁ = cong (λ z → evalDisjLits f c · z) (evalCNF-++ f cs c₂)
+      step₂ : evalDisjLits f c · (evalCNF f cs · evalCNF f c₂) ≡ (evalDisjLits f c · evalCNF f cs) · evalCNF f c₂
+      step₂ = ·Assoc (evalDisjLits f c) (evalCNF f cs) (evalCNF f c₂)
+
+  -- Correctness of evalDisjLits over ++
+  evalDisjLits-++ : ∀ {ℓ'} {A : Type ℓ'} (f : A → ⟨ R ⟩) (ls₁ ls₂ : List (Literal A)) →
+    evalDisjLits f (ls₁ ++ ls₂) ≡ evalDisjLits f ls₁ ∨b evalDisjLits f ls₂
+  evalDisjLits-++ f [] ls₂ = sym ∨IdL
+  evalDisjLits-++ f (l ∷ ls₁) ls₂ =
+    cong (evalLit f l ∨b_) (evalDisjLits-++ f ls₁ ls₂)
+    ∙ ∨Assoc
+
+  -- orClauseCNF correctness
+  orClauseCNF-correct : ∀ {ℓ'} {A : Type ℓ'} (f : A → ⟨ R ⟩)
+    (lits : List (Literal A)) (d : CNF A) →
+    evalCNF f (orClauseCNF lits d) ≡ evalDisjLits f lits ∨b evalCNF f d
+  orClauseCNF-correct f lits [] = sym 1Absorbs∨R
+  orClauseCNF-correct f lits (d ∷ ds) =
+    cong₂ _·_ (evalDisjLits-++ f lits d) (orClauseCNF-correct f lits ds)
+    ∙ sym ∨DistR∧
+
+  -- orCNF correctness
+  orCNF-correct : ∀ {ℓ'} {A : Type ℓ'} (f : A → ⟨ R ⟩)
+    (c₁ c₂ : CNF A) →
+    evalCNF f (orCNF c₁ c₂) ≡ evalCNF f c₁ ∨b evalCNF f c₂
+  orCNF-correct f [] c₂ = sym 1Absorbs∨L
+  orCNF-correct f (c ∷ cs) c₂ =
+    evalCNF-++ f (orClauseCNF c c₂) (orCNF cs c₂)
+    ∙ cong₂ _·_ (orClauseCNF-correct f c c₂) (orCNF-correct f cs c₂)
+    ∙ sym ∨Distr∧R
+
+  -- evalLit of negated literal
+  evalLit-neg : ∀ {ℓ'} {A : Type ℓ'} (f : A → ⟨ R ⟩) (l : Literal A) →
+    evalLit f (negLit l) ≡ 𝟙 + evalLit f l
+  evalLit-neg f (a , false) =
+    sym (+IdL (f a))
+    ∙ cong (_+ f a) (sym characteristic2)
+    ∙ sym (+Assoc 𝟙 𝟙 (f a))
+  evalLit-neg f (a , true) = refl
+
+  -- Boolean ring identities needed for negation/XOR correctness
+  -- All are pure ring identities (no ·Idem needed) or use characteristic2/·Idem
+
+  -- (1+a)·(1+b) = 1+a+b+ab (ring identity, then = 1 + (a∨b))
+  compl-prod-expand : (a b : ⟨ R ⟩) →
+    (𝟙 + a) · (𝟙 + b) ≡ 𝟙 + a + b + a · b
+  compl-prod-expand a b = solve! RCR
+
+  compl-and-is-compl-or : (a b : ⟨ R ⟩) →
+    (𝟙 + a) · (𝟙 + b) ≡ 𝟙 + (a ∨b b)
+  compl-and-is-compl-or a b =
+    compl-prod-expand a b
+    ∙ cong (_+ (a · b)) (sym (+Assoc 𝟙 a b))
+    ∙ sym (+Assoc 𝟙 (a + b) (a · b))
+
+  -- negClause correctness
+  negClause-correct : ∀ {ℓ'} {A : Type ℓ'} (f : A → ⟨ R ⟩)
+    (lits : List (Literal A)) →
+    evalCNF f (negClauseToCNF lits) ≡ 𝟙 + evalDisjLits f lits
+  negClause-correct f [] = sym (+IdR _)
+  negClause-correct f (l ∷ ls) =
+    cong₂ _·_ (∨IdR ∙ evalLit-neg f l)
+               (negClause-correct f ls)
+    ∙ compl-and-is-compl-or (evalLit f l) (evalDisjLits f ls)
+
+  -- (1+a) ∨ (1+b) = 1 + ab  [De Morgan for ∧]
+  -- Expand: (1+a)+(1+b)+(1+a)(1+b) = (1+a+1+b) + (1+a+b+ab)
+  --       = 2+2a+2b+1+ab = 1+ab (char 2: 2=0, 2a=0, 2b=0)
+  compl-or-expand : (a b : ⟨ R ⟩) →
+    (𝟙 + a) + (𝟙 + b) + (𝟙 + a) · (𝟙 + b) ≡ 𝟙 + a · b + (a + a) + (b + b) + (𝟙 + 𝟙)
+  compl-or-expand a b = solve! RCR
+
+  compl-or-is-compl-and : (a b : ⟨ R ⟩) →
+    (𝟙 + a) ∨b (𝟙 + b) ≡ 𝟙 + a · b
+  compl-or-is-compl-and a b =
+    compl-or-expand a b
+    ∙ cong (λ z → 𝟙 + a · b + z + (b + b) + (𝟙 + 𝟙)) characteristic2
+    ∙ cong (λ z → 𝟙 + a · b + 𝟘 + z + (𝟙 + 𝟙)) characteristic2
+    ∙ cong (λ z → 𝟙 + a · b + 𝟘 + 𝟘 + z) characteristic2
+    ∙ solve! RCR
+
+  -- negCNF correctness
+  negCNF-correct : ∀ {ℓ'} {A : Type ℓ'} (f : A → ⟨ R ⟩)
+    (c : CNF A) →
+    evalCNF f (negCNF c) ≡ 𝟙 + evalCNF f c
+  negCNF-correct f [] = ∧AnnihilL ∙ sym characteristic2
+  negCNF-correct f (c ∷ cs) =
+    orCNF-correct f (negClauseToCNF c) (negCNF cs)
+    ∙ cong₂ _∨b_ (negClause-correct f c) (negCNF-correct f cs)
+    ∙ compl-or-is-compl-and (evalDisjLits f c) (evalCNF f cs)
+
+  -- Key helper: x(1+x) = 0 in a Boolean ring
+  x·compl : (x : ⟨ R ⟩) → x · (𝟙 + x) ≡ 𝟘
+  x·compl x = ·DistR+ x 𝟙 x ∙ cong₂ _+_ (·IdR x) (·Idem x) ∙ characteristic2
+
+  -- (a∨b)(1+ab) = a+b
+  -- Strategy: (a+b+ab)(1+ab) = (a+b)(1+ab) + ab(1+ab)
+  --  ab(1+ab) = 0 by x·compl
+  --  (a+b)(1+ab) = a+b + (a+b)·ab = a+b + a²b+ab² = a+b+ab+ab = a+b
+  or-and-compl-prod : (a b : ⟨ R ⟩) →
+    (a ∨b b) · (𝟙 + a · b) ≡ a + b
+  or-and-compl-prod a b =
+    step₁ ∙ step₂ ∙ step₃ ∙ step₄ ∙ step₅
+    where
+      ab = a · b
+      -- (a+b+ab)(1+ab) = (a+b)(1+ab) + ab(1+ab)  [ring]
+      step₁ : (a + b + ab) · (𝟙 + ab) ≡ (a + b) · (𝟙 + ab) + ab · (𝟙 + ab)
+      step₁ = solve! RCR
+      -- ab(1+ab) = 0
+      step₂ : (a + b) · (𝟙 + ab) + ab · (𝟙 + ab) ≡ (a + b) · (𝟙 + ab) + 𝟘
+      step₂ = cong ((a + b) · (𝟙 + ab) +_) (x·compl ab)
+      -- (a+b)(1+ab) + 0 = (a+b)(1+ab) = a+b + (a+b)·ab  [ring]
+      step₃ : (a + b) · (𝟙 + ab) + 𝟘 ≡ a + b + ((a · a) · b + a · (b · b))
+      step₃ = solve! RCR
+      -- a²=a, b²=b
+      step₄ : a + b + ((a · a) · b + a · (b · b)) ≡ a + b + (ab + ab)
+      step₄ = cong (λ z → a + b + (z · b + a · (b · b))) (·Idem a)
+             ∙ cong (λ z → a + b + (ab + a · z)) (·Idem b)
+      -- ab+ab = 0
+      step₅ : a + b + (ab + ab) ≡ a + b
+      step₅ = cong (a + b +_) characteristic2 ∙ +IdR (a + b)
+
+  xor-via-cnf : (a b : ⟨ R ⟩) →
+    (a ∨b b) · ((𝟙 + a) ∨b (𝟙 + b)) ≡ a + b
+  xor-via-cnf a b =
+    cong ((a ∨b b) ·_) (compl-or-is-compl-and a b)
+    ∙ or-and-compl-prod a b
+
+  xorCNF-correct : ∀ {ℓ'} {A : Type ℓ'} (f : A → ⟨ R ⟩)
+    (c₁ c₂ : CNF A) →
+    evalCNF f (xorCNF c₁ c₂) ≡ evalCNF f c₁ + evalCNF f c₂
+  xorCNF-correct f c₁ c₂ =
+    evalCNF-++ f (orCNF c₁ c₂) (orCNF (negCNF c₁) (negCNF c₂))
+    ∙ cong₂ _·_ (orCNF-correct f c₁ c₂)
+                 (orCNF-correct f (negCNF c₁) (negCNF c₂)
+                  ∙ cong₂ _∨b_ (negCNF-correct f c₁) (negCNF-correct f c₂))
+    ∙ xor-via-cnf (evalCNF f c₁) (evalCNF f c₂)
+
+-- ═══════════════════════════════════════════════════════════════
+-- Surjectivity
+-- ═══════════════════════════════════════════════════════════════
+
+module Surjectivity {A : Type} where
+  open EvalCorrect (freeBA A)
+  open BooleanRingStr (snd (freeBA A))
+  open BooleanAlgebraStr (snd (freeBA A))
+    renaming (_∨_ to _∨b_; _∧_ to _∧b_)
+
+  hasCNF : ⟨ freeBA A ⟩ → Type
+  hasCNF x = Σ[ c ∈ CNF A ] evalCNF generator c ≡ x
+
+  hasDNF : ⟨ freeBA A ⟩ → Type
+  hasDNF x = Σ[ d ∈ DNF A ] evalDNF generator d ≡ x
+
+  private
+    π : freeBATerms A → ⟨ freeBA A ⟩
+    π = fst includeBATermsSurj
+
+  postulate
+    termToCNF-correct : (t : freeBATerms A) → evalCNF generator (termToCNF t) ≡ π t
+
+  cnfSurj : (x : ⟨ freeBA A ⟩) → ∥ hasCNF x ∥₁
+  cnfSurj x = PT.map
+    (λ { (t , p) → termToCNF t , termToCNF-correct t ∙ p })
+    (snd includeBATermsSurj x)

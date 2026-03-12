@@ -1,0 +1,23 @@
+CHANGES0008: ProductClosure.agda — product of countably presented BRs
+
+New file: CountablyPresentedBooleanRings/ProductClosure.agda
+- Scaffolding for proving Booleω-closed-×BR (products preserve countable presentability)
+- Generator type G = ℕ ⊎ (ℕ ⊎ Unit) with separator, left/right generators
+- 4 families of relations: A-rels, B-rels, e·aₙ=aₙ, e·bₙ=0
+- Proved G-countable and RelIdx-countable (countability of generator/relation types)
+- Proved Q-is-cp: Q = freeBA G /Im rel4 has freeℕ presentation (using existing infrastructure)
+- Proved ×BR-resp-equiv: product preserves BooleanRingEquiv
+- Proved Booleω-closed-×BR (modulo postulate Q≃A×B)
+- Quick check passes (no type errors), full compilation running
+
+Remaining postulate in ProductClosure.agda:
+- Q≃A×B : BooleanRingEquiv Q (A ×BR B) — the core isomorphism
+
+Changes to AntiEquivalence/Products.agda:
+- Restructured to single abstract block (attempting to fix OOM)
+- Simplified to StoneCatProducts module with abstract block
+- Still compiling (previous attempts with opaque blocks or separate abstract blocks all OOMed)
+
+AntiEquivalence.agda: unchanged from bck0007
+
+File status: ProductClosure.agda quick check passes; full verification running

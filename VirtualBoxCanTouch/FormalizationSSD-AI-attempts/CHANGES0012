@@ -1,0 +1,41 @@
+CHANGES0012: NormalForms.agda — CNF infrastructure COMPILES (279 lines)
+
+New file: BooleanRing/FreeBooleanRing/NormalForms.agda
+
+Types:
+- Literal A = A × Bool (generator with polarity)
+- CNF A = List (List (Literal A)) (conjunction of disjunctive clauses)
+- DNF A = List (List (Literal A))
+
+Syntactic operations (all proved correct):
+- negLit, negLits: negate literals
+- orClauseCNF: distribute single clause over CNF
+- orCNF: OR of two CNFs (distribute ∨ over ∧)
+- negClauseToCNF: negate a disjunctive clause to CNF
+- negCNF: negate a CNF
+- xorCNF: XOR of two CNFs via (a∨b)·((1+a)∨(1+b))
+- termToCNF: convert freeBA term to CNF
+
+Evaluation (module EvalCorrect R):
+- evalLit, evalDisjLits, evalConjLits, evalCNF, evalDNF
+
+Correctness proofs (all compiling, no holes):
+- evalCNF-++: evalCNF distributes over list concatenation
+- evalDisjLits-++: evalDisjLits distributes over list concatenation
+- orClauseCNF-correct, orCNF-correct
+- evalLit-neg: negated literal evaluates to complement
+- compl-and-is-compl-or: (1+a)(1+b) = 1+(a∨b)
+- compl-or-is-compl-and: (1+a)∨(1+b) = 1+ab [De Morgan]
+- negClause-correct, negCNF-correct
+- x·compl: x(1+x)=0 (key helper)
+- or-and-compl-prod: (a∨b)(1+ab)=a+b
+- xor-via-cnf, xorCNF-correct
+
+Key technique: solve! (CommRingSolver) for pure ring identities,
+manual ·Idem + characteristic2 for Boolean-specific steps.
+
+Remaining postulate: termToCNF-correct (term-to-CNF conversion correctness)
+- Needs opaque unfolding of freeBA and generator
+- Structural induction on terms; each case follows from the proved lemmas
+
+Surjectivity theorem cnfSurj uses termToCNF-correct + includeBATermsSurj.

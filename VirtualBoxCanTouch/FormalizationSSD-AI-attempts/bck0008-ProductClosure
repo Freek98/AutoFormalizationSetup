@@ -1,0 +1,190 @@
+{-# OPTIONS --cubical --guardedness --lossy-unification #-}
+module CountablyPresentedBooleanRings.ProductClosure where
+
+-- Countably presented Boolean rings are closed under binary products.
+
+open import Cubical.Foundations.Prelude hiding (_∨_ ; _∧_)
+open import Cubical.Foundations.Function using (_∘_)
+open import Cubical.Foundations.Structure
+open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Isomorphism
+open import Cubical.Foundations.Equiv
+
+open import Cubical.Data.Sigma hiding (_∨_ ; _∧_)
+open import Cubical.Data.Sum
+open import Cubical.Data.Nat renaming (_+_ to _+ℕ_ ; _·_ to _·ℕ_)
+open import Cubical.Data.Nat.Bijections.Sum using (ℕ⊎ℕ≅ℕ)
+open import Cubical.Data.Unit
+open import Cubical.Data.Bool hiding (_≤_ ; _≥_) renaming (_≟_ to _=B_)
+
+open import Cubical.HITs.PropositionalTruncation as PT
+
+open import Cubical.Algebra.CommRing
+open import Cubical.Algebra.BooleanRing
+
+open import BasicDefinitions
+open import BooleanRing.BooleanRingMaps
+open import BooleanRing.BoolRingUnivalence
+open import BooleanRing.FreeBooleanRing.FreeBool
+open import BooleanRing.FreeBooleanRing.freeBATerms
+open import BooleanRing.BooleanRingQuotients.QuotientBool as QB
+open import BooleanRing.Products
+
+open import CountablyPresentedBooleanRings.Definitions
+open import CountablyPresentedBooleanRings.EquivalenceOfCountablyPresentedDefinitions
+open import CommRingQuotients.EquivHelper
+open import StoneSpaces.Spectrum using (Booleω)
+
+open BooleanRingStr ⦃...⦄
+
+-- ═══════════════════════════════════════════════════════════════
+-- Countability of generator and relation index types
+-- ═══════════════════════════════════════════════════════════════
+
+-- G = ℕ ⊎ (ℕ ⊎ Unit): left gens, right gens, separator
+G : Type₀
+G = ℕ ⊎ (ℕ ⊎ Unit)
+
+-- ℕ ⊎ Unit ≅ ℕ via 0 ↦ inr tt, suc n ↦ inl n
+private
+  ℕ⊎1≅ℕ : Iso (ℕ ⊎ Unit) ℕ
+  Iso.fun ℕ⊎1≅ℕ (inl n) = suc n
+  Iso.fun ℕ⊎1≅ℕ (inr tt) = zero
+  Iso.inv ℕ⊎1≅ℕ zero = inr tt
+  Iso.inv ℕ⊎1≅ℕ (suc n) = inl n
+  Iso.sec ℕ⊎1≅ℕ zero = refl
+  Iso.sec ℕ⊎1≅ℕ (suc n) = refl
+  Iso.ret ℕ⊎1≅ℕ (inl n) = refl
+  Iso.ret ℕ⊎1≅ℕ (inr tt) = refl
+
+-- G ≅ ℕ ⊎ ℕ ≅ ℕ (via ℕ ⊎ (ℕ ⊎ 1) ≅ ℕ ⊎ ℕ ≅ ℕ)
+G≅ℕ : Iso G ℕ
+G≅ℕ = compIso (⊎Iso idIso ℕ⊎1≅ℕ) ℕ⊎ℕ≅ℕ
+
+-- has-Countability-structure for G
+-- We use α = const true, since G ≅ ℕ.
+G-countable : has-Countability-structure G
+G-countable = (λ _ → true) , G-to-Σ
+  where
+    G-to-Σ : Iso G (Σ[ n ∈ ℕ ] true ≡ true)
+    Iso.fun G-to-Σ x = Iso.fun G≅ℕ x , refl
+    Iso.inv G-to-Σ (n , _) = Iso.inv G≅ℕ n
+    Iso.sec G-to-Σ (n , p) = Σ≡Prop (λ _ → isSetBool _ _) (Iso.sec G≅ℕ n)
+    Iso.ret G-to-Σ x = Iso.ret G≅ℕ x
+
+-- RelIdx = (ℕ ⊎ ℕ) ⊎ (ℕ ⊎ ℕ) ≅ ℕ
+RelIdx : Type₀
+RelIdx = (ℕ ⊎ ℕ) ⊎ (ℕ ⊎ ℕ)
+
+ℕ4≅ℕ : Iso RelIdx ℕ
+ℕ4≅ℕ = compIso (⊎Iso ℕ⊎ℕ≅ℕ ℕ⊎ℕ≅ℕ) ℕ⊎ℕ≅ℕ
+
+RelIdx-countable : has-Countability-structure RelIdx
+RelIdx-countable = (λ _ → true) , R-to-Σ
+  where
+    R-to-Σ : Iso RelIdx (Σ[ n ∈ ℕ ] true ≡ true)
+    Iso.fun R-to-Σ x = Iso.fun ℕ4≅ℕ x , refl
+    Iso.inv R-to-Σ (n , _) = Iso.inv ℕ4≅ℕ n
+    Iso.sec R-to-Σ (n , p) = Σ≡Prop (λ _ → isSetBool _ _) (Iso.sec ℕ4≅ℕ n)
+    Iso.ret R-to-Σ x = Iso.ret ℕ4≅ℕ x
+
+-- ═══════════════════════════════════════════════════════════════
+-- Product presentation
+-- ═══════════════════════════════════════════════════════════════
+
+-- Generator embeddings
+e-gen : ⟨ freeBA G ⟩
+e-gen = generator (inr (inr tt))
+
+left-gen : ℕ → ⟨ freeBA G ⟩
+left-gen n = generator (inl n)
+
+right-gen : ℕ → ⟨ freeBA G ⟩
+right-gen n = generator (inr (inl n))
+
+-- Lift maps: freeBA ℕ → freeBA G
+liftL : BoolHom (freeBA ℕ) (freeBA G)
+liftL = inducedBAHom ℕ (freeBA G) left-gen
+
+liftR : BoolHom (freeBA ℕ) (freeBA G)
+liftR = inducedBAHom ℕ (freeBA G) right-gen
+
+module ProductPresentation (f g : ℕ → ⟨ freeBA ℕ ⟩) where
+
+  private
+    A = freeBA ℕ QB./Im f
+    B = freeBA ℕ QB./Im g
+
+    instance
+      _ = snd (freeBA G)
+      _ = snd A
+      _ = snd B
+      _ = snd (A ×BR B)
+
+  -- 4 families of relations
+  rel4 : RelIdx → ⟨ freeBA G ⟩
+  rel4 (inl (inl n)) = fst liftL (f n)         -- A-relations
+  rel4 (inl (inr n)) = fst liftR (g n)         -- B-relations
+  rel4 (inr (inl n)) = (e-gen · left-gen n) + left-gen n  -- e·aₙ = aₙ
+  rel4 (inr (inr n)) = e-gen · right-gen n     -- e·bₙ = 0
+
+  Q : BooleanRing ℓ-zero
+  Q = freeBA G QB./Im rel4
+
+  -- Q is countably presented (since G and RelIdx are countable)
+  Q-is-cp : has-quotient-of-freeℕ-presentation Q
+  Q-is-cp = quotient-of-free-on-countable-by-countable-has-freeℕ-presentation
+    G G-countable RelIdx RelIdx-countable rel4
+
+  -- The core result: Q ≅ A ×BR B
+  postulate
+    Q≃A×B : BooleanRingEquiv Q (A ×BR B)
+
+  -- A ×BR B has a freeℕ presentation
+  A×B-has-freeℕ-pres : has-quotient-of-freeℕ-presentation (A ×BR B)
+  A×B-has-freeℕ-pres =
+    subst has-quotient-of-freeℕ-presentation
+      (uaBoolRing Q≃A×B)
+      Q-is-cp
+
+-- ═══════════════════════════════════════════════════════════════
+-- Product preserves equivalences
+-- ═══════════════════════════════════════════════════════════════
+
+×BR-resp-equiv : (A A' B B' : BooleanRing ℓ-zero) →
+  BooleanRingEquiv A A' → BooleanRingEquiv B B' →
+  BooleanRingEquiv (A ×BR B) (A' ×BR B')
+fst (fst (×BR-resp-equiv A A' B B' eA eB)) (a , b) =
+  fst (fst eA) a , fst (fst eB) b
+snd (fst (×BR-resp-equiv A A' B B' eA eB)) =
+  isoToIsEquiv theIso
+  where
+    theIso : Iso (⟨ A ⟩ × ⟨ B ⟩) (⟨ A' ⟩ × ⟨ B' ⟩)
+    Iso.fun theIso (a , b) = fst (fst eA) a , fst (fst eB) b
+    Iso.inv theIso (a' , b') = invEq (fst eA) a' , invEq (fst eB) b'
+    Iso.sec theIso (a' , b') = ΣPathP (secEq (fst eA) a' , secEq (fst eB) b')
+    Iso.ret theIso (a , b) = ΣPathP (retEq (fst eA) a , retEq (fst eB) b)
+snd (×BR-resp-equiv A A' B B' eA eB) = makeIsCommRingHom
+  (ΣPathP (IsCommRingHom.pres1 (snd eA) , IsCommRingHom.pres1 (snd eB)))
+  (λ x y → ΣPathP (IsCommRingHom.pres+ (snd eA) _ _ , IsCommRingHom.pres+ (snd eB) _ _))
+  (λ x y → ΣPathP (IsCommRingHom.pres· (snd eA) _ _ , IsCommRingHom.pres· (snd eB) _ _))
+
+-- ═══════════════════════════════════════════════════════════════
+-- The main result
+-- ═══════════════════════════════════════════════════════════════
+
+Booleω-closed-×BR : (X Y : Booleω) → is-countably-presented-alt (fst X ×BR fst Y)
+Booleω-closed-×BR (A , cpA) (B , cpB) =
+  PT.rec2 isPropPropTrunc go cpA cpB
+  where
+    go : has-quotient-of-freeℕ-presentation A →
+         has-quotient-of-freeℕ-presentation B →
+         ∥ has-quotient-of-freeℕ-presentation (A ×BR B) ∥₁
+    go (f , eA) (g , eB) =
+      ∣ subst has-quotient-of-freeℕ-presentation
+          (uaBoolRing (×BR-resp-equiv
+            (freeBA ℕ QB./Im f) A (freeBA ℕ QB./Im g) B
+            (invBooleanRingEquiv A (freeBA ℕ QB./Im f) eA)
+            (invBooleanRingEquiv B (freeBA ℕ QB./Im g) eB)))
+          (ProductPresentation.A×B-has-freeℕ-pres f g)
+      ∣₁

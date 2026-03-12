@@ -1,0 +1,25 @@
+CHANGES0013: NormalForms.agda — ALL POSTULATES ELIMINATED (314 lines, was 279)
+
+Changes to NormalForms.agda:
+- Eliminated the last postulate: termToCNF-correct (term-to-CNF conversion correctness)
+- Added opaque block with `unfolding freeBA generator includeBATermsSurj`
+- Proved π-var, π-pres0, π-pres1, π-pres+, π-pres·, π-pres- (all by refl!)
+  Key insight: after unfolding, π = quotientMap ∘ includeTerm, and
+  both includeTerm (compositional by definition) and the quotient map
+  (set quotient eliminators compute on [_] constructors) preserve operations
+  definitionally. So π(t₁ +T t₂) = π t₁ + π t₂ by refl, etc.
+- termToCNF-correct proved by structural induction on terms:
+  - Tvar a: uses ∨IdR and ·IdR
+  - Tconst false: uses ∧AnnihilL
+  - Tconst true: uses sym π-pres1
+  - t₁ +T t₂: uses xorCNF-correct + IH
+  - -T t: uses IH + -IsId (negation is identity in boolean ring)
+  - t₁ ·T t₂: uses evalCNF-++ + IH
+- termToCNF-correct is placed OUTSIDE the opaque block (important:
+  BooleanAlgebra lemmas like ∨IdR, ·IdR need abstract freeBA operations)
+- cnfSurj uses termToCNF-correct + includeBATermsSurj surjectivity
+
+Remaining postulates: NONE
+File compiles successfully.
+
+Added imports: Cubical.Algebra.CommRing.Polynomials.Typevariate.Base (as Poly, for R[A] type)

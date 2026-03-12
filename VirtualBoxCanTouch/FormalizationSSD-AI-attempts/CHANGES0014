@@ -1,0 +1,29 @@
+CHANGES0014: NormalForms.agda — DNF support added (425 lines, was 314)
+
+Added DNF syntactic operations:
+- andClauseDNF: distribute single conjunctive clause over DNF
+- andDNF: AND of two DNFs (distribute ∧ over ∨)
+- negConjToDNF: negate a conjunctive clause to DNF
+- negDNF: negate a DNF
+- xorDNF: XOR of two DNFs via (d₁∨d₂) ∧ ((1+d₁)∨(1+d₂))
+- termToDNF: convert freeBA term to DNF
+
+Added DNF correctness proofs (all compiling, no holes):
+- evalDNF-++: evalDNF distributes over list concatenation
+- evalConjLits-++: evalConjLits distributes over list concatenation
+- andClauseDNF-correct: uses evalConjLits-++ and ∧DistR∨
+- andDNF-correct: uses evalDNF-++, andClauseDNF-correct, ∧DistL∨
+- negConj-correct: uses evalLit-neg and compl-or-is-compl-and
+- negDNF-correct: uses andDNF-correct, negConj-correct, compl-and-is-compl-or
+- xorDNF-correct: uses andDNF-correct, evalDNF-++, negDNF-correct, xor-via-cnf
+
+Added DNF surjectivity:
+- termToDNF-correct: proved by structural induction on terms
+- dnfSurj: (x : ⟨ freeBA A ⟩) → ∥ hasDNF x ∥₁
+
+The DNF proofs are exactly dual to the CNF proofs, reusing the same
+Boolean algebra identities (compl-or-is-compl-and, compl-and-is-compl-or,
+xor-via-cnf, etc.).
+
+Remaining postulates: NONE
+File compiles successfully.

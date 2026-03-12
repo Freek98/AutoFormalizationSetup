@@ -1,0 +1,455 @@
+{-# OPTIONS --cubical --guardedness --lossy-unification #-}
+module AntiEquivalence where
+
+-- ═══════════════════════════════════════════════════════════════
+-- Anti-equivalence between Booleω and Stone
+-- Including product results
+-- ═══════════════════════════════════════════════════════════════
+
+open import Axioms.StoneDuality
+open import StoneSpaces.Spectrum
+open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.Function
+open import Cubical.Foundations.Structure
+open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Isomorphism
+open import Cubical.Foundations.Equiv
+
+open import Cubical.Data.Bool hiding (_≤_ ; _≥_) renaming (_≟_ to _=B_)
+open import Cubical.Data.Bool.Properties using (⊕-identityʳ ; notnot ; ⊕-comm)
+open import Cubical.Data.Empty renaming (rec to ex-falso)
+open import Cubical.Data.Sigma
+open import Cubical.Data.Sum
+
+open import Cubical.Relation.Nullary
+
+open import Cubical.Algebra.CommRing
+open import Cubical.Algebra.BooleanRing
+open import Cubical.Algebra.BooleanRing.Instances.Bool
+
+open import Cubical.Categories.Category.Base
+open import Cubical.Categories.Category
+open import Cubical.Categories.Functor
+open import Cubical.Categories.Isomorphism renaming (invIso to CatInvIso)
+open import Cubical.Categories.Equivalence.WeakEquivalence
+open import Cubical.Categories.Limits.BinProduct
+
+open import Cubical.HITs.PropositionalTruncation as PT
+open import Cubical.Functions.Embedding
+open import Cubical.Foundations.Path using (inspect; Reveal_·_is_; [_]ᵢ)
+
+open import CategoryTheory.StuffFromStoneAboutBAs
+open import CategoryTheory.Image
+open import BooleanRing.BooleanRingMaps
+open import BooleanRing.Products
+
+open import CountablyPresentedBooleanRings.Definitions
+
+open Functor
+
+-- ═══════════════════════════════════════════════════════════════
+-- Part 1: Lemma 1.12 — Sp(B) empty iff B trivial
+-- ═══════════════════════════════════════════════════════════════
+
+module SpectrumEmptyImpliesTrivial (SD : StoneDualityAxiom) (B : Booleω) (spEmpty : Sp B → ⊥) where
+  open BooleanRingStr (snd (fst B))
+  emptyFunContr : isContr (Sp B → Bool)
+  emptyFunContr = (λ sp → ex-falso (spEmpty sp)) , λ f → funExt (λ sp → ex-falso (spEmpty sp))
+
+  B-contr : isContr ⟨ fst B ⟩
+  B-contr = isOfHLevelRespectEquiv 0 (invEquiv (evaluationMap B , SD B)) emptyFunContr
+
+  0≡1-in-B : 𝟘 ≡ 𝟙
+  0≡1-in-B = isContr→isProp B-contr _ _
+
+module TrivialImpliesSpEmpty
+  (B : Booleω) (0=1-in-B : BooleanRingStr.𝟘 (snd (fst B)) ≡ BooleanRingStr.𝟙 (snd (fst B))) (f : Sp B) where
+  open BooleanRingStr (snd (fst B))
+  open IsCommRingHom (snd f)
+  spEmpty : ⊥
+  spEmpty = false≢true $ false ≡⟨ sym pres0 ⟩ f $cr 𝟘 ≡⟨ cong (fst f) 0=1-in-B ⟩ f $cr 𝟙 ≡⟨ pres1 ⟩ true ∎
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- Part 2: The anti-equivalence Sp : Booleω ≃ StoneCat
+-- ═══════════════════════════════════════════════════════════════
+
+-- StoneCat = Image(SpFunctor) has:
+--   objects = Booleω objects
+--   Hom(B₁,B₂) = (SET^op)[Sp B₁, Sp B₂] = (Sp B₂ → Sp B₁)
+-- SpRestrict : Booleω → StoneCat is identity on objects, Sp on morphisms.
+
+SpRestrict : Functor BooleωCat StoneCat
+SpRestrict = ImageFunctor.RestrictCodomain SpFunctor
+
+-- SpRestrict is identity on objects, hence trivially essentially surjective
+SpRestrict-essSurj : isEssentiallySurj SpRestrict
+SpRestrict-essSurj B = ∣ B , idCatIso ∣₁
+
+module AntiEquiv (SD : StoneDualityAxiom) where
+  -- SpRestrict is fully faithful (from SpFullyFaithful)
+  SpRestrict-FF : isFullyFaithful SpRestrict
+  SpRestrict-FF = SpFullyFaithful SD
+
+  -- The anti-equivalence: SpRestrict is a weak equivalence
+  SpAntiEquivalence : isWeakEquivalence SpRestrict
+  SpAntiEquivalence .isWeakEquivalence.fullfaith = SpRestrict-FF
+  SpAntiEquivalence .isWeakEquivalence.esssurj = SpRestrict-essSurj
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- Part 3: Products in BACat (imported from BooleanRing.Products)
+-- ═══════════════════════════════════════════════════════════════
+
+-- Re-exported for convenience:
+--   _×BR_ : BooleanRing → BooleanRing → BooleanRing
+--   pr₁-BR, pr₂-BR : projection homomorphisms
+--   BACat-hasBinProducts : BinProducts BACat
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- Part 4: Spectrum of a product ≅ coproduct of spectra
+-- ═══════════════════════════════════════════════════════════════
+
+-- For any Boolean rings A and B, the idempotents (1,0) and (0,1) in A×B
+-- decompose Sp(A×B) into Sp(A) ⊎ Sp(B).
+
+module SpProduct (A B : BooleanRing ℓ-zero) where
+  private
+    module BR-A = BooleanRingStr (snd A)
+    module BR-B = BooleanRingStr (snd B)
+    module BR-P = BooleanRingStr (snd (A ×BR B))
+    module BA-A = BooleanAlgebraStr (snd A)
+    module BA-B = BooleanAlgebraStr (snd B)
+
+  -- (1,0) + (0,1) = (1,1) in A×B
+  idem-sum : BR-P._+_ (BR-A.𝟙 , BR-B.𝟘) (BR-A.𝟘 , BR-B.𝟙) ≡ (BR-A.𝟙 , BR-B.𝟙)
+  idem-sum = ΣPathP (BR-A.+IdR BR-A.𝟙 , BR-B.+IdL BR-B.𝟙)
+
+  -- (1,0) · (0,1) = (0,0) in A×B
+  idem-prod : BR-P._·_ (BR-A.𝟙 , BR-B.𝟘) (BR-A.𝟘 , BR-B.𝟙) ≡ (BR-A.𝟘 , BR-B.𝟘)
+  idem-prod = ΣPathP (BA-A.∧AnnihilR , BA-B.∧AnnihilL)
+
+  -- (0,1) · (0,b) = (0,b)
+  factor-right : (b : ⟨ B ⟩) →
+    BR-P._·_ (BR-A.𝟘 , BR-B.𝟙) (BR-A.𝟘 , b) ≡ (BR-A.𝟘 , b)
+  factor-right b = ΣPathP (BA-A.∧AnnihilL , BR-B.·IdL b)
+
+  -- (1,0) · (a,0) = (a,0)
+  factor-left : (a : ⟨ A ⟩) →
+    BR-P._·_ (BR-A.𝟙 , BR-B.𝟘) (a , BR-B.𝟘) ≡ (a , BR-B.𝟘)
+  factor-left a = ΣPathP (BR-A.·IdL a , BA-B.∧AnnihilL)
+
+  -- Embed Sp(A) into Sp(A×B) via f ↦ (a,b) ↦ f(a)
+  left-embed : SpGeneralBooleanRing A → SpGeneralBooleanRing (A ×BR B)
+  fst (left-embed f) (a , b) = fst f a
+  snd (left-embed f) = makeIsCommRingHom
+    (IsCommRingHom.pres1 (snd f))
+    (λ x y → IsCommRingHom.pres+ (snd f) (fst x) (fst y))
+    (λ x y → IsCommRingHom.pres· (snd f) (fst x) (fst y))
+
+  -- Embed Sp(B) into Sp(A×B) via g ↦ (a,b) ↦ g(b)
+  right-embed : SpGeneralBooleanRing B → SpGeneralBooleanRing (A ×BR B)
+  fst (right-embed g) (a , b) = fst g b
+  snd (right-embed g) = makeIsCommRingHom
+    (IsCommRingHom.pres1 (snd g))
+    (λ x y → IsCommRingHom.pres+ (snd g) (snd x) (snd y))
+    (λ x y → IsCommRingHom.pres· (snd g) (snd x) (snd y))
+
+  -- For γ : Sp(A×B), γ(1,0) ⊕ γ(0,1) = true and γ(1,0) ∧ γ(0,1) = false
+  module Dichotomy (γ : SpGeneralBooleanRing (A ×BR B)) where
+    private module Γ = IsCommRingHom (snd γ)
+
+    γ-sum : fst γ (BR-A.𝟙 , BR-B.𝟘) ⊕ fst γ (BR-A.𝟘 , BR-B.𝟙) ≡ true
+    γ-sum =
+      sym (Γ.pres+ (BR-A.𝟙 , BR-B.𝟘) (BR-A.𝟘 , BR-B.𝟙))
+      ∙ cong (fst γ) idem-sum ∙ Γ.pres1
+
+    γ-prod : fst γ (BR-A.𝟙 , BR-B.𝟘) and fst γ (BR-A.𝟘 , BR-B.𝟙) ≡ false
+    γ-prod =
+      sym (Γ.pres· (BR-A.𝟙 , BR-B.𝟘) (BR-A.𝟘 , BR-B.𝟙))
+      ∙ cong (fst γ) idem-prod ∙ Γ.pres0
+
+    -- If γ(0,1) = false then γ(0,b) = false for all b
+    γ-kills-right : fst γ (BR-A.𝟘 , BR-B.𝟙) ≡ false →
+      (b : ⟨ B ⟩) → fst γ (BR-A.𝟘 , b) ≡ false
+    γ-kills-right p b =
+      cong (fst γ) (sym (factor-right b))
+      ∙ Γ.pres· (BR-A.𝟘 , BR-B.𝟙) (BR-A.𝟘 , b)
+      ∙ cong (_and fst γ (BR-A.𝟘 , b)) p
+
+    -- If γ(1,0) = false then γ(a,0) = false for all a
+    γ-kills-left : fst γ (BR-A.𝟙 , BR-B.𝟘) ≡ false →
+      (a : ⟨ A ⟩) → fst γ (a , BR-B.𝟘) ≡ false
+    γ-kills-left p a =
+      cong (fst γ) (sym (factor-left a))
+      ∙ Γ.pres· (BR-A.𝟙 , BR-B.𝟘) (a , BR-B.𝟘)
+      ∙ cong (_and fst γ (a , BR-B.𝟘)) p
+
+  -- Correction paths: (a,0) + (b,0) = (a+b, 0+0), need 0+0 = 0
+  private
+    B-0+0 : BR-B._+_ BR-B.𝟘 BR-B.𝟘 ≡ BR-B.𝟘
+    B-0+0 = BR-B.+IdL BR-B.𝟘
+
+    B-0·0 : BR-B._·_ BR-B.𝟘 BR-B.𝟘 ≡ BR-B.𝟘
+    B-0·0 = BooleanAlgebraStr.∧AnnihilL (snd B)
+
+    A-0+0 : BR-A._+_ BR-A.𝟘 BR-A.𝟘 ≡ BR-A.𝟘
+    A-0+0 = BR-A.+IdL BR-A.𝟘
+
+    A-0·0 : BR-A._·_ BR-A.𝟘 BR-A.𝟘 ≡ BR-A.𝟘
+    A-0·0 = BooleanAlgebraStr.∧AnnihilL (snd A)
+
+  -- Restrict γ : Sp(A×B) to Sp(A), given γ(1,0) = true
+  restrict-to-left : (γ : SpGeneralBooleanRing (A ×BR B)) →
+    fst γ (BR-A.𝟙 , BR-B.𝟘) ≡ true → SpGeneralBooleanRing A
+  fst (restrict-to-left γ p) a = fst γ (a , BR-B.𝟘)
+  snd (restrict-to-left γ p) = makeIsCommRingHom
+    p
+    (λ a₁ a₂ →
+      cong (fst γ) (ΣPathP (refl , sym B-0+0))
+      ∙ IsCommRingHom.pres+ (snd γ) (a₁ , BR-B.𝟘) (a₂ , BR-B.𝟘))
+    (λ a₁ a₂ →
+      cong (fst γ) (ΣPathP (refl , sym B-0·0))
+      ∙ IsCommRingHom.pres· (snd γ) (a₁ , BR-B.𝟘) (a₂ , BR-B.𝟘))
+
+  -- Restrict γ : Sp(A×B) to Sp(B), given γ(0,1) = true
+  restrict-to-right : (γ : SpGeneralBooleanRing (A ×BR B)) →
+    fst γ (BR-A.𝟘 , BR-B.𝟙) ≡ true → SpGeneralBooleanRing B
+  fst (restrict-to-right γ p) b = fst γ (BR-A.𝟘 , b)
+  snd (restrict-to-right γ p) = makeIsCommRingHom
+    p
+    (λ b₁ b₂ →
+      cong (fst γ) (ΣPathP (sym A-0+0 , refl))
+      ∙ IsCommRingHom.pres+ (snd γ) (BR-A.𝟘 , b₁) (BR-A.𝟘 , b₂))
+    (λ b₁ b₂ →
+      cong (fst γ) (ΣPathP (sym A-0·0 , refl))
+      ∙ IsCommRingHom.pres· (snd γ) (BR-A.𝟘 , b₁) (BR-A.𝟘 , b₂))
+
+  -- Helper for deriving γ(0,1) = true from γ(1,0) = false
+  private
+    derive-right-true : (γ : SpGeneralBooleanRing (A ×BR B)) →
+      fst γ (BR-A.𝟙 , BR-B.𝟘) ≡ false →
+      fst γ (BR-A.𝟘 , BR-B.𝟙) ≡ true
+    derive-right-true γ eq =
+      sym (cong (λ v → v ⊕ fst γ (BR-A.𝟘 , BR-B.𝟙)) eq)
+      ∙ Dichotomy.γ-sum γ
+
+    derive-left-true : (γ : SpGeneralBooleanRing (A ×BR B)) →
+      fst γ (BR-A.𝟘 , BR-B.𝟙) ≡ false →
+      fst γ (BR-A.𝟙 , BR-B.𝟘) ≡ true
+    derive-left-true γ eq =
+      sym (⊕-identityʳ (fst γ (BR-A.𝟙 , BR-B.𝟘)))
+      ∙ cong (fst γ (BR-A.𝟙 , BR-B.𝟘) ⊕_) (sym eq)
+      ∙ Dichotomy.γ-sum γ
+
+  -- Forward direction defined via explicit Bool pattern match (no with)
+  private
+    go : (γ : SpGeneralBooleanRing (A ×BR B)) (b : Bool) →
+      fst γ (BR-A.𝟙 , BR-B.𝟘) ≡ b →
+      SpGeneralBooleanRing A ⊎ SpGeneralBooleanRing B
+    go γ true  p = inl (restrict-to-left γ p)
+    go γ false p = inr (restrict-to-right γ (derive-right-true γ p))
+
+  Sp-prod-to-sum : SpGeneralBooleanRing (A ×BR B) → SpGeneralBooleanRing A ⊎ SpGeneralBooleanRing B
+  Sp-prod-to-sum γ = go γ (fst γ (BR-A.𝟙 , BR-B.𝟘)) refl
+
+  -- The backward direction: Sp(A) ⊎ Sp(B) → Sp(A×B)
+  Sp-sum-to-prod : SpGeneralBooleanRing A ⊎ SpGeneralBooleanRing B →
+    SpGeneralBooleanRing (A ×BR B)
+  Sp-sum-to-prod (inl f) = left-embed f
+  Sp-sum-to-prod (inr g) = right-embed g
+
+  -- Derive γ(0,1) = false from γ(1,0) = true
+  -- true ⊕ x = not x, and γ-sum says γ(1,0) ⊕ γ(0,1) = true.
+  -- So not γ(0,1) = true, hence γ(0,1) = false.
+  private
+    left-true→right-false : (γ : SpGeneralBooleanRing (A ×BR B)) →
+      fst γ (BR-A.𝟙 , BR-B.𝟘) ≡ true →
+      fst γ (BR-A.𝟘 , BR-B.𝟙) ≡ false
+    left-true→right-false γ p =
+      let step : not (fst γ (BR-A.𝟘 , BR-B.𝟙)) ≡ true
+          step = sym (cong (λ v → v ⊕ fst γ (BR-A.𝟘 , BR-B.𝟙)) p)
+                 ∙ Dichotomy.γ-sum γ
+      in sym (notnot _) ∙ cong not step
+
+    right-true→left-false : (γ : SpGeneralBooleanRing (A ×BR B)) →
+      fst γ (BR-A.𝟘 , BR-B.𝟙) ≡ true →
+      fst γ (BR-A.𝟙 , BR-B.𝟘) ≡ false
+    right-true→left-false γ p =
+      let γ10 = fst γ (BR-A.𝟙 , BR-B.𝟘)
+          step : not γ10 ≡ true
+          step = sym (⊕-comm γ10 true)
+                 ∙ sym (cong (γ10 ⊕_) p)
+                 ∙ Dichotomy.γ-sum γ
+      in sym (notnot _) ∙ cong not step
+
+  -- Key decomposition lemma:
+  -- When γ(1,0) = true, γ(0,b) = false for all b,
+  -- hence γ(a,b) = γ(a,0) ⊕ γ(0,b) = γ(a,0) ⊕ false = γ(a,0).
+  private
+    -- (a,b) = (a,0) + (0,b) in A×B
+    pair-split : (a : ⟨ A ⟩) (b : ⟨ B ⟩) →
+      (a , b) ≡ BR-P._+_ (a , BR-B.𝟘) (BR-A.𝟘 , b)
+    pair-split a b = ΣPathP (sym (BR-A.+IdR a) , sym (BR-B.+IdL b))
+
+    decompose-left : (γ : SpGeneralBooleanRing (A ×BR B))
+      (p : fst γ (BR-A.𝟙 , BR-B.𝟘) ≡ true) →
+      (a : ⟨ A ⟩) (b : ⟨ B ⟩) → fst γ (a , BR-B.𝟘) ≡ fst γ (a , b)
+    decompose-left γ p a b =
+      let module Γ = IsCommRingHom (snd γ)
+          q : fst γ (BR-A.𝟘 , BR-B.𝟙) ≡ false
+          q = left-true→right-false γ p
+          γ0b : fst γ (BR-A.𝟘 , b) ≡ false
+          γ0b = Dichotomy.γ-kills-right γ q b
+      in sym (⊕-identityʳ _)
+         ∙ cong (fst γ (a , BR-B.𝟘) ⊕_) (sym γ0b)
+         ∙ sym (Γ.pres+ (a , BR-B.𝟘) (BR-A.𝟘 , b))
+         ∙ cong (fst γ) (sym (pair-split a b))
+
+    decompose-right : (γ : SpGeneralBooleanRing (A ×BR B))
+      (p : fst γ (BR-A.𝟘 , BR-B.𝟙) ≡ true) →
+      (a : ⟨ A ⟩) (b : ⟨ B ⟩) → fst γ (BR-A.𝟘 , b) ≡ fst γ (a , b)
+    decompose-right γ p a b =
+      let module Γ = IsCommRingHom (snd γ)
+          q : fst γ (BR-A.𝟙 , BR-B.𝟘) ≡ false
+          q = right-true→left-false γ p
+          γa0 : fst γ (a , BR-B.𝟘) ≡ false
+          γa0 = Dichotomy.γ-kills-left γ q a
+      in sym (cong (_⊕ fst γ (BR-A.𝟘 , b)) γa0)
+         ∙ sym (Γ.pres+ (a , BR-B.𝟘) (BR-A.𝟘 , b))
+         ∙ cong (fst γ) (sym (pair-split a b))
+
+  -- ─── sec proof: Sp-prod-to-sum ∘ Sp-sum-to-prod = id ───
+
+  -- For sec, we match on the Bool to unfold `go`
+  private
+    sec-left : (f : SpGeneralBooleanRing A) →
+      Sp-prod-to-sum (left-embed f) ≡ inl f
+    sec-left f with fst f BR-A.𝟙 | inspect (fst f) BR-A.𝟙
+    ... | true  | _ = cong inl (CommRingHom≡ refl)
+    ... | false | [ eq ]ᵢ = ex-falso (false≢true (sym eq ∙ IsCommRingHom.pres1 (snd f)))
+
+    sec-right : (g : SpGeneralBooleanRing B) →
+      Sp-prod-to-sum (right-embed g) ≡ inr g
+    sec-right g with fst g BR-B.𝟘 | inspect (fst g) BR-B.𝟘
+    ... | true  | [ eq ]ᵢ = ex-falso (true≢false (sym eq ∙ IsCommRingHom.pres0 (snd g)))
+    ... | false | _ = cong inr (CommRingHom≡ refl)
+
+  -- ─── ret proof: Sp-sum-to-prod ∘ Sp-prod-to-sum = id ───
+
+  -- For ret, we match on the Bool to unfold `go`, then use decomposition
+  private
+    ret-case : (γ : SpGeneralBooleanRing (A ×BR B)) →
+      Sp-sum-to-prod (Sp-prod-to-sum γ) ≡ γ
+    ret-case γ with fst γ (BR-A.𝟙 , BR-B.𝟘) | inspect (fst γ) (BR-A.𝟙 , BR-B.𝟘)
+    -- true case: go gives inl (restrict-to-left γ eq), then left-embed
+    ... | true  | [ eq ]ᵢ =
+      CommRingHom≡ (funExt λ { (a , b) → decompose-left γ eq a b })
+    -- false case: go gives inr (restrict-to-right γ ...), then right-embed
+    ... | false | [ eq ]ᵢ =
+      CommRingHom≡ (funExt λ { (a , b) → decompose-right γ (derive-right-true γ eq) a b })
+
+  -- The full Iso
+  SpProduct-Iso : Iso (SpGeneralBooleanRing (A ×BR B))
+                      (SpGeneralBooleanRing A ⊎ SpGeneralBooleanRing B)
+  SpProduct-Iso .Iso.fun = Sp-prod-to-sum
+  SpProduct-Iso .Iso.inv = Sp-sum-to-prod
+  SpProduct-Iso .Iso.sec (inl f) = sec-left f
+  SpProduct-Iso .Iso.sec (inr g) = sec-right g
+  SpProduct-Iso .Iso.ret = ret-case
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- Part 5: Booleω closure under products
+-- ═══════════════════════════════════════════════════════════════
+
+-- The general result: if A, B ∈ Booleω then A ×BR B ∈ Booleω.
+-- Follows from the presentation technique in LLPOwork/LLPO.agda:
+-- given A = freeBA ℕ / R_A and B = freeBA ℕ / R_B,
+-- construct A×B = freeBA ℕ / R_{A×B} using interleaved generators
+-- and an idempotent separator, with 5 families of relations.
+-- See LLPOwork/LLPO.agda Part 5 (B∞×B∞-presentation) for a concrete instance.
+
+postulate
+  Booleω-closed-×BR : (A B : Booleω) → is-countably-presented-alt (fst A ×BR fst B)
+
+-- BooleωCat has binary products
+×BR-Booleω : Booleω → Booleω → Booleω
+×BR-Booleω (A , cpA) (B , cpB) = (A ×BR B) , Booleω-closed-×BR (A , cpA) (B , cpB)
+
+BooleωCat-BinProduct : (X Y : BooleωCat .Category.ob) → BinProduct BooleωCat X Y
+BooleωCat-BinProduct X Y .BinProduct.binProdOb = ×BR-Booleω X Y
+BooleωCat-BinProduct X Y .BinProduct.binProdPr₁ = pr₁-BR (fst X) (fst Y)
+BooleωCat-BinProduct X Y .BinProduct.binProdPr₂ = pr₂-BR (fst X) (fst Y)
+BooleωCat-BinProduct X Y .BinProduct.univProp f g =
+  BACat-BinProduct (fst X) (fst Y) .BinProduct.univProp f g
+
+BooleωCat-hasBinProducts : BinProducts BooleωCat
+BooleωCat-hasBinProducts = BooleωCat-BinProduct
+
+-- ═══════════════════════════════════════════════════════════════
+-- Part 6: StoneCat is univalent
+-- ═══════════════════════════════════════════════════════════════
+
+-- StoneCat = Image(SpFunctor) embeds fully faithfully into (SET ℓ-zero)^op
+-- via ExtendImage. Since (SET ℓ-zero)^op is univalent and the embedding
+-- is fully faithful with embedding on objects, StoneCat is univalent.
+
+open import Cubical.Categories.Instances.Sets
+open import Cubical.Categories.Constructions.Opposite
+open import CategoryTheory.StuffThatWasInStoneAndShouldBeOrganized
+
+-- ExtendImage is the embedding StoneCat → (SET ℓ-zero)^op
+ExtendSp : Functor StoneCat ((SET ℓ-zero) ^op)
+ExtendSp = ImageFunctor.ExtendImage SpFunctor
+
+-- ExtendSp is fully faithful (identity on hom-sets by definition)
+ExtendSp-FF : isFullyFaithful ExtendSp
+ExtendSp-FF B₁ B₂ = idIsEquiv _
+
+module _ (SD : StoneDualityAxiom) where
+  -- ExtendSp ∘ SpRestrict = SpFunctor, so the ob-map of ExtendSp
+  -- is the same as SpFunctor on objects, which is an embedding
+  ExtendSp-EmbObj : isEmbedding (ExtendSp .F-ob)
+  ExtendSp-EmbObj = SpEmbeddingIntoSets SD
+
+  SETop-Univalent : isUnivalent ((SET ℓ-zero) ^op)
+  SETop-Univalent = isUnivalentOp (isUnivalentSET {ℓ-zero})
+
+  StoneCatUnivalent : isUnivalent StoneCat
+  StoneCatUnivalent = Cuniv StoneCat ((SET ℓ-zero) ^op) SETop-Univalent
+    ExtendSp ExtendSp-EmbObj ExtendSp-FF
+
+-- ═══════════════════════════════════════════════════════════════
+-- Part 7: StoneCat has binary coproducts (consequence)
+-- ═══════════════════════════════════════════════════════════════
+
+-- Since SpRestrict : BooleωCat → StoneCat is a (weak) equivalence
+-- and BooleωCat has binary products, StoneCat has binary coproducts.
+-- (Products in the domain map to coproducts in StoneCat because
+-- SpFunctor goes to SET^op, so the variance is reversed.)
+--
+-- More precisely: SpRestrict preserves binary products (being an
+-- equivalence), and these become coproducts in the opposite category.
+-- Since StoneCat .Hom[B₁,B₂] = (SET^op)[Sp B₁, Sp B₂],
+-- a product in BooleωCat gives a coproduct in "the Stone side".
+--
+-- A binary product (A×B, pr₁, pr₂) in BooleωCat maps via SpRestrict to
+-- (A×B, Sp(pr₁), Sp(pr₂)) in StoneCat. Since SpRestrict is the identity
+-- on objects, this gives a binary product in StoneCat. But StoneCat's
+-- morphisms go in the opposite direction to SET morphisms, so from the
+-- perspective of sets of points, this is a binary coproduct:
+--   Sp(A×B) ≅ Sp(A) ⊎ Sp(B)
+
+-- SpRestrict preserves products because it's fully faithful
+-- (and identity on objects, so the product object is preserved).
+-- The universal property transfers through SpRestrict-FF:
+-- given f₁ : Stone[Z,X] and f₂ : Stone[Z,Y],
+-- lift to f₁' : Boole[Z,X] and f₂' : Boole[Z,Y] via FF,
+-- apply BACat universal property, then push forward via Sp.
+
+-- StoneCat binary products: see AntiEquivalence.Products for the full proof.
+-- The universal property transfers via SpRestrict-FF:
+-- Lift morphisms from StoneCat to BooleωCat via FF,
+-- apply BACat-BinProduct universal property, push forward via Sp.

@@ -1,0 +1,754 @@
+{-# OPTIONS --cubical --guardedness --lossy-unification #-}
+module CountablyPresentedBooleanRings.ProductClosure where
+
+-- Countably presented Boolean rings are closed under binary products.
+
+open import Cubical.Foundations.Prelude hiding (_∨_ ; _∧_)
+open import Cubical.Foundations.Function using (_∘_)
+open import Cubical.Foundations.Structure
+open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Isomorphism
+open import Cubical.Foundations.Equiv
+
+open import Cubical.Data.Sigma hiding (_∨_ ; _∧_)
+open import Cubical.Data.Sum
+open import Cubical.Data.Nat renaming (_+_ to _+ℕ_ ; _·_ to _·ℕ_)
+open import Cubical.Data.Nat.Bijections.Sum using (ℕ⊎ℕ≅ℕ)
+open import Cubical.Data.Unit
+open import Cubical.Data.Bool hiding (_≤_ ; _≥_) renaming (_≟_ to _=B_)
+
+open import Cubical.HITs.PropositionalTruncation as PT
+import Cubical.Algebra.CommRing.Quotient.ImageQuotient as IQ
+
+open import Cubical.Algebra.CommRing
+open import Cubical.Algebra.BooleanRing
+open import Cubical.Algebra.Ring.Properties
+open import Cubical.Tactics.CommRingSolver
+
+open import BasicDefinitions
+open import BooleanRing.BooleanRingMaps
+open import BooleanRing.BoolRingUnivalence
+open import BooleanRing.FreeBooleanRing.FreeBool
+open import BooleanRing.FreeBooleanRing.freeBATerms
+open import BooleanRing.BooleanRingQuotients.QuotientBool as QB
+open import BooleanRing.Products
+
+open import CountablyPresentedBooleanRings.Definitions
+open import CountablyPresentedBooleanRings.EquivalenceOfCountablyPresentedDefinitions
+open import CommRingQuotients.EquivHelper
+open import StoneSpaces.Spectrum using (Booleω)
+
+open BooleanRingStr ⦃...⦄
+
+-- ═══════════════════════════════════════════════════════════════
+-- Countability of generator and relation index types
+-- ═══════════════════════════════════════════════════════════════
+
+-- G = ℕ ⊎ (ℕ ⊎ Unit): left gens, right gens, separator
+G : Type₀
+G = ℕ ⊎ (ℕ ⊎ Unit)
+
+-- ℕ ⊎ Unit ≅ ℕ via 0 ↦ inr tt, suc n ↦ inl n
+private
+  ℕ⊎1≅ℕ : Iso (ℕ ⊎ Unit) ℕ
+  Iso.fun ℕ⊎1≅ℕ (inl n) = suc n
+  Iso.fun ℕ⊎1≅ℕ (inr tt) = zero
+  Iso.inv ℕ⊎1≅ℕ zero = inr tt
+  Iso.inv ℕ⊎1≅ℕ (suc n) = inl n
+  Iso.sec ℕ⊎1≅ℕ zero = refl
+  Iso.sec ℕ⊎1≅ℕ (suc n) = refl
+  Iso.ret ℕ⊎1≅ℕ (inl n) = refl
+  Iso.ret ℕ⊎1≅ℕ (inr tt) = refl
+
+-- G ≅ ℕ ⊎ ℕ ≅ ℕ (via ℕ ⊎ (ℕ ⊎ 1) ≅ ℕ ⊎ ℕ ≅ ℕ)
+G≅ℕ : Iso G ℕ
+G≅ℕ = compIso (⊎Iso idIso ℕ⊎1≅ℕ) ℕ⊎ℕ≅ℕ
+
+-- has-Countability-structure for G
+G-countable : has-Countability-structure G
+G-countable = (λ _ → true) , G-to-Σ
+  where
+    G-to-Σ : Iso G (Σ[ n ∈ ℕ ] true ≡ true)
+    Iso.fun G-to-Σ x = Iso.fun G≅ℕ x , refl
+    Iso.inv G-to-Σ (n , _) = Iso.inv G≅ℕ n
+    Iso.sec G-to-Σ (n , p) = Σ≡Prop (λ _ → isSetBool _ _) (Iso.sec G≅ℕ n)
+    Iso.ret G-to-Σ x = Iso.ret G≅ℕ x
+
+-- RelIdx = (ℕ ⊎ ℕ) ⊎ (ℕ ⊎ ℕ) ≅ ℕ
+RelIdx : Type₀
+RelIdx = (ℕ ⊎ ℕ) ⊎ (ℕ ⊎ ℕ)
+
+ℕ4≅ℕ : Iso RelIdx ℕ
+ℕ4≅ℕ = compIso (⊎Iso ℕ⊎ℕ≅ℕ ℕ⊎ℕ≅ℕ) ℕ⊎ℕ≅ℕ
+
+RelIdx-countable : has-Countability-structure RelIdx
+RelIdx-countable = (λ _ → true) , R-to-Σ
+  where
+    R-to-Σ : Iso RelIdx (Σ[ n ∈ ℕ ] true ≡ true)
+    Iso.fun R-to-Σ x = Iso.fun ℕ4≅ℕ x , refl
+    Iso.inv R-to-Σ (n , _) = Iso.inv ℕ4≅ℕ n
+    Iso.sec R-to-Σ (n , p) = Σ≡Prop (λ _ → isSetBool _ _) (Iso.sec ℕ4≅ℕ n)
+    Iso.ret R-to-Σ x = Iso.ret ℕ4≅ℕ x
+
+-- ═══════════════════════════════════════════════════════════════
+-- Product presentation
+-- ═══════════════════════════════════════════════════════════════
+
+-- Generator embeddings
+e-gen : ⟨ freeBA G ⟩
+e-gen = generator (inr (inr tt))
+
+left-gen : ℕ → ⟨ freeBA G ⟩
+left-gen n = generator (inl n)
+
+right-gen : ℕ → ⟨ freeBA G ⟩
+right-gen n = generator (inr (inl n))
+
+-- Lift maps: freeBA ℕ → freeBA G
+liftL : BoolHom (freeBA ℕ) (freeBA G)
+liftL = inducedBAHom ℕ (freeBA G) left-gen
+
+liftR : BoolHom (freeBA ℕ) (freeBA G)
+liftR = inducedBAHom ℕ (freeBA G) right-gen
+
+module ProductPresentation (f g : ℕ → ⟨ freeBA ℕ ⟩) where
+
+  private
+    A = freeBA ℕ QB./Im f
+    B = freeBA ℕ QB./Im g
+
+    instance
+      _ = snd (freeBA G)
+      _ = snd A
+      _ = snd B
+      _ = snd (A ×BR B)
+
+  -- 4 families of relations
+  -- A-rels multiplied by e, B-rels by (1+e) for the forward map.
+  -- The backward map uses quotient elimination instead of ring homs.
+  rel4 : RelIdx → ⟨ freeBA G ⟩
+  rel4 (inl (inl n)) = e-gen · fst liftL (f n)         -- e · A-relations
+  rel4 (inl (inr n)) = (𝟙 + e-gen) · fst liftR (g n)  -- (1+e) · B-relations
+  rel4 (inr (inl n)) = (e-gen · left-gen n) + left-gen n  -- e·aₙ = aₙ
+  rel4 (inr (inr n)) = e-gen · right-gen n     -- e·bₙ = 0
+
+  Q : BooleanRing ℓ-zero
+  Q = freeBA G QB./Im rel4
+
+  -- Q is countably presented (since G and RelIdx are countable)
+  Q-is-cp : has-quotient-of-freeℕ-presentation Q
+  Q-is-cp = quotient-of-free-on-countable-by-countable-has-freeℕ-presentation
+    G G-countable RelIdx RelIdx-countable rel4
+
+  private instance _ = snd Q
+
+  -- Ring theory helpers
+  private
+    module RTA = RingTheory (CommRing→Ring (BooleanRing→CommRing A))
+    module RTB = RingTheory (CommRing→Ring (BooleanRing→CommRing B))
+
+    x+x=0-A : (x : ⟨ A ⟩) → x + x ≡ 𝟘
+    x+x=0-A x = BooleanAlgebraStr.characteristic2 (snd A)
+
+  -- ─── Forward: φ : Q → A ×BR B via projections ───
+
+  private
+    qA : BoolHom (freeBA ℕ) A
+    qA = QB.quotientImageHom
+
+    qB : BoolHom (freeBA ℕ) B
+    qB = QB.quotientImageHom
+
+    qG : BoolHom (freeBA G) Q
+    qG = QB.quotientImageHom
+
+  -- Projection q₁ : Q → A
+  -- Sends: aₙ ↦ qA(gen n), bₙ ↦ 0, e ↦ 1
+  q₁-on-gens : G → ⟨ A ⟩
+  q₁-on-gens (inl n) = qA $cr generator n
+  q₁-on-gens (inr (inl n)) = 𝟘
+  q₁-on-gens (inr (inr tt)) = 𝟙
+
+  q₁-free : BoolHom (freeBA G) A
+  q₁-free = inducedBAHom G A q₁-on-gens
+
+  private
+    q₁-eval : (x : G) → q₁-free $cr generator x ≡ q₁-on-gens x
+    q₁-eval = funExt⁻ (evalBAInduce G A q₁-on-gens)
+
+    -- q₁-free ∘ liftL = qA (they agree on generators)
+    q₁∘liftL≡qA : q₁-free ∘cr liftL ≡ qA
+    q₁∘liftL≡qA =
+      sym (inducedBAHomUnique ℕ A (λ k → qA $cr generator k)
+        (q₁-free ∘cr liftL)
+        (funExt (λ k →
+          cong (fst q₁-free) (funExt⁻ (evalBAInduce ℕ (freeBA G) left-gen) k)
+          ∙ q₁-eval (inl k))))
+      ∙ inducedBAHomUnique ℕ A (λ k → qA $cr generator k) qA refl
+
+    -- q₁-free kills all relations
+    q₁-kills : (x : RelIdx) → q₁-free $cr rel4 x ≡ 𝟘
+    -- e · liftL(f n): q₁(e) · q₁(liftL(f n)) = 1 · qA(f n) = 0
+    q₁-kills (inl (inl n)) =
+      IsCommRingHom.pres· (snd q₁-free) e-gen (fst liftL (f n))
+      ∙ cong₂ _·_ (q₁-eval (inr (inr tt))) (funExt⁻ (cong fst q₁∘liftL≡qA) (f n))
+      ∙ ·IdL (qA $cr f n)
+      ∙ QB.zeroOnImage {f = f} n
+    -- (1+e) · liftR(g n): q₁(1+e) · q₁(liftR(g n)) = (1+1) · ... = 0 · ... = 0
+    q₁-kills (inl (inr n)) =
+      IsCommRingHom.pres· (snd q₁-free) (𝟙 + e-gen) (fst liftR (g n))
+      ∙ cong₂ _·_
+          (IsCommRingHom.pres+ (snd q₁-free) 𝟙 e-gen
+           ∙ cong₂ _+_ (IsCommRingHom.pres1 (snd q₁-free)) (q₁-eval (inr (inr tt)))
+           ∙ x+x=0-A 𝟙)
+          refl
+      ∙ RTA.0LeftAnnihilates _
+    -- e · aₖ + aₖ: 1 · qA(gen k) + qA(gen k) = 0
+    q₁-kills (inr (inl n)) =
+      IsCommRingHom.pres+ (snd q₁-free) (e-gen · left-gen n) (left-gen n)
+      ∙ cong₂ _+_
+          (IsCommRingHom.pres· (snd q₁-free) e-gen (left-gen n)
+           ∙ cong₂ _·_ (q₁-eval (inr (inr tt))) (q₁-eval (inl n))
+           ∙ ·IdL (qA $cr generator n))
+          (q₁-eval (inl n))
+      ∙ x+x=0-A (qA $cr generator n)
+    -- e · bₖ: 1 · 0 = 0
+    q₁-kills (inr (inr n)) =
+      IsCommRingHom.pres· (snd q₁-free) e-gen (right-gen n)
+      ∙ cong₂ _·_ (q₁-eval (inr (inr tt))) (q₁-eval (inr (inl n)))
+      ∙ ·IdL 𝟘
+
+  q₁ : BoolHom Q A
+  q₁ = QB.inducedHom A q₁-free q₁-kills
+
+  -- Projection q₂ : Q → B
+  -- Sends: aₙ ↦ 0, bₙ ↦ qB(gen n), e ↦ 0
+  q₂-on-gens : G → ⟨ B ⟩
+  q₂-on-gens (inl n) = 𝟘
+  q₂-on-gens (inr (inl n)) = qB $cr generator n
+  q₂-on-gens (inr (inr tt)) = 𝟘
+
+  q₂-free : BoolHom (freeBA G) B
+  q₂-free = inducedBAHom G B q₂-on-gens
+
+  private
+    q₂-eval : (x : G) → q₂-free $cr generator x ≡ q₂-on-gens x
+    q₂-eval = funExt⁻ (evalBAInduce G B q₂-on-gens)
+
+    -- q₂-free ∘ liftR = qB
+    q₂∘liftR≡qB : q₂-free ∘cr liftR ≡ qB
+    q₂∘liftR≡qB =
+      sym (inducedBAHomUnique ℕ B (λ k → qB $cr generator k)
+        (q₂-free ∘cr liftR)
+        (funExt (λ k →
+          cong (fst q₂-free) (funExt⁻ (evalBAInduce ℕ (freeBA G) right-gen) k)
+          ∙ q₂-eval (inr (inl k)))))
+      ∙ inducedBAHomUnique ℕ B (λ k → qB $cr generator k) qB refl
+
+    -- q₂-free kills all relations
+    q₂-kills : (x : RelIdx) → q₂-free $cr rel4 x ≡ 𝟘
+    -- e · liftL(f n): q₂(e) · ... = 0 · ... = 0
+    q₂-kills (inl (inl n)) =
+      IsCommRingHom.pres· (snd q₂-free) e-gen (fst liftL (f n))
+      ∙ cong₂ _·_ (q₂-eval (inr (inr tt))) refl
+      ∙ RTB.0LeftAnnihilates _
+    -- (1+e) · liftR(g n): (1+0) · qB(g n) = 1 · 0 = 0
+    q₂-kills (inl (inr n)) =
+      IsCommRingHom.pres· (snd q₂-free) (𝟙 + e-gen) (fst liftR (g n))
+      ∙ cong₂ _·_
+          (IsCommRingHom.pres+ (snd q₂-free) 𝟙 e-gen
+           ∙ cong₂ _+_ (IsCommRingHom.pres1 (snd q₂-free)) (q₂-eval (inr (inr tt)))
+           ∙ +IdR 𝟙)
+          (funExt⁻ (cong fst q₂∘liftR≡qB) (g n))
+      ∙ ·IdL (qB $cr g n)
+      ∙ QB.zeroOnImage {f = g} n
+    -- e · aₖ + aₖ: 0 · 0 + 0 = 0
+    q₂-kills (inr (inl n)) =
+      IsCommRingHom.pres+ (snd q₂-free) (e-gen · left-gen n) (left-gen n)
+      ∙ cong₂ _+_
+          (IsCommRingHom.pres· (snd q₂-free) e-gen (left-gen n)
+           ∙ cong₂ _·_ (q₂-eval (inr (inr tt))) (q₂-eval (inl n))
+           ∙ RTB.0LeftAnnihilates 𝟘)
+          (q₂-eval (inl n))
+      ∙ +IdL 𝟘
+    -- e · bₖ: 0 · qB(gen k) = 0
+    q₂-kills (inr (inr n)) =
+      IsCommRingHom.pres· (snd q₂-free) e-gen (right-gen n)
+      ∙ cong₂ _·_ (q₂-eval (inr (inr tt))) (q₂-eval (inr (inl n)))
+      ∙ RTB.0LeftAnnihilates _
+
+  q₂ : BoolHom Q B
+  q₂ = QB.inducedHom B q₂-free q₂-kills
+
+  -- Forward map: φ = ⟨q₁, q₂⟩
+  φ : BoolHom Q (A ×BR B)
+  φ = ⟨ A , B ⟩BR q₁ q₂
+
+  -- ─── Backward: ψ : A ×BR B → Q ───
+  -- ψ(a, b) = α(a) + β(b) where α, β defined by quotient elimination
+  -- α(qA(x)) = eQ · qG(liftL(x)), β(qB(y)) = (1+eQ) · qG(liftR(y))
+
+  private
+    R-freeℕ = BooleanRing→CommRing (freeBA ℕ)
+    R-freeG = BooleanRing→CommRing (freeBA G)
+    eQ : ⟨ Q ⟩
+    eQ = qG $cr e-gen
+    e'Q : ⟨ Q ⟩
+    e'Q = 𝟙 + eQ
+
+    isSetQ : isSet ⟨ Q ⟩
+    isSetQ = is-set
+      where instance _ = snd (BooleanRing→CommRing Q)
+
+    module RTQ = RingTheory (CommRing→Ring (BooleanRing→CommRing Q))
+    module BAQ = BooleanAlgebraStr (snd Q)
+
+    -- In char 2: a + b = 0 → a = b
+    char2-cancel : {a b : ⟨ Q ⟩} → a + b ≡ 𝟘 → a ≡ b
+    char2-cancel {a} {b} p =
+      sym (+IdR a)
+      ∙ cong (a +_) (sym BAQ.characteristic2)
+      ∙ +Assoc a b b
+      ∙ cong (_+ b) p
+      ∙ +IdL b
+
+    -- Shorthand for the composed ring hom
+    FL : BoolHom (freeBA ℕ) Q
+    FL = qG ∘cr liftL
+
+    FR : BoolHom (freeBA ℕ) Q
+    FR = qG ∘cr liftR
+
+    -- Key lemma: eQ · FL(d) = 0 when d is in ideal generated by f
+    eQ-kills-ideal : (d : ⟨ freeBA ℕ ⟩) →
+      IQ.generatedIdeal R-freeℕ f d → eQ · (FL $cr d) ≡ 𝟘
+    eQ-kills-ideal .(f x) (IQ.single x) =
+      sym (IsCommRingHom.pres· (snd qG) e-gen (fst liftL (f x)))
+      ∙ QB.zeroOnImage {f = rel4} (inl (inl x))
+    eQ-kills-ideal _ IQ.zero =
+      cong (eQ ·_) (IsCommRingHom.pres0 (snd FL))
+      ∙ RTQ.0RightAnnihilates eQ
+    eQ-kills-ideal _ (IQ.add {x} {y} dx dy) =
+      cong (eQ ·_) (IsCommRingHom.pres+ (snd FL) x y)
+      ∙ ·DistR+ eQ (FL $cr x) (FL $cr y)
+      ∙ cong₂ _+_ (eQ-kills-ideal x dx) (eQ-kills-ideal y dy)
+      ∙ +IdL 𝟘
+    eQ-kills-ideal _ (IQ.mul {r} {x} dx) =
+      cong (eQ ·_) (IsCommRingHom.pres· (snd FL) r x)
+      ∙ ·Assoc eQ (FL $cr r) (FL $cr x)
+      ∙ cong (_· (FL $cr x)) (·Comm eQ (FL $cr r))
+      ∙ sym (·Assoc (FL $cr r) eQ (FL $cr x))
+      ∙ cong ((FL $cr r) ·_) (eQ-kills-ideal x dx)
+      ∙ RTQ.0RightAnnihilates (FL $cr r)
+    eQ-kills-ideal _ (IQ.squash p q i) =
+      isSetQ _ _ (eQ-kills-ideal _ p) (eQ-kills-ideal _ q) i
+
+    instance _ = snd (freeBA ℕ)
+
+    -- In freeBA ℕ: x + y = x - y (since -y = y in Boolean rings)
+    char2-freeN : (a b : ⟨ freeBA ℕ ⟩) →
+      a + b ≡ CommRingStr._-_ (snd R-freeℕ) a b
+    char2-freeN a b = cong (a +_) (BooleanAlgebraStr.-IsId (snd (freeBA ℕ)))
+
+    -- Well-definedness for α: if x - y ∈ ideal(f), then eQ·FL(x) = eQ·FL(y)
+    α-wd : (x y : ⟨ freeBA ℕ ⟩) →
+      IQ.generatedIdeal R-freeℕ f (CommRingStr._-_ (snd R-freeℕ) x y) →
+      eQ · (FL $cr x) ≡ eQ · (FL $cr y)
+    α-wd x y gid = char2-cancel
+      (sym (·DistR+ eQ (FL $cr x) (FL $cr y))
+       ∙ cong (eQ ·_) (sym (IsCommRingHom.pres+ (snd FL) x y))
+       ∙ cong (λ z → eQ · (FL $cr z)) (char2-freeN x y)
+       ∙ eQ-kills-ideal _ gid)
+
+    -- Similarly for β with e'Q · FR
+    e'Q-kills-ideal : (d : ⟨ freeBA ℕ ⟩) →
+      IQ.generatedIdeal R-freeℕ g d → e'Q · (FR $cr d) ≡ 𝟘
+    e'Q-kills-ideal .(g x) (IQ.single x) =
+      cong (_· (FR $cr g x)) (sym e'Q-is-qG)
+      ∙ sym (IsCommRingHom.pres· (snd qG) (𝟙 + e-gen) (fst liftR (g x)))
+      ∙ QB.zeroOnImage {f = rel4} (inl (inr x))
+      where
+        instance _ = snd (freeBA G)
+        e'Q-is-qG : qG $cr (𝟙 + e-gen) ≡ e'Q
+        e'Q-is-qG = IsCommRingHom.pres+ (snd qG) 𝟙 e-gen
+                   ∙ cong (_+ eQ) (IsCommRingHom.pres1 (snd qG))
+    e'Q-kills-ideal _ IQ.zero =
+      cong (e'Q ·_) (IsCommRingHom.pres0 (snd FR))
+      ∙ RTQ.0RightAnnihilates e'Q
+    e'Q-kills-ideal _ (IQ.add {x} {y} dx dy) =
+      cong (e'Q ·_) (IsCommRingHom.pres+ (snd FR) x y)
+      ∙ ·DistR+ e'Q (FR $cr x) (FR $cr y)
+      ∙ cong₂ _+_ (e'Q-kills-ideal x dx) (e'Q-kills-ideal y dy)
+      ∙ +IdL 𝟘
+    e'Q-kills-ideal _ (IQ.mul {r} {x} dx) =
+      cong (e'Q ·_) (IsCommRingHom.pres· (snd FR) r x)
+      ∙ ·Assoc e'Q (FR $cr r) (FR $cr x)
+      ∙ cong (_· (FR $cr x)) (·Comm e'Q (FR $cr r))
+      ∙ sym (·Assoc (FR $cr r) e'Q (FR $cr x))
+      ∙ cong ((FR $cr r) ·_) (e'Q-kills-ideal x dx)
+      ∙ RTQ.0RightAnnihilates (FR $cr r)
+    e'Q-kills-ideal _ (IQ.squash p q i) =
+      isSetQ _ _ (e'Q-kills-ideal _ p) (e'Q-kills-ideal _ q) i
+
+    β-wd : (x y : ⟨ freeBA ℕ ⟩) →
+      IQ.generatedIdeal R-freeℕ g (CommRingStr._-_ (snd R-freeℕ) x y) →
+      e'Q · (FR $cr x) ≡ e'Q · (FR $cr y)
+    β-wd x y gid = char2-cancel
+      (sym (·DistR+ e'Q (FR $cr x) (FR $cr y))
+       ∙ cong (e'Q ·_) (sym (IsCommRingHom.pres+ (snd FR) x y))
+       ∙ cong (λ z → e'Q · (FR $cr z)) (char2-freeN x y)
+       ∙ e'Q-kills-ideal _ gid)
+
+  -- α : A → Q via quotient elimination
+  α : ⟨ A ⟩ → ⟨ Q ⟩
+  α = QB.quotientRec {f = f} isSetQ (λ x → eQ · (FL $cr x)) α-wd
+
+  -- β : B → Q via quotient elimination
+  β : ⟨ B ⟩ → ⟨ Q ⟩
+  β = QB.quotientRec {f = g} isSetQ (λ y → e'Q · (FR $cr y)) β-wd
+
+  -- Computation rules
+  private
+    α-β : (x : ⟨ freeBA ℕ ⟩) → α (qA $cr x) ≡ eQ · (FL $cr x)
+    α-β x = QB.quotientRecβ {f = f} x
+
+    β-β : (y : ⟨ freeBA ℕ ⟩) → β (qB $cr y) ≡ e'Q · (FR $cr y)
+    β-β y = QB.quotientRecβ {f = g} y
+
+  -- ψ underlying function
+  private
+    ψ-fun : ⟨ A ⟩ × ⟨ B ⟩ → ⟨ Q ⟩
+    ψ-fun (a , b) = α a + β b
+
+  -- Helper: α and β are additive
+  private
+    α-additive : (a₁ a₂ : ⟨ A ⟩) → α (a₁ + a₂) ≡ α a₁ + α a₂
+    α-additive = QB.quotientElimProp {f = f}
+      (λ _ → isPropΠ (λ _ → isSetQ _ _))
+      (λ x₁ → QB.quotientElimProp {f = f}
+        (λ _ → isSetQ _ _)
+        (λ x₂ →
+          cong α (sym (IsCommRingHom.pres+ (snd qA) x₁ x₂))
+          ∙ α-β (x₁ + x₂)
+          ∙ cong (eQ ·_) (IsCommRingHom.pres+ (snd FL) x₁ x₂)
+          ∙ ·DistR+ eQ (FL $cr x₁) (FL $cr x₂)
+          ∙ cong₂ _+_ (sym (α-β x₁)) (sym (α-β x₂))))
+
+    β-additive : (b₁ b₂ : ⟨ B ⟩) → β (b₁ + b₂) ≡ β b₁ + β b₂
+    β-additive = QB.quotientElimProp {f = g}
+      (λ _ → isPropΠ (λ _ → isSetQ _ _))
+      (λ y₁ → QB.quotientElimProp {f = g}
+        (λ _ → isSetQ _ _)
+        (λ y₂ →
+          cong β (sym (IsCommRingHom.pres+ (snd qB) y₁ y₂))
+          ∙ β-β (y₁ + y₂)
+          ∙ cong (e'Q ·_) (IsCommRingHom.pres+ (snd FR) y₁ y₂)
+          ∙ ·DistR+ e'Q (FR $cr y₁) (FR $cr y₂)
+          ∙ cong₂ _+_ (sym (β-β y₁)) (sym (β-β y₂))))
+
+    -- eQ + e'Q = 1 (idempotent decomposition)
+    eQ+e'Q=1 : eQ + e'Q ≡ 𝟙
+    eQ+e'Q=1 =
+      +Comm eQ (𝟙 + eQ)
+      ∙ sym (+Assoc 𝟙 eQ eQ)
+      ∙ cong (𝟙 +_) BAQ.characteristic2
+      ∙ +IdR 𝟙
+
+    -- α(1_A) = eQ, β(1_B) = e'Q
+    α-1 : α 𝟙 ≡ eQ
+    α-1 = cong α (sym (IsCommRingHom.pres1 (snd qA)))
+         ∙ α-β 𝟙
+         ∙ cong (eQ ·_) (IsCommRingHom.pres1 (snd FL))
+         ∙ ·IdR eQ
+
+    β-1 : β 𝟙 ≡ e'Q
+    β-1 = cong β (sym (IsCommRingHom.pres1 (snd qB)))
+         ∙ β-β 𝟙
+         ∙ cong (e'Q ·_) (IsCommRingHom.pres1 (snd FR))
+         ∙ ·IdR e'Q
+
+    ψ-pres1 : ψ-fun (𝟙 , 𝟙) ≡ 𝟙
+    ψ-pres1 = cong₂ _+_ α-1 β-1 ∙ eQ+e'Q=1
+
+    -- (a+b)+(c+d) = (a+c)+(b+d) in any commutative group
+    +swap : (a b c d : ⟨ Q ⟩) → (a + b) + (c + d) ≡ (a + c) + (b + d)
+    +swap a b c d =
+      sym (+Assoc a b (c + d))
+      ∙ cong (a +_) (+Assoc b c d ∙ cong (_+ d) (+Comm b c) ∙ sym (+Assoc c b d))
+      ∙ +Assoc a c (b + d)
+
+    ψ-pres+ : (x y : ⟨ A ⟩ × ⟨ B ⟩) →
+      ψ-fun (fst x + fst y , snd x + snd y) ≡ ψ-fun x + ψ-fun y
+    ψ-pres+ (a₁ , b₁) (a₂ , b₂) =
+      cong₂ _+_ (α-additive a₁ a₂) (β-additive b₁ b₂)
+      ∙ +swap (α a₁) (α a₂) (β b₁) (β b₂)
+
+    -- eQ · e'Q = 0 (orthogonal idempotents)
+    eQ·e'Q=0 : eQ · e'Q ≡ 𝟘
+    eQ·e'Q=0 = ·DistR+ eQ 𝟙 eQ
+             ∙ cong₂ _+_ (·IdR eQ) (·Idem eQ)
+             ∙ BAQ.characteristic2
+
+    -- (e·a)·(e·b) = (e·a)·b when e² = e
+    eQ-absorb : (a b : ⟨ Q ⟩) → (eQ · a) · (eQ · b) ≡ (eQ · a) · b
+    eQ-absorb a b =
+      ·Assoc (eQ · a) eQ b
+      ∙ cong (_· b) (·Comm (eQ · a) eQ ∙ ·Assoc eQ eQ a ∙ cong (_· a) (·Idem eQ))
+
+    e'Q-absorb : (a b : ⟨ Q ⟩) → (e'Q · a) · (e'Q · b) ≡ (e'Q · a) · b
+    e'Q-absorb a b =
+      ·Assoc (e'Q · a) e'Q b
+      ∙ cong (_· b) (·Comm (e'Q · a) e'Q ∙ ·Assoc e'Q e'Q a ∙ cong (_· a) (·Idem e'Q))
+
+    -- α is multiplicative
+    α-mult : (a₁ a₂ : ⟨ A ⟩) → α (a₁ · a₂) ≡ α a₁ · α a₂
+    α-mult = QB.quotientElimProp {f = f}
+      (λ _ → isPropΠ (λ _ → isSetQ _ _))
+      (λ x₁ → QB.quotientElimProp {f = f}
+        (λ _ → isSetQ _ _)
+        (λ x₂ →
+          cong α (sym (IsCommRingHom.pres· (snd qA) x₁ x₂))
+          ∙ α-β (x₁ · x₂)
+          ∙ cong (eQ ·_) (IsCommRingHom.pres· (snd FL) x₁ x₂)
+          ∙ ·Assoc eQ (FL $cr x₁) (FL $cr x₂)
+          ∙ sym (eQ-absorb (FL $cr x₁) (FL $cr x₂))
+          ∙ cong₂ _·_ (sym (α-β x₁)) (sym (α-β x₂))))
+
+    β-mult : (b₁ b₂ : ⟨ B ⟩) → β (b₁ · b₂) ≡ β b₁ · β b₂
+    β-mult = QB.quotientElimProp {f = g}
+      (λ _ → isPropΠ (λ _ → isSetQ _ _))
+      (λ y₁ → QB.quotientElimProp {f = g}
+        (λ _ → isSetQ _ _)
+        (λ y₂ →
+          cong β (sym (IsCommRingHom.pres· (snd qB) y₁ y₂))
+          ∙ β-β (y₁ · y₂)
+          ∙ cong (e'Q ·_) (IsCommRingHom.pres· (snd FR) y₁ y₂)
+          ∙ ·Assoc e'Q (FR $cr y₁) (FR $cr y₂)
+          ∙ sym (e'Q-absorb (FR $cr y₁) (FR $cr y₂))
+          ∙ cong₂ _·_ (sym (β-β y₁)) (sym (β-β y₂))))
+
+    -- Cross terms vanish: α(a) · β(b) = 0
+    αβ-zero : (a : ⟨ A ⟩) (b : ⟨ B ⟩) → α a · β b ≡ 𝟘
+    αβ-zero = QB.quotientElimProp {f = f}
+      (λ _ → isPropΠ (λ _ → isSetQ _ _))
+      (λ x → QB.quotientElimProp {f = g}
+        (λ _ → isSetQ _ _)
+        (λ y →
+          cong₂ _·_ (α-β x) (β-β y)
+          ∙ ·Assoc (eQ · (FL $cr x)) e'Q (FR $cr y)
+          ∙ cong (_· (FR $cr y))
+              (·Comm (eQ · (FL $cr x)) e'Q
+               ∙ ·Assoc e'Q eQ (FL $cr x)
+               ∙ cong (_· (FL $cr x)) (·Comm e'Q eQ ∙ eQ·e'Q=0)
+               ∙ RTQ.0LeftAnnihilates (FL $cr x))
+          ∙ RTQ.0LeftAnnihilates (FR $cr y)))
+
+    -- (x + y) · z = x·z + y·z via ·Comm + ·DistR+
+    ·distL : (x y z : ⟨ Q ⟩) → (x + y) · z ≡ x · z + y · z
+    ·distL x y z = ·Comm (x + y) z ∙ ·DistR+ z x y ∙ cong₂ _+_ (·Comm z x) (·Comm z y)
+
+    ψ-pres· : (x y : ⟨ A ⟩ × ⟨ B ⟩) →
+      ψ-fun (fst x · fst y , snd x · snd y) ≡ ψ-fun x · ψ-fun y
+    ψ-pres· (a₁ , b₁) (a₂ , b₂) = sym (
+      ·distL (α a₁) (β b₁) (α a₂ + β b₂)
+      ∙ cong₂ _+_ (·DistR+ (α a₁) (α a₂) (β b₂))
+                   (·DistR+ (β b₁) (α a₂) (β b₂))
+      ∙ cong₂ _+_ (cong ((α a₁ · α a₂) +_) (αβ-zero a₁ b₂) ∙ +IdR _)
+                   (cong₂ _+_ (·Comm (β b₁) (α a₂) ∙ αβ-zero a₂ b₁) refl ∙ +IdL _)
+      ∙ sym (cong₂ _+_ (α-mult a₁ a₂) (β-mult b₁ b₂)))
+
+  ψ : BoolHom (A ×BR B) Q
+  fst ψ = ψ-fun
+  snd ψ = makeIsCommRingHom ψ-pres1
+    (λ x y → ψ-pres+ x y) (λ x y → ψ-pres· x y)
+
+  -- ─── Roundtrips ───
+  private
+    -- Computation: q₁ ∘ qG = q₁-free, q₂ ∘ qG = q₂-free
+    q₁-comp : q₁ ∘cr qG ≡ q₁-free
+    q₁-comp = QB.evalInduce A
+
+    q₂-comp : q₂ ∘cr qG ≡ q₂-free
+    q₂-comp = QB.evalInduce B
+
+    q₁-on-eQ : q₁ $cr eQ ≡ 𝟙
+    q₁-on-eQ = funExt⁻ (cong fst q₁-comp) e-gen ∙ q₁-eval (inr (inr tt))
+
+    q₂-on-eQ : q₂ $cr eQ ≡ 𝟘
+    q₂-on-eQ = funExt⁻ (cong fst q₂-comp) e-gen ∙ q₂-eval (inr (inr tt))
+
+    q₁-on-FL : (x : ⟨ freeBA ℕ ⟩) → q₁ $cr (FL $cr x) ≡ qA $cr x
+    q₁-on-FL x = funExt⁻ (cong fst q₁-comp) (liftL $cr x)
+               ∙ funExt⁻ (cong fst q₁∘liftL≡qA) x
+
+    q₂-on-FR : (y : ⟨ freeBA ℕ ⟩) → q₂ $cr (FR $cr y) ≡ qB $cr y
+    q₂-on-FR y = funExt⁻ (cong fst q₂-comp) (liftR $cr y)
+               ∙ funExt⁻ (cong fst q₂∘liftR≡qB) y
+
+    -- q₁ ∘ α = id on A
+    q₁α : (a : ⟨ A ⟩) → q₁ $cr (α a) ≡ a
+    q₁α = QB.quotientElimProp {f = f}
+      (λ _ → is-set _ _)
+      (λ x →
+        cong (q₁ $cr_) (α-β x)
+        ∙ IsCommRingHom.pres· (snd q₁) eQ (FL $cr x)
+        ∙ cong₂ _·_ q₁-on-eQ (q₁-on-FL x)
+        ∙ ·IdL (qA $cr x))
+
+    -- q₁ ∘ β = 0
+    q₁β : (b : ⟨ B ⟩) → q₁ $cr (β b) ≡ 𝟘
+    q₁β = QB.quotientElimProp {f = g}
+      (λ _ → is-set _ _)
+      (λ y →
+        cong (q₁ $cr_) (β-β y)
+        ∙ IsCommRingHom.pres· (snd q₁) e'Q (FR $cr y)
+        ∙ cong (_· (q₁ $cr (FR $cr y)))
+            (IsCommRingHom.pres+ (snd q₁) 𝟙 eQ
+             ∙ cong₂ _+_ (IsCommRingHom.pres1 (snd q₁)) q₁-on-eQ
+             ∙ x+x=0-A 𝟙)
+        ∙ RTA.0LeftAnnihilates _)
+
+    -- q₂ ∘ α = 0
+    q₂α : (a : ⟨ A ⟩) → q₂ $cr (α a) ≡ 𝟘
+    q₂α = QB.quotientElimProp {f = f}
+      (λ _ → is-set _ _)
+      (λ x →
+        cong (q₂ $cr_) (α-β x)
+        ∙ IsCommRingHom.pres· (snd q₂) eQ (FL $cr x)
+        ∙ cong (_· (q₂ $cr (FL $cr x))) q₂-on-eQ
+        ∙ RTB.0LeftAnnihilates _)
+
+    -- q₂ ∘ β = id on B
+    q₂β : (b : ⟨ B ⟩) → q₂ $cr (β b) ≡ b
+    q₂β = QB.quotientElimProp {f = g}
+      (λ _ → is-set _ _)
+      (λ y →
+        cong (q₂ $cr_) (β-β y)
+        ∙ IsCommRingHom.pres· (snd q₂) e'Q (FR $cr y)
+        ∙ cong₂ _·_
+            (IsCommRingHom.pres+ (snd q₂) 𝟙 eQ
+             ∙ cong₂ _+_ (IsCommRingHom.pres1 (snd q₂)) q₂-on-eQ
+             ∙ +IdR 𝟙)
+            (q₂-on-FR y)
+        ∙ ·IdL (qB $cr y))
+
+  φ∘ψ=id : φ ∘cr ψ ≡ idCommRingHom (BooleanRing→CommRing (A ×BR B))
+  φ∘ψ=id = CommRingHom≡ (funExt (λ { (a , b) → ΣPathP
+    ( IsCommRingHom.pres+ (snd q₁) (α a) (β b)
+      ∙ cong₂ _+_ (q₁α a) (q₁β b) ∙ +IdR a
+    , IsCommRingHom.pres+ (snd q₂) (α a) (β b)
+      ∙ cong₂ _+_ (q₂α a) (q₂β b) ∙ +IdL b
+    ) }))
+
+  ψ∘φ=id : ψ ∘cr φ ≡ idCommRingHom (BooleanRing→CommRing Q)
+  ψ∘φ=id = CommRingHom≡ (QB.quotientImageHomEpi {f = rel4} (⟨ Q ⟩ , isSetQ)
+    (cong fst (sym (inducedBAHomUnique G Q gen-map (ψ ∘cr φ ∘cr qG) gen-agree)
+              ∙ inducedBAHomUnique G Q gen-map qG refl)))
+    where
+      gen-map = fst qG ∘ generator
+
+      α-0 : α 𝟘 ≡ 𝟘
+      α-0 = cong α (sym (+IdL 𝟘)) ∙ α-additive 𝟘 𝟘 ∙ BAQ.characteristic2
+
+      β-0 : β 𝟘 ≡ 𝟘
+      β-0 = cong β (sym (+IdL 𝟘)) ∙ β-additive 𝟘 𝟘 ∙ BAQ.characteristic2
+
+      eQ·aₙ=aₙ : (n : ℕ) → eQ · (qG $cr left-gen n) ≡ qG $cr left-gen n
+      eQ·aₙ=aₙ n = char2-cancel
+        (cong₂ _+_ (sym (IsCommRingHom.pres· (snd qG) e-gen (left-gen n))) refl
+         ∙ sym (IsCommRingHom.pres+ (snd qG) (e-gen · left-gen n) (left-gen n))
+         ∙ QB.zeroOnImage {f = rel4} (inr (inl n)))
+
+      eQ·bₙ=0 : (n : ℕ) → eQ · (qG $cr right-gen n) ≡ 𝟘
+      eQ·bₙ=0 n = sym (IsCommRingHom.pres· (snd qG) e-gen (right-gen n))
+                 ∙ QB.zeroOnImage {f = rel4} (inr (inr n))
+
+      e'Q·bₙ=bₙ : (n : ℕ) → e'Q · (qG $cr right-gen n) ≡ qG $cr right-gen n
+      e'Q·bₙ=bₙ n =
+        ·distL 𝟙 eQ (qG $cr right-gen n)
+        ∙ cong₂ _+_ (·IdL (qG $cr right-gen n)) (eQ·bₙ=0 n)
+        ∙ +IdR (qG $cr right-gen n)
+
+      gen-agree : fst (ψ ∘cr φ ∘cr qG) ∘ generator ≡ gen-map
+      gen-agree = funExt λ {
+        (inl n) →
+          cong₂ _+_
+            (cong α (funExt⁻ (cong fst q₁-comp) (left-gen n) ∙ q₁-eval (inl n))
+             ∙ α-β (generator n)
+             ∙ cong (eQ ·_) (cong (qG $cr_) (funExt⁻ (evalBAInduce ℕ (freeBA G) left-gen) n))
+             ∙ eQ·aₙ=aₙ n)
+            (cong β (funExt⁻ (cong fst q₂-comp) (left-gen n) ∙ q₂-eval (inl n))
+             ∙ β-0)
+          ∙ +IdR (qG $cr left-gen n) ;
+        (inr (inl n)) →
+          cong₂ _+_
+            (cong α (funExt⁻ (cong fst q₁-comp) (right-gen n) ∙ q₁-eval (inr (inl n)))
+             ∙ α-0)
+            (cong β (funExt⁻ (cong fst q₂-comp) (right-gen n) ∙ q₂-eval (inr (inl n)))
+             ∙ β-β (generator n)
+             ∙ cong (e'Q ·_) (cong (qG $cr_) (funExt⁻ (evalBAInduce ℕ (freeBA G) right-gen) n))
+             ∙ e'Q·bₙ=bₙ n)
+          ∙ +IdL (qG $cr right-gen n) ;
+        (inr (inr tt)) →
+          cong₂ _+_
+            (cong α (funExt⁻ (cong fst q₁-comp) e-gen ∙ q₁-eval (inr (inr tt)))
+             ∙ α-1)
+            (cong β (funExt⁻ (cong fst q₂-comp) e-gen ∙ q₂-eval (inr (inr tt)))
+             ∙ β-0)
+          ∙ +IdR eQ
+        }
+
+  -- The equivalence
+  Q≃A×B : BooleanRingEquiv Q (A ×BR B)
+  Q≃A×B = isoToCommRingEquiv φ (fst ψ)
+    (funExt⁻ (cong fst φ∘ψ=id))
+    (funExt⁻ (cong fst ψ∘φ=id))
+
+  -- A ×BR B has a freeℕ presentation
+  A×B-has-freeℕ-pres : has-quotient-of-freeℕ-presentation (A ×BR B)
+  A×B-has-freeℕ-pres =
+    subst has-quotient-of-freeℕ-presentation
+      (uaBoolRing Q≃A×B)
+      Q-is-cp
+
+-- ═══════════════════════════════════════════════════════════════
+-- Product preserves equivalences
+-- ═══════════════════════════════════════════════════════════════
+
+×BR-resp-equiv : (A A' B B' : BooleanRing ℓ-zero) →
+  BooleanRingEquiv A A' → BooleanRingEquiv B B' →
+  BooleanRingEquiv (A ×BR B) (A' ×BR B')
+fst (fst (×BR-resp-equiv A A' B B' eA eB)) (a , b) =
+  fst (fst eA) a , fst (fst eB) b
+snd (fst (×BR-resp-equiv A A' B B' eA eB)) =
+  isoToIsEquiv theIso
+  where
+    theIso : Iso (⟨ A ⟩ × ⟨ B ⟩) (⟨ A' ⟩ × ⟨ B' ⟩)
+    Iso.fun theIso (a , b) = fst (fst eA) a , fst (fst eB) b
+    Iso.inv theIso (a' , b') = invEq (fst eA) a' , invEq (fst eB) b'
+    Iso.sec theIso (a' , b') = ΣPathP (secEq (fst eA) a' , secEq (fst eB) b')
+    Iso.ret theIso (a , b) = ΣPathP (retEq (fst eA) a , retEq (fst eB) b)
+snd (×BR-resp-equiv A A' B B' eA eB) = makeIsCommRingHom
+  (ΣPathP (IsCommRingHom.pres1 (snd eA) , IsCommRingHom.pres1 (snd eB)))
+  (λ x y → ΣPathP (IsCommRingHom.pres+ (snd eA) _ _ , IsCommRingHom.pres+ (snd eB) _ _))
+  (λ x y → ΣPathP (IsCommRingHom.pres· (snd eA) _ _ , IsCommRingHom.pres· (snd eB) _ _))
+
+-- ═══════════════════════════════════════════════════════════════
+-- The main result
+-- ═══════════════════════════════════════════════════════════════
+
+Booleω-closed-×BR : (X Y : Booleω) → is-countably-presented-alt (fst X ×BR fst Y)
+Booleω-closed-×BR (A , cpA) (B , cpB) =
+  PT.rec2 isPropPropTrunc go cpA cpB
+  where
+    go : has-quotient-of-freeℕ-presentation A →
+         has-quotient-of-freeℕ-presentation B →
+         ∥ has-quotient-of-freeℕ-presentation (A ×BR B) ∥₁
+    go (f , eA) (g , eB) =
+      ∣ subst has-quotient-of-freeℕ-presentation
+          (uaBoolRing (×BR-resp-equiv
+            (freeBA ℕ QB./Im f) A (freeBA ℕ QB./Im g) B
+            (invBooleanRingEquiv A (freeBA ℕ QB./Im f) eA)
+            (invBooleanRingEquiv B (freeBA ℕ QB./Im g) eB)))
+          (ProductPresentation.A×B-has-freeℕ-pres f g)
+      ∣₁

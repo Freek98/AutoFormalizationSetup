@@ -1,0 +1,32 @@
+CHANGES0011: ProductClosure.agda — ALL POSTULATES ELIMINATED
+
+Changes to ProductClosure.agda (493 → 754 lines):
+- Proved ψ-pres· (multiplicativity of backward map ψ)
+  - Added eQ·e'Q=0 (orthogonal idempotent decomposition)
+  - Added eQ-absorb, e'Q-absorb: (e·a)·(e·b) = (e·a)·b when e²=e
+  - Added α-mult, β-mult: α and β are multiplicative (via quotientElimProp)
+  - Added αβ-zero: cross terms α(a)·β(b) = 0 (orthogonal images)
+  - Added ·distL: left distributivity derived from ·Comm + ·DistR+
+  - Proof strategy: expand (α a₁ + β b₁)·(α a₂ + β b₂), kill cross terms
+
+- Proved φ∘ψ=id (forward-backward roundtrip)
+  - Added q₁-comp, q₂-comp: evaluation of q₁, q₂ on qG representatives
+  - Added q₁-on-eQ/q₂-on-eQ, q₁-on-FL/q₂-on-FR: computation on key elements
+  - Added q₁α, q₁β, q₂α, q₂β: the four projection-section identities
+  - Proof: CommRingHom≡ + funExt + ΣPathP using the four identities
+
+- Proved ψ∘φ=id (backward-forward roundtrip)
+  - Added α-0, β-0: α and β send zero to zero
+  - Added eQ·aₙ=aₙ: from relation e·aₙ+aₙ=0 via char2-cancel
+  - Added eQ·bₙ=0, e'Q·bₙ=bₙ: from relation e·bₙ=0
+  - Proof strategy: show ψ∘φ∘qG agrees with qG on all 3 generator families
+    (left gens, right gens, separator), use inducedBAHomUnique + quotientImageHomEpi
+
+Remaining postulates in ProductClosure.agda: NONE
+Remaining postulates in QuotientBool.agda: NONE
+
+This completes the proof that Q ≃ A ×BR B as Boolean rings,
+establishing Booleω-closed-×BR (products preserve countable presentability).
+
+File status: quick check passes; full compilation pending
+Previous backup bck0010 was 493 lines, current is 754 lines (+261 lines of proofs).

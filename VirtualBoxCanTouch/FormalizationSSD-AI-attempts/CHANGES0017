@@ -1,0 +1,27 @@
+CHANGES0017: Adjunction.agda — ALL HOLES ELIMINATED (307 lines, was 268)
+
+Filled all 5 holes in restrictedAdjunction (+ fixed 1 pre-existing unsolved meta):
+
+1. Fixed pre-existing unsolved meta at line 78: replaced `_` with explicit
+   `(ε ⟦ F ⟅ y ⟆ ⟧)` in the compose proof.
+
+2. Added roundtrip-η lemma: totalAction ∘ (F'∘H).F-hom = id
+   - Key proof: unfold ηconjugation as η_x ⋆ (g ⋆ η_y⁻¹), use naturality
+     of η to get (Hf ⋆ η_y) ⋆ η_y⁻¹, cancel η_y with η_y⁻¹, then
+     use invEquivFact.knownInfo to reflect back through H's fully faithfulness.
+
+3. Added roundtrip-ε lemma: (F'∘H).F-hom ∘ totalAction = id
+   - Derived from roundtrip-η + totalActionEquiv being an equivalence.
+   - Used fiber contractibility to show (F'∘H).F-hom = invEq totalActionEquiv.
+
+4. Filled restrictedAdjunction holes:
+   - η.N-ob x = S.id (both functors are identity on objects)
+   - η.N-hom: uses roundtrip-η + ⋆IdR/⋆IdL
+   - η.nIso: trivial (S.id is always iso)
+   - ε.N-ob x = D.id
+   - ε.N-hom: uses roundtrip-ε + ⋆IdR/⋆IdL
+   - ε.nIso: trivial (D.id is always iso)
+   - Δ₁: D.⋆IdR + (F'∘H).F-id
+   - Δ₂: S.⋆IdL + totalActionId
+
+No postulates. File compiles successfully.

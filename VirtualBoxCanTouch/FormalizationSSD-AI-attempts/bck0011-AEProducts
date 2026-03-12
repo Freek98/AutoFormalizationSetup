@@ -1,0 +1,113 @@
+{-# OPTIONS --cubical --guardedness --lossy-unification #-}
+module AntiEquivalence.Products where
+
+-- StoneCat has binary products (transferred from BooleωCat via fully faithful Sp)
+
+open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.Equiv
+open import Cubical.Foundations.HLevels
+open import Cubical.Data.Sigma
+
+open import Cubical.Algebra.CommRing
+open import Cubical.Algebra.BooleanRing
+
+open import Cubical.Categories.Category.Base
+open import Cubical.Categories.Category
+open import Cubical.Categories.Functor
+open import Cubical.Categories.Limits.BinProduct
+
+open import CategoryTheory.StuffFromStoneAboutBAs
+open import BooleanRing.BooleanRingMaps
+open import BooleanRing.Products
+open import StoneSpaces.Spectrum
+open import Axioms.StoneDuality
+open import CountablyPresentedBooleanRings.Definitions
+open import CountablyPresentedBooleanRings.ProductClosure using (Booleω-closed-×BR)
+
+open Functor
+
+×BR-Booleω : Booleω → Booleω → Booleω
+×BR-Booleω (A , cpA) (B , cpB) = (A ×BR B) , Booleω-closed-×BR (A , cpA) (B , cpB)
+
+module _ (SD : StoneDualityAxiom) where
+  private
+    ff : isFullyFaithful SpFunctor
+    ff = SpFullyFaithful SD
+
+  opaque
+    Sp-inj : {A B : BooleωCat .Category.ob} {f g : BoolHom (fst A) (fst B)} →
+      SpFunctor .F-hom f ≡ SpFunctor .F-hom g → f ≡ g
+    Sp-inj {A} {B} {f} {g} p =
+      sym (retIsEq (ff A B) f) ∙ cong (invIsEq (ff A B)) p ∙ retIsEq (ff A B) g
+
+  -- Existence of the mediating morphism
+  private
+    exists : (X Y Z : StoneCat .Category.ob)
+      (f₁ : Category.Hom[_,_] StoneCat Z X)
+      (f₂ : Category.Hom[_,_] StoneCat Z Y) →
+      Σ _ (λ h → (StoneCat .Category._⋆_ h (SpFunctor .F-hom (pr₁-BR (fst X) (fst Y))) ≡ f₁)
+               × (StoneCat .Category._⋆_ h (SpFunctor .F-hom (pr₂-BR (fst X) (fst Y))) ≡ f₂))
+    exists X Y Z f₁ f₂ = SpFunctor .F-hom h , pr₁-ok , pr₂-ok
+      where
+        f₁' : BoolHom (fst Z) (fst X)
+        f₁' = invIsEq (ff Z X) f₁
+        f₂' : BoolHom (fst Z) (fst Y)
+        f₂' = invIsEq (ff Z Y) f₂
+        h : BoolHom (fst Z) (fst X ×BR fst Y)
+        h = ⟨ fst X , fst Y ⟩BR f₁' f₂'
+        pr₁-ok : StoneCat .Category._⋆_ (SpFunctor .F-hom h) (SpFunctor .F-hom (pr₁-BR (fst X) (fst Y))) ≡ f₁
+        pr₁-ok = sym (SpFunctor .F-seq h (pr₁-BR (fst X) (fst Y)))
+                 ∙ cong (SpFunctor .F-hom) (⟨,⟩BR-pr₁ (fst X) (fst Y) (fst Z) f₁' f₂')
+                 ∙ secIsEq (ff Z X) f₁
+        pr₂-ok : StoneCat .Category._⋆_ (SpFunctor .F-hom h) (SpFunctor .F-hom (pr₂-BR (fst X) (fst Y))) ≡ f₂
+        pr₂-ok = sym (SpFunctor .F-seq h (pr₂-BR (fst X) (fst Y)))
+                 ∙ cong (SpFunctor .F-hom) (⟨,⟩BR-pr₂ (fst X) (fst Y) (fst Z) f₁' f₂')
+                 ∙ secIsEq (ff Z Y) f₂
+
+  -- Uniqueness
+  private
+    unique : (X Y Z : StoneCat .Category.ob)
+      (f₁ : Category.Hom[_,_] StoneCat Z X)
+      (f₂ : Category.Hom[_,_] StoneCat Z Y)
+      (other : Σ _ (λ k → (StoneCat .Category._⋆_ k (SpFunctor .F-hom (pr₁-BR (fst X) (fst Y))) ≡ f₁)
+                         × (StoneCat .Category._⋆_ k (SpFunctor .F-hom (pr₂-BR (fst X) (fst Y))) ≡ f₂))) →
+      exists X Y Z f₁ f₂ ≡ other
+    unique X Y Z f₁ f₂ (k , kpr₁ , kpr₂) =
+      Σ≡Prop (λ m → isProp× (StoneCat .Category.isSetHom _ _) (StoneCat .Category.isSetHom _ _))
+        (cong (SpFunctor .F-hom) (sym k-lift≡h) ∙ k-eq)
+      where
+        f₁' : BoolHom (fst Z) (fst X)
+        f₁' = invIsEq (ff Z X) f₁
+        f₂' : BoolHom (fst Z) (fst Y)
+        f₂' = invIsEq (ff Z Y) f₂
+        h : BoolHom (fst Z) (fst X ×BR fst Y)
+        h = ⟨ fst X , fst Y ⟩BR f₁' f₂'
+        k-lift : BoolHom (fst Z) (fst (×BR-Booleω X Y))
+        k-lift = invIsEq (ff Z (×BR-Booleω X Y)) k
+        k-eq : SpFunctor .F-hom k-lift ≡ k
+        k-eq = secIsEq (ff Z (×BR-Booleω X Y)) k
+
+        k-pr₁-lift : pr₁-BR (fst X) (fst Y) ∘cr k-lift ≡ f₁'
+        k-pr₁-lift = Sp-inj
+          (SpFunctor .F-seq k-lift (pr₁-BR (fst X) (fst Y))
+           ∙ cong (λ m → StoneCat .Category._⋆_ m _) k-eq
+           ∙ kpr₁ ∙ sym (secIsEq (ff Z X) f₁))
+
+        k-pr₂-lift : pr₂-BR (fst X) (fst Y) ∘cr k-lift ≡ f₂'
+        k-pr₂-lift = Sp-inj
+          (SpFunctor .F-seq k-lift (pr₂-BR (fst X) (fst Y))
+           ∙ cong (λ m → StoneCat .Category._⋆_ m _) k-eq
+           ∙ kpr₂ ∙ sym (secIsEq (ff Z Y) f₂))
+
+        k-lift≡h : k-lift ≡ h
+        k-lift≡h = ⟨,⟩BR-unique (fst X) (fst Y) (fst Z) f₁' f₂'
+                     k-lift k-pr₁-lift k-pr₂-lift
+
+  StoneCat-BinProducts : BinProducts StoneCat
+  StoneCat-BinProducts X Y .BinProduct.binProdOb = ×BR-Booleω X Y
+  StoneCat-BinProducts X Y .BinProduct.binProdPr₁ =
+    SpFunctor .F-hom (pr₁-BR (fst X) (fst Y))
+  StoneCat-BinProducts X Y .BinProduct.binProdPr₂ =
+    SpFunctor .F-hom (pr₂-BR (fst X) (fst Y))
+  StoneCat-BinProducts X Y .BinProduct.univProp {z = Z} f₁ f₂ =
+    exists X Y Z f₁ f₂ , unique X Y Z f₁ f₂

@@ -1,0 +1,103 @@
+{-# OPTIONS --cubical --guardedness --lossy-unification #-}
+module AntiEquivalence.Products where
+
+-- StoneCat has binary products (transferred from BooleωCat)
+
+open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.Equiv
+open import Cubical.Foundations.HLevels
+open import Cubical.Data.Sigma
+
+open import Cubical.Algebra.CommRing
+open import Cubical.Algebra.BooleanRing
+
+open import Cubical.Categories.Category.Base
+open import Cubical.Categories.Category
+open import Cubical.Categories.Functor
+open import Cubical.Categories.Limits.BinProduct
+
+open import CategoryTheory.StuffFromStoneAboutBAs
+open import BooleanRing.BooleanRingMaps
+open import BooleanRing.Products
+open import StoneSpaces.Spectrum
+open import Axioms.StoneDuality
+open import CountablyPresentedBooleanRings.Definitions
+
+open Functor
+
+postulate
+  Booleω-closed-×BR : (A B : Booleω) → is-countably-presented-alt (fst A ×BR fst B)
+
+×BR-Booleω : Booleω → Booleω → Booleω
+×BR-Booleω (A , cpA) (B , cpB) = (A ×BR B) , Booleω-closed-×BR (A , cpA) (B , cpB)
+
+module StoneCatProducts (SD : StoneDualityAxiom) where
+  abstract
+    private
+      ff : isFullyFaithful SpFunctor
+      ff = SpFullyFaithful SD
+
+      Sp-inj : {A B : BooleωCat .Category.ob} {f g : BoolHom (fst A) (fst B)} →
+        SpFunctor .F-hom f ≡ SpFunctor .F-hom g → f ≡ g
+      Sp-inj {A} {B} {f} {g} p =
+        sym (retIsEq (ff A B) f) ∙ cong (invIsEq (ff A B)) p ∙ retIsEq (ff A B) g
+
+    StoneCat-BinProducts : BinProducts StoneCat
+    StoneCat-BinProducts X Y .BinProduct.binProdOb = ×BR-Booleω X Y
+    StoneCat-BinProducts X Y .BinProduct.binProdPr₁ =
+      SpFunctor .F-hom (pr₁-BR (fst X) (fst Y))
+    StoneCat-BinProducts X Y .BinProduct.binProdPr₂ =
+      SpFunctor .F-hom (pr₂-BR (fst X) (fst Y))
+    StoneCat-BinProducts X Y .BinProduct.univProp {z = Z} f₁ f₂ =
+      (SpFunctor .F-hom h-lift , h-pr₁ , h-pr₂) , uniq
+      where
+        f₁-lift : BoolHom (fst Z) (fst X)
+        f₁-lift = invIsEq (ff Z X) f₁
+        f₂-lift : BoolHom (fst Z) (fst Y)
+        f₂-lift = invIsEq (ff Z Y) f₂
+        f₁-eq : SpFunctor .F-hom f₁-lift ≡ f₁
+        f₁-eq = secIsEq (ff Z X) f₁
+        f₂-eq : SpFunctor .F-hom f₂-lift ≡ f₂
+        f₂-eq = secIsEq (ff Z Y) f₂
+        h-lift : BoolHom (fst Z) (fst X ×BR fst Y)
+        h-lift = ⟨ fst X , fst Y ⟩BR f₁-lift f₂-lift
+
+        h-pr₁ : StoneCat .Category._⋆_ (SpFunctor .F-hom h-lift) (SpFunctor .F-hom (pr₁-BR (fst X) (fst Y))) ≡ f₁
+        h-pr₁ = sym (SpFunctor .F-seq h-lift (pr₁-BR (fst X) (fst Y)))
+                 ∙ cong (SpFunctor .F-hom) (⟨,⟩BR-pr₁ (fst X) (fst Y) (fst Z) f₁-lift f₂-lift)
+                 ∙ f₁-eq
+        h-pr₂ : StoneCat .Category._⋆_ (SpFunctor .F-hom h-lift) (SpFunctor .F-hom (pr₂-BR (fst X) (fst Y))) ≡ f₂
+        h-pr₂ = sym (SpFunctor .F-seq h-lift (pr₂-BR (fst X) (fst Y)))
+                 ∙ cong (SpFunctor .F-hom) (⟨,⟩BR-pr₂ (fst X) (fst Y) (fst Z) f₁-lift f₂-lift)
+                 ∙ f₂-eq
+
+        uniq : (other : Σ _ (λ k → (StoneCat .Category._⋆_ k (SpFunctor .F-hom (pr₁-BR (fst X) (fst Y))) ≡ f₁)
+                                  × (StoneCat .Category._⋆_ k (SpFunctor .F-hom (pr₂-BR (fst X) (fst Y))) ≡ f₂))) →
+          (SpFunctor .F-hom h-lift , h-pr₁ , h-pr₂) ≡ other
+        uniq (k , kpr₁ , kpr₂) =
+          Σ≡Prop (λ m → isProp× (StoneCat .Category.isSetHom _ _) (StoneCat .Category.isSetHom _ _))
+            k≡h
+          where
+            k-lift : BoolHom (fst Z) (fst (×BR-Booleω X Y))
+            k-lift = invIsEq (ff Z (×BR-Booleω X Y)) k
+            k-eq : SpFunctor .F-hom k-lift ≡ k
+            k-eq = secIsEq (ff Z (×BR-Booleω X Y)) k
+
+            k-pr₁-lift : pr₁-BR (fst X) (fst Y) ∘cr k-lift ≡ f₁-lift
+            k-pr₁-lift = Sp-inj
+              (SpFunctor .F-seq k-lift (pr₁-BR (fst X) (fst Y))
+               ∙ cong (λ m → StoneCat .Category._⋆_ m _) k-eq
+               ∙ kpr₁ ∙ sym f₁-eq)
+
+            k-pr₂-lift : pr₂-BR (fst X) (fst Y) ∘cr k-lift ≡ f₂-lift
+            k-pr₂-lift = Sp-inj
+              (SpFunctor .F-seq k-lift (pr₂-BR (fst X) (fst Y))
+               ∙ cong (λ m → StoneCat .Category._⋆_ m _) k-eq
+               ∙ kpr₂ ∙ sym f₂-eq)
+
+            k-lift≡h : k-lift ≡ h-lift
+            k-lift≡h = ⟨,⟩BR-unique (fst X) (fst Y) (fst Z) f₁-lift f₂-lift
+                         k-lift k-pr₁-lift k-pr₂-lift
+
+            k≡h : SpFunctor .F-hom h-lift ≡ k
+            k≡h = cong (SpFunctor .F-hom) (sym k-lift≡h) ∙ k-eq

@@ -1,0 +1,22 @@
+CHANGES0006: AntiEquivalence.agda SpProduct-Iso roundtrip proofs
+
+Summary:
+- Filled both holes in SpProduct-Iso (sec and ret roundtrips)
+- Refactored Sp-prod-to-sum to use explicit Bool pattern match via helper `go`
+  instead of `with xor-true-left ...` (easier to reason about)
+- Added helper lemmas:
+  - derive-right-true: γ(1,0) = false → γ(0,1) = true
+  - derive-left-true: γ(0,1) = false → γ(1,0) = true
+  - left-true→right-false: γ(1,0) = true → γ(0,1) = false
+  - right-true→left-false: γ(0,1) = true → γ(1,0) = false
+  - pair-split: (a,b) = (a,0) + (0,b) in A×B
+  - decompose-left: γ(1,0) = true → γ(a,0) = γ(a,b)
+  - decompose-right: γ(0,1) = true → γ(0,b) = γ(a,b)
+- sec proof uses cubical `inspect` pattern to handle with-abstraction
+- ret proof uses decomposition lemmas
+- Imported ⊕-identityʳ, notnot, ⊕-comm from Cubical.Data.Bool.Properties
+- File compiles (quick check passed, full verification running)
+
+Remaining in AntiEquivalence.agda:
+- 1 postulate: Booleω-closed-×BR
+- 0 holes (was 2, now filled!)

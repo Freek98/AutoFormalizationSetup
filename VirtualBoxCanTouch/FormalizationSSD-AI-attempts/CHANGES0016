@@ -1,0 +1,11 @@
+CHANGES0016: NormalForms.agda — quotient-level helpers added (457 lines, was 425)
+
+Added QuotientSurjectivity module:
+- cnfSurjQuotient: For any surjection q : freeBA A ↠ B, every element of B
+  has a CNF representative. Uses cnfSurj + surjectivity of q.
+- dnfSurjQuotient: Same for DNF.
+
+These helpers make it easy to apply CNF/DNF normal forms to quotient Boolean
+algebras (like NFinCofin's presentation = freeBA ℕ /Im relationsℕ).
+
+No postulates. File compiles successfully.

@@ -1,0 +1,20 @@
+CHANGES0007: AntiEquivalence.agda — initial/terminal objects, postulate elimination
+
+Changes from bck0006 (455 lines) to bck0007 (539 lines):
+- Line increase justified: added new results, no work lost
+
+New results:
+1. BACat-Initial: BoolBR is initial in BACat (using cubical library BoolBR→)
+2. BooleωCat-Initial: BoolBR is initial in BooleωCat
+3. StoneCat-Initial: BoolBR is initial in StoneCat (via FF transfer)
+4. BACat-Terminal: trivialBooleanRing is terminal in BACat
+5. BooleωCat-Terminal: UnitCP is terminal in BooleωCat
+6. StoneCat-Terminal: TrivBR-Booleω is terminal in StoneCat (via FF transfer)
+
+Postulate eliminated:
+- BoolBR-countably-presented → replaced by importing BoolCP from Examples.Bool
+
+Remaining postulate:
+- Booleω-closed-×BR (products preserve countable presentability)
+
+File status: compiling (quick check passed, full verification running)
