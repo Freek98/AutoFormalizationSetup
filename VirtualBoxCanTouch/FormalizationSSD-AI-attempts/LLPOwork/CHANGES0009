@@ -1,0 +1,25 @@
+CHANGES0009: Extract EvenOdd library + refactor LLPO to use it
+
+New file: EvenOdd.agda (391 lines)
+- Self-contained even/odd library with multiple interfaces:
+  - Parity data type (even k / odd k constructors)
+  - Sigma witnesses: Even n, Odd n (using double), Even+ n, Odd+ n, Odd+' n (using +)
+  - Bool-valued: isEven/isOdd with full conversion suite
+- Core functions: double, half, with round-trip lemmas
+- Conversions between all interfaces
+- Decidability (even-or-odd), mutual exclusion (not-Even-and-Odd)
+- Parity of addition (Even+Even→Even, etc.)
+- Convenience eliminators (parityElim, parityRec, evenOddElim)
+
+Refactored: LLPO.agda (1330 → 1270 lines, -60 lines)
+- Removed inline even/odd definitions (double, half, isEven-double, etc.)
+- Removed inline even→eq, odd→eq proofs
+- Added import of LLPOwork.EvenOdd with renaming for backward compatibility:
+  isEven-suc-double → isOdd-double+1, double-half-even → double-half,
+  suc-double-half-odd → suc-double-half, half-suc-double → half-double+1
+- All existing code unchanged; only the import source changed
+- Both files compile successfully, zero postulates, zero holes
+
+The 60-line decrease in LLPO.agda is accounted for by the extracted definitions
+now living in EvenOdd.agda (which contains those plus many additional results).
+No useful work was removed.

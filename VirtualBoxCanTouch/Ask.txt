@@ -1,16 +1,5 @@
-❯ Okay but now you use your old work for this extension property. I want you   
-  to *refactor* the proof of the equivlanece. I'm okay if you delete your own   
-  old work (and maybe even mine, don't worry I've backed it all up where you    
-  can't touch it). I want the resulting proof for the presentation being        
-  correct to be as short and quickly compiling as possible. (without using      
-  postulates of course).       
-
-
-❯ Rewrite the LLPO files using the new NfinCofinPresentation. This should make  
-it easier to follow the proof in the paper.   
-
-❯ In this folder, you have a folder called Library which is a copy of           
-/FormalizationSSD which you have mounted. Instead of a copy, I would like to    
-have each file symlinked (you are on a virtual machine and these files change   
-on the host.) Furthermore, I want a bash file that creates new symlinks if I    
-add files to the /FormalizationSSD library. Can you fix this?
+ okay but then make it so that LLPO uses those key results instead of you     
+  having to reproof it. You should always (put this in your CLAUDE.md file)     
+  first search work that's already done, be it in the cubical library on the    
+  formalizationSSD library or the work you have already done. All of these are  
+  local sources, so you don't even have to go online.      

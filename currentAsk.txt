@@ -327,3 +327,42 @@ me, and make sure you always work in this manner.
   ❯ great thanks, I'll look at it later, but for now I want you to make a file    
   about the anti-equivalence seperate and include the results on products       
   there. So continue working on the category theory aspect while I'm away.
+
+
+❯ Rewrite the LLPO files using the new NfinCofinPresentation. This should make  
+it easier to follow the proof in the paper.   
+
+  ❯ I would like you to write some basic results on countability, containing the  
+  following results: If A , B are countable, then so are A X B and A + B        
+  (hint use Data.Nat.Bijections), and if P : A -> Bool, then \Sigma{ a \in A }  
+  P(a) = true is countable. Write these in a file called                        
+  Countable.Properties. You can find the definition of countability in /FormalizationSSD/BasicDefinitions. 
+  ❯ great, some minor comments: I see you use PT.rec squash\1 a lot, have you     
+considered using PT.map instead? this would be cleaner. Furthermore, I've       
+changed something you called sum to \uplus.rec. Finally, I don't want to expose 
+ boolGuard, and therefore put it in a private module                            
+
+❯ Okay I also think you should scan for things already used in the             
+  Cubical.Data.Bool.Properties file, (and-zero is there with a left and a       
+  right variant for exampple, which is what you're now doing yourself). Also,   
+  rename the anonymous modules, I'm not sure I want to expose them unless the   
+  user asks for it.
+
+
+❯ okay I see. There is also some even and odd functionality in                 
+  Cubical.Data.Nat.Properties. I want something more accessible. Write a        
+  library for even and odd with all the results you would expect about even     
+  and odd numbers. In particular, I want the results that if a number is even,  
+  then it's of the form n+n, and the converse, and a similar statements for     
+  odd numbers (only then for n + n + 1). I might want many interfaces for       
+  this, so write all of them. I'm not sure which is most convenient for me      
+  yet.
+
+  /btw that library is actually good enough thanks, didn't spot IsEven
+
+ okay but then make it so that LLPO uses those key results instead of you     
+  having to reproof it. You should always (put this in your CLAUDE.md file)     
+  first search work that's already done, be it in the cubical library on the    
+  formalizationSSD library or the work you have already done. All of these are  
+  local sources, so you don't even have to go online.      
+

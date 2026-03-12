@@ -48,13 +48,6 @@ open import BooleanRing.BoolAlgMorphism
 open import BooleanRing.BooleanRingMaps
 open import CountablyPresentedBooleanRings.Definitions
 open import CountablyPresentedBooleanRings.Examples.NFinCofin
-
-open import LLPOwork.EvenOdd
-  renaming ( isEven-suc-double to isOdd-double+1
-           ; double-half-even to double-half
-           ; suc-double-half-odd to suc-double-half
-           ; half-suc-double to half-double+1
-           )
 open import StoneSpaces.Spectrum
 open import Axioms.SurjectionsAreFormalSurjections
 
@@ -157,7 +150,45 @@ private
 gB∞ : ℕ → ⟨ B∞ ⟩
 gB∞ n = fst π (generator n)
 
--- Even/odd splitting: imported from LLPOwork.EvenOdd
+-- Even/odd splitting
+double : ℕ → ℕ
+double zero = zero
+double (suc n) = suc (suc (double n))
+
+half : ℕ → ℕ
+half zero = zero
+half (suc zero) = zero
+half (suc (suc n)) = suc (half n)
+
+-- isEven/isOdd from Cubical.Data.Nat: isEven 0 = true, isEven (suc n) = isOdd n
+-- isOdd 0 = false, isOdd (suc n) = isEven n
+-- So: isEven (suc (suc n)) = isEven n
+
+isEven-double : (k : ℕ) → isEven (double k) ≡ true
+isEven-double zero = refl
+isEven-double (suc k) = isEven-double k
+
+isOdd-double+1 : (k : ℕ) → isEven (suc (double k)) ≡ false
+isOdd-double+1 zero = refl
+isOdd-double+1 (suc k) = isOdd-double+1 k
+
+half-double : (k : ℕ) → half (double k) ≡ k
+half-double zero = refl
+half-double (suc k) = cong suc (half-double k)
+
+double-half : (n : ℕ) → isEven n ≡ true → double (half n) ≡ n
+double-half zero _ = refl
+double-half (suc zero) p = ex-falso (false≢true p)
+double-half (suc (suc n)) p = cong (suc ∘ suc) (double-half n p)
+
+suc-double-half : (n : ℕ) → isEven n ≡ false → suc (double (half n)) ≡ n
+suc-double-half zero p = ex-falso (true≢false p)
+suc-double-half (suc zero) _ = refl
+suc-double-half (suc (suc n)) p = cong (suc ∘ suc) (suc-double-half n p)
+
+half-double+1 : (k : ℕ) → half (suc (double k)) ≡ k
+half-double+1 zero = refl
+half-double+1 (suc k) = cong suc (half-double+1 k)
 
 -- Define interleave-gen using explicit even/odd index construction.
 -- For even n = double(k): (𝟘, gB∞(k))
@@ -221,6 +252,35 @@ interleave-gen : ℕ → ⟨ B∞×B∞ ⟩
 interleave-gen n with isEven n
 ... | true  = evenGen (half n)
 ... | false = oddGen (half n)
+
+-- Reconstruct n from parity and half
+-- We need: if isEven n = isEven m and half n = half m, then n = m
+-- This is used to derive contradiction from half-equality.
+-- If isEven n = true and isEven m = true and half n = half m, then n = m
+-- Proof by induction on n and m simultaneously
+even→eq : (n m : ℕ) → isEven n ≡ true → isEven m ≡ true → half n ≡ half m → n ≡ m
+even→eq zero zero _ _ _ = refl
+even→eq zero (suc zero) _ em _ = ex-falso (false≢true em)
+even→eq zero (suc (suc m)) en em hq = ex-falso (znots hq)
+even→eq (suc zero) zero en _ _ = ex-falso (false≢true en)
+even→eq (suc zero) (suc _) en _ _ = ex-falso (false≢true en)
+even→eq (suc (suc n)) zero en em hq = ex-falso (snotz hq)
+even→eq (suc (suc n)) (suc zero) _ em _ = ex-falso (false≢true em)
+even→eq (suc (suc n)) (suc (suc m)) en em hq = cong (suc ∘ suc) (even→eq n m en em (suc-inj hq))
+  where
+    suc-inj : {a b : ℕ} → suc a ≡ suc b → a ≡ b
+    suc-inj p = cong predℕ p
+
+odd→eq : (n m : ℕ) → isEven n ≡ false → isEven m ≡ false → half n ≡ half m → n ≡ m
+odd→eq zero _ en _ _ = ex-falso (true≢false en)
+odd→eq _ zero _ em _ = ex-falso (true≢false em)
+odd→eq (suc zero) (suc zero) _ _ _ = refl
+odd→eq (suc zero) (suc (suc m)) en em hq = ex-falso (znots hq)
+odd→eq (suc (suc n)) (suc zero) en em hq = ex-falso (snotz hq)
+odd→eq (suc (suc n)) (suc (suc m)) en em hq = cong (suc ∘ suc) (odd→eq n m en em (suc-inj hq))
+  where
+    suc-inj : {a b : ℕ} → suc a ≡ suc b → a ≡ b
+    suc-inj p = cong predℕ p
 
 -- Orthogonality of interleave-gen
 import Agda.Builtin.Equality as BEq
