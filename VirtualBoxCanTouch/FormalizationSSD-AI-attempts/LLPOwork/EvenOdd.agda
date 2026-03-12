@@ -389,3 +389,22 @@ evenOddElim : ∀ {ℓ} {A : ℕ → Type ℓ}
 evenOddElim fe fo n with even-or-odd n
 ... | inl e = fe n e
 ... | inr o = fo n o
+
+-- Computation rules for evenOddElim
+evenOddElim-even : ∀ {ℓ} {A : ℕ → Type ℓ}
+  → (fe : (n : ℕ) → Even n → A n)
+  → (fo : (n : ℕ) → Odd n → A n)
+  → (k : ℕ)
+  → evenOddElim fe fo (double k) ≡ fe (double k) (Even-double k)
+evenOddElim-even fe fo k with even-or-odd (double k)
+... | inl e = cong (fe (double k)) (Σ≡Prop (λ j → isSetℕ _ _) (Even-unique e (Even-double k)))
+... | inr o = ⊥.rec (¬Even∧Odd (Even-double k) o)
+
+evenOddElim-odd : ∀ {ℓ} {A : ℕ → Type ℓ}
+  → (fe : (n : ℕ) → Even n → A n)
+  → (fo : (n : ℕ) → Odd n → A n)
+  → (k : ℕ)
+  → evenOddElim fe fo (suc (double k)) ≡ fo (suc (double k)) (Odd-suc-double k)
+evenOddElim-odd fe fo k with even-or-odd (suc (double k))
+... | inl e = ⊥.rec (¬Even∧Odd e (Odd-suc-double k))
+... | inr o = cong (fo (suc (double k))) (Σ≡Prop (λ j → isSetℕ _ _) (Odd-unique o (Odd-suc-double k)))

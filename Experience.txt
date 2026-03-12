@@ -1,10 +1,12 @@
 This file is for me to seperate out some experiences in using claude. There are different kinds of uses. I will try jot them down when I encounter them, and if there's interest I'll try to work them out at some point. 
 
 - Boilerplate code writing (example derive CommRingHom from \neg \wedge), good
+- Another  example of this is the evenAndOdd library it wrote, which contains many formulations of the result I want, so I can pick the nicest one for my purposes (for example, an eliminator for functions defined on odd or even numbers. What makes this example different is that I didn't know what I wanted beforehand. 
 - looking up definitions (where was the function stating that two props are equal if they are equivalent?) quickly. Not sure if it's quicker if you know the code better, but useful for cubical library for me. 
-- Formalizing the paper, really depends on how detailed the original proof was.
+- Formalizing the paper, really depends on how detailed the original proof was. Not all of it is readable to me (and some of it relied on postulates that show misunderstanding). 
+- At some point, it had an LLPO proof that was typechecked and contained no postulates, but I couldn't follow it. It's good to realize it can be done, and my task is only to organize it now, but in principle the thing I want can be done. 
 - Filling in holes, not sure yet, it needed some assistence for NFinCofin presentation. But also that was brute force work and would have taken ages for me. 
 - If I have myself done some instances for a general proof (but was to stupid to realize it / didn't see the forest trough the trees) then it could do the general thing if I prompt it to. Similarly, it was good with doing plumbing. 
 
 Tips from Thierry:
-- Have a high-level conversation with LLM and let that LLM write the prompts to give to the coding AI. 
+- Have a high-level conversation with LLM and let that LLM write the prompts to give to the coding AI. This lead to the first LLPO attempt. 
