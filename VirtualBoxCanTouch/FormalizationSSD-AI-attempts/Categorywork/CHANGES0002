@@ -1,0 +1,10 @@
+Cleanup: replaced manual UnitBR definition with reuse of existing infrastructure.
+
+- UnitBR now defined as `idemCommRing→BR UnitCommRing (λ _ → refl)`,
+  reusing UnitCommRing from Cubical.Algebra.CommRing.Instances.Unit
+- Terminal object now uses `mapToUnitCommRing` and `isPropMapToUnitCommRing`
+  from the same module
+- Removed unnecessary imports (Monoid, Semigroup, AbGroup, Group)
+- Added import for Cubical.Algebra.CommRing.Instances.Unit
+
+File is ~50 lines shorter. Compiles in ~4s.

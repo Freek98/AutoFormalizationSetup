@@ -384,3 +384,21 @@ changed something you called sum to \uplus.rec. Finally, I don't want to expose
   presented. Try to have a witness for everything in the skeleton code. Don't   
   ask me for any permissions, I will be asleep and will check your work         
   tomorrow.                
+
+
+❯ Note that the category of commutative rings has limits, this has been shown  
+  in Cubical.Categories.Instances.CommRing. There's some unorganized results    
+  in FormalizationSSD.CategoryTheory on the category of Boolean rings. I want   
+  you to make a more organized file on the category of Boolean rings, and in    
+  particular show it has limits, following the structure of                     
+  Cubical.Categories.Instances.CommRing.     
+
+ I feel you could make more use of the commring library. For example, is
+  the underlying ring not just that of the underlying commutative ring?         
+
+❯ Sorry I think this is a distraction. The only thing I actually care about    
+  now is that if B , C are BooleanRing, and the product is defined by xBR,      
+  then if B , C are countably presented (is-countably-presented, not the alt    
+  version), then so is B xBR C. I want a proof of that fact.     
+❯ this work is not good. It refers to CountablyPresentedBooleanRings.ProductClosure, which I cannot follow at all     
+(and I think I didn't write it and I don't want you to write in that directory). It should be more elegant    

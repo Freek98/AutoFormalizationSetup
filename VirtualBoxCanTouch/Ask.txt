@@ -1,14 +1,4 @@
-──────────────────────────────────────────────────────────────────────────────
-❯ Okay I have now made a new skeleton for an LLPO proof in                     
-  FormalizationSSD/OmnisciencePrinicples/LLPO. I'm not extremely happy with     
-  the names, and would have liked to work more on the skeleton, but I'm sleepy  
-  and you don't need sleep. So try to see if you can rework LLPO and stick a    
-  little bit more to the function requiremeents in that skeleton. Some of the   
-  Isos should be true by reflexivity, and instead of this presentation we took  
-  before, make use of the equivalent version of being countably presented and   
-  the countability library to prove that \Sigma[ m,n in N x N] m \neq n is      
-  countable to get a nicer presentation of Binfty. Work more abstractly! Prove  
-  that the product of countably presented Boolean rings is countably            
-  presented. Try to have a witness for everything in the skeleton code. Don't   
-  ask me for any permissions, I will be asleep and will check your work         
-  tomorrow.                
+❯ this work is not good. It refers to                                           
+CountablyPresentedBooleanRings.ProductClosure, which I cannot follow at all     
+(and I think I didn't write it and I don't want you to write in that            
+directory). It should be more elegant    

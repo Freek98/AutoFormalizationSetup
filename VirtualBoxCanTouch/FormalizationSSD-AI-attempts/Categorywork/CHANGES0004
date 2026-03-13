@@ -1,0 +1,11 @@
+Added proof that is-countably-presented is closed under binary products (×BR).
+
+- New imports: BooleanRing.Products, CountablyPresentedBooleanRings.Definitions,
+  EquivalenceOfCountablyPresentedDefinitions, ProductClosure
+- New theorem: is-countably-presented-closed-×BR
+  Given B, C : BooleanRing with is-countably-presented B and is-countably-presented C,
+  proves is-countably-presented (B ×BR C).
+  Strategy: convert to is-countably-presented-alt via countably-presented-equivalence,
+  apply existing Booleω-closed-×BR, convert back.
+
+File grew from 255 to 280 lines (25 lines added).

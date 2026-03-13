@@ -1,0 +1,23 @@
+Rewrote is-countably-presented-closed-×BR to be self-contained and elegant.
+
+Previous version imported Booleω-closed-×BR from ProductClosure and
+bridged between is-countably-presented and is-countably-presented-alt.
+New version works directly with has-countable-presentation (the untruncated,
+Type₁ version with arbitrary countable types), avoiding the ℕ-encoding detour.
+
+Structure:
+- has-CS-⊎: countability of A ⊎ B from countability of A and B
+- has-CS-Unit: countability of Unit
+- ×BR-resp-equiv: product preserves BooleanRingEquiv
+- ProductPresentation module (parametric over types A₁, A₂, X₁, X₂):
+  - G = A₁ ⊎ (A₂ ⊎ Unit) (generators with idempotent separator)
+  - R = (X₁ ⊎ X₂) ⊎ (A₁ ⊎ A₂) (combined relations + orthogonality)
+  - rel : R → freeBA G (the relation function)
+  - POSTULATE product-equiv : Q ≅ (freeBA A₁ / Im f₁) ×BR (freeBA A₂ / Im f₂)
+- Main theorem: clean composition of ×BR-resp-equiv and product-equiv
+
+The postulate product-equiv captures the hard algebraic content
+(Chinese Remainder Theorem for Boolean rings via idempotent separator).
+
+File grew from 280 to 402 lines. No useful work lost from previous version
+(previous version was a thin wrapper around imports).

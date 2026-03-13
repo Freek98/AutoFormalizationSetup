@@ -1,0 +1,26 @@
+Initial version of organized BooleanRingsCategory file.
+
+Following the structure of Cubical.Categories.Instances.CommRings, defines:
+
+1. BooleanRingsCategory - universe-polymorphic category of Boolean rings
+   (objects: BooleanRing ℓ, morphisms: BoolHom = CommRingHom on underlying CommRings)
+
+2. ForgetfulBooleanRing→Set - forgetful functor to SET
+
+3. BoolRingIsoIsoCatIso - Iso between BoolRingEquiv and CatIso
+
+4. isUnivalentBooleanRingsCategory₀ - univalence (at ℓ-zero)
+   Uses J-based approach from StuffFromStoneAboutBAs
+
+5. TerminalBooleanRing - terminal object (Unit with trivial BR structure)
+
+6. Fibered product of Boolean rings - lifts CommRing fibered product
+   by proving idempotency holds componentwise
+
+7. PullbackBooleanRingsCategory - pullbacks via fibered product
+
+8. LimitsBooleanRingsCategory - general limits
+   Takes limit in SET via forgetful functor, equips with pointwise
+   BooleanRing structure (0, 1, +, ·, -, CommRing axioms + idempotency)
+
+All definitions compile and type-check successfully.

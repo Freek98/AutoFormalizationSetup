@@ -1,0 +1,255 @@
+{-# OPTIONS --cubical --guardedness --lossy-unification #-}
+module Categorywork.work where
+
+open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.Function
+open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Equiv
+open import Cubical.Foundations.Structure
+open import Cubical.Foundations.Isomorphism
+
+open import Cubical.Data.Unit
+open import Cubical.Data.Sigma
+
+open import Cubical.Algebra.Ring
+open import Cubical.Algebra.CommRing
+open import Cubical.Algebra.CommRing.Properties using (_∘cr_)
+open import Cubical.Algebra.CommRing.Univalence
+open import Cubical.Algebra.CommRing.FiberedProduct
+open import Cubical.Algebra.BooleanRing
+
+open import Cubical.Categories.Category
+open import Cubical.Categories.Functor
+open import Cubical.Categories.Instances.Sets
+open import Cubical.Categories.Instances.CommRings using (CommRingsCategory ; LimitsCommRingsCategory)
+open import Cubical.Categories.Limits.Terminal
+open import Cubical.Categories.Limits.Pullback
+open import Cubical.Categories.Limits.Limits
+
+open import Cubical.HITs.PropositionalTruncation
+
+open import Cubical.Algebra.CommRing.Instances.Unit
+
+open import BooleanRing.BoolRingUnivalence
+open import BooleanRing.BooleanRingMaps
+
+open Category hiding (_∘_)
+open isUnivalent
+open isIso
+open Functor
+open BooleanRingStr
+open IsCommRingHom
+
+private
+  variable
+    ℓ ℓ' ℓ'' : Level
+
+-- ═══════════════════════════════════════════════════════════════
+-- Unit Boolean ring (terminal object carrier)
+-- ═══════════════════════════════════════════════════════════════
+
+UnitBR : BooleanRing ℓ-zero
+UnitBR = idemCommRing→BR UnitCommRing (λ _ → refl)
+
+-- ═══════════════════════════════════════════════════════════════
+-- The category of Boolean rings
+-- ═══════════════════════════════════════════════════════════════
+
+BooleanRingsCategory : Category (ℓ-suc ℓ) ℓ
+ob (BooleanRingsCategory {ℓ})     = BooleanRing ℓ
+Hom[_,_] BooleanRingsCategory     = BoolHom
+id BooleanRingsCategory {R}       = idBoolHom R
+_⋆_ BooleanRingsCategory f g      = g ∘cr f
+⋆IdL BooleanRingsCategory _       = CommRingHom≡ refl
+⋆IdR BooleanRingsCategory _       = CommRingHom≡ refl
+⋆Assoc BooleanRingsCategory _ _ _ = CommRingHom≡ refl
+isSetHom BooleanRingsCategory     = isSetCommRingHom _ _
+
+-- ═══════════════════════════════════════════════════════════════
+-- Forgetful functor to Set
+-- ═══════════════════════════════════════════════════════════════
+
+ForgetfulBooleanRing→Set : Functor (BooleanRingsCategory {ℓ}) (SET ℓ)
+F-ob ForgetfulBooleanRing→Set R    = R .fst , is-set (snd R)
+F-hom ForgetfulBooleanRing→Set f x = f .fst x
+F-id ForgetfulBooleanRing→Set      = funExt (λ _ → refl)
+F-seq ForgetfulBooleanRing→Set f g = funExt (λ _ → refl)
+
+-- ═══════════════════════════════════════════════════════════════
+-- Forgetful functor to CommRings
+-- ═══════════════════════════════════════════════════════════════
+
+ForgetfulBooleanRing→CommRing : Functor (BooleanRingsCategory {ℓ}) CommRingsCategory
+F-ob ForgetfulBooleanRing→CommRing  = BooleanRing→CommRing
+F-hom ForgetfulBooleanRing→CommRing = idfun _
+F-id ForgetfulBooleanRing→CommRing  = CommRingHom≡ refl
+F-seq ForgetfulBooleanRing→CommRing _ _ = CommRingHom≡ refl
+
+-- ═══════════════════════════════════════════════════════════════
+-- BooleanRing isomorphisms ↔ categorical isomorphisms
+-- ═══════════════════════════════════════════════════════════════
+
+open Iso
+
+module _ {R S : BooleanRing ℓ} where
+  private
+    R' = BooleanRing→CommRing R
+    S' = BooleanRing→CommRing S
+
+  BoolRingIsoIsoCatIso : Iso (BoolRingEquiv R S) (CatIso BooleanRingsCategory R S)
+  -- forward: equiv → cat iso
+  fun BoolRingIsoIsoCatIso ((f , fEqu) , fHom) .fst = f , fHom
+  fun BoolRingIsoIsoCatIso ((f , fEqu) , fHom) .snd .inv =
+    invEq (f , fEqu) , invCommRingEquiv R' S' ((f , fEqu) , fHom) .snd
+  fun BoolRingIsoIsoCatIso ((f , fEqu) , fHom) .snd .sec =
+    CommRingHom≡ (funExt (secEq (f , fEqu)))
+  fun BoolRingIsoIsoCatIso ((f , fEqu) , fHom) .snd .ret =
+    CommRingHom≡ (funExt (retEq (f , fEqu)))
+  -- backward: cat iso → equiv
+  fst (inv BoolRingIsoIsoCatIso e) =
+    isoToEquiv (iso (e .fst .fst) (e .snd .inv .fst)
+                    (λ x i → fst (e .snd .sec i) x)
+                    (λ x i → fst (e .snd .ret i) x))
+  snd (inv BoolRingIsoIsoCatIso e) = e .fst .snd
+  -- roundtrips
+  sec BoolRingIsoIsoCatIso x = CatIso≡ _ _ (CommRingHom≡ refl)
+  ret BoolRingIsoIsoCatIso x =
+    Σ≡Prop (λ x → isPropIsCommRingHom
+                     (BooleanRingStr→CommRingStr (snd R))
+                     (fst x)
+                     (BooleanRingStr→CommRingStr (snd S)))
+           (Σ≡Prop isPropIsEquiv (funExt (λ _ → refl)))
+
+-- ═══════════════════════════════════════════════════════════════
+-- Univalence
+-- ═══════════════════════════════════════════════════════════════
+
+-- Univalence at level zero (matching existing infrastructure)
+private
+  pathToIsoDecomp' : (R S : BooleanRing ℓ-zero) → (R ≡ S) ≃ (CatIso BooleanRingsCategory R S)
+  pathToIsoDecomp' R S = compEquiv (invEquiv (BoolRingPath R S))
+                                   (isoToEquiv BoolRingIsoIsoCatIso)
+
+  pathToIsoDecompAtRefl' : (R : BooleanRing ℓ-zero) → fst (pathToIsoDecomp' R R) refl ≡ idCatIso
+  pathToIsoDecompAtRefl' R = CatIso≡ _ _
+    (CommRingHom≡ (BoolRingPathInvRefl≡Idfun R))
+
+  pathToIsoDecompIsDecomp' : (R S : BooleanRing ℓ-zero)
+    → pathToIso {x = R} {y = S} ≡ fst (pathToIsoDecomp' R S)
+  pathToIsoDecompIsDecomp' R S = funExt $
+    J (λ S' p → pathToIso {x = R} {y = S'} p ≡ fst (pathToIsoDecomp' R S') p)
+      (pathToIso-refl ∙ sym (pathToIsoDecompAtRefl' R))
+
+isUnivalentBooleanRingsCategory₀ : isUnivalent (BooleanRingsCategory {ℓ = ℓ-zero})
+isUnivalentBooleanRingsCategory₀ .univ R S =
+  subst isEquiv (sym (pathToIsoDecompIsDecomp' R S)) (snd (pathToIsoDecomp' R S))
+
+-- ═══════════════════════════════════════════════════════════════
+-- Terminal object
+-- ═══════════════════════════════════════════════════════════════
+
+TerminalBooleanRing : Terminal (BooleanRingsCategory {ℓ = ℓ-zero})
+fst TerminalBooleanRing = UnitBR
+fst (snd TerminalBooleanRing y) = mapToUnitCommRing (BooleanRing→CommRing y)
+snd (snd TerminalBooleanRing y) f = isPropMapToUnitCommRing (BooleanRing→CommRing y) _ f
+
+-- ═══════════════════════════════════════════════════════════════
+-- Fibered product of Boolean rings
+-- ═══════════════════════════════════════════════════════════════
+
+module _ (A B C : BooleanRing ℓ) (α : BoolHom A C) (β : BoolHom B C) where
+
+  private
+    A' = BooleanRing→CommRing A
+    B' = BooleanRing→CommRing B
+    C' = BooleanRing→CommRing C
+
+    -- The fibered product as a CommRing
+    fbCR : CommRing ℓ
+    fbCR = fiberedProduct A' B' C' α β
+
+  -- The fibered product is a BooleanRing (idempotency holds componentwise)
+  fiberedProductBR : BooleanRing ℓ
+  fiberedProductBR = idemCommRing→BR fbCR idem
+    where
+    idem : isIdemRing fbCR
+    idem ((a , b) , hab) = Σ≡Prop (λ _ → is-set (snd C) _ _)
+      (λ i → ·Idem (snd A) a i , ·Idem (snd B) b i)
+
+  fiberedProductBRPr₁ : BoolHom fiberedProductBR A
+  fiberedProductBRPr₁ = fiberedProductPr₁ A' B' C' α β
+
+  fiberedProductBRPr₂ : BoolHom fiberedProductBR B
+  fiberedProductBRPr₂ = fiberedProductPr₂ A' B' C' α β
+
+  fiberedProductBRPr₁₂Commutes :
+    compCommRingHom fiberedProductBRPr₁ α ≡ compCommRingHom fiberedProductBRPr₂ β
+  fiberedProductBRPr₁₂Commutes = fiberedProductPr₁₂Commutes A' B' C' α β
+
+  fiberedProductBRUnivProp :
+    (D : BooleanRing ℓ) (h : BoolHom D A) (k : BoolHom D B) →
+    compCommRingHom h α ≡ compCommRingHom k β →
+    ∃![ l ∈ BoolHom D fiberedProductBR ]
+        (h ≡ compCommRingHom l fiberedProductBRPr₁)
+      × (k ≡ compCommRingHom l fiberedProductBRPr₂)
+  fiberedProductBRUnivProp D h k H =
+    fiberedProductUnivProp A' B' C' α β (BooleanRing→CommRing D) h k H
+
+-- ═══════════════════════════════════════════════════════════════
+-- Pullbacks
+-- ═══════════════════════════════════════════════════════════════
+
+open Pullback
+
+PullbackBooleanRingsCategory : Pullbacks {ℓ-suc ℓ} BooleanRingsCategory
+pbOb (PullbackBooleanRingsCategory (cospan A C B α β))       =
+  fiberedProductBR A B C α β
+pbPr₁ (PullbackBooleanRingsCategory (cospan A C B α β))      =
+  fiberedProductBRPr₁ A B C α β
+pbPr₂ (PullbackBooleanRingsCategory (cospan A C B α β))      =
+  fiberedProductBRPr₂ A B C α β
+pbCommutes (PullbackBooleanRingsCategory (cospan A C B α β))  =
+  fiberedProductBRPr₁₂Commutes A B C α β
+univProp (PullbackBooleanRingsCategory (cospan A C B α β)) {d = D} =
+  fiberedProductBRUnivProp A B C α β D
+
+-- ═══════════════════════════════════════════════════════════════
+-- General limits
+-- ═══════════════════════════════════════════════════════════════
+
+module _ {ℓJ ℓJ' : Level} where
+
+  open LimCone
+  open Cone
+
+  private
+    theℓ = ℓ-max ℓJ ℓJ'
+
+  LimitsBooleanRingsCategory : Limits {ℓJ} {ℓJ'} (BooleanRingsCategory {ℓ = theℓ})
+  LimitsBooleanRingsCategory J D = limBR
+    where
+    -- The diagram in CommRings via the forgetful functor
+    D' = funcComp ForgetfulBooleanRing→CommRing D
+
+    -- The CommRing limit
+    limCR = LimitsCommRingsCategory J D'
+    limCRObj = lim limCR
+
+    -- The limit CommRing is idempotent, so it's a BooleanRing
+    limBRObj : BooleanRing theℓ
+    limBRObj = idemCommRing→BR limCRObj
+      (λ x → cone≡ (λ v → funExt (λ _ → ·Idem (snd (F-ob D v)) _)))
+
+    -- Convert a BooleanRing cone to a CommRing cone
+    brCone→crCone : ∀ {c} → Cone D c → Cone D' (BooleanRing→CommRing c)
+    coneOut (brCone→crCone cc) v = coneOut cc v
+    coneOutCommutes (brCone→crCone cc) e = coneOutCommutes cc e
+
+    limBR : LimCone D
+    -- The limit object
+    lim limBR = limBRObj
+    -- The limit cone (same projections as the CommRing limit)
+    coneOut (limCone limBR) v = coneOut (limCone limCR) v
+    coneOutCommutes (limCone limBR) e = coneOutCommutes (limCone limCR) e
+    -- Universal property (same as for the CommRing limit)
+    univProp limBR c cc = univProp limCR (BooleanRing→CommRing c) (brCone→crCone cc)
