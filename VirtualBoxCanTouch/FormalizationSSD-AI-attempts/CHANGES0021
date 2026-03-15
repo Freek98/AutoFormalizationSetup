@@ -1,0 +1,23 @@
+CHANGES0021 — Eliminated Q≃B postulate (backward direction now fully proven)
+
+Updated OvertlyDiscrete/BooleOmegaEquiv.agda (334 lines, COMPILES, 0 holes):
+- Eliminated Q≃B postulate by proving:
+  1. πQ-kills-ker: if ê(x) = 0, then πQ(x) = 0 in Q
+     (uses enumFreeBA surjectivity + openness of kernel membership +
+      pairing roundtrip to show rel(pair(k,j)) = x)
+  2. ê'-ker-trivial: if ê'(q) = 0, then q = 0 in Q
+     (quotient elimination + πQ-kills-ker + ê'-factor)
+  3. ê'-inj: ê' is injective
+     (uses equalByDifference from RingTheory + ê'-ker-trivial)
+  4. ê'-isEmb: ê' is an embedding
+     (uses injEmbedding from Cubical.Functions.Embedding)
+  5. ê'-isEquiv: ê' is an equivalence
+     (isEmbedding×isSurjection→isEquiv)
+  6. Q≃B: BooleanRingEquiv B Q
+     (invBooleanRingEquiv of the ê' equivalence)
+
+Remaining postulates: 1 (down from 3 originally)
+  - freeBA-quotient-eq-open: equality in freeBA ℕ /Im f is open
+    (requires decidable equality in freeBA ℕ + countability of ideal witnesses)
+
+Total: 4 files, 742 lines, ALL COMPILE.

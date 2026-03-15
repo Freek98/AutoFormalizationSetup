@@ -1,4 +1,53 @@
-❯ this work is not good. It refers to                                           
-CountablyPresentedBooleanRings.ProductClosure, which I cannot follow at all     
-(and I think I didn't write it and I don't want you to write in that            
-directory). It should be more elegant    
+Is there somewhere in the cubical library a function that says that if for    
+some category C with objects c,d, we have that if Hom[c , x] = Hom [d , x] for  
+all x, then c=d. I need this result and the one for the other hom functor 
+It might require univalence on C(that's how I was trying to prove it at least).
+
+  So the proof strategy for "Hom(-, c) ≅ Hom(-, d) for all x implies c = d"
+  would be:
+
+  1. A natural iso Hom(-, c) ≅ Hom(-, d) is a CatIso in the presheaf category,
+  i.e. CatIso (PresheafCategory C) (YO c) (YO d)
+  2. Apply liftIso with isFullyFaithfulYO to get CatIso C c d
+  3. Apply univalence of C (isUnivalent C) to get c ≡ d
+
+  For the dual (covariant hom, Hom(c, -) ≅ Hom(d, -)), you'd do the same in C
+  ^op — define a co-Yoneda embedding into Functor C (SET ℓ) and use the same
+  machinery.
+
+  None of this is packaged as a single lemma like yonedaObjectEquality, but the
+  pieces are all there and composing them should be straightforward. Do you want
+   me to write the helper lemma for you?
+
+✻ Churned for 2m 33s
+
+────────────────────────────────────────────────────────────────────────────────
+❯ yes, please factor out 1 -> 2 and 2-> 3 
+
+❯ now you require a CatIso in the presheaf category. As the presheaf category  
+  should be univalent, it should be enough to give an equality between the      
+  HomSets right?
+please be even more explicit in the argument, so instead of Yo c d, write C[  
+c , d]
+
+❯ I have a new proof in mind to show that countably presented Boolean rings
+  are closed under products. It goes by first showing that Boolean rings are
+  countably presented if and only if they are overtly discrete (which for the
+  purposes of this proof means that they're a quotient of a countable set by
+  an open relation ( an open relation on X is a map X -> X -> prop such that
+  each proposition it points to is of the form \exists n \alpha n =1 for some
+  binary sequence \alpha)). Then one shows that the product of two overtly
+  discrete sets is still overtly discrete and one concludes that the product
+  of two countably presented boolean rings is still countably presented.
+  Please work on formalizing this. I expect a folder, with a file with the
+  definition of an overtly discrete type, and a file with a proof that a
+  boolean ring is countably presented iff it's underlying type is overtly
+  discrete, and finally a file showing that the product of two countably
+  presented boolean rings is countably presented. I do not want you to point
+  at broken files in the formalizationSSD library, nor do I want you to use    
+  the proof of countably presented rings being closed under products that's     
+  already there.                                                                
+────────────────
+❯ you can proof decidable equality in free boolean algebras. It sufficient to   
+prove that for all x ,y in freeBATerms, when you project them down the equality 
+ is decidable.

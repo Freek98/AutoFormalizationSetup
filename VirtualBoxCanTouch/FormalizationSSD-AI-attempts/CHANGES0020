@@ -1,0 +1,21 @@
+CHANGES0020 — Eliminated freeBATerms-surj postulate
+
+Added OvertlyDiscrete/TermsCountable.agda (169 lines, COMPILES, 0 holes, 0 postulates):
+- Proves freeBATerms ℕ has a surjection from ℕ
+- encode : freeBATerms ℕ → ℕ using Cantor pairing (tag + subterm codes)
+  - Tags: 0=Tvar, 1=Tconst, 2=+T, 3=-T, 4=·T
+- decode : ℕ (fuel) → ℕ (code) → freeBATerms ℕ using decodeWith helper
+- depth : freeBATerms ℕ → ℕ
+- roundtrip : decode (depth t) (encode t) ≡ t (by induction on t, needs f ≥ depth)
+  - Zero-fuel cases handled via ¬-<-zero (depth ≥ 1)
+  - Compound cases use pred-≤-pred + left-≤-max/right-≤-max
+- decodeSurj : ℕ → freeBATerms ℕ (unpairs into fuel + code)
+- decodeSurj-surjective : isSurjection decodeSurj
+
+Updated BooleOmegaEquiv.agda:
+- Replaced `freeBATerms-surj` postulate with import from TermsCountable
+- Remaining postulates reduced from 3 to 2:
+  1. freeBA-quotient-eq-open (equality in quotient is open)
+  2. Q≃B (first isomorphism theorem for the backward direction)
+
+Total: 4 files, 680 lines, ALL COMPILE, 2 postulates remaining.
