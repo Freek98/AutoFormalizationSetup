@@ -402,3 +402,88 @@ changed something you called sum to \uplus.rec. Finally, I don't want to expose
   version), then so is B xBR C. I want a proof of that fact.     
 ❯ this work is not good. It refers to CountablyPresentedBooleanRings.ProductClosure, which I cannot follow at all     
 (and I think I didn't write it and I don't want you to write in that directory). It should be more elegant    
+
+
+Is there somewhere in the cubical library a function that says that if for    
+some category C with objects c,d, we have that if Hom[c , x] = Hom [d , x] for  
+all x, then c=d. I need this result and the one for the other hom functor 
+It might require univalence on C(that's how I was trying to prove it at least).
+
+  So the proof strategy for "Hom(-, c) ≅ Hom(-, d) for all x implies c = d"
+  would be:
+
+  1. A natural iso Hom(-, c) ≅ Hom(-, d) is a CatIso in the presheaf category,
+  i.e. CatIso (PresheafCategory C) (YO c) (YO d)
+  2. Apply liftIso with isFullyFaithfulYO to get CatIso C c d
+  3. Apply univalence of C (isUnivalent C) to get c ≡ d
+
+  For the dual (covariant hom, Hom(c, -) ≅ Hom(d, -)), you'd do the same in C
+  ^op — define a co-Yoneda embedding into Functor C (SET ℓ) and use the same
+  machinery.
+
+  None of this is packaged as a single lemma like yonedaObjectEquality, but the
+  pieces are all there and composing them should be straightforward. Do you want
+   me to write the helper lemma for you?
+
+✻ Churned for 2m 33s
+
+────────────────────────────────────────────────────────────────────────────────
+❯ yes, please factor out 1 -> 2 and 2-> 3 
+
+❯ now you require a CatIso in the presheaf category. As the presheaf category  
+  should be univalent, it should be enough to give an equality between the      
+  HomSets right?
+please be even more explicit in the argument, so instead of Yo c d, write C[  
+c , d]
+
+❯ I have a new proof in mind to show that countably presented Boolean rings
+  are closed under products. It goes by first showing that Boolean rings are
+  countably presented if and only if they are overtly discrete (which for the
+  purposes of this proof means that they're a quotient of a countable set by
+  an open relation ( an open relation on X is a map X -> X -> prop such that
+  each proposition it points to is of the form \exists n \alpha n =1 for some
+  binary sequence \alpha)). Then one shows that the product of two overtly
+  discrete sets is still overtly discrete and one concludes that the product
+  of two countably presented boolean rings is still countably presented.
+  Please work on formalizing this. I expect a folder, with a file with the
+  definition of an overtly discrete type, and a file with a proof that a
+  boolean ring is countably presented iff it's underlying type is overtly
+  discrete, and finally a file showing that the product of two countably
+  presented boolean rings is countably presented. I do not want you to point
+  at broken files in the formalizationSSD library, nor do I want you to use    
+  the proof of countably presented rings being closed under products that's     
+  already there.                                                                
+────────────────
+❯ you can proof decidable equality in free boolean algebras. It sufficient to   
+prove that for all x ,y in freeBATerms, when you project them down the equality 
+ is decidable.
+
+  Good point. The approach is:
+  1. For terms t, s, compute n = max(maxGen t, maxGen s)
+  2. Project to freeBA(Fin n) via the π map
+  3. Equality in freeBA(Fin n) is decidable (it's a finite set)
+  4. The ιπ roundtrip shows this reflects back to equality in freeBA ℕ
+
+note that this is what I suggested at all, but I like that it can use "terms are finite" reasoning. 
+  ❯ or even better, you can use that there's a surjection from freeBATerms     
+  and proof that freeBATerms has decidable equality.
+
+
+❯ another proof that overtly discrete types are closed under products should   
+  be that they are sequential colimits of finite types, which are closed under  
+  sigma (this should be formalized in cubicaltt, but I'm not sure these         
+  results are in the cubical library). Is it possible you translate the         
+  cubicaltt proof to the cubical library setting?     -- This crashed. 
+  ❯ In https://florisvandoorn.com/papers/sequential_colimits_homotopy.pdf there  
+  is a paper explaining that sequential colimits are closed under Sigma and     
+  identity types. It points to a cubicaltt formalization in                     
+  https://github.com/mortberg/cubicaltt/blob/seqcolim/examples/seqcolim.ctt. I  
+  want those results in cubical agda. Can you formalize this for me?
+
+  ❯ you should translate the cubicalTT code (make clear that you translated it    
+and you are an AI)             
+ complete my work in FormalizationSSD/PropositionalTopology. Do not work in   
+  that directory and do all your work here. I think there's only conjunction    
+  of open there, when you're done with that you can do some implications of     
+  conjunctions of countable families of closed and disjunction of of countable  
+  families of open.

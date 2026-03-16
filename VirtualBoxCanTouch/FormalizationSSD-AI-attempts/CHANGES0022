@@ -1,0 +1,18 @@
+CHANGES0022 — Added freeBATerms DecEq and freeBA-term-DecEq
+
+Added/updated OvertlyDiscrete/FreeBADecEq.agda (211 lines, COMPILES, 0 holes):
+- freeBATerms-DecEq : decidable equality for freeBATerms ℕ
+  (structural induction using discreteℕ and discreteBool,
+   with constructor discrimination via subst-based technique)
+- Infrastructure from test-boole-odisc.agda: maxGen, π, ι, ιπ-on-gen, ιπ-on-term
+- freeBA-term-DecEq : decidable equality for term-level elements of freeBA ℕ
+  (projects to freeBA(Fin n) via π, checks there, reflects back via ιπ-on-term)
+  Uses 1 postulate: freeBA-Fin-DecEq (DecEq for freeBA(Fin n), which is finite)
+
+Status: 5 files, 953 lines total, ALL COMPILE.
+Remaining postulates: 2
+  1. freeBA-Fin-DecEq (in FreeBADecEq.agda): DecEq for finite free Boolean algebras
+  2. freeBA-quotient-eq-open (in BooleOmegaEquiv.agda): equality in quotients is open
+     Note: this could be proved using freeBA-term-DecEq + annihilation characterization
+     of ideal membership, but requires f(n) to be available as concrete terms
+     (not just truncated existentials from surjectivity).

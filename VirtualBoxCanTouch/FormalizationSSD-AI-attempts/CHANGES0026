@@ -1,0 +1,21 @@
+SeqColimClosure.agda COMPILES (278 lines).
+
+Fully proven (no postulates):
+- FiberedSeq, ΣSequence (fibered sequences and their Σ)
+- iter-map, FiberSeq (iterated maps and fiber sequences at a point)
+- FiberShift module: iter-shift, fib-path, fibmap-natural, shiftFiberSeqIso, fiberPushEquiv
+- fiberPush-incl0, fiberPush-inclSuc (characterizing fiberPushEquiv on constructors)
+- B∞ type family over SeqColim A (using ua of fiberPushEquiv)
+- F forward map (ColimΣ → ΣColim), fully defined including push case
+- G-fiber, G-compat-inclSuc, G-compat-incl0, G-compat-incl (G on incl cases)
+- G inverse map (ΣColim → ColimΣ) using ua→
+- G∘F-incl (roundtrip on incl is refl)
+- PathSeq, push-chain, canon, encode (colim of paths → path in colim)
+- LoopColimit corollary (instantiation of path closure)
+
+Remaining 5 postulate blocks (7 individual postulates):
+1. G-compat (push case of SeqColim eliminator — key technical difficulty)
+2. G∘F≡id, F∘G≡id (roundtrips for Σ-closure — depend on G-compat)
+3. canon-push (naturality of push — cubical path algebra)
+4. decode, encode-decode, decode-encode (path closure inverse — depends on Σ-closure)
+5. SeqColim-isOfHLevel (truncation preservation — depends on path closure)

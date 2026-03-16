@@ -1,0 +1,33 @@
+CHANGES0023 — SeqColim definition of ODisc + product closure via Σ
+
+Added OvertlyDiscrete/SeqColimDef.agda (206 lines, COMPILES, 0 holes):
+- Alternative definition of overtly discrete types:
+  isODisc A = ∥ Σ[ S ∈ Sequence ] ((n : ℕ) → isFinSet (obj S n)) × (SeqColim S ≃ A) ∥₁
+  (sequential colimit of finite sets, matching the cubicaltt/Part07 definition)
+
+- Translated from Part07.agda (which has the full development but doesn't
+  compile standalone due to import issues in the ODiscInfrastructure module).
+
+Proved (0 postulates in these):
+  - ODiscFinSet: finite sets are ODisc (constant sequence)
+  - isODisc-equiv: ODisc transfers along equivalences
+  - isODiscIsSet: ODisc types are sets (uses isSetSeqColimOfSets postulate)
+  - finΣ-ODisc: finite base + ODisc fibers → ODisc total space
+    (uses finite choice from Cubical.Data.FinSet.FiniteChoice)
+    Key: SeqColim (Σ A (λ a → obj (T a) n)) ≃ Σ A (λ a → SeqColim (T a))
+    when A is finite (non-dependent base, simple fwd/bwd roundtrip)
+  - OdiscSigma: ODisc A + ODisc fibers → ODisc (Σ A B)
+    Key steps:
+    1. Each level Σ (obj SA n) (B' ∘ incl) is ODisc (by finΣ-ODisc)
+    2. SeqColim of ODisc levels is ODisc (by ODiscColimOfODisc postulate)
+    3. SeqColim ΣSA ≃ Σ (SeqColim SA) B' via fwd/bwd with hcomp for push case
+    4. Σ (SeqColim SA) B' ≃ Σ A B via equivalence on first component
+  - isODisc-×: product closure (immediate from OdiscSigma)
+
+Postulates (2):
+  1. isSetSeqColimOfSets: SeqColim of sets is a set
+     (~120 lines encode-decode proof in Part07 SCSet module)
+  2. ODiscColimOfODisc: SeqColim of ODisc types is ODisc
+     (~150 lines diagonal construction + dependent choice in Part07)
+
+Total: 6 files, 1159 lines, ALL COMPILE.

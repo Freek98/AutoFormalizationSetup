@@ -1,0 +1,252 @@
+{-# OPTIONS --cubical --lossy-unification --guardedness #-}
+
+{-
+  Sequential colimits are closed under Σ-types and path types.
+
+  Based on:
+    Sojakova, van Doorn, Rijke,
+    "Sequential Colimits in Homotopy Type Theory" (LICS 2020)
+
+  Main results:
+    Theorem 5.1: colim(Σ_{(A,a)}(B,b)) ≃ Σ_{x:A∞} B∞(x)
+    Theorem 7.4: (ι(n,a₁) ≡ ι(n,a₂)) ≃ colim_k(a₁^{+k} ≡ a₂^{+k})
+-}
+
+module SeqColimClosure where
+
+open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.Equiv
+open import Cubical.Foundations.Isomorphism
+open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Function
+open import Cubical.Foundations.Transport
+open import Cubical.Foundations.GroupoidLaws
+open import Cubical.Foundations.Univalence
+open import Cubical.Foundations.Path
+
+open import Cubical.Data.Nat
+open import Cubical.Data.Sigma
+open import Cubical.Data.Sequence
+open import Cubical.HITs.SequentialColimit.Base
+open import Cubical.HITs.SequentialColimit.Properties
+
+private
+  variable
+    ℓ ℓ' ℓ'' : Level
+
+open Sequence
+
+-- ═══════════════════════════════════════════════════════════════════
+-- §1. Fibered Sequences
+-- ═══════════════════════════════════════════════════════════════════
+
+-- Definition 4.1: A fibered sequence over (A, a)
+record FiberedSeq (A : Sequence ℓ) (ℓ' : Level) : Type (ℓ-max ℓ (ℓ-suc ℓ')) where
+  constructor fibseq
+  field
+    fib : (n : ℕ) → obj A n → Type ℓ'
+    fibmap : {n : ℕ} (x : obj A n) → fib n x → fib (suc n) (map A x)
+
+open FiberedSeq
+
+-- The Σ-sequence: objects are Σ A(n) B(n,-), maps are (a, b) ↦ (a(n,a), b(n,a,b))
+ΣSequence : (A : Sequence ℓ) → FiberedSeq A ℓ' → Sequence (ℓ-max ℓ ℓ')
+obj (ΣSequence A B) n = Σ (obj A n) (fib B n)
+map (ΣSequence A B) (a , b) = map A a , fibmap B a b
+
+-- ═══════════════════════════════════════════════════════════════════
+-- §2. Iterated maps and fiber sequences
+-- ═══════════════════════════════════════════════════════════════════
+
+-- Iterated map: apply map A k times starting from level n
+-- iter-map A n x k : obj A (k + n)
+iter-map : (A : Sequence ℓ) (n : ℕ) → obj A n → (k : ℕ) → obj A (k + n)
+iter-map A n x zero = x
+iter-map A n x (suc k) = map A (iter-map A n x k)
+
+-- The fiber sequence at a point (n, a)
+-- obj k = fib B (k + n) (iter-map A n a k)
+FiberSeq : (A : Sequence ℓ) (B : FiberedSeq A ℓ') (n : ℕ) (a : obj A n) → Sequence ℓ'
+obj (FiberSeq A B n a) k = fib B (k + n) (iter-map A n a k)
+map (FiberSeq A B n a) {n = k} = fibmap B (iter-map A n a k)
+
+-- ═══════════════════════════════════════════════════════════════════
+-- §3. Relating fiber sequences across a push (key arithmetic)
+-- ═══════════════════════════════════════════════════════════════════
+
+module FiberShift (A : Sequence ℓ) (B : FiberedSeq A ℓ') (n : ℕ) (a : obj A n) where
+
+  -- Key lemma: iter-map at shifted base equals iter-map at original base + 1
+  -- PathP (λ i → obj A (+-suc k n (~ i))) (map A (iter-map A n a k)) (iter-map A (suc n) (map A a) k)
+  iter-shift : (k : ℕ)
+    → PathP (λ i → obj A (+-suc k n (~ i)))
+            (iter-map A n a (suc k))
+            (iter-map A (suc n) (map A a) k)
+  iter-shift zero = refl   -- +-suc 0 n = refl, both sides are map A a
+  iter-shift (suc k) i = map A (iter-shift k i)
+    -- +-suc (suc k) n = cong suc (+-suc k n), so this works
+
+  -- Path between fiber types at the two sequences
+  fib-path : (k : ℕ)
+    → fib B (suc (k + n)) (iter-map A n a (suc k))
+    ≡ fib B (k + suc n) (iter-map A (suc n) (map A a) k)
+  fib-path k i = fib B (+-suc k n (~ i)) (iter-shift k i)
+
+  -- Key: fibmap B is "natural" along the fib-path / iter-shift
+  -- fibmap B (iter-shift k i) : fib-path k i → fib-path (suc k) i
+  -- This gives us the commutation condition for the sequence iso.
+  fibmap-natural : (k : ℕ) (b : fib B (suc (k + n)) (iter-map A n a (suc k)))
+    → PathP (λ i → fib B (+-suc (suc k) n (~ i)) (iter-shift (suc k) i))
+            (fibmap B (iter-map A n a (suc k)) b)
+            (fibmap B (iter-map A (suc n) (map A a) k) (transport (fib-path k) b))
+  fibmap-natural k b i =
+    fibmap B (iter-shift k i) (transport-filler (fib-path k) b i)
+
+  -- Build the SequenceIso between ShiftSeq(FiberSeq n a) and FiberSeq (suc n) (map A a)
+  shiftFiberSeqIso : SequenceIso (ShiftSeq (FiberSeq A B n a)) (FiberSeq A B (suc n) (map A a))
+  fst shiftFiberSeqIso k = pathToIso (fib-path k)
+  snd shiftFiberSeqIso k b = sym (fromPathP (fibmap-natural k b))
+
+  -- The composite equivalence: SeqColim(FiberSeq n a) ≃ SeqColim(FiberSeq (suc n) (map A a))
+  fiberPushEquiv : SeqColim (FiberSeq A B n a) ≃ SeqColim (FiberSeq A B (suc n) (map A a))
+  fiberPushEquiv =
+    isoToEquiv (compIso
+      (Iso-SeqColim→SeqColimSuc (FiberSeq A B n a))
+      (sequenceIso→ColimIso shiftFiberSeqIso))
+
+-- ═══════════════════════════════════════════════════════════════════
+-- §4. The type family B∞ over the colimit
+-- ═══════════════════════════════════════════════════════════════════
+
+B∞ : (A : Sequence ℓ) (B : FiberedSeq A ℓ') → SeqColim A → Type ℓ'
+B∞ A B (incl {n = n} a) = SeqColim (FiberSeq A B n a)
+B∞ A B (push {n = n} a i) = ua (FiberShift.fiberPushEquiv A B n a) i
+
+-- ═══════════════════════════════════════════════════════════════════
+-- §5. Theorem 5.1: colim(Σ(B,b)) ≃ Σ_{x:A∞} B∞(x)
+-- ═══════════════════════════════════════════════════════════════════
+
+module SigmaColimit (A : Sequence ℓ) (B : FiberedSeq A ℓ') where
+
+  ΣSeq = ΣSequence A B
+  ColimΣ = SeqColim ΣSeq
+  ΣColim = Σ (SeqColim A) (B∞ A B)
+
+  open FiberShift A B
+
+  -- The forward map F : colim(Σ) → Σ(colim, B∞)
+  F : ColimΣ → ΣColim
+  fst (F (incl {n = n} (a , b))) = incl a
+  snd (F (incl {n = n} (a , b))) = incl {n = 0} b
+  fst (F (push {n = n} (a , b) i)) = push a i
+  snd (F (push {n = n} (a , b) i)) = F-push-fib n a b i
+    where
+    -- We need PathP (λ i → B∞ A B (push a i)) (incl b) (incl (fibmap B a b))
+    -- B∞(push a) = ua(fiberPushEquiv n a)
+    -- So we need: transport (ua (fiberPushEquiv n a)) (incl b) ≡ incl (fibmap B a b)
+    -- i.e. fiberPushEquiv n a .fst (incl b) ≡ incl (fibmap B a b)
+    -- fiberPushEquiv is: shift then reindex.
+    -- shift(incl {0} b) = incl {0} (fibmap B a b)  [in ShiftSeq]
+    -- reindex(incl {0} (fibmap B a b)) = incl {0} (transport (fib-path 0) (fibmap B a b))
+    --                                  = incl {0} (transport refl (fibmap B a b))    [since fib-path 0 uses +-suc 0 n = refl]
+    --                                  -- hmm, pathToIso of fib-path 0... fib-path 0 uses +-suc 0 n
+    -- Actually fib-path 0 i = fib B (+-suc 0 n (~ i)) (iter-shift 0 i) = fib B refl(~i) refl(i)
+    -- Since +-suc 0 n = refl and iter-shift 0 = refl, fib-path 0 = refl.
+    -- So pathToIso (fib-path 0) = idIso, and transport (fib-path 0) = id.
+    -- So sequenceIso→ColimIso maps incl {0} (fibmap B a b) to incl {0} (Iso.fun (pathToIso refl) (fibmap B a b))
+    --                              = incl {0} (transport refl (fibmap B a b))
+    -- With lossy-unification this might just work...
+
+    -- Let me try the toPathP approach:
+    F-push-fib : (n : ℕ) (a : obj A n) (b : fib B n a)
+      → PathP (λ i → B∞ A B (push a i)) (incl {n = 0} b) (incl {n = 0} (fibmap B a b))
+    F-push-fib n a b = toPathP (
+      -- Need: transport (ua (fiberPushEquiv n a)) (incl {0} b) ≡ incl {0} (fibmap B a b)
+      -- = fiberPushEquiv n a .fst (incl {0} b) ≡ incl {0} (fibmap B a b)
+      uaβ (fiberPushEquiv n a) (incl {n = 0} b) ∙ {!!})
+
+  -- The inverse map G : Σ(colim, B∞) → colim(Σ)
+  -- For (ι(n, a), ι(k, b)), we map to ι(k+n, (iter a k, b)) in ColimΣ.
+  private
+    G-fiber : (n : ℕ) (a : obj A n) → SeqColim (FiberSeq A B n a) → ColimΣ
+    G-fiber n a (incl {n = k} b) = incl {n = k + n} (iter-map A n a k , b)
+    G-fiber n a (push {n = k} b i) = push {n = k + n} (iter-map A n a k , b) i
+
+  G : ΣColim → ColimΣ
+  G (x , y) = G-aux x y
+    where
+    G-aux : (x : SeqColim A) → B∞ A B x → ColimΣ
+    G-aux (incl {n = n} a) = G-fiber n a
+    G-aux (push {n = n} a i) = G-push n a i
+      where
+      G-push : (n : ℕ) (a : obj A n)
+        → PathP (λ i → B∞ A B (push a i) → ColimΣ)
+                (G-fiber n a)
+                (G-fiber (suc n) (map A a))
+      G-push n a = toPathP (funExt (λ b →
+        -- Need: G-fiber n a (transport⁻¹ (ua (fiberPushEquiv n a)) b) ≡ G-fiber (suc n) (map A a) b
+        -- i.e. G-fiber n a (invEq (fiberPushEquiv n a) b) ≡ G-fiber (suc n) (map A a) b
+        -- We eliminate on b : SeqColim(FiberSeq (suc n) (map A a))
+        {!!}))
+
+  -- Roundtrips
+  F∘G≡id : (x : ΣColim) → F (G x) ≡ x
+  F∘G≡id = {!!}
+
+  G∘F≡id : (x : ColimΣ) → G (F x) ≡ x
+  G∘F≡id = {!!}
+
+  -- Main theorem
+  sigmaColimit : Iso ColimΣ ΣColim
+  Iso.fun sigmaColimit = F
+  Iso.inv sigmaColimit = G
+  Iso.sec sigmaColimit = F∘G≡id
+  Iso.ret sigmaColimit = G∘F≡id
+
+-- ═══════════════════════════════════════════════════════════════════
+-- §6. Theorem 7.4: Paths in colimits
+-- ═══════════════════════════════════════════════════════════════════
+
+-- The path sequence: for a₁, a₂ : A(n), the sequence
+--   (a₁ ≡ a₂) → (map a₁ ≡ map a₂) → ...
+PathSeq : (A : Sequence ℓ) (n : ℕ) (a₁ a₂ : obj A n) → Sequence ℓ
+obj (PathSeq A n a₁ a₂) k = iter-map A n a₁ k ≡ iter-map A n a₂ k
+map (PathSeq A n a₁ a₂) {n = k} p = cong (map A) p
+
+-- The canonical inclusion chain: ι(n, x) ≡ ι(k+n, iter x k)
+push-chain : (A : Sequence ℓ) (n : ℕ) (a : obj A n) (k : ℕ)
+  → incl {n = n} a ≡ incl {n = k + n} (iter-map A n a k)
+push-chain A n a zero = refl
+push-chain A n a (suc k) = push-chain A n a k ∙ push (iter-map A n a k)
+
+module PathColimit (A : Sequence ℓ) (n : ℕ) (a₁ a₂ : obj A n) where
+
+  PathInColim = Path (SeqColim A) (incl {n = n} a₁) (incl {n = n} a₂)
+  ColimOfPaths = SeqColim (PathSeq A n a₁ a₂)
+
+  -- Map: colim of paths → path in colim
+  encode : ColimOfPaths → PathInColim
+  encode (incl {n = k} p) =
+    push-chain A n a₁ k ∙∙ cong (incl {n = k + n}) p ∙∙ sym (push-chain A n a₂ k)
+  encode (push {n = k} p i) = encode-push k p i
+    where
+    -- Need to show the push case is compatible
+    -- push {k} p : incl {k} p ≡ incl {suc k} (cong (map A) p) in PathSeq
+    -- encode(incl {k} p) = chain₁(k) ∙∙ cong incl p ∙∙ sym(chain₂(k))
+    -- encode(incl {suc k} (cong map p)) = chain₁(suc k) ∙∙ cong incl (cong map p) ∙∙ sym(chain₂(suc k))
+    -- These should be equal as paths in SeqColim A.
+    encode-push : (k : ℕ) (p : iter-map A n a₁ k ≡ iter-map A n a₂ k)
+      → (push-chain A n a₁ k ∙∙ cong (incl {n = k + n}) p ∙∙ sym (push-chain A n a₂ k))
+      ≡ (push-chain A n a₁ (suc k) ∙∙ cong (incl {n = suc k + n}) (cong (map A) p) ∙∙ sym (push-chain A n a₂ (suc k)))
+    encode-push k p = {!!}
+
+  -- Map: path in colim → colim of paths
+  -- This is harder and uses the encode-decode method via Theorem 5.1
+  decode : PathInColim → ColimOfPaths
+  decode p = {!!}
+
+  pathColimit : Iso ColimOfPaths PathInColim
+  Iso.fun pathColimit = encode
+  Iso.inv pathColimit = decode
+  Iso.sec pathColimit = {!!}
+  Iso.ret pathColimit = {!!}

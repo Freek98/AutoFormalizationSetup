@@ -1,0 +1,8 @@
+Initial skeleton of SeqColimClosure.agda with:
+- FiberedSeq, ΣSequence definitions
+- iter-map, FiberSeq definitions
+- FiberShift module with iter-shift, fib-path, fibmap-natural, shiftFiberSeqIso, fiberPushEquiv
+- B∞ type family definition (using ua of fiberPushEquiv)
+- SigmaColimit module skeleton with F, G (holes), roundtrips (holes)
+- PathColimit module skeleton with encode (holes), decode (holes)
+Does not compile yet (unsolved metas and holes).

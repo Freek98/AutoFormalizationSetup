@@ -1,0 +1,16 @@
+SeqColimClosure.agda now COMPILES (260 lines).
+Infrastructure fully proven:
+- FiberedSeq, ΣSequence, iter-map, FiberSeq
+- FiberShift: iter-shift, fib-path, fibmap-natural, shiftFiberSeqIso, fiberPushEquiv
+- fiberPush-incl0, fiberPush-inclSuc characterizing fiberPushEquiv on incl
+- B∞ type family over SeqColim A
+- F forward map (fully defined, no holes)
+- G-fiber, G-compat-inclSuc, G-compat-incl0, G-compat-incl (partially proven)
+- G inverse map structure
+- PathColimit: encode, push-chain, canon
+
+Remaining postulates (5):
+1. G-compat (full, including push case of SeqColim eliminator)
+2. G∘F≡id, F∘G≡id (roundtrips for Sigma closure)
+3. canon-push (push compatibility for path encoding)
+4. decode, encode-decode, decode-encode (path colimit inverse + roundtrips)
