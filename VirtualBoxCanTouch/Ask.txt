@@ -48,3 +48,15 @@ library on sequential colimits?
   there. So can you write a new file, containing a type of sequential limits    
   of sets, and show that for a sequence of sets all of (propositional           
   truncation, Sigma, identity types) commute with colimits.
+
+❯ can you write a new file for sequential colimits of sets using the           
+  definitions of sequences already in the agda library? In this file, please    
+  only proof the things that don't require postulates or TERMINATING flags. 
+
+  ❯ So one thing that I think should be provable is the universal property of    
+  the colimit of a sequence as colimit. So a map out of the colimit is          
+  determined from the maps out of the objects in the sequence and witnesses     
+  that they respect the maps between them, furthermore this map is unique and   
+  any other object which has this property is isomorphic to the colimit of the  
+  sequence.                                        
+
