@@ -89,3 +89,18 @@ again? Where does the use of B being a set come up?
 
 ❯ Okay great, can we now proof that if we have the set quotient of the total   
   space as described before, this satisfies the universal property?    
+  ❯ If I follow it now, we don't need the postulate anymore because we don't     
+  need the (non-set)-quotient anymore, and we can use the fundamental property  
+  and the set quotient right?
+❯ Okay maybe the argument isn't expanded enough. Have you used that sequential 
+  colimits are filtered, which implies that if two elements in Xn are equal     
+  in the colimit, they will already be equal in some X_m? Can you prove this    
+  for sequential colimit and then use this to change your proof of the          
+  sequential colimit being a set?                 
+
+  ❯ Okay I claim that for any terms x y of the sequential colimit, we have that  
+  x = y if and only if there is some (n , a) (m , b) in the total space with    
+  incl a = incl b and some ( k , c) in the total space with k>n,m and the       
+  unique map Xn-> X_k sends a to c and Xm -> X_k sends b to c. Can you proof    
+  this bi-implication? Even better, can we characterize the equality in the     
+  colimit in such a way?

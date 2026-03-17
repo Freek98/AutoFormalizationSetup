@@ -1,5 +1,6 @@
 This file is for me to seperate out some experiences in using claude. There are different kinds of uses. I will try jot them down when I encounter them, and if there's interest I'll try to work them out at some point. 
 
+- When I wanted it to formalize conjunction of opens is open, it used a different proof than the one I had in mind (I used makeIncreasing \alpha n and makeIncreasing \beta n, it used \alpha n \wedge \beta m for all n,m. 
 - When I wanted countably presented Boolean rings closed under products, I had a wrong proof in my head, it did a right proof that confused me (used an embedding of freeBA (A + B) to freeBA A x freeBA B by adding an element x, sending a to ax and b to b/x. Note that another proof which should work is to go over ODisc. 
 - Boilerplate code writing (example derive CommRingHom from \neg \wedge), good
 - Another  example of this is the evenAndOdd library it wrote, which contains many formulations of the result I want, so I can pick the nicest one for my purposes (for example, an eliminator for functions defined on odd or even numbers. What makes this example different is that I didn't know what I wanted beforehand. 
