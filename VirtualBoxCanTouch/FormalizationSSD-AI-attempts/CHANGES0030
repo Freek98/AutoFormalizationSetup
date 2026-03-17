@@ -1,0 +1,24 @@
+CHANGES0030 - PropTopWork.agda refactored for readability
+
+Refactored PropTopWork.agda (458 lines, 0 holes, 0 postulates, COMPILES)
+
+Style changes:
+- Introduced pair/unpair/unpair-pair helpers, use uncurry for composing
+  binary sequence families with the pairing bijection:
+    β = uncurry α ∘ unpair  instead of  β k = α (fst (inv ℕ×ℕ≅ℕ k)) (snd ...)
+- Descriptive function names:
+    P→Σα, Σα→P, P×Q→Σγ, Σγ→P×Q, impl→∀γfalse, ∀γfalse→impl, etc.
+  instead of fwd/bwd
+- Module MarkovResults (wMP : weakMarkovPrinciple) groups all Markov-dependent results:
+    negClosedWitnessIsOpenWitness, negClosedIsOpen
+    open-¬¬-stable
+    closed→open-is-open, closed→open-is-open-prop
+    ClosedMarkov
+- Markov-independent results remain at top level:
+    Open⊓, Open⊔, Closed⊓, Closed⊓ω, Open⊔ω
+    negOpenWitnessIsClosedWitness, negOpenIsClosed
+    closed-¬¬-stable (no axiom needed!)
+    decIsOpen, decIsClosed
+    open→closed-is-closed (no Markov needed)
+- Private or-false→fst/snd and and-true→fst/snd helpers
+- Removed verbose comment blocks (proof sketches)

@@ -20,3 +20,31 @@ and you are an AI)
   ❯ okay can you combine the translation and your own work to proof it maybe?    
   You can also use the paper                                                    
   https://florisvandoorn.com/papers/sequential_colimits_homotopy.pdf
+
+❯ Note I have adapted some of your proofs into the formalizationSSD library,   
+  but I'd like you to use a slightly different proof style here which makes it  
+  easier for me to read. You should use helper functions with uncurry and       
+  curry and rec when you use bijections of natural numbers. I don't like fwd    
+  and such as function names, but prefer something more descriptive (what       
+  implies what?) For the functions that are dependent on Markov, LLPO and the   
+  like, please write modules.      
+  ────────────────────────────────────────────────────────────────────────────────
+❯ change the file so it imports the results and definitions in                
+  formalizationSSD and you remove results that are already there in your file.  
+                                                                                
+──────────────────────────────────────────────
+okay great, there's more work I want you to finish here. It's NxN-diag-count  
+in Formalization/Countability/Instances. I want you to work only here and not   
+change any files in the library there
+
+-- In the meantime, on the xBR proof via Sigma of Odisc: 
+Okay maybe we should do some conversation on the literature first. So there   
+is this paper bij Doorn, Rijke and Sojakova. I understood there was a           
+formalization attempt by them, Might there be something in the univalent maths  
+library on sequential colimits?
+
+❯ okay I'm going to make the question easier. In the end, I only care about    
+  the sequential colimits of (finite) sets. Lots of results should be easier    
+  there. So can you write a new file, containing a type of sequential limits    
+  of sets, and show that for a sequence of sets all of (propositional           
+  truncation, Sigma, identity types) commute with colimits.
