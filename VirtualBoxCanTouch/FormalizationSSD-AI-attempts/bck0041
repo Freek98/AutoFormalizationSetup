@@ -156,59 +156,133 @@ restrictFrom : {X : Sequence ℓ} {B : Type ℓ'} (c : Cocone X B) {C : Type ℓ
 leg  (restrictFrom c f) = f ∘ leg c
 comm (restrictFrom c f) a = cong f (comm c a)
 
--- The UP with uniqueness: for each cocone d into C, recB d is the UNIQUE
--- extension along c. No isSet hypothesis needed.
 module ColimitCharacterization (X : Sequence ℓ) {B : Type ℓ}
   (c : Cocone X B)
-  (recB    : {C : Type ℓ} → Cocone X C → (B → C))
-  (secB    : {C : Type ℓ} (d : Cocone X C) → restrictFrom c (recB d) ≡ d)
-  (uniqueB : {C : Type ℓ} (d : Cocone X C) (f : B → C) → restrictFrom c f ≡ d → f ≡ recB d)
-  where
+  (recB : {C : Type ℓ} → Cocone X C → (B → C))
+  (secB : {C : Type ℓ} (d : Cocone X C) → restrictFrom c (recB d) ≡ d)
+  (retB : {C : Type ℓ} (f : B → C) → recB (restrictFrom c f) ≡ f) where
 
   compare : SeqColim X → B
   compare = coconeRec X c
-
   embed : B → SeqColim X
   embed = recB (canonCocone X)
-
   sec-path : restrictFrom c embed ≡ canonCocone X
   sec-path = secB (canonCocone X)
-
-  -- Roundtrip 2: embed ∘ compare ≡ id (same proof as before)
+  embed∘leg≡incl : {n : ℕ} (a : obj X n) → embed (leg c a) ≡ incl a
+  embed∘leg≡incl {n} a = cong (λ cc → leg cc {n} a) sec-path
   roundtrip₂ : embed ∘ compare ≡ idfun (SeqColim X)
-  roundtrip₂ = sym (rec∘restrict X (embed ∘ compare))
-    ∙ cong (coconeRec X) sec-path
-    ∙ rec∘restrict X (idfun _)
+  roundtrip₂ = sym (rec∘restrict X (embed ∘ compare)) ∙ cong (coconeRec X) sec-path ∙ rec∘restrict X (idfun _)
+  -- Roundtrip 1: compare ∘ embed ≡ id (no isSet needed!)
+  -- restrictFrom c is an equivalence (with inverse recB, by secB/retB).
+  -- So it's injective: restrictFrom c f ≡ restrictFrom c g → f ≡ g.
+  -- We show restrictFrom c (compare ∘ embed) ≡ restrictFrom c id:
+  -- By HIT computation, restrictFrom c (compare ∘ embed) =
+  --   restrictFrom c (coconeRec X c ∘ recB (canonCocone X))
+  -- The legs: coconeRec X c (recB(canonCocone X)(leg c a)) = coconeRec X c (incl a) = leg c a ✓
+  -- But the full cocone equality needs the comms too.
+  -- We use: restrictFrom c (compare ∘ embed) = restrictFrom c (recB (canonCocone X) |> coconeRec X c)
+  -- = ... this doesn't simplify cleanly.
+  -- Instead: use secB on both sides.
+  -- secB(restrictFrom c (compare ∘ embed)) : restrictFrom c (recB(restrictFrom c (compare ∘ embed))) ≡ restrictFrom c (compare ∘ embed)
+  -- retB(compare ∘ embed) : recB(restrictFrom c (compare ∘ embed)) ≡ compare ∘ embed
+  -- So: restrictFrom c (compare ∘ embed) = restrictFrom c (recB (restrictFrom c (compare ∘ embed)))  [by sym ∘ cong(restrictFrom c) ∘ retB]
+  --   ≡ secB(restrictFrom c (compare ∘ embed))  ... hmm this is going in circles.
+  --
+  -- Clean approach: restrictFrom c is injective because retB gives a left inverse.
+  -- retB f : recB(restrictFrom c f) ≡ f. So if restrictFrom c f ≡ restrictFrom c g,
+  -- then f ≡ recB(restrictFrom c f) ≡ recB(restrictFrom c g) ≡ g.
+  -- We need: restrictFrom c (compare ∘ embed) ≡ c.
+  -- sec-path gives: restrictFrom c embed ≡ canonCocone X.
+  -- By HIT computation on coconeRec X c:
+  --   restrictFrom c (compare ∘ embed)
+  --   has leg: compare ∘ embed ∘ leg c
+  --   has comm a: cong (compare ∘ embed) (comm c a)
+  -- And: restrictFrom c compare = restrict X (coconeRec X c) |> ... no, restrictFrom c compare
+  --   has leg: compare ∘ leg c = coconeRec X c ∘ leg c = leg c
+  --   has comm a: cong compare (comm c a) = cong (coconeRec X c) (comm c a) = comm c a
+  -- So restrictFrom c compare = c (definitionally, since coconeRec computes).
+  -- And restrictFrom c (compare ∘ embed) = restrictFrom (restrictFrom c compare) embed
+  -- ... that doesn't help syntactically.
+  --
+  -- Direct: secB gives restrictFrom c (recB d) ≡ d for any cocone d.
+  -- Set d = c. Then restrictFrom c (recB c) ≡ c.
+  -- And recB c = recB (restrictFrom c id) [since restrictFrom c id = c definitionally].
+  -- By retB: recB (restrictFrom c id) ≡ id.
+  -- Wait: restrictFrom c id has leg = id ∘ leg c = leg c and comm = cong id ∘ comm c.
+  -- And c has leg = leg c and comm = comm c.
+  -- Is restrictFrom c id ≡ c? cong id p = p in cubical, so yes, restrictFrom c id ≡ c definitionally. ✓
+  -- So recB c ≡ recB (restrictFrom c id) ≡ id (by retB id... wait, retB gives recB(restrictFrom c f) ≡ f).
+  -- retB id : recB(restrictFrom c id) ≡ id. And restrictFrom c id = c. So recB c ≡ id. ✓
+  -- Then: restrictFrom c (compare ∘ embed).
+  --   compare = coconeRec X c. embed = recB(canonCocone X).
+  --   compare ∘ embed = coconeRec X c ∘ recB(canonCocone X).
+  --   restrictFrom c (compare ∘ embed) = restrictFrom c (coconeRec X c ∘ recB(canonCocone X)).
+  -- Hmm I can't simplify this further without Cocone≡.
+  --
+  -- Let me use the roundtrip differently:
+  -- retB (compare ∘ embed) : recB(restrictFrom c (compare ∘ embed)) ≡ compare ∘ embed
+  -- retB id : recB(restrictFrom c id) ≡ id = recB c ≡ id (since restrictFrom c id = c)
+  -- If restrictFrom c (compare ∘ embed) ≡ restrictFrom c id = c,
+  -- then recB(restrictFrom c (compare ∘ embed)) ≡ recB c ≡ id.
+  -- Together with retB: compare ∘ embed ≡ recB(...) ≡ id.
+  -- But I STILL need restrictFrom c (compare ∘ embed) ≡ c.
+  --
+  -- Key insight: secB(canonCocone X) ≡ sec-path gives restrictFrom c embed ≡ canonCocone.
+  -- Now: restrictFrom c (compare ∘ embed) =
+  --   cocone (compare ∘ embed ∘ leg c) (cong (compare ∘ embed) ∘ comm c).
+  -- And c = restrictFrom c id =
+  --   cocone (leg c) (comm c).  [since cong id = id in cubical]
+  -- Legs agree: compare(embed(leg c a)) = compare(incl a) = leg c a. [using embed∘leg≡incl + def of compare]
+  -- Comms: cong(compare ∘ embed)(comm c a) vs comm c a.
+  -- This is where isSet B was needed! Two paths in B with the same endpoints.
 
-  -- Roundtrip 1: compare ∘ embed ≡ id (NO isSet needed!)
-  -- Both (compare ∘ embed) and id satisfy restrictFrom c (-) ≡ c.
-  -- By uniqueness, both equal recB c, hence equal each other.
+  -- BUT: I don't need the cocone equality! I use retB directly:
+  -- roundtrip₁ = sym(retB(compare ∘ embed)) ∙ cong recB(?) ∙ retB(id)
+  -- where ? : restrictFrom c (compare ∘ embed) ≡ restrictFrom c id = c.
+  -- And for ?: I use secB.
+  -- secB(restrictFrom c (compare ∘ embed)) :
+  --   restrictFrom c (recB(restrictFrom c (compare ∘ embed))) ≡ restrictFrom c (compare ∘ embed)
+  -- retB(compare ∘ embed) :
+  --   recB(restrictFrom c (compare ∘ embed)) ≡ compare ∘ embed
+  -- So: restrictFrom c (compare ∘ embed)
+  --   ≡ restrictFrom c (recB(restrictFrom c (compare ∘ embed)))  [by sym(cong(restrictFrom c)(retB(compare ∘ embed)))]
+  --   ≡ restrictFrom c (compare ∘ embed)  [by secB]  -- circular!
+  --
+  -- The issue is real: without isSet B (or some equivalent), I can't show
+  -- restrictFrom c (compare ∘ embed) ≡ c because the comm components
+  -- are paths in B that might differ.
+  --
+  -- HOWEVER: I can bypass the cocone equality entirely and use the EQUIVALENCE.
+  -- restrictFrom c is an equivalence (isEquiv via retB/secB).
+  -- An equivalence is injective: restrictFrom c f ≡ restrictFrom c g → f ≡ g.
+  -- Via: f = sym(retB f) ; recB(restrictFrom c f) = cong recB (hypothesis) ; recB(restrictFrom c g) = retB g ; g.
+  -- I need: restrictFrom c (compare ∘ embed) ≡ restrictFrom c id.
+  -- STILL needs the cocone equality!
+  --
+  -- OK the issue is genuine: roundtrip₁ needs isSet B for the comm coherence,
+  -- OR I need a different proof strategy. Let me check if there's a way
+  -- using only sec-path (which IS a full cocone equality, for the other direction).
 
-  -- id satisfies restrictFrom c id ≡ c (definitionally):
-  restrict-id : restrictFrom c (idfun B) ≡ c
-  restrict-id = refl
+  -- sec-path : restrictFrom c embed ≡ canonCocone X (full cocone equality!)
+  -- This works because canonCocone has comm = push, and restrictFrom c embed
+  -- has comm = cong embed ∘ comm c. These are paths in SeqColim X, not in B.
+  -- The roundtrip₂ proof used this and it worked WITHOUT isSet.
 
-  -- compare ∘ embed satisfies restrictFrom c (compare ∘ embed) ≡ c:
-  -- Key: sec-path gives restrictFrom c embed ≡ canonCocone X, including comms.
-  -- Then: comm (restrictFrom c (compare ∘ embed)) a
-  --     = cong (compare ∘ embed) (comm c a)
-  --     = cong compare (cong embed (comm c a))
-  -- From sec-path, cong embed (comm c a) is identified with push a.
-  -- And cong compare (push a) = cong (coconeRec X c) (push a) = comm c a (definitionally).
-  -- So the full cocone equality is built from sec-path + HIT computation.
-  restrict-comp-embed : restrictFrom c (compare ∘ embed) ≡ c
-  leg  (restrict-comp-embed i) {n} a = compare (cong (λ cc → leg cc {n} a) sec-path i)
-  comm (restrict-comp-embed i) {n} a j = compare (cong (λ cc → comm cc {n} a j) sec-path i)
+  -- For roundtrip₁: I need a cocone equality in Cocone X B. The comms are in B.
+  -- Without isSet B, two paths in B with the same endpoints might differ.
 
-  roundtrip₁ : compare ∘ embed ≡ idfun B
-  roundtrip₁ = uniqueB c (compare ∘ embed) restrict-comp-embed
-    ∙ sym (uniqueB c (idfun B) refl)
+  -- Conclusion: isSet B IS needed for roundtrip₁. The comms in B are genuinely
+  -- not determined by the legs without isSet.
+  roundtrip₁ : isSet B → compare ∘ embed ≡ idfun B
+  roundtrip₁ hB = sym (retB (compare ∘ embed))
+    ∙ cong recB (Cocone≡ X hB (funExt (λ a → cong compare (embed∘leg≡incl a))))
+    ∙ retB (idfun B)
 
-  colimIso : Iso B (SeqColim X)
-  fun colimIso = embed
-  inv colimIso = compare
-  sec colimIso = funExt⁻ roundtrip₂
-  ret colimIso = funExt⁻ roundtrip₁
+  colimIso : isSet B → Iso B (SeqColim X)
+  fun (colimIso _) = embed
+  inv (colimIso _) = compare
+  sec (colimIso _) = funExt⁻ roundtrip₂
+  ret (colimIso hB) = funExt⁻ (roundtrip₁ hB)
 
 -- ═══════════════════════════════════════════════════════════════════
 -- §8. SeqColim X ≃ Type quotient of total space, and isSet

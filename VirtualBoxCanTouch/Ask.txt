@@ -69,3 +69,23 @@ library on sequential colimits?
   case, that should be the quotient of a set by propositions, which should be   
   a set. Can you use this to show that the sequential colimit of sets is a      
   set?                                       
+  ❯ You claim PushRel is a proposition. Can you prove this?                       
+
+❯ why does it need to be a datatype? It has only one constructor.
+❯ okay now can you prove that if you start with a set and do quotient by a     
+  prop-valued relation, then you still end up with a set? I think this should   
+  be doable by a case distinction on the two things that should be equal (I     
+  recall having something similar in freeBATerms surjection proof).     
+  ❯ okay you have convinced me it's not doable. I'm not convinced yet that you    
+need B to be a set in the universal property though. Can you look at this       
+again? Where does the use of B being a set come up?
+❯ Can you explain to me the colimit characterization? I think it might be      
+  missing the condition that the extension is unique, meaning that if I have d  
+  : Cocone X C, there is this extension recB : B -> C such that rescrcitFrom    
+  c (recB d) = d, , but that if there is any other map f : B -> C such that     
+  restrictFromc f = d, then f = recB. I think this condition should be part of  
+  the colimit characterization (instead of retB) and then you shouldn't         
+  require that B is a set.    
+
+❯ Okay great, can we now proof that if we have the set quotient of the total   
+  space as described before, this satisfies the universal property?    

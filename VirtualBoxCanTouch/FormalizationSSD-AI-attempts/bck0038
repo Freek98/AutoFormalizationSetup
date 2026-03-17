@@ -8,7 +8,6 @@ open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Function
 open import Cubical.Foundations.Transport
-open import Cubical.Foundations.GroupoidLaws using (rUnit)
 open import Cubical.Data.Nat
 open import Cubical.Data.Sigma
 open import Cubical.Data.Sequence
@@ -156,59 +155,30 @@ restrictFrom : {X : Sequence ℓ} {B : Type ℓ'} (c : Cocone X B) {C : Type ℓ
 leg  (restrictFrom c f) = f ∘ leg c
 comm (restrictFrom c f) a = cong f (comm c a)
 
--- The UP with uniqueness: for each cocone d into C, recB d is the UNIQUE
--- extension along c. No isSet hypothesis needed.
 module ColimitCharacterization (X : Sequence ℓ) {B : Type ℓ}
   (c : Cocone X B)
-  (recB    : {C : Type ℓ} → Cocone X C → (B → C))
-  (secB    : {C : Type ℓ} (d : Cocone X C) → restrictFrom c (recB d) ≡ d)
-  (uniqueB : {C : Type ℓ} (d : Cocone X C) (f : B → C) → restrictFrom c f ≡ d → f ≡ recB d)
-  where
+  (recB : {C : Type ℓ} → Cocone X C → (B → C))
+  (secB : {C : Type ℓ} (d : Cocone X C) → restrictFrom c (recB d) ≡ d)
+  (retB : {C : Type ℓ} (f : B → C) → recB (restrictFrom c f) ≡ f) where
 
   compare : SeqColim X → B
   compare = coconeRec X c
-
   embed : B → SeqColim X
   embed = recB (canonCocone X)
-
   sec-path : restrictFrom c embed ≡ canonCocone X
   sec-path = secB (canonCocone X)
-
-  -- Roundtrip 2: embed ∘ compare ≡ id (same proof as before)
+  embed∘leg≡incl : {n : ℕ} (a : obj X n) → embed (leg c a) ≡ incl a
+  embed∘leg≡incl {n} a = cong (λ cc → leg cc {n} a) sec-path
   roundtrip₂ : embed ∘ compare ≡ idfun (SeqColim X)
-  roundtrip₂ = sym (rec∘restrict X (embed ∘ compare))
-    ∙ cong (coconeRec X) sec-path
-    ∙ rec∘restrict X (idfun _)
-
-  -- Roundtrip 1: compare ∘ embed ≡ id (NO isSet needed!)
-  -- Both (compare ∘ embed) and id satisfy restrictFrom c (-) ≡ c.
-  -- By uniqueness, both equal recB c, hence equal each other.
-
-  -- id satisfies restrictFrom c id ≡ c (definitionally):
-  restrict-id : restrictFrom c (idfun B) ≡ c
-  restrict-id = refl
-
-  -- compare ∘ embed satisfies restrictFrom c (compare ∘ embed) ≡ c:
-  -- Key: sec-path gives restrictFrom c embed ≡ canonCocone X, including comms.
-  -- Then: comm (restrictFrom c (compare ∘ embed)) a
-  --     = cong (compare ∘ embed) (comm c a)
-  --     = cong compare (cong embed (comm c a))
-  -- From sec-path, cong embed (comm c a) is identified with push a.
-  -- And cong compare (push a) = cong (coconeRec X c) (push a) = comm c a (definitionally).
-  -- So the full cocone equality is built from sec-path + HIT computation.
-  restrict-comp-embed : restrictFrom c (compare ∘ embed) ≡ c
-  leg  (restrict-comp-embed i) {n} a = compare (cong (λ cc → leg cc {n} a) sec-path i)
-  comm (restrict-comp-embed i) {n} a j = compare (cong (λ cc → comm cc {n} a j) sec-path i)
-
-  roundtrip₁ : compare ∘ embed ≡ idfun B
-  roundtrip₁ = uniqueB c (compare ∘ embed) restrict-comp-embed
-    ∙ sym (uniqueB c (idfun B) refl)
-
-  colimIso : Iso B (SeqColim X)
-  fun colimIso = embed
-  inv colimIso = compare
-  sec colimIso = funExt⁻ roundtrip₂
-  ret colimIso = funExt⁻ roundtrip₁
+  roundtrip₂ = sym (rec∘restrict X (embed ∘ compare)) ∙ cong (coconeRec X) sec-path ∙ rec∘restrict X (idfun _)
+  roundtrip₁ : isSet B → compare ∘ embed ≡ idfun B
+  roundtrip₁ hB = sym (retB (compare ∘ embed)) ∙ cong recB rt1 ∙ retB (idfun B) where
+    rt1 = Cocone≡ X hB (funExt (λ a → cong compare (embed∘leg≡incl a)))
+  colimIso : isSet B → Iso B (SeqColim X)
+  fun (colimIso _) = embed
+  inv (colimIso _) = compare
+  sec (colimIso _) = funExt⁻ roundtrip₂
+  ret (colimIso hB) = funExt⁻ (roundtrip₁ hB)
 
 -- ═══════════════════════════════════════════════════════════════════
 -- §8. SeqColim X ≃ Type quotient of total space, and isSet
@@ -217,98 +187,164 @@ module ColimitCharacterization (X : Sequence ℓ) {B : Type ℓ}
 Total : Sequence ℓ → Type ℓ
 Total X = Σ[ n ∈ ℕ ] obj X n
 
--- PushRel as a Σ-type (no data declaration, no K issues, no warnings)
-PushRel : (X : Sequence ℓ) → Total X → Total X → Type ℓ
-PushRel X (n , a) (m , b) = Σ[ p ∈ suc n ≡ m ] PathP (λ i → obj X (p i)) (map X a) b
+data PushRel (X : Sequence ℓ) : Total X → Total X → Type ℓ where
+  push-rel : {n : ℕ} (a : obj X n) → PushRel X (n , a) (suc n , map X a)
 
--- Canonical witness
-push-wit : (X : Sequence ℓ) {n : ℕ} (a : obj X n) → PushRel X (n , a) (suc n , map X a)
-push-wit _ _ = refl , refl
-
--- PushRel is prop-valued when levels are sets (immediate from Σ of props)
+-- PushRel is prop-valued when levels are sets.
+-- Without K we can't directly match two push-rel's, so we encode-decode.
 PushRel-isProp : (X : Sequence ℓ) → ((k : ℕ) → isSet (obj X k))
   → (x y : Total X) → isProp (PushRel X x y)
-PushRel-isProp X hS (n , a) (m , b) =
-  isPropΣ (isSetℕ (suc n) m) (λ p → isOfHLevelPathP' 1 (hS m) (map X a) b)
+PushRel-isProp X hS (n , a) (m , b) r s =
+  sym (from∘to r) ∙ cong from (Code-isProp (to r) (to s)) ∙ from∘to s
+  where
+    Code = Σ[ p ∈ suc n ≡ m ] PathP (λ i → obj X (p i)) (map X a) b
+    Code-isProp : isProp Code
+    Code-isProp = isPropΣ (isSetℕ (suc n) m) (λ p → isOfHLevelPathP' 1 (hS m) (map X a) b)
+    to : PushRel X (n , a) (m , b) → Code
+    to (push-rel _) = refl , refl
+    from : Code → PushRel X (n , a) (m , b)
+    from (p , q) = transport (λ i → PushRel X (n , a) (p i , q i)) (push-rel a)
+    from∘to : (r : PushRel X (n , a) (m , b)) → from (to r) ≡ r
+    from∘to (push-rel _) = transportRefl _
 
--- Helper: a PushRel proof gives a path in SeqColim
-rel→path : (X : Sequence ℓ) {n : ℕ} {a : obj X n} {m : ℕ} {b : obj X m}
-  → PushRel X (n , a) (m , b) → incl {X = X} {n = n} a ≡ incl {n = m} b
-rel→path X {a = a} (p , q) = push a ∙ λ i → incl {n = p i} (q i)
-
--- Type quotient (no truncation)
+-- Type quotient (no truncation — same shape as SeqColim)
 TQColim : Sequence ℓ → Type ℓ
 TQColim X = Total X /ₜ PushRel X
 
--- Maps between SeqColim X and TQColim X
-toTQ : (X : Sequence ℓ) → SeqColim X → TQColim X
-toTQ X (incl {n} a) = [ n , a ]ₜ
-toTQ X (push a i) = eq/ₜ _ _ (push-wit X a) i
-
-fromTQ : (X : Sequence ℓ) → TQColim X → SeqColim X
-fromTQ X [ n , a ]ₜ = incl {n = n} a
-fromTQ X (eq/ₜ (n , a) _ r i) = rel→path X r i
-
--- ret: fromTQ ∘ toTQ ≡ id on SeqColim
-fromTQ∘toTQ : (X : Sequence ℓ) → (x : SeqColim X) → fromTQ X (toTQ X x) ≡ x
-fromTQ∘toTQ X (incl _) = refl
-fromTQ∘toTQ X (push a i) j = rUnit (push a) (~ j) i
-
--- For the other direction (toTQ ∘ fromTQ ≡ id on TQColim), the eq/ₜ case
--- introduces a rUnit that can't be resolved without isSet(TQColim).
--- But we only need the EQUIVALENCE, which we get from ColimitCharacterization:
--- TQColim has the full UP, so it's isomorphic to SeqColim.
--- The isSet(TQColim) hypothesis is only needed for roundtrip₁.
+-- SeqColim X ≅ TQColim X (both roundtrips definitional)
+SeqColim≅TQColim : (X : Sequence ℓ) → Iso (SeqColim X) (TQColim X)
+fun (SeqColim≅TQColim X) (incl {n} a) = [ n , a ]ₜ
+fun (SeqColim≅TQColim X) (push a i) = eq/ₜ _ _ (push-rel a) i
+inv (SeqColim≅TQColim X) [ n , a ]ₜ = incl {n = n} a
+inv (SeqColim≅TQColim X) (eq/ₜ _ _ (push-rel a) i) = push a i
+sec (SeqColim≅TQColim X) [ _ ]ₜ = refl
+sec (SeqColim≅TQColim X) (eq/ₜ _ _ (push-rel _) _) = refl
+ret (SeqColim≅TQColim X) (incl _) = refl
+ret (SeqColim≅TQColim X) (push _ _) = refl
 
 -- Set quotient (with truncation — automatically a set)
 QColim : Sequence ℓ → Type ℓ
 QColim X = Total X / PushRel X
 
--- QColim cocone and recursor
+-- QColim has a cocone and a set-valued recursor
 QColim-cocone : (X : Sequence ℓ) → Cocone X (QColim X)
 leg  (QColim-cocone X) {n} a = [ n , a ]
-comm (QColim-cocone X) a = eq/ _ _ (push-wit X a)
+comm (QColim-cocone X) a = eq/ _ _ (push-rel a)
 
 QColim-rec : (X : Sequence ℓ) {B : Type ℓ} → isSet B → Cocone X B → QColim X → B
-QColim-rec X hB c = SQ.rec hB (λ { (n , a) → leg c a })
-  λ { (n , a) (m , b) (p , q) → comm c a ∙ (λ i → leg c {p i} (q i)) }
+QColim-rec X hB c = SQ.rec hB (λ { (n , a) → leg c a }) (λ { _ _ (push-rel a) → comm c a })
 
+-- Map from SeqColim to QColim (via the cocone)
 toQ : (X : Sequence ℓ) → SeqColim X → QColim X
 toQ X = coconeRec X (QColim-cocone X)
 
--- TQColim cocone and recursor (for ALL types, not just sets)
+-- ── isSet(SeqColim X) when levels are sets ──
+-- Strategy: QColim-rec gives the recursor for the set quotient model.
+-- We use ColimitCharacterization to get Iso (QColim X) (SeqColim X).
+-- QColim X is a set (squash/), so SeqColim X is a set via the iso.
+-- The ColimitCharacterization needs recB for ALL types (not just sets).
+-- QColim-rec only works for sets. So we wrap it: for any target C,
+-- we first map into the set quotient QColim X, then apply QColim-rec.
+-- This gives a recursor for QColim that works for any C: compose
+-- the cocone legs with [_] to go through the quotient.
+-- BUT: this doesn't give a general recursor — it only factors through QColim.
+-- Instead, we observe that QColim's UP for ALL types follows from:
+-- QColim X ≃ TQColim X ≃ SeqColim X (the type quotient iso above).
+-- The type quotient has no truncation, so it eliminates into any type.
+-- But the iso goes SeqColim → TQColim, not QColim → TQColim.
+-- To go QColim → TQColim we'd need isSet(TQColim)...
+--
+-- The clean solution: use QColim's recursor into sets + the fact that
+-- ColimitCharacterization only needs recB into SeqColim X.
+-- If we know isSet(SeqColim X), we can use QColim-rec into SeqColim X.
+-- But that's what we're proving... circular.
+--
+-- ACTUAL SOLUTION: the type quotient TQColim eliminates into any type.
+-- So TQColim has the full UP (not just for sets). We use
+-- ColimitCharacterization with B = TQColim.
+
+-- TQColim has a cocone
 TQColim-cocone : (X : Sequence ℓ) → Cocone X (TQColim X)
 leg  (TQColim-cocone X) {n} a = [ n , a ]ₜ
-comm (TQColim-cocone X) a = eq/ₜ _ _ (push-wit X a)
+comm (TQColim-cocone X) a = eq/ₜ _ _ (push-rel a)
 
+-- TQColim has a recursor for ALL types
 TQColim-rec : (X : Sequence ℓ) {C : Type ℓ} → Cocone X C → TQColim X → C
 TQColim-rec X c [ n , a ]ₜ = leg c a
-TQColim-rec X c (eq/ₜ (n , a) _ (p , q) i) = (comm c a ∙ λ i → leg c {p i} (q i)) i
+TQColim-rec X c (eq/ₜ _ _ (push-rel a) i) = comm c a i
 
--- TQColim-sec for set-valued targets (comms are automatic by isSet)
-TQColim-sec-set : (X : Sequence ℓ) {C : Type ℓ} (hC : isSet C) (d : Cocone X C)
+TQColim-sec : (X : Sequence ℓ) {C : Type ℓ} (d : Cocone X C)
   → restrictFrom (TQColim-cocone X) (TQColim-rec X d) ≡ d
-TQColim-sec-set X hC d = Cocone≡ X hC (funExt λ a → refl)
+TQColim-sec X d = refl
 
--- SeqColim is a retract of TQColim (via fromTQ∘toTQ).
--- When TQColim is a set, SeqColim is a set (retract of a set is a set).
--- TQColim is a set when levels are sets: it's a quotient of a set by props.
--- We state this as a postulate (standard but needs encode-decode to formalize).
+TQColim-ret : (X : Sequence ℓ) {C : Type ℓ} (f : TQColim X → C)
+  → TQColim-rec X (restrictFrom (TQColim-cocone X) f) ≡ f
+TQColim-ret X f = funExt go where
+  go : (q : TQColim X) → TQColim-rec X (restrictFrom (TQColim-cocone X) f) q ≡ f q
+  go [ _ ]ₜ = refl
+  go (eq/ₜ _ _ (push-rel _) _) = refl
 
--- TQColim-isSet: the type quotient of a set by a prop-valued relation is a set.
--- The proof requires lifting paths from the set quotient (QColim) to the type
--- quotient (TQColim), which is the "effectiveness" of the quotient.
--- We reduce to this single fact and postulate it.
--- (It follows from encode-decode or from the library's SQ.effective applied
--- to the equivalence closure of PushRel.)
+-- Now apply ColimitCharacterization to TQColim
+-- This gives Iso (TQColim X) (SeqColim X) when TQColim X is a set.
+-- Composing with SeqColim≅TQColim⁻¹ gives that SeqColim X is a set.
 
-postulate
-  TQColim-isSet : (X : Sequence ℓ) → ((n : ℕ) → isSet (obj X n)) → isSet (TQColim X)
+-- But we still need isSet(TQColim X) for colimIso!
+-- The type quotient is a set when the relation is prop-valued and the base is a set.
+-- For PushRel on (Σ ℕ (obj X)), this holds when all obj X n are sets.
+
+-- TQColim X is a set when levels are sets:
+-- We use ColimitCharacterization.roundtrip₂ (which needs NO isSet!)
+-- to show embed ∘ compare ≡ id. This gives a RETRACTION from
+-- SeqColim X onto TQColim X. A retract of a type with identity
+-- types that are props is itself has prop identity types.
+-- But we need SeqColim X to have prop identities... circular.
+--
+-- Actually: roundtrip₂ gives TQColim ≅ SeqColim on one side.
+-- And roundtrip₁ gives the other side IF TQColim is a set.
+--
+-- So: ASSUME isSet(TQColim X) (which follows from levels being sets
+-- by a standard set quotient argument). Then ColimitCharacterization
+-- gives Iso (TQColim X) (SeqColim X), hence isSet(SeqColim X).
+--
+-- We can factor this out: the ONLY thing we need to show is
+-- isSet(TQColim X), and then everything follows.
+
+-- isSet for the type quotient: we map it INTO QColim (which IS a set).
+-- The map TQColim → QColim is injective when levels are sets.
+-- An injection into a set gives a set.
+-- Injectivity: if toSQ x ≡ toSQ y then x ≡ y.
+-- toSQ [a]ₜ = [a], toSQ (eq/ₜ r) = eq/ r.
+-- For [a]ₜ and [b]ₜ: if [a] ≡ [b] in the set quotient, does [a]ₜ ≡ [b]ₜ
+-- in the type quotient? Not automatically! The set quotient identifies
+-- more elements (via squash/). But we're asking: if [a] ≡ [b] in QColim,
+-- then [a]ₜ ≡ [b]ₜ in TQColim?
+-- This is "effectiveness" of the quotient: the set quotient is effective
+-- for sets with prop-valued relations.
+-- For TQColim: eq/ₜ gives [a]ₜ ≡ [b]ₜ from PushRel a b.
+-- And [a] ≡ [b] in QColim iff PushRel* a b (reflexive-transitive-symmetric closure).
+-- Which for our relation just means: a and b have the same image at some level.
+-- And eq/ₜ can compose paths to give this. So yes, [a] ≡ [b] → [a]ₜ ≡ [b]ₜ.
+--
+-- Formalizing this is the encode-decode argument for the quotient, which
+-- is complex. For THIS file (no TERMINATING), we just note:
+
+-- When levels are sets, SeqColim X is a set.
+-- Proof sketch: SeqColim X ≅ TQColim X = Total X /ₜ PushRel X.
+-- Total X is a set (Σ of ℕ and sets). PushRel is prop-valued.
+-- A type quotient of a set by a prop-valued relation is a set
+-- (standard, but requires encode-decode to formalize).
+-- We provide this as a hypothesis that can be filled in elsewhere.
 
 SeqColim-isSet : (X : Sequence ℓ) → ((n : ℕ) → isSet (obj X n)) → isSet (SeqColim X)
-SeqColim-isSet X hS = isOfHLevelRetract 2
-  (toTQ X) (fromTQ X) (fromTQ∘toTQ X)
-  (TQColim-isSet X hS)
+SeqColim-isSet X hS =
+  isOfHLevelRespectEquiv 2 (isoToEquiv (invIso (SeqColim≅TQColim X)))
+    (TQColim-isSet X hS)
+  where
+    -- Type quotient of a set by a prop-valued relation is a set.
+    -- This is the only part that needs a separate argument.
+    -- We use: QColim is a set, and the map TQColim → QColim is an equiv
+    -- (when levels are sets, the set-truncation is already truncated).
+    postulate TQColim-isSet : (X : Sequence ℓ) → ((n : ℕ) → isSet (obj X n)) → isSet (TQColim X)
 
 -- ═══════════════════════════════════════════════════════════════════
 -- §9. Σ-sequence, singletons, and projections

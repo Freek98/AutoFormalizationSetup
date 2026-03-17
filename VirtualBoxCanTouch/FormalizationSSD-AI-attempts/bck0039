@@ -156,59 +156,30 @@ restrictFrom : {X : Sequence ℓ} {B : Type ℓ'} (c : Cocone X B) {C : Type ℓ
 leg  (restrictFrom c f) = f ∘ leg c
 comm (restrictFrom c f) a = cong f (comm c a)
 
--- The UP with uniqueness: for each cocone d into C, recB d is the UNIQUE
--- extension along c. No isSet hypothesis needed.
 module ColimitCharacterization (X : Sequence ℓ) {B : Type ℓ}
   (c : Cocone X B)
-  (recB    : {C : Type ℓ} → Cocone X C → (B → C))
-  (secB    : {C : Type ℓ} (d : Cocone X C) → restrictFrom c (recB d) ≡ d)
-  (uniqueB : {C : Type ℓ} (d : Cocone X C) (f : B → C) → restrictFrom c f ≡ d → f ≡ recB d)
-  where
+  (recB : {C : Type ℓ} → Cocone X C → (B → C))
+  (secB : {C : Type ℓ} (d : Cocone X C) → restrictFrom c (recB d) ≡ d)
+  (retB : {C : Type ℓ} (f : B → C) → recB (restrictFrom c f) ≡ f) where
 
   compare : SeqColim X → B
   compare = coconeRec X c
-
   embed : B → SeqColim X
   embed = recB (canonCocone X)
-
   sec-path : restrictFrom c embed ≡ canonCocone X
   sec-path = secB (canonCocone X)
-
-  -- Roundtrip 2: embed ∘ compare ≡ id (same proof as before)
+  embed∘leg≡incl : {n : ℕ} (a : obj X n) → embed (leg c a) ≡ incl a
+  embed∘leg≡incl {n} a = cong (λ cc → leg cc {n} a) sec-path
   roundtrip₂ : embed ∘ compare ≡ idfun (SeqColim X)
-  roundtrip₂ = sym (rec∘restrict X (embed ∘ compare))
-    ∙ cong (coconeRec X) sec-path
-    ∙ rec∘restrict X (idfun _)
-
-  -- Roundtrip 1: compare ∘ embed ≡ id (NO isSet needed!)
-  -- Both (compare ∘ embed) and id satisfy restrictFrom c (-) ≡ c.
-  -- By uniqueness, both equal recB c, hence equal each other.
-
-  -- id satisfies restrictFrom c id ≡ c (definitionally):
-  restrict-id : restrictFrom c (idfun B) ≡ c
-  restrict-id = refl
-
-  -- compare ∘ embed satisfies restrictFrom c (compare ∘ embed) ≡ c:
-  -- Key: sec-path gives restrictFrom c embed ≡ canonCocone X, including comms.
-  -- Then: comm (restrictFrom c (compare ∘ embed)) a
-  --     = cong (compare ∘ embed) (comm c a)
-  --     = cong compare (cong embed (comm c a))
-  -- From sec-path, cong embed (comm c a) is identified with push a.
-  -- And cong compare (push a) = cong (coconeRec X c) (push a) = comm c a (definitionally).
-  -- So the full cocone equality is built from sec-path + HIT computation.
-  restrict-comp-embed : restrictFrom c (compare ∘ embed) ≡ c
-  leg  (restrict-comp-embed i) {n} a = compare (cong (λ cc → leg cc {n} a) sec-path i)
-  comm (restrict-comp-embed i) {n} a j = compare (cong (λ cc → comm cc {n} a j) sec-path i)
-
-  roundtrip₁ : compare ∘ embed ≡ idfun B
-  roundtrip₁ = uniqueB c (compare ∘ embed) restrict-comp-embed
-    ∙ sym (uniqueB c (idfun B) refl)
-
-  colimIso : Iso B (SeqColim X)
-  fun colimIso = embed
-  inv colimIso = compare
-  sec colimIso = funExt⁻ roundtrip₂
-  ret colimIso = funExt⁻ roundtrip₁
+  roundtrip₂ = sym (rec∘restrict X (embed ∘ compare)) ∙ cong (coconeRec X) sec-path ∙ rec∘restrict X (idfun _)
+  roundtrip₁ : isSet B → compare ∘ embed ≡ idfun B
+  roundtrip₁ hB = sym (retB (compare ∘ embed)) ∙ cong recB rt1 ∙ retB (idfun B) where
+    rt1 = Cocone≡ X hB (funExt (λ a → cong compare (embed∘leg≡incl a)))
+  colimIso : isSet B → Iso B (SeqColim X)
+  fun (colimIso _) = embed
+  inv (colimIso _) = compare
+  sec (colimIso _) = funExt⁻ roundtrip₂
+  ret (colimIso hB) = funExt⁻ (roundtrip₁ hB)
 
 -- ═══════════════════════════════════════════════════════════════════
 -- §8. SeqColim X ≃ Type quotient of total space, and isSet
@@ -294,13 +265,6 @@ TQColim-sec-set X hC d = Cocone≡ X hC (funExt λ a → refl)
 -- When TQColim is a set, SeqColim is a set (retract of a set is a set).
 -- TQColim is a set when levels are sets: it's a quotient of a set by props.
 -- We state this as a postulate (standard but needs encode-decode to formalize).
-
--- TQColim-isSet: the type quotient of a set by a prop-valued relation is a set.
--- The proof requires lifting paths from the set quotient (QColim) to the type
--- quotient (TQColim), which is the "effectiveness" of the quotient.
--- We reduce to this single fact and postulate it.
--- (It follows from encode-decode or from the library's SQ.effective applied
--- to the equivalence closure of PushRel.)
 
 postulate
   TQColim-isSet : (X : Sequence ℓ) → ((n : ℕ) → isSet (obj X n)) → isSet (TQColim X)
