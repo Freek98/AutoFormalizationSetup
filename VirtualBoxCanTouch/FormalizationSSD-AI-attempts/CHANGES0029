@@ -1,0 +1,23 @@
+SeqColimClosure.agda — combined cubicaltt translation + library usage.
+272 lines, COMPILES CLEANLY (no warnings), 3 postulate blocks, 8 TERMINATING pragmas.
+
+Major improvements over bck0028:
+- Replaced manual totalEquiv→fiberwise + equivFiberwiseContr with
+  library's recognizeId from Cubical.Foundations.Equiv.Fiberwise
+- colimitPaths now ONE LINE using recognizeId
+- Removed ~80 lines of manual equivalence infrastructure
+
+Fully proven (no holes/postulates):
+- seqCo HIT, ShiftEquiv (F/G/GF/FG/shiftIso), lemShift, lemShiftPath1/Path
+- code_i, code_g, code (B∞ type family)
+- sigmaSequence, liftCodeEq, F (forward map), G0 (inverse map)
+- ySSeq (path fibration), sigmaYContr-levels, sigmaYContr, sigmaCodeContr
+- colimitPaths (path characterization — via recognizeId!)
+- Fi, Fg, toRecursive, liftSC, fromRecursive (standard ↔ recursive colimit maps)
+
+Remaining 3 postulate blocks (5 individual postulates):
+1. FG-full, GF-full — Σ-closure roundtrips (complex cubes from cubicaltt FG/GF0)
+2. colimitContr — colimit of contractible types (gl case needs J + transport cube)
+3. toFrom, fromTo — standard ↔ recursive colimit equivalence roundtrips
+
+8 TERMINATING pragmas (cubicaltt accepts recursion through ShiftSeq).

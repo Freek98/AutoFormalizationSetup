@@ -1,0 +1,34 @@
+CHANGES0028 - PropositionalTopology formalization (PropTopWork.agda)
+
+New file: PropTopWork.agda (~510 lines, 0 holes, 0 postulates, COMPILES)
+
+This file formalizes the propositional topology results from the tex file
+(Open and closed propositions section). All results that dont need LLPO are proven.
+
+Results proven:
+1. Open⊓ - Conjunction of two open propositions is open (using ℕ×ℕ≅ℕ pairing)
+2. Open⊓-prop - Truncated version
+3. Open⊔ - Disjunction of two open propositions is open
+4. negOpenWitnessIsClosedWitness / negOpenIsClosed - Negation of open is closed
+5. negClosedWitnessIsOpenWitness / negClosedIsOpen - Negation of closed is open (needs wMP)
+6. open-¬¬-stable - Open propositions are ¬¬-stable (needs wMP)
+7. closed-¬¬-stable-witness - Closed propositions are ¬¬-stable (no axiom needed!)
+8. decIsOpen / decIsClosed - Decidable propositions are open and closed
+9. Closed⊓ - Conjunction of two closed propositions is closed (using ℕ⊎ℕ≅ℕ)
+10. Closed⊓ω-witness - COUNTABLE conjunction of closed is closed (ℕ×ℕ≅ℕ)
+11. Open⊔ω-witness - COUNTABLE disjunction of open is open (ℕ×ℕ≅ℕ)
+12. impl-open-closed-witness - (P open, Q closed) implies (P→Q) is closed
+13. impl-closed-open-witness - (P closed, Q open) implies (P→Q) is open (needs wMP)
+14. ClosedMarkov-witness - For closed family Pn: ¬(∀n.Pn) → ∃n.¬Pn (needs wMP)
+
+Key design decisions:
+- Uses ¬' for type-level negation vs ¬ from Logic for hProp-level
+- Countable operations use explicit witness families (no choice axiom needed)
+- weakMarkovPrinciple stated locally, not imported from axioms module
+- impl-open-closed uses γ(k) = α(fst(unpair k)) and β(snd(unpair k))
+- impl-closed-open uses γ(k) = α(fst(unpair k)) or β(snd(unpair k))
+- ClosedMarkov combines negClosedIsOpen + Markov on combined binary sequence
+
+Not yet formalized (would need LLPO):
+- Closed⊔ - Disjunction of two closed propositions is closed
+- ClopenDecidable - If P is both open and closed, then P is decidable

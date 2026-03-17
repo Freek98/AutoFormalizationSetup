@@ -5,7 +5,6 @@
 
   This file is an AI translation (by Claude, Anthropic) of the cubicaltt
   formalization by Mörtberg:
-  -- Note : formalization was done by Rafael Bocquet in cubicaltt
     https://github.com/mortberg/cubicaltt/blob/seqcolim/examples/seqcolim.ctt
 
   Based on the paper:

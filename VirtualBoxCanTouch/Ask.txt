@@ -16,3 +16,7 @@ and you are an AI)
   of open there, when you're done with that you can do some implications of     
   conjunctions of countable families of closed and disjunction of of countable  
   families of open.
+
+  ❯ okay can you combine the translation and your own work to proof it maybe?    
+  You can also use the paper                                                    
+  https://florisvandoorn.com/papers/sequential_colimits_homotopy.pdf

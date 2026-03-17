@@ -5,7 +5,6 @@
 
   This file is an AI translation (by Claude, Anthropic) of the cubicaltt
   formalization by Mörtberg:
-  -- Note : formalization was done by Rafael Bocquet in cubicaltt
     https://github.com/mortberg/cubicaltt/blob/seqcolim/examples/seqcolim.ctt
 
   Based on the paper:
@@ -25,7 +24,6 @@ open import Cubical.Foundations.Transport
 open import Cubical.Foundations.GroupoidLaws
 open import Cubical.Foundations.Univalence
 open import Cubical.Foundations.Path
-open import Cubical.Foundations.Equiv.Fiberwise using (fiberEquiv; totalEquiv; recognizeId)
 
 open import Cubical.Data.Nat
 open import Cubical.Data.Sigma
@@ -192,10 +190,17 @@ module SigmaColim (A : Sequence ℓ) (B : SeqFib A ℓ') where
 -- §5. Colimits of contractible types are contractible
 -- ═══════════════════════════════════════════════════════════════════
 
--- Colimits of contractible types are contractible.
--- The gl case requires a complex cube (J + transport in cubicaltt).
-postulate
-  colimitContr : (A : Sequence ℓ) → ((n : ℕ) → isContr (obj A n)) → isContr (seqCo A)
+-- Translated from cubicaltt colimitContr
+{-# TERMINATING #-}
+colimitContr-f : (A : Sequence ℓ) (p : (n : ℕ) → isContr (obj A n))
+  (x : obj A 0) → (y : seqCo A) → inj x ≡ y
+colimitContr-f A p x (inj y) i = inj (isContr→isProp (p 0) x y i)
+colimitContr-f A p x (lift y) =
+  gl x ∙ cong lift (colimitContr-f (ShiftSeq A) (λ n → p (suc n)) (map A x) y)
+colimitContr-f A p x (gl y i) j = {!!}  -- square from contractibility
+
+colimitContr : (A : Sequence ℓ) → ((n : ℕ) → isContr (obj A n)) → isContr (seqCo A)
+colimitContr A p = inj (p 0 .fst) , colimitContr-f A p (p 0 .fst)
 
 -- ═══════════════════════════════════════════════════════════════════
 -- §6. Path fibration and path characterization
@@ -229,12 +234,73 @@ sigmaCodeContr A x =
   transport (λ i → isContr (SigmaColim.sigmaColimit A (ySSeq A x) i))
             (sigmaYContr A x)
 
+-- Theorem 4.7.7 from HoTT book: fiber over center of contraction
+-- (Σ A P with A contractible) ≃ P(center)
+-- Already available as isContr→Equiv in the library, or we can use:
+lem31192 : {A : Type ℓ} {P : A → Type ℓ'}
+  → (c : isContr A)
+  → Σ A P ≃ P (c .fst)
+lem31192 {P = P} c = isoToEquiv (iso f g fg gf)
+  where
+  f : Σ _ P → P (c .fst)
+  f (a , p) = subst P (sym (c .snd a)) p
+  g : P (c .fst) → Σ _ P
+  g p = c .fst , p
+  fg : (p : P (c .fst)) → f (g p) ≡ p
+  fg p = cong (λ q → subst P q p) (isProp→isSet (isContr→isProp c) _ _ _ _)
+       ∙ transportRefl p
+  gf : (x : Σ _ P) → g (f x) ≡ x
+  gf (a , p) i = c .snd a i , transp (λ j → P (c .snd a (i ∨ ~ j))) i p
+
+-- Total space map for fiberwise equivalence characterization
+total : {A : Type ℓ} {P Q : A → Type ℓ'}
+  → ((x : A) → P x → Q x) → Σ A P → Σ A Q
+total f (a , p) = a , f a p
+
+-- Fiberwise equivalence ↔ total equivalence (thm477 from cubicaltt)
+fiberwise→totalEquiv : {A : Type ℓ} {P Q : A → Type ℓ'}
+  → {f : (x : A) → P x → Q x}
+  → ((x : A) → isEquiv (f x))
+  → isEquiv (total f)
+fiberwise→totalEquiv {f = f} fEq =
+  isoToIsEquiv (iso (total f) (total (λ x → invEq (_ , fEq x)))
+    (λ (a , q) → ΣPathP (refl , secEq (_ , fEq a) q))
+    (λ (a , p) → ΣPathP (refl , retEq (_ , fEq a) p)))
+
+totalEquiv→fiberwise : {A : Type ℓ} {P Q : A → Type ℓ'}
+  → {f : (x : A) → P x → Q x}
+  → isEquiv (total f)
+  → (x : A) → isEquiv (f x)
+totalEquiv→fiberwise {Q = Q} {f = f} tEq x = {!!}  -- standard, via th476
+
+-- Fiberwise contr → total equiv (equivFiberwiseContr from cubicaltt)
+equivFiberwiseContr : {X : Type ℓ} {P Q : X → Type ℓ'}
+  → isContr (Σ X P) → isContr (Σ X Q)
+  → (f : (x : X) → P x → Q x)
+  → (x : X) → isEquiv (f x)
+equivFiberwiseContr {P = P} {Q = Q} cP cQ f =
+  totalEquiv→fiberwise (isContr→isEquiv cP cQ (total f))
+  where
+  isContr→isEquiv : {A B : Type ℓ} → isContr A → isContr B → (f : A → B) → isEquiv f
+  isContr→isEquiv cA cB f =
+    isoToIsEquiv (iso f (λ _ → cA .fst) (λ b → isContr→isProp cB _ b) (λ a → isContr→isProp cA _ a))
+
+-- The encode map for path characterization
+colimitPathsF : (A : Sequence ℓ) (x : obj A 0)
+  → (y : seqCo A) → inj x ≡ y → code A (ySSeq A x) y
+colimitPathsF A x y p = J (λ y _ → code A (ySSeq A x) y) (inj refl) p
+
 -- Main theorem: paths in a colimit are a colimit of paths
--- Uses recognizeId from Cubical.Foundations.Equiv.Fiberwise
--- (the "fundamental theorem of identity types")
+-- (colimitPaths from cubicaltt)
 colimitPaths : (A : Sequence ℓ) (x : obj A 0) (y : seqCo A)
   → (inj x ≡ y) ≃ code A (ySSeq A x) y
-colimitPaths A x = recognizeId (code A (ySSeq A x)) (inj refl) (sigmaCodeContr A x)
+colimitPaths A x y =
+  colimitPathsF A x y ,
+  equivFiberwiseContr
+    (isContrSingl (inj x))
+    (sigmaCodeContr A x)
+    (colimitPathsF A x)
+    y
 
 -- ═══════════════════════════════════════════════════════════════════
 -- §7. Equivalence with standard SeqColim (equivSeqCo from cubicaltt)
