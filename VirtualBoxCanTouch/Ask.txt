@@ -60,3 +60,12 @@ library on sequential colimits?
   any other object which has this property is isomorphic to the colimit of the  
   sequence.                                        
 
+❯ I see you now use that the sequential colimit is a set, but is it not        
+  sufficient to require that all the terms in the sequence are sets?
+
+ ah okay cool. Now I think you can show with this that is you have a sequence 
+  of sets, the colimit can be given by the total space of the sequence,         
+  quotiented out by the relations given by push. push lands in a set in this    
+  case, that should be the quotient of a set by propositions, which should be   
+  a set. Can you use this to show that the sequential colimit of sets is a      
+  set?                                       
