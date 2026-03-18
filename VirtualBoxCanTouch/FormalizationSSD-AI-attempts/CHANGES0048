@@ -1,0 +1,42 @@
+CHANGES0048 - SeqColimWork.agda: Sequential colimit closure formalization
+
+New file: SeqColimWork.agda (364 lines, compiles, 3 postulate blocks)
+
+Translated from Spectral/colimit/seq_colim.hlean (Lean/hlean formalization by
+Floris van Doorn and Egbert Rijke) and the paper by Sojakova, van Doorn, Rijke
+"Sequential Colimits in Homotopy Type Theory" (LICS 2020).
+
+PROVEN:
+- seqCo recursive colimit definition (avoids ℕ-arithmetic via ShiftSeq)
+- ShiftEquiv: shift equivalence (lift is an equiv), lemShift
+- Fi, Fg: maps from SeqColim → seqCo (by structural recursion on ℕ)
+- toRecursive, fromRecursive: maps between SeqColim and seqCo
+- fromTo: fromRecursive ∘ toRecursive ≡ id (on SeqColim)
+  - fromToFi, fromToFg helper lemmas
+- equivSeqCo: Iso (SeqColim A) (seqCo A) (modulo toFrom postulate)
+- colimitContr: seqCo of contractible types is contractible
+  (via library's converges→ColimIso + equivSeqCo)
+- code_i, code_g, code: the type family (B∞) over seqCo
+- sigmaSequence, liftCodeEq
+- fwdF: forward map seqCo(ΣSeq) → Σ(seqCo A)(code)
+- bwdG0, bwdG: backward map Σ(seqCo A)(code) → seqCo(ΣSeq)
+- SigmaColim module: sigmaColimit Iso (modulo FG-full, GF-full)
+- ySSeq: path fibration (identity type as a SeqFib)
+- sigmaYContr: Σ of path fibration is contractible
+- sigmaCodeContr: code-Σ version contractible
+- colimitPaths: (inj x ≡ y) ≃ code(ySSeq x)(y) -- MAIN THEOREM
+  paths in sequential colimits are sequential colimits of paths
+- Transfer to library SeqColim: sigmaColimitLib, colimitPathsLib
+
+POSTULATED (3 blocks):
+1. toFrom (line 146): toRecursive ∘ fromRecursive ≡ id on seqCo
+   Issue: lift case needs ∙ of toRec-liftSC and cong lift (IH),
+   but refl ∙ refl ≠ refl definitionally at gl boundary.
+
+2. FG-full (line 273): bwdG ∘ fwdF ≡ id on seqCo(ΣSeq)
+   The gl case requires showing comp in bwdG0's gl case
+   produces gl(a,b). Complex cubical cube computation.
+
+3. GF-full (line 287): fwdF ∘ bwdG ≡ id on Σ(seqCo A)(code)
+   Double induction. The (inj a, lift y) case needs ΣPathP with
+   base sym(gl a); the (gl a i, y) case involves bwdG0's gl case.

@@ -104,3 +104,41 @@ again? Where does the use of B being a set come up?
   unique map Xn-> X_k sends a to c and Xm -> X_k sends b to c. Can you proof    
   this bi-implication? Even better, can we characterize the equality in the     
   colimit in such a way?
+  ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+❯ okay when you've done that, continue working on the filteredness section. See how far you get, I will be away for some
+  time. Keep working on the equality characterization, and please name your functions in a more descriptive way then
+  encode/decode (so from A to B A->B or something).
+  ❯ Hej, we have a new idea to show that sequential colimits of sets are sets.   
+  First you look up the result that a type X is a set iff (S^1 -> X) is         
+  equivalent to X (this should be easy, the idea is that any equality x = x is  
+  equal to refl if equalities are propositions). Then we show that maps S^1     
+  to the colimit of X_i is the colimit of maps S^1 -> X_i (this might be more   
+  difficult, it should follow from reasoning about finitely presented objects   
+  interacting with colimits, which is definitely not in the cubical library,    
+  but might be in some other library). Then if all the X_i are sets, the        
+  colimits of maps S^1 -> X_i is a colimit of X_i, which is what we wanted.     
+  Please start a new file and see how far you can get with this argument.
+  --it crashed, I wanted to formalize the paper, I give it the paper.
+  ❯ I have downloaded Spectral/Colimit and the paper bij van Doorn Rijke and      
+  Sojakova. I want a formalization in cubical agda of results that sequential   
+  colimits are closed under Sigma and identity types. There's a claim there is  
+  already a lean formalization, and you should be able to translate it.
+   3 postulates remaining:                                                       
+                                                                                
+  1. toFrom: toRecursive ∘ fromRecursive ≡ id — boundary issue where refl ∙ refl
+   ≠ refl definitionally                                          
+  2. FG-full: bwdG ∘ fwdF ≡ id — comp in bwdG0's gl case doesn't reduce         
+  3. GF-full: fwdF ∘ bwdG ≡ id — double induction with ΣPathP                   
+                                                                                
+  All three postulates stem from the same root cause: Cubical Agda's hcomp/comp 
+  for HITs doesn't reduce on variable arguments, unlike cubicaltt where the     
+  pattern matching on HITs automatically provides the fillers. The postulates   
+  are mathematically valid and correspond to proven results in the cubicaltt and
+   Lean formalizations.
+
+✻ Baked for 35m 55s                  
+                                                                             
+────────────────────────────────────────────────────────────────────────────────
+❯ can you use encode/decode to write something equivalent to the identity       
+  types to get around this?                                                     
+────────────────────────────────────

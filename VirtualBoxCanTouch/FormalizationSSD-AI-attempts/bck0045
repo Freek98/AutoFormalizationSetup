@@ -104,7 +104,6 @@ ret (truncCommutes X) _ = squash₁ _ _
 -- ═══════════════════════════════════════════════════════════════════
 -- §7. Universal property
 -- ═══════════════════════════════════════════════════════════════════
--- -- Note is this not just SequenceMap?
 record Cocone (X : Sequence ℓ) (B : Type ℓ') : Type (ℓ-max ℓ ℓ') where
   constructor cocone
   field
@@ -334,7 +333,7 @@ EqCode-isProp X a y = snd (EqCode X a y)
 Path→EqCode-refl : (X : Sequence ℓ) {n : ℕ} (a : obj X n)
   → Path→EqCode X a refl ≡ refl
 Path→EqCode-refl X a = transportRefl refl
-{-
+
 -- isSet(SeqColim X): via TQColim retract.
 postulate
   TQColim-isSet : (X : Sequence ℓ) → ((n : ℕ) → isSet (obj X n)) → isSet (TQColim X)
@@ -369,4 +368,3 @@ map (singletonSeq A x₀) (a , p) = map A a , cong (map A) p
 singletonSeq-colim-contr : (A : Sequence ℓ) (x₀ : obj A 0) → isContr (SeqColim (singletonSeq A x₀))
 singletonSeq-colim-contr A x₀ = colimitContr (singletonSeq A x₀)
   (λ n → (iterMap A n x₀ , refl) , λ { (a , p) i → p i , λ j → p (i ∧ j) })
-  -}
