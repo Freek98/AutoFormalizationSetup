@@ -1,0 +1,1 @@
+this is the setup I use for autoformalization of the SSD library. Everything here is AI-generated (some comments are human), and therefore possibly stolen without accreditation and wrong. Read at your own risk. 
