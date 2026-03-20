@@ -1,0 +1,15 @@
+bck0062: SeqColimSigmaId/work.agda — 485 lines, 1 postulate, 0 TERMINATING
+
+Added corollaries:
+- colimitPathsAtIncl: (incl a₀ ≡ incl a₁) ≃ C∞(fiberSeq(pathSeqFib a₀)(0)(a₁))
+- sigmaColimitPath: SeqColim(Σ-seq) ≡ Σ A∞ B∞ (via isoToPath)
+- B∞-at-incl: B∞(incl a) = SeqColim(fiberSeq n a) (definitional, refl)
+
+Extensive attempts at FG postulate (see CHANGES0059-0061):
+Three Cubical Agda barriers to the §6 double induction:
+1. Termination: shift recursion changes sequence type parameter
+2. Boundary: hcomp(refl, p) ≠ p in HIT types (transpSeqColim neutral)
+3. Glue/HIT: transport through ua of SeqColim doesn't reduce
+
+The remaining postulate corresponds to 4 pages (§6) of the original paper.
+All other results fully proven including GF and identity type characterization.

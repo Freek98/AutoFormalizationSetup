@@ -1,0 +1,30 @@
+bck0054: SeqColimSigmaId/work.agda — Final clean state (400 lines)
+
+Changed G-map implementation from ua→ to ua-unglue + hcomp.
+This has better computational properties for the roundtrips.
+
+PROVEN results:
+- fiberSeqObj/fiberSeqMap: fully defined, 0 TERMINATING flags
+- B∞ type family via ua(shiftFibEquiv)
+- F-map: forward map SeqColim(Σ-seq) → Σ A∞ B∞
+- G-map: inverse map using ua-unglue + hcomp
+- G-inner-shift: definitional (refl on incl and push)
+- G-coh: push(a,b) at level 0, refl at suc k
+- FG-inner: F(h n a k b) ≡ (incl a, incl{k} b)
+  via shiftInvPathP (ua-gluePt based)
+- colimitContr: colimits of contractible types are contractible
+- pathSeqFib: path fibration for a₀ : A(0)
+- sigmaPathContr: total space of Σ-seq for pathSeqFib is contractible
+- totalPathContr: Σ A∞ B∞ for pathSeqFib is contractible (via Σ-closure)
+- colimitPaths: (incl a₀ ≡ y) ≃ B∞(pathSeqFib a₀)(y) via recognizeId — FULLY PROVEN
+
+POSTULATES: 2
+1. GF-push-sq: push case of G∘F roundtrip
+   - Requires showing hcomp(ua-unglue(...)) = push(a,b)
+   - Blocked by Glue/HIT interaction (ua-unglue ∘ toPathP doesn't reduce)
+2. FG: full F∘G roundtrip
+   - FG-inner proved (incl-incl case)
+   - Needs inner-push and outer-push cases
+
+TERMINATING flags: 0
+Holes: 0

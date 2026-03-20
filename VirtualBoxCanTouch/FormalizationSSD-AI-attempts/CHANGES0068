@@ -1,0 +1,14 @@
+bck0068: SeqColimSigmaId/work.agda — 611 lines, 1 postulate (non-set only), 0 TERMINATING
+
+PROVEN WITHOUT POSTULATES:
+- sigmaColimit-isSet: full Σ-closure Iso for set-level types
+- FG-isSet: F∘G = id for set-level Σ types
+- FG-on-incl: F∘G on incl (all h-levels, via FG-ptpt + FG-ptpath)
+- GF: G∘F = id (all h-levels)
+- colimitPaths: identity type characterization
+- All infrastructure (B∞, F-map, G-map, etc.)
+
+1 POSTULATE: FG-outer (PathP over push for non-set target types only)
+- For isSet(Σ A∞ B∞): fully proven via isProp→PathP (FG-outer-isSet)
+- General case: requires §6.2 path-path coherence
+- The set case covers most applications including identity type characterization

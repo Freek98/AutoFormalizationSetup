@@ -1,0 +1,25 @@
+bck0055: SeqColimSigmaId/work.agda — Final state (403 lines)
+
+Changed F-map to use ua-gluePath (instead of toPathP/uaβ).
+This gives definitional ua-unglue/ua-glue cancellation in composition with G.
+
+PROVEN (0 TERMINATING, 0 holes):
+- SeqFib, fiberSeqObj/fiberSeqMap (structural recursion on k)
+- B∞ type family via ua(shiftFibEquiv)
+- F-map using ua-gluePath (forward map)
+- G-map using ua-unglue + hcomp (inverse map)
+- G-inner-shift: definitional (refl on incl/push)
+- G-coh: push(a,b) at level 0, refl at suc k
+- FG-inner: F(h n a k b) ≡ (incl a, incl{k} b) by induction on k
+- shiftInvPathP via ua-gluePt
+- sigmaColimit Iso structure
+- colimitContr
+- pathSeqFib, sigmaPathContr, totalPathContr
+- colimitPaths via recognizeId: (incl a₀ ≡ y) ≃ B∞(pathSeqFib a₀)(y) — FULLY PROVEN
+- idSeq, rep₀
+
+POSTULATES: 2
+1. GF-push-sq: push case of G∘F (Glue/HIT coherence)
+2. FG: full F∘G (inner-push + outer-push cases)
+Both are cubical coherence issues where transport through ua of HITs
+doesn't reduce (transpSeqColim stays neutral, hcomp doesn't simplify).

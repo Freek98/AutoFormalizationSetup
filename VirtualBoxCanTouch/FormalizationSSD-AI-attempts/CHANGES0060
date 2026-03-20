@@ -1,0 +1,11 @@
+bck0060: SeqColimSigmaId/work.agda — FG k=0 push case PROVEN!
+
+MAJOR PROGRESS on FG:
+- Redefined FG-inner via shiftStep (avoiding refl ∙ p wrapper)
+- FG-on-incl: full inner elimination with k=0 push case PROVEN!
+  Key: connection (push a (i∧~j), ua-gluePt e (i∧~j) (push{0} b i))
+  Works because ua-gluePt e i (push{0} b i) = ua-gluePath e refl i DEFINITIONALLY
+  (both call ua-glue with same partial incl{0} b at i=i0 and base incl{0}(Pmap b))
+
+Remaining hole: FG-on-incl suc k push case (reduces to shifted level)
+Still postulated: FG (full, includes outer push case)

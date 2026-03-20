@@ -1,0 +1,28 @@
+bck0070: SeqColimSigmaId/work.agda — 611 lines, FINAL STATE
+
+FULLY PROVEN (0 postulates, 0 TERMINATING):
+- sigmaColimit-isSet: Σ-closure Iso for set-level types
+- FG-isSet: F∘G = id for sets
+- FG-outer-isSet: outer push via isProp→PathP
+- FG-on-incl: full inner case (all h-levels)
+  - FG-ptpt: point-point by ℕ recursion with hcomp composition
+  - FG-ptpath: point-path via lUnit bridge + hfill + ua-gluePt
+- GF: G∘F = id (all h-levels)
+- colimitPaths: (incl a₀ ≡ y) ≃ B∞(pathSeqFib a₀)(y) via recognizeId
+
+1 POSTULATE: FG-outer (non-set types only)
+ROOT CAUSE: G-body(push a i0)(y) = hcomp(...) ≠ G-inner(n)(a)(y) definitionally.
+In Cubical Agda, push a i0 reduces to incl a, but the body of the push branch
+is evaluated with i=i0 (not re-dispatched to incl branch). The resulting hcomp
+is propositionally but not definitionally equal to the incl branch result.
+This prevents ua→/funExtDep from type-checking with FG-on-incl at the boundary.
+The set case avoids this via isProp→PathP.
+
+SUMMARY OF APPROACHES TRIED:
+- ua→: type mismatch at i0 boundary (G-body doesn't reduce)
+- funExtDep: same issue
+- toPathP + funExt: transport in path type too complex
+- lUnit bridge: works for inner cases but not outer push
+- isProp→PathP: works for sets (proved!) and groupoids, not general
+- Direct hcomp filling: termination issues + boundary cascading
+- Explicit k-recursion with hfill: boundary mismatch at k=0/k=1

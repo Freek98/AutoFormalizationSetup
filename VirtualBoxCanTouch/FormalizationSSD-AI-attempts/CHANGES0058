@@ -1,0 +1,15 @@
+bck0058: SeqColimSigmaId/work.agda — Final state (450 lines)
+
+FULLY PROVEN:
+- GF roundtrip (G∘F = id) — the key breakthrough using ua-gluePath + hfill connection
+- Identity type characterization: (incl a₀ ≡ y) ≃ B∞(pathSeqFib a₀)(y) via recognizeId
+- FG-inner: point-point case of F∘G roundtrip by induction on k
+- All supporting infrastructure (B∞, F-map, G-map, G-coh, G-inner-shift, etc.)
+
+1 POSTULATE: FG (F∘G = id)
+- Requires the "double induction on the sum" from paper §6 (4 pages of construction)
+- Point-point case proven (FG-inner)
+- Remaining: point-path, path-point, path-path cases with transport coherences
+- This is the most technically demanding part of the entire paper
+
+0 TERMINATING flags, 0 holes

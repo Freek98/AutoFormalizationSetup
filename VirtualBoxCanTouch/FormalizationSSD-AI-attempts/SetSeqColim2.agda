@@ -343,7 +343,7 @@ SeqColim-isSet : (X : Sequence ℓ) → ((n : ℕ) → isSet (obj X n)) → isSe
 SeqColim-isSet X hS = isOfHLevelRetract 2
   (toTQ X) (fromTQ X) (fromTQ∘toTQ X)
   (TQColim-isSet X hS)
-
+-}
 -- ═══════════════════════════════════════════════════════════════════
 -- §9. Σ-sequence, singletons, and projections
 -- ═══════════════════════════════════════════════════════════════════
@@ -369,4 +369,3 @@ map (singletonSeq A x₀) (a , p) = map A a , cong (map A) p
 singletonSeq-colim-contr : (A : Sequence ℓ) (x₀ : obj A 0) → isContr (SeqColim (singletonSeq A x₀))
 singletonSeq-colim-contr A x₀ = colimitContr (singletonSeq A x₀)
   (λ n → (iterMap A n x₀ , refl) , λ { (a , p) i → p i , λ j → p (i ∧ j) })
-  -}

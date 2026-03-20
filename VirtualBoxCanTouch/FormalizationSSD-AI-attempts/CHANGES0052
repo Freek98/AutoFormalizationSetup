@@ -1,0 +1,17 @@
+bck0052: SeqColimSigmaId/work.agda — FG-inner proven (414 lines)
+
+Progress:
+- shiftInvPathP using ua-gluePt (proper cubical PathP over sym(ua e))
+- FG-inner: F(h n a k b) ≡ (incl a, incl {k} b) proven by induction on k
+  - k=0: refl
+  - k+1: IH ∙ ΣPathP(sym(push a), shiftInvPathP)
+- G-map uses ua→ (the transp/hcomp alternative failed due to transpSeqColim issues)
+
+Remaining postulates: 2
+- GF-push-sq: push case of G∘F roundtrip
+- FG: full F∘G roundtrip (inner-push and outer-push cases)
+
+Remaining holes: 1
+- fiberPathObj≡idSeqObj suc case (identity type characterization detail)
+
+0 TERMINATING flags

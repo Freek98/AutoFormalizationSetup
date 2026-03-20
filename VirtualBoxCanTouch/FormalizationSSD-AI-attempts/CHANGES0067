@@ -1,0 +1,21 @@
+bck0067: SeqColimSigmaId/work.agda — SET CASE FULLY PROVEN! (596 lines)
+
+FULLY PROVEN (0 postulates, 0 TERMINATING):
+- sigmaColimit-isSet: Σ-closure for set-level Σ types
+  Uses FG-isSet which uses FG-outer-isSet (isProp→PathP since paths in sets are props)
+- GF: G∘F = id (all h-levels)
+- FG-on-incl: F∘G on incl (all h-levels) via FG-ptpt + FG-ptpath
+- colimitPaths: identity type characterization via recognizeId
+- All infrastructure (B∞, F-map, G-map, etc.)
+
+1 postulate: FG-outer (general, non-set case only)
+- The outer push coherence for arbitrary h-levels
+- For sets: automatically true by isProp→PathP
+- For general types: requires the full path-path coherence from §6.2
+
+Key techniques used:
+- ua-gluePt for PathP over ua (no toPathP/uaβ needed)
+- lUnit to bridge connection squares with ∙-compositions
+- hfill for boundary matching between incl and push cases
+- Explicit type annotations for ΣPathP terms to resolve metas
+- compPath-filler for hcomp-based path composition

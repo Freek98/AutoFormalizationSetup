@@ -1,0 +1,15 @@
+bck0065: SeqColimSigmaId/work.agda — FG-on-incl FULLY PROVEN! (552 lines)
+
+MAJOR BREAKTHROUGH:
+- FG-ptpt: point-point case by ℕ recursion on k, hcomp composition with Σ-shift
+- FG-ptpath zero: connection square + lUnit to bridge Σ-shift to refl∙Σ-shift
+  Key: lUnit(ΣPathP(sym push, shiftInvPathP)) bridges the definitional gap!
+- FG-ptpath suc k: hcomp composing IH with Σ-shift via hfill + ua-gluePt for push
+  Key: explicit type annotations for ΣPathP terms resolve all unsolved metas!
+- FG-on-incl combines via pattern matching on SeqColim(fiberSeq)
+
+1 postulate remaining: FG-outer (outer push case)
+- PathP relating FG-on-incl at (n,a) and (suc n, map A a) over push a
+- This is the "path-point" case from §6 — interaction of outer elimination with G-body's ua-unglue+hcomp
+
+0 TERMINATING flags, 0 holes

@@ -1,0 +1,17 @@
+bck0061: SeqColimSigmaId/work.agda — Clean final state (469 lines, 1 postulate, 0 TERMINATING)
+
+Same as bck0059. After extensive attempts at FG:
+- bck0060: proved FG-on-incl k=0 push case using connection (push a (i∧~j), ua-gluePt e (i∧~j) (push{0} b i))
+  Key insight: ua-gluePt e i (push{0} b i) = ua-gluePath e refl i DEFINITIONALLY
+- suc k push case: corner constraint mismatch (shifting base changes first component)
+- outer push case: requires full §6 double induction
+- Conclusion: FG postulate corresponds to §6.1-6.3 of the paper (4 pages)
+
+Summary of proven results:
+1. GF (G∘F = id): FULLY PROVEN using hcomp connection
+2. FG-inner (point-point case): FULLY PROVEN by induction on k
+3. FG k=0 push (point-path base case): provable via connection + ua-gluePt
+4. Identity type characterization: FULLY PROVEN via recognizeId
+5. All infrastructure (B∞, F-map, G-map, etc.): FULLY PROVEN, 0 TERMINATING
+
+Single remaining postulate: FG (F∘G = id) — the §6 double induction

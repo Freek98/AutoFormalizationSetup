@@ -1,0 +1,20 @@
+bck0051: SeqColimSigmaId/work.agda — Initial structure (389 lines)
+
+New approach using library SeqColim directly (no recursive seqCo HIT):
+- SeqFib record for fibered sequences
+- fiberSeqObj/fiberSeqMap: recursive on k, passes termination checker
+- KEY: ShiftSeq(fiberSeq n a) = fiberSeq (suc n) (map A a) DEFINITIONALLY
+- B∞ type family via ua(shiftFibEquiv)
+- F-map (forward), G-map (inverse via ua→ + G-coh)
+- G-inner-shift: G-inner commutes with shift inverse (definitional!)
+- G-coh: coherence at push (push(a,b) at level 0, refl at suc k)
+- sigmaColimit iso (using F-map/G-map)
+- colimitContr, pathSeqFib, sigmaPathContr
+- colimitPaths via recognizeId
+- Identity sequence idSeq
+
+Status:
+- 2 postulates: GF-push (push case of G∘F roundtrip), FG (full F∘G roundtrip)
+- 1 hole: fiberPathObj≡idSeqObj suc case
+- 0 TERMINATING flags
+- Compiles successfully

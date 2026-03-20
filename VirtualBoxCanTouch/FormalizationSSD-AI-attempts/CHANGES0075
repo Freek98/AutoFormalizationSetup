@@ -1,0 +1,21 @@
+bck0075: SeqColimSigmaId/work.agda — 680 lines, FINAL
+
+State:
+- 1 postulate: FG-outer (non-set types only)
+- 0 TERMINATING flags
+- 0 holes
+
+PROVEN:
+1. sigmaColimit-isSet: full Σ-closure for set-level types (0 postulates)
+2. colimitPaths: (incl a₀ ≡ y) ≃ B∞(pathSeqFib a₀)(y) (0 postulates)
+3. GF: G∘F = id (all h-levels, 0 postulates)
+4. FG-on-incl: F∘G on incl (all h-levels, 0 postulates)
+5. colimitContr: colimits of contractible types (0 postulates)
+6. All infrastructure: B∞, F-map, G-map, etc. (0 TERMINATING)
+
+ROOT CAUSE of remaining postulate:
+G-body(push a i0) evaluates to hcomp(...) in Cubical Agda (the push branch
+of the HIT pattern match is evaluated at i=i0, not re-dispatched to the incl branch).
+This hcomp propositionally but not definitionally equals G-inner(n)(a).
+Neither ua→ nor funExtDep can bridge this definitional gap for the outer push PathP.
+The set case uses isProp→PathP to bypass this (paths in sets are props).

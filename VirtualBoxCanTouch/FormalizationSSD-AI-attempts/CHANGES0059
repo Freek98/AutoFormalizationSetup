@@ -1,0 +1,24 @@
+bck0059: SeqColimSigmaId/work.agda — 469 lines, 1 postulate, 0 TERMINATING
+
+Status: Clean well-documented file with extensive comments explaining the remaining postulate.
+
+PROVEN (no postulates, no TERMINATING):
+- SeqFib, fiberSeqObj/fiberSeqMap (structural recursion on k)
+- B∞ type family via ua(shiftFibEquiv)
+- F-map (using ua-gluePath for definitional cancellation with G's ua-unglue)
+- G-map (using ua-unglue + hcomp)
+- GF roundtrip (G∘F = id) — FULLY PROVEN via hcomp connection
+- FG-inner (point-point case of F∘G)
+- shiftInvPathP via ua-gluePt
+- G-coh, G-inner-shift (definitional refl on incl/push)
+- colimitContr
+- pathSeqFib, sigmaPathContr, totalPathContr
+- colimitPaths: (incl a₀ ≡ y) ≃ B∞(pathSeqFib a₀)(y) via recognizeId — FULLY PROVEN
+- rep₀, idSeq
+
+1 POSTULATE: FG (F∘G = id)
+- Requires the "double induction on the sum" from paper §6
+- Point-point case (FG-inner) proven
+- Remaining: point-path (k=0 square involving ΣPathP + connection + B∞ transport),
+  suc-k reduction (base point mismatch between levels), outer-push coherence
+- This corresponds to 4 pages (§6.1-6.3) of the original paper

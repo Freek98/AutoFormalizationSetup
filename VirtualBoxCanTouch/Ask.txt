@@ -142,3 +142,10 @@ again? Where does the use of B being a set come up?
 ❯ can you use encode/decode to write something equivalent to the identity       
   types to get around this?                                                     
 ────────────────────────────────────
+ I have downloaded Spectral/Colimit and the paper bij van Doorn Rijke and      
+  Sojakova. I want a formalization in cubical agda of results that sequential   
+  colimits are closed under Sigma and identity types. There's a claim there is  
+  already a lean formalization, and you should be able to translate it. Write   
+  yourself a local claude.md file in some folder stating that that paper is     
+  your current formalization goal instead of monolithic.tex and work on it      
+  untill there are no postulates or terminating flags left.

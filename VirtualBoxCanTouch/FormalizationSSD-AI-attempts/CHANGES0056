@@ -1,0 +1,15 @@
+bck0056: SeqColimSigmaId/work.agda — GF PROVEN! (420 lines)
+
+MAJOR PROGRESS: GF postulate eliminated!
+Key: using ua-gluePath in F-map + exact faces from G-body computation in hfill.
+The hcomp connects G(F(push(a,b) i)) to push(a,b)(i) via:
+- j=i0 face: hfill of G-body's exact computation
+- j=i1 face: push(a,b)(i ∨ ~k) (connection filler)
+- i=i0/i=i1 faces: same as G-body faces
+The ua-unglue ∘ ua-gluePath cancellation (definitional!) makes the base constant.
+
+POSTULATES: 1 (down from 2!)
+- FG: full F∘G roundtrip (inner-push + outer-push cases)
+  FG-inner (incl-incl case) already proven by induction on k.
+
+TERMINATING: 0, Holes: 0

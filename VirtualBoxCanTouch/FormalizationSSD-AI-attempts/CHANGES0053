@@ -1,0 +1,21 @@
+bck0053: SeqColimSigmaId/work.agda — Clean compile, 381 lines
+
+Fully compiling structure with:
+- Fiber sequences (fiberSeqObj/fiberSeqMap) — 0 TERMINATING flags
+- B∞ type family via ua(shiftFibEquiv)
+- Forward map F-map, inverse G-map (via ua→)
+- G-inner-shift: definitional equality when composing with shift inverse
+- G-coh: coherence using push(a,b) at level 0
+- FG-inner: F(h n a k b) ≡ (incl a, incl{k} b) by induction on k
+  - Uses shiftInvPathP via ua-gluePt for PathP over sym(ua)
+- sigmaColimit iso (depends on postulates)
+- colimitContr, pathSeqFib, sigmaPathContr
+- colimitPaths via recognizeId — FULLY PROVEN
+- idSeq definition
+
+Postulates: 2
+- GF-push-sq: push case of G∘F roundtrip (square in SeqColim)
+- FG: full F∘G roundtrip (inner-push and outer-push cases)
+
+TERMINATING flags: 0
+Holes: 0
