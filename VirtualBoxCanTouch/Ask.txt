@@ -149,3 +149,32 @@ again? Where does the use of B being a set come up?
   yourself a local claude.md file in some folder stating that that paper is     
   your current formalization goal instead of monolithic.tex and work on it      
   untill there are no postulates or terminating flags left.
+
+  ❯ where are Torsors defined in the cubical library?                             
+                                                                                
+  Searched for 1 pattern (ctrl+o to expand)                                     
+                                                                                
+● No results — torsors are not defined in the cubical library.                  
+                                                                                
+❯ maybe as deloopings of groups?                                                
+                                                                                
+  Searched for 3 patterns, read 2 files (ctrl+o to expand)                      
+                                                                                
+● The cubical library doesn't have a dedicated "Torsor" module. What it does    
+  have for deloopings of groups:                                                
+                                                                                
+  - Cubical.HITs.EilenbergMacLane1.Base — EM₁ G is the delooping of a group G as
+   a HIT (with embase, emloop : G → embase ≡ embase, groupoid truncation). This 
+  is the general K(G,1).                                                        
+  - Cubical.HITs.Delooping.Two.Base — Bℤ₂, the explicit delooping of ℤ/2.
+  - Cubical.Homotopy.EilenbergMacLane.Base — higher Eilenberg–Mac Lane spaces   
+  K(G,n).                                                                       
+                                                                                
+  In HoTT, a G-torsor is a pointed connected groupoid, which is exactly what EM₁
+   G gives you — the type of G-torsors is EM₁ G, and individual torsors are its
+  elements. But the library doesn't formalize the torsor perspective explicitly 
+  (free/transitive G-actions, etc.). It's all packaged into the delooping HIT.
+
+────────────────────────────────────────────────────────────────────────────────
+❯ Ah okay, in this case, please formalize the result in the personal note I    
+  give you in the torsors file.

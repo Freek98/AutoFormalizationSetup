@@ -1,0 +1,65 @@
+\begin{definition}
+  For $G$ a group, a torsor on $G$ is a type $A$ with an right action $(\cdot) : A \times G \to A$ satisfying the following two properties:
+  \begin{itemize}
+    \item for all $a:A,g:G$, we have that $a \cdot g = a$ implies $g = e$. This property says that $(\cdot)$ is \textbf{free}.
+    \item For all $a,b : A$ there is some $g:G$ with $a \cdot g = b$. This property says that $(\cdot)$ is \textbf{transitive}.
+  \end{itemize}
+\end{definition}
+\begin{remark}
+  Such a right action corresponds to a map $(\cdot) \times 1_A : A \times G \to A \times A$. $(\cdot)$ is free if and only if this induced map is injective, and $(\cdot)$ is transitive if and only iff this map is surjective. 
+  Thus a right action gives a $G$-torsor structure iff it is bijective. 
+
+  Note that there might be many torsor structures on a type $A$. 
+\end{remark}
+\begin{definition}
+  One can define $BG = \Sigma_{X : Type} \mathrm{isTorsor}_G(X)$.
+\end{definition}
+\begin{example}
+  $G$ with it's own multiplication is itself is a $G$-torsor.
+\end{example}
+\begin{lemma}
+  For $X$ a $G$-torsor, the type of equalities  between $X$ and the canonical $G$-torsor, $X \simeq G$ is a $G$-torsor and equal to $X$ itself. 
+\end{lemma}
+\begin{proof}
+\item For each $x:X$, we have an isormophism $\sigma_x:X \simeq G$, given by composing the functions $$\begin{tikzcd}
+    X \arrow[r, "y \mapsto (x.y)"] & 
+    X \times X \arrow[r, "\sigma^{-1}"] &
+    X \times G \arrow[r,"\pi_2"]& G.
+   \end{tikzcd}$$
+   So each $y$ is sent to the unique $g$ such that $\sigma(x,y) = x,g$, which is the unique $g$ such that $x\cdot g = y$. 
+   The inverse of this map sends $g$ to $x\cdot g$. 
+
+ \item Conversely, given an ismorphism of $G$-torsors $X \simeq G$, the identity element in $G$ picks out an element in $X$. 
+
+ \item Suppose we start with an isomorphism $\tau$ of $G$-torsors $X \simeq G$. 
+   So $\tau: X \to G$. 
+   Define $\tau^{-1}(e)=:x : X$.
+   We claim that $\sigma_x = \tau : X \simeq G$. 
+   To show this, consider $y:X$. 
+   $\sigma_x(y): G $ is unique with the propery that $x \cdot \sigma_x(y) = y$. 
+   So we only need to show that 
+   $x \cdot \tau(y) = y$, 
+   so that $\tau^{-1} \cdot (\tau(y)) = y$. 
+
+   Consider $\sigma_x\circ \tau^{-1}:  G \to X \to G$. 
+   It sends $y:G$ to $\sigma_x(\tau^{-1}(y))$, 
+   which is the unique element 
+   $g:G$ such that 
+   $\tau^{-1}(e) \cdot g = \tau^{-1}(y)$. 
+   We apply $\tau$ and get that 
+   $\tau(\tau^{-1}(e) \cdot g) = y$. Now realize that the inner $\cdot$ can be moved out as $\tau$ is a morphism of torsors, and we get that
+   $\tau(\tau^{-1}(e)) \cdot g = y$. Thus $g = y$. As required. 
+ \item Now we start with some $x:X$. We need to check that $\sigma_x^{-1}(e) = x$, so that $e = \sigma_x(x)$. Indeed $x \cdot e = x$ and by freeness, this implies that $e = \sigma_x(x)$. 
+   
+
+
+
+\end{proof}
+\begin{example}
+  Note that this remark above applied to $G$ itself sends each elements to it's inverse. This is like shifting $G$ by $g$. While this is not a morphism of groups as the identity is not preserved, it is a morphism of torsors. This is why people say that a torsor is a group which has forgotten it's unit element. 
+\end{example}
+\begin{remark}
+Part of the intuition of torsors is that they are groups without an identity element. Basically, we can pick a base point (for a physics metaphor, $BG$ is like $\Delta G$, only accounting the differences in $G$. This metaphor is precise as $E$ can beter be seen as an $\mathbb R$-torsor as it's a relative concept). By the bijection described above, there's for each two elements of $X \times X$ an element $x^{-1}y$ in $G$. So you can fix such an element to go from a torsor to a group. I like this perspective as fixing a base point in a symmetry group as a standard presentation (every rotation of a cube can be uniquely determined by what it does on a fixed base form of the cube, but we don't actually care about the basepoint). 
+\end{remark}
+
+
