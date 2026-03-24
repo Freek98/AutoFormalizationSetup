@@ -21,6 +21,13 @@ data _≤E_ : ℕ → ℕ → Type where
   ≤E-refl : {n : ℕ} → n ≤E n
   ≤E-step : {n m : ℕ} → n ≤E m → n ≤E suc m
 
+suc-≤E-suc : {n m : ℕ} → n ≤E m → suc n ≤E suc m
+suc-≤E-suc ≤E-refl = ≤E-refl
+suc-≤E-suc (≤E-step c) = ≤E-step (suc-≤E-suc c)
+
+≤E-sucʳ : {n : ℕ} → n ≤E suc n
+≤E-sucʳ = ≤E-step ≤E-refl
+
 ≤E-trans : {n m k : ℕ} → n ≤E m → m ≤E k → n ≤E k
 ≤E-trans p ≤E-refl = p
 ≤E-trans p (≤E-step q) = ≤E-step (≤E-trans p q)
@@ -80,6 +87,7 @@ module SeqColimMaps {ℓ : Level} (S : Sequence ℓ) where
   ι-comp p ≤E-refl x = refl
   ι-comp p (≤E-step q) x = cong f (ι-comp p q x)
 
+  -- THE KEY LEMMA: incl x ≡ incl (ι p x)
   -- By induction on ≤E: refl for base, push ∙ IH for step.
   ι-incl : {n m : ℕ} (p : n ≤E m) (x : X n)
     → incl {X = S} x ≡ incl (ι p x)
@@ -99,7 +107,7 @@ module SeqColimMaps {ℓ : Level} (S : Sequence ℓ) where
     (x : X n) (y : X m)
     → ι p x ≡ ι q y → ι s x ≡ ι t y
   ι-pres {n} {m} {k} {l} p q r s t x y e =
-    ι s x                ≡⟨ ι-propIrrel s (≤E-trans p r) x ⟩
+    ι s x               ≡⟨ ι-propIrrel s (≤E-trans p r) x ⟩
     ι (≤E-trans p r) x   ≡⟨ sym (ι-comp p r x) ⟩
     ι r (ι p x)          ≡⟨ cong (ι r) e ⟩
     ι r (ι q y)          ≡⟨ ι-comp q r y ⟩

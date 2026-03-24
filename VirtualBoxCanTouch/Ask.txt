@@ -178,3 +178,14 @@ again? Where does the use of B being a set come up?
 ────────────────────────────────────────────────────────────────────────────────
 ❯ Ah okay, in this case, please formalize the result in the personal note I    
   give you in the torsors file.
+
+  ❯ In overtlydiscrete in FormalizationSSD, I have some start of some code that  
+  I want you to copy here, and clean up and organize a bit. It's very annoying  
+  to work with the definition of \leq in the cubical library when working       
+  with sequential colimits. I wish to have a good interface for maps X n -> X   
+  m if n \leq m, and one should be able to define them by induction as follows  
+  : for m = n, we send x to x , and for m=m'+1, we send x to Xmap x. Then to    
+  show that incl x is send to incl ((X n -> X m) x ) should be proven by        
+  induction as before. I wanted a nice scheme for this, and everything got a    
+  bit messy. I want you to clean it up.                                         
+──────────────────────────────────────────

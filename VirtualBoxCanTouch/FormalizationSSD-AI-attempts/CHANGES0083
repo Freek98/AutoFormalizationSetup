@@ -1,0 +1,29 @@
+bck0083: Clean rewrite of SeqColim interface (was: CNF/DNF in bck0082)
+
+Previous work.agda (bck0082, 1490 lines) contained the CNF/DNF + NFinCofin
+normal form development. That is preserved in bck0082-work.agda.
+
+New work.agda (115 lines, 0 holes, COMPILES) is a clean sequential colimit
+interface based on OvertlyDiscrete/SeqColim.agda, reorganized:
+
+1. Inductive ≤E ordering (_≤E_ : ℕ → ℕ → Type)
+   - ≤E-refl, ≤E-step constructors
+   - suc-≤E-suc, ≤E-sucʳ, ≤E-trans
+   - Conversions: ≤E→≤, ≤→≤E
+   - ≤→≤E-suc: ≤→≤E commutes with ≤-suc (refl on concrete pairs)
+   - ≤E-retract + isProp≤E (via retract of isProp≤)
+
+2. SeqColimMaps module (parametric over any Sequence):
+   - ι : n ≤E m → X n → X m (by pattern matching: refl ↦ id, step ↦ f ∘ ι)
+   - ι≤ : library ≤ version (via ≤→≤E)
+   - ι-propIrrel: proof-irrelevance of ι
+   - ι-comp: ι q ∘ ι p ≡ ι (≤E-trans p q)
+   - ι-incl: incl x ≡ incl (ι p x) — THE KEY LEMMA, clean induction
+   - ι≤-incl: library ≤ version
+   - ι-pres: preservation (equal at k → equal at l ≥ k)
+
+Key improvements over the original:
+- ι-incl proved cleanly (original was stuck with holes)
+- ≤E used throughout (no subst X needed, unlike ιnm)
+- isProp≤E properly proven (retract method)
+- Modular: SeqColimMaps works for any Sequence, not just finite ones
