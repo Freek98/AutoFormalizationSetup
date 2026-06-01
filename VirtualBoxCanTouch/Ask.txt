@@ -189,3 +189,15 @@ again? Where does the use of B being a set come up?
   induction as before. I wanted a nice scheme for this, and everything got a    
   bit messy. I want you to clean it up.                                         
 ──────────────────────────────────────────
+
+❯ Now Can you also refactor EqualAt to use \iota and \leqE isntead in a module 
+  on sequences of finite sets?  
+  ❯ I want you to finish a proof in SeqColim.agda. Read it and make sure you     
+  understand the sequential colimit HIT and the Code for equality. Then, in     
+  order to finish the proof, first show that the EqWitness-> Path function      
+  does not depend on the witness (the underlying idea is that it's just a lot   
+  of pushes). When we have that, proof that actually EqWitness->Path x y a and  
+  EqWitness->Path x (Xmap y) b differ exactly by composition with push y.       
+  Then use this to complete the definition of decode. Once that's there, proof  
+  encode/decode lemmas and conclude that equality in the sequential colimit     
+  of finite sets is a proposition, and that it's open.

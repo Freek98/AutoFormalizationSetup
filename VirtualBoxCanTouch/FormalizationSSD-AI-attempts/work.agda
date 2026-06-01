@@ -3,6 +3,7 @@
 module work where
 
 open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.Univalence using (hPropExt)
 open import Cubical.Foundations.Function
 open import Cubical.Foundations.Transport
 open import Cubical.Foundations.HLevels
@@ -12,6 +13,10 @@ open import Cubical.Data.Sigma
 open import Cubical.Data.Empty renaming (rec to ex-falso)
 open import Cubical.Data.Sequence
 open import Cubical.HITs.SequentialColimit
+open import Cubical.Relation.Nullary
+open import Cubical.Data.FinSet
+open import Cubical.HITs.PropositionalTruncation as PT
+open import Cubical.Data.Nat.Order.Recursive using (Decidable→Collapsible)
 
 -- ════════════════════════════════════════════════════════════════
 -- § Inductive ≤ (≤E) — better for recursion/induction on proofs
@@ -47,8 +52,7 @@ data _≤E_ : ℕ → ℕ → Type where
 ≤E-retract (≤E-step q) = ≤→≤E-suc (≤E→≤ q) ∙ cong ≤E-step (≤E-retract q)
 
 isProp≤E : {n m : ℕ} → isProp (n ≤E m)
-isProp≤E p q =
-  sym (≤E-retract p) ∙ cong ≤→≤E (isProp≤ (≤E→≤ p) (≤E→≤ q)) ∙ ≤E-retract q
+isProp≤E = isPropRetract ≤E→≤ ≤→≤E ≤E-retract isProp≤
 
 -- ════════════════════════════════════════════════════════════════
 -- § Sequential colimit: iterated maps and incl compatibility
@@ -105,3 +109,115 @@ module SeqColimMaps {ℓ : Level} (S : Sequence ℓ) where
     ι r (ι q y)          ≡⟨ ι-comp q r y ⟩
     ι (≤E-trans q r) y   ≡⟨ ι-propIrrel (≤E-trans q r) t y ⟩
     ι t y               ∎
+
+-- ════════════════════════════════════════════════════════════════
+-- § Finite-type sequential colimits (decidable equality witnesses)
+-- ════════════════════════════════════════════════════════════════
+
+-- Decidable Σ over propositions
+decΣProp : {A : Type} {B : A → Type}
+  → isProp A → ((a : A) → isProp (B a))
+  → Dec A → ((a : A) → Dec (B a)) → Dec (Σ A B)
+decΣProp Ap Bp (yes a) Bd with Bd a
+... | yes b = yes (a , b)
+... | no ¬b = no λ (a' , b) → ¬b (subst _ (Ap a' a) b)
+decΣProp Ap Bp (no ¬a) Bd = no (¬a ∘ fst)
+
+≤E-Dec : (n m : ℕ) → Dec (n ≤E m)
+≤E-Dec n m with ≤Dec n m
+... | yes p = yes (≤→≤E p)
+... | no ¬p = no (¬p ∘ ≤E→≤)
+
+module FiniteSeqColim
+  (X : ℕ → Type) (Xmap : {n : ℕ} → X n → X (suc n))
+  (isFin : (n : ℕ) → isFinSet (X n)) where
+
+  Xseq : Sequence _
+  Xseq .Sequence.obj = X
+  Xseq .Sequence.map = Xmap
+
+  open SeqColimMaps Xseq public
+
+  X∞ : Type
+  X∞ = SeqColim Xseq
+
+  -- Two elements agree at level k if they both map into X k and become equal
+  EqualAt : {n m : ℕ} → X n → X m → ℕ → Type
+  EqualAt {n} {m} x y k =
+    Σ[ p ∈ n ≤E k ] Σ[ q ∈ m ≤E k ] ι p x ≡ ι q y
+
+  isPropEqualAt : {n m : ℕ} {x : X n} {y : X m} (k : ℕ) → isProp (EqualAt x y k)
+  isPropEqualAt k =
+    isPropΣ isProp≤E λ _ →
+    isPropΣ isProp≤E λ _ →
+    isFinSet→isSet (isFin k) _ _
+
+  isDecEqualAt : {n m : ℕ} {x : X n} {y : X m} (k : ℕ) → Dec (EqualAt x y k)
+  isDecEqualAt {n} {m} k =
+    decΣProp isProp≤E (λ _ → isPropΣ isProp≤E λ _ → isFinSet→isSet (isFin k) _ _)
+      (≤E-Dec n k) λ _ →
+    decΣProp isProp≤E (λ _ → isFinSet→isSet (isFin k) _ _)
+      (≤E-Dec m k) λ _ →
+    isFinSet→Discrete (isFin k) _ _
+
+  EqWitness : {n m : ℕ} → X n → X m → Type
+  EqWitness x y = Σ[ k ∈ ℕ ] EqualAt x y k
+
+  EqWitness-splitSupport : {n m : ℕ} (x : X n) (y : X m) → SplitSupport (EqWitness x y)
+  EqWitness-splitSupport x y =
+    Collapsible→SplitSupport (Decidable→Collapsible isPropEqualAt isDecEqualAt)
+
+  EqWitness-refl : {n : ℕ} (x : X n) → EqWitness x x
+  EqWitness-refl x = _ , ≤E-refl , ≤E-refl , refl
+
+  EqWitness-sym : {n m : ℕ} (x : X n) (y : X m) → EqWitness x y → EqWitness y x
+  EqWitness-sym _ _ (k , p , q , e) = k , q , p , sym e
+
+  EqWitness-suc : {n : ℕ} (x : X n) → EqWitness x (Xmap x)
+  EqWitness-suc x = _ , ≤E-step ≤E-refl , ≤E-refl , refl
+
+  EqWitness-trans : {n m l : ℕ} (x : X n) (y : X m) (z : X l)
+    → EqWitness x y → EqWitness y z → EqWitness x z
+  EqWitness-trans x y z (j , n≤j , m≤j , ιx≡ιy) (k , m≤k , l≤k , ιy≡ιz) =
+    max j k ,
+    n≤max ,
+    l≤max ,
+    ι-pres n≤j m≤j j≤max n≤max m≤max x y ιx≡ιy
+    ∙ 
+    ι-pres m≤k l≤k k≤max m≤max l≤max y z ιy≡ιz
+    where
+    j≤max = ≤→≤E (left-≤-max {m = j})
+    k≤max = ≤→≤E (right-≤-max {m = j})
+    n≤max = ≤E-trans n≤j j≤max
+    m≤max = ≤E-trans m≤j j≤max
+    l≤max = ≤E-trans l≤k k≤max
+
+  -- Push compatibility (needed for Code over push)
+  EqWitness-push→ : {n m : ℕ} (x : X n) (y : X m)
+    → EqWitness x y → EqWitness x (Xmap y)
+  EqWitness-push→ x y w = EqWitness-trans x y _ w (EqWitness-suc y)
+
+  EqWitness-push← : {n m : ℕ} (x : X n) (y : X m)
+    → EqWitness x (Xmap y) → EqWitness x y
+  EqWitness-push← x y w = EqWitness-trans x (Xmap y) y w (EqWitness-sym y _ (EqWitness-suc y))
+
+  -- From witness to path in the colimit
+  EqWitness→Path : {n m : ℕ} (x : X n) (y : X m)
+    → EqWitness x y → incl {X = Xseq} x ≡ incl y
+  EqWitness→Path x y (k , p , q , e) =
+    ι-incl p x ∙ cong incl e ∙ sym (ι-incl q y)
+
+  -- Encode-decode
+  Code : (n : ℕ) → X n → X∞ → Type
+  Code n x (incl y) = ∥ EqWitness x y ∥₁
+  Code n x (push y i) =
+    hPropExt squash₁ squash₁
+      (PT.map (EqWitness-push→ x y))
+      (PT.map (EqWitness-push← x y)) i
+
+  encode : (n : ℕ) (x : X n) (y : X∞) → incl x ≡ y → Code n x y
+  encode n x y p = J (λ y _ → Code n x y) ∣ EqWitness-refl x ∣₁ p
+
+  decode : (n : ℕ) (x : X n) (y : X∞) → Code n x y → incl x ≡ y
+  decode n x (incl y) c = EqWitness→Path x y (EqWitness-splitSupport x y c)
+  decode n x (push y i) c = {! !} -- PT.elim {P = {! !} } {!  c !} {! c !} {! c !} where 
