@@ -1,11 +1,7 @@
 # Rules for Working 
-1. I want you to formalize the following results for freely generated boolean algebras:
-  - Any element can be written in conjunctive normal form. 
-  - Any element can be written in disjunctive normal form. 
-2. How you implement these forms is up to you, one suggestion I would start with is to use lists of tuples of generators and something indicating they are negated or not, and then lists of such lists over which you disjunct/conjunct, and then lists of those things over which you conjunct/disjunct. 
-3. There should also be helper functions to make use of these results. 
-4. Specifically, the application I have in mind is to show that any element in the presentation of NFinCofin (see /FormalizationSSD/CountablyPresentedBooleanRings/Examples/NFinCofin) can be written in conjunctive normal form, and then argue that there is either only conjunctions of negations of generators, or disjunctions of non-negated generators. This might help in showing the equivalence between the presentation and NFinCofin. 
-5. I will be gone, so you should keep working and don't ask for permissions. 
+1. I will ask you to formalize some results via my starting prompt. 
+2. If I ask for a result, you should search first in the cubical agda repo, then in the formalizationSSD repo, and then in your own work before writing anything new. 
+3. If you cannot find the result, you can create a new file. On the top of this file, make clear that is it AI generated and has not been read by a human yet. 
 
 ## STRICT PROHIBITIONS
 

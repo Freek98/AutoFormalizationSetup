@@ -487,3 +487,9 @@ and you are an AI)
   of open there, when you're done with that you can do some implications of     
   conjunctions of countable families of closed and disjunction of of countable  
   families of open.
+
+  I rewrote this proof into the MP file but rewrote instead of copying
+
+  
+
+
