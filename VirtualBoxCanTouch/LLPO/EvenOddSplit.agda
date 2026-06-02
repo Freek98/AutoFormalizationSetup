@@ -19,6 +19,7 @@ open import CountablyPresentedBooleanRings.Examples.NFinCofin
 open DefinitionFinCofin
 open NFinCofinPresentation using (singleton)
 open import BooleanRing.ProductBA using (_×BR_ ; induceProdMapBR)
+open import StoneSpaces.Spectrum using (SpGeneralBooleanRing)
 
 open BooleanAlgebraStr ⦃...⦄
 open BooleanRingStr ⦃...⦄
@@ -142,3 +143,23 @@ evenHom-sing-odd : (k : ℕ) → evenHom $cr singleton (suc (double k)) ≡ 𝟘
 evenHom-sing-odd k = FC≡ (evenPart-δ-odd k)
 oddHom-sing-even : (k : ℕ) → oddHom $cr singleton (double k) ≡ 𝟘fc
 oddHom-sing-even k = FC≡ (oddPart-δ-even k)
+
+-- … hence the Stone image of each half (precomposition with evenHom / oddHom) vanishes
+-- on the wrong-parity singletons — for *any* point γ, with no reference to σ.
+SpEvenHom-odd0 : (γ : SpGeneralBooleanRing ℕfinCofinBA) (k : ℕ)
+  → (γ ∘cr evenHom) $cr singleton (suc (double k)) ≡ false
+SpEvenHom-odd0 γ k =
+    (γ ∘cr evenHom) $cr singleton (suc (double k))
+  ≡⟨ cong (λ x → γ $cr x) (evenHom-sing-odd k) ⟩
+    γ $cr 𝟘
+  ≡⟨ IsCommRingHom.pres0 (snd γ) ⟩
+    false ∎
+
+SpOddHom-even0 : (γ : SpGeneralBooleanRing ℕfinCofinBA) (k : ℕ)
+  → (γ ∘cr oddHom) $cr singleton (double k) ≡ false
+SpOddHom-even0 γ k =
+    (γ ∘cr oddHom) $cr singleton (double k)
+  ≡⟨ cong (λ x → γ $cr x) (oddHom-sing-even k) ⟩
+    γ $cr 𝟘
+  ≡⟨ IsCommRingHom.pres0 (snd γ) ⟩
+    false ∎

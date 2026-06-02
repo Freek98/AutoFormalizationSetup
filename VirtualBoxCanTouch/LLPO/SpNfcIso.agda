@@ -1,21 +1,8 @@
 {-# OPTIONS --cubical --guardedness --lossy-unification #-}
--- The Stone iso for the finite/cofinite model: Sp(ℕfinCofinBA) ≅ ℕ∞.
---
--- Obtained by TRANSPORT from the upstream
---   neededIso : Iso (Sp presentation) ℕ∞                              (StoneSpaces.Examples.Ninfty)
--- across the Boolean-algebra iso
---   ℕFinCof=Presentation : BooleanRingEquiv presentation ℕfinCofinBA  (…Examples.NFinCofin)
--- pushed through the contravariant spectrum action (precomposition):
---   σ = Sp(ℕfinCofinBA) ──Sp e₊──▶ Sp(presentation) ──neededIso──▶ ℕ∞.
---
--- `σfun≡toℕ∞seq` records that the transported `Iso.fun σ` still reads a point off on the
--- singleton generators (= `toℕ∞seq`).  The main file's fibre proof needs this, because the
--- upstream read-off `Sp→BinarySequence` (via `generator`/`quotientImageHom`) agrees with the
--- local `toℕ∞seq` (via `singleton`) only propositionally — exactly `eval-gen`.
 module SpNfcIso where
 
 open import Cubical.Foundations.Prelude
-open import Cubical.Foundations.Function using (_∘_)
+open import Cubical.Foundations.Function
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Data.Sigma
 
@@ -49,18 +36,14 @@ SpEq = invIso (CatIso→Iso (op-Iso⁻ {C = SET ℓ-zero}
 σ : Iso (SpGeneralBooleanRing ℕfinCofinBA) ℕ∞
 σ = compIso SpEq neededIso
 
--- a point read off as the sequence of its values on the singleton generators
 toℕ∞seq : SpGeneralBooleanRing ℕfinCofinBA → binarySequence
 toℕ∞seq γ n = γ $cr singleton n
 
--- bridge: the transported read-off equals reading a point off on the singleton generators
 σfun≡toℕ∞seq : (γ : SpGeneralBooleanRing ℕfinCofinBA) → fst (Iso.fun σ γ) ≡ toℕ∞seq γ
-σfun≡toℕ∞seq γ = funExt λ n →
-    γ $cr (fst (fst ℕFinCof=Presentation) (quotientImageHom $cr generator n))
-  ≡⟨ cong (λ b → γ $cr b) (funExt⁻ (cong fst e∘π≡φ) (generator n)) ⟩
-    γ $cr (freeℕ→ℕFinCof $cr generator n)
-  ≡⟨ cong (λ b → γ $cr b) (eval-gen n) ⟩
-    γ $cr singleton n ∎
-  where
-    e∘π≡φ : (BooleanEquivToHom presentation ℕfinCofinBA ℕFinCof=Presentation) ∘cr quotientImageHom ≡ freeℕ→ℕFinCof
-    e∘π≡φ = evalInduce ℕfinCofinBA
+σfun≡toℕ∞seq γ = funExt λ n → cong (fst γ) $
+   (fst (fst ℕFinCof=Presentation) (quotientImageHom $cr generator n)) 
+     ≡⟨ funExt⁻ (cong fst (evalInduce ℕfinCofinBA)) (generator n) ⟩
+   (freeℕ→ℕFinCof $cr generator n) 
+     ≡⟨ eval-gen n ⟩
+   singleton n ∎
+
