@@ -164,3 +164,16 @@ While doing the above, keep the following principles in mind:
 - You can lookup your previous work in these CHANGES files when unsure how to continue.
 - Never overwrite an older backup file. The numbering has to continue from the latest number. You must find it by running: ls bck* | sed 's/[^0-9]*//g' | sort -n | tail -n 1.
 
+## Finding definitions (search discipline)
+
+When locating *where* something is defined, prefer the type checker's own lookup
+over `grep`/`ripgrep` alone: names are frequently re-exported or `renaming`-aliased
+across modules, so a text search can miss the real source or land on an alias.
+
+- In the editor: Cornelis (Neovim agda-mode) **go-to-definition** jumps to the true
+  definition site, following `open`/`renaming`.
+- Non-interactive: `agda --html File.agda` produces clickable, cross-referenced HTML
+  that resolves the same way.
+
+Use `grep`/`ripgrep` for a fast first pass (as encouraged elsewhere in these rules),
+but confirm the actual definition site through the type checker before relying on it.

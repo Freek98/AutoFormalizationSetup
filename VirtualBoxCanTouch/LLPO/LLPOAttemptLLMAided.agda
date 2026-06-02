@@ -56,17 +56,17 @@ open import EvenOddSplit using (splitHom ; splitHom-kernel)
 open import SplitNaturality using (evenNaturality ; oddNaturality ; splitIntoEvens ; splitIntoOdds ; toℕ∞seq)
 open import SpNfcIso using (σ)
 
-module LLPOProof (sd : StoneDualityAxiom) (formalSurjections : formalSurjectionsAreSurjectionsAxiom) where
+LLPOExplicitAt : ℕ∞ → Type
+LLPOExplicitAt (α , _) =
+  (∀ (n : ℕ) → α (double n) ≡ false) ⊎ (∀ (n : ℕ) → α (suc $ double n) ≡ false)
 
-  LLPOExplicitAt : ℕ∞ → Type
-  LLPOExplicitAt (α , _) =
-    (∀ (n : ℕ) → α (double n) ≡ false) ⊎ (∀ (n : ℕ) → α (suc $ double n) ≡ false)
+LLPO : Type
+LLPO = (x : ℕ∞) → ∥ LLPOExplicitAt x ∥₁
 
-  LLPO : Type
-  LLPO = (x : ℕ∞) → ∥ LLPOExplicitAt x ∥₁
+B∞ : Booleω
+B∞ = ℕfinCofinBA , ℕfinCofinIsCountablyPresented
 
-  B∞ : Booleω
-  B∞ = ℕfinCofinBA , ℕfinCofinIsCountablyPresented
+module LLPOProof (formalSurjections : formalSurjectionsAreSurjectionsAxiom) where
   
   -- We make use of the product of B∞ with itself, and we need that countably presented boolean algebras are closed under products. Right now, we use an algebraic proof for this. 
   -- Another proof that we don't use is to show that a boolean algebra is countably presented iff it is overtly discrete and show that overtly discrete is closed under products. 
@@ -105,15 +105,26 @@ module LLPOProof (sd : StoneDualityAxiom) (formalSurjections : formalSurjections
     Iso→↠ : ∀ {ℓ ℓ'} {X : Type ℓ} {Y : Type ℓ'} → Iso X Y → X ↠ Y
     Iso→↠ i = Iso.fun i , isEquiv→isSurjection (snd (isoToEquiv i))
 
-  Spf-fibre→LLPO : (x : ℕ∞) → fiber Spf x → LLPOExplicitAt x
-  Spf-fibre→LLPO x (inl β , p) = inr λ k →
-    sym (cong (λ y → fst y (suc (double k))) p)
-    ∙ funExt⁻ (evenNaturality (Iso.inv σ β)) (suc (double k))
-    ∙ evenOddElim-odd k
-  Spf-fibre→LLPO x (inr β , p) = inl λ k →
-    sym (cong (λ y → fst y (double k)) p)
-    ∙ funExt⁻ (oddNaturality (Iso.inv σ β)) (double k)
-    ∙ evenOddElim-even k
+  Spf-fibre→LLPO : (α : ℕ∞) → fiber Spf α → LLPOExplicitAt α
+  Spf-fibre→LLPO α (inl β , p) = inr λ k →
+      fst α (suc (double k))
+    ≡⟨ sym (cong (λ y → fst y (suc (double k))) p) ⟩
+      fst (Spf (inl β)) (suc (double k))
+    ≡⟨ funExt⁻ (evenNaturality (Iso.inv σ β)) (suc (double k)) ⟩
+      splitIntoEvens (toℕ∞seq (Iso.inv σ β)) (suc (double k))
+    ≡⟨ evenOddElim-odd k ⟩
+      false ∎
+  Spf-fibre→LLPO α (inr β , p) = inl λ k →
+      fst α (double k)
+    ≡⟨ sym (cong (λ y → fst y (double k)) p) ⟩
+      fst (Spf (inr β)) (double k)
+    ≡⟨ funExt⁻ (oddNaturality (Iso.inv σ β)) (double k) ⟩
+      splitIntoOdds (toℕ∞seq (Iso.inv σ β)) (double k)
+    ≡⟨ evenOddElim-even k ⟩
+      false ∎
 
   llpo : LLPO
   llpo x = PT.map (Spf-fibre→LLPO x) (SpfSurj x)
+
+llpoFromStoneDualityAndFormalSurjections : formalSurjectionsAreSurjectionsAxiom → LLPO
+llpoFromStoneDualityAndFormalSurjections = LLPOProof.llpo
