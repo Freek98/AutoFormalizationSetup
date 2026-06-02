@@ -1,5 +1,5 @@
 {-# OPTIONS --cubical --guardedness --lossy-unification #-}
-module ProductClosureLocal where
+module ProductBooleExplicit where
 -- This LLM generated file shows algebraically that the product of two countably presented boolean algebras is again countably presented. I prefer to this via a proof that countably presented boolean algebras are exactly overtly discrete boolean algebras, and show for both overtly discrete and for boolean algebras that they are closed under products. So this should be seen as a hacky, temporary solution (although it is nice to have). Therefore I haven't read this LLM-generated file in full details, only checked that it makes no postulates and the end conclusion is what I want. 
 
 open import Cubical.Foundations.Prelude hiding (_∨_ ; _∧_)

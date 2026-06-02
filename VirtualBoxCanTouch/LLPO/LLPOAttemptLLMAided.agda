@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --guardedness --lossy-unification #-}
+{-# OPTIONS --lossy-unification #-}
 module LLPOAttemptLLMAided where
 -- made in collaboration with LLM. 
 open import CountablyPresentedBooleanRings.Examples.NFinCofin
@@ -43,7 +43,7 @@ open import CategoryTheory.StuffFromStoneAboutBAs using (BACat ; SpGeneralFuncto
 
 -- LLM gave a temporary library workaround documented in LIBRARY_CHANGES.md.
 import StoneSums            -- Sp(A ×BR B) ≅ Sp A ⊎ Sp B  (see SpB∞≃ℕ∞⊎)
-import ProductClosureLocal  -- algebraic product-closure (fixes ProductClosure)
+import ProductBooleExplicit -- algebraic product-closure (fixes ProductClosure)
 
 LLPOExplicitAt : ℕ∞ → Type
 LLPOExplicitAt (α , _) =
@@ -80,7 +80,7 @@ B∞eval γ n = γ $cr singleton n
 -- Another proof that we don't use is to show that a boolean algebra is countably presented iff it is overtly discrete and show that overtly discrete is closed under products. 
 B∞xB∞ : Booleω
 B∞xB∞ = B∞ ×Booleω B∞ where 
-  open ProductClosureLocal
+  open ProductBooleExplicit
 
 -- We also use that Sp is an antiequivalence and thus 
 -- Sp(A ×BR B) ≅ Sp A ⊎ Sp B 
