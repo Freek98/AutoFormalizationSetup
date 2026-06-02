@@ -8,13 +8,10 @@ open import Cubical.Foundations.Function
 open import Cubical.Foundations.Structure
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
-open import Cubical.Foundations.Equiv
 
 open import Cubical.Data.Sigma
-open import Cubical.Data.Sum as ⊎ using (_⊎_ ; inl ; inr ; ⊎Iso)
-open import Cubical.Data.Empty as ⊥ using (⊥)
-open import Cubical.Data.Bool
-  renaming (_≟_ to _≟B_) hiding (_≤_ ; _≥_)
+open import Cubical.Data.Sum as ⊎ using (_⊎_ ; inl ; inr)
+open import Cubical.Data.Bool hiding (_≤_ ; _≥_)
 
 open import Cubical.Algebra.CommRing
 open import Cubical.Algebra.Ring.Properties using (module RingTheory)
@@ -31,9 +28,6 @@ open import StoneSpaces.Spectrum
 -- module here only because it currently transitively depends on a module
 -- — `CountablyPresentedBooleanRings.ProductClosure` — that fails to typecheck
 -- independently of this work.  See the comments in Part 1 below.)
-open import Axioms.StoneDuality
-  using (StoneDualityAxiom ; SpFullyFaithful ; StoneCat ; SpEmbedding)
-open import CategoryTheory.StuffFromStoneAboutBAs using (SpFunctor)
 
 private
   variable

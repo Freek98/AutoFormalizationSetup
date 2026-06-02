@@ -22,7 +22,6 @@ open import Cubical.Data.Sum
 
 open import Cubical.Algebra.CommRing
 open import Cubical.Algebra.BooleanRing
-open import Cubical.Algebra.BooleanRing.Instances.Bool
 
 open import BasicDefinitions using (binarySequence ; δSequence)
 open import Parity
@@ -30,7 +29,7 @@ open import CountablyPresentedBooleanRings.Examples.NFinCofin
 open NFinCofinPresentation using (singleton)
 open import StoneSpaces.Spectrum using (SpGeneralBooleanRing)
 
-open import ProductBAProjections using (pr₁-BR ; pr₂-BR)
+open import BooleanRing.Products using (pr₁-BR ; pr₂-BR)
 open import EvenOddSplit using (splitHom ; evenPart ; oddPart)
 
 private

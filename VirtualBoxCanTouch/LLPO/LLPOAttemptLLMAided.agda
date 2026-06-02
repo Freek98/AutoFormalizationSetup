@@ -2,59 +2,38 @@
 module LLPOAttemptLLMAided where
 -- made in collaboration with LLM. 
 open import CountablyPresentedBooleanRings.Examples.NFinCofin
-open import BooleanRing.SubBooleanRing
+open import StoneSpaces.Examples.Ninfty
 open import Parity
-open import CategoryTheory.StuffFromStoneAboutBAs
-open import Cubical.Categories.Functor
 open import Cubical.Data.Bool renaming (_≟_ to _=B_) hiding (_≤_ ; _≥_)
-open import Cubical.Algebra.BooleanRing.Instances.Bool
 
-open import QuickFixes
-
-open import BooleanRing.BooleanRingMaps
-open import BooleanRing.FreeBooleanRing.FreeBool
-import BooleanRing.BooleanRingQuotients.QuotientBool as QB
-open import BooleanRing.BooleanRingQuotients.UniversalProperty
 open import BooleanRing.BoolAlgMorphism
-
-open import BasicDefinitions
 
 open import Cubical.Foundations.Prelude hiding (_∨_ ; _∧_)
 open import Cubical.HITs.PropositionalTruncation as PT
-open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Function
-open import Cubical.Foundations.Equiv
 open import Cubical.Functions.Surjection
-open import Cubical.Foundations.Structure
 open import Cubical.Foundations.Isomorphism
+open import Cubical.Foundations.Equiv using (fiber)
 
-open import Cubical.Algebra.BooleanRing
 open import Cubical.Algebra.CommRing
-open import Cubical.Algebra.Ring.Properties using (module RingHomTheory)
 
-open import Cubical.Data.Empty renaming (rec to ex-falso)
 open import Cubical.Data.Sum as ⊎
 open import Cubical.Data.Nat renaming (_·_ to _·ℕ_ ; _+_ to _+ℕ_)
 open import Cubical.Data.Sigma hiding (_∨_ ; _∧_)
-open import Cubical.Relation.Nullary hiding (¬_)
-open import Cubical.Data.Nat.Bijections.Product using (ℕ×ℕ≅ℕ)
-open import Cubical.HITs.PropositionalTruncation using (∣_∣₁)
 open import CountablyPresentedBooleanRings.Definitions
 open import BooleanRing.ProductBA
 open import Axioms.SurjectionsAreFormalSurjections
-open import Axioms.StoneDuality
 open import StoneSpaces.Spectrum
 
 -- The following are LOCAL modules kept here (rather than in the FormalizationSSD
 -- library) so that this folder is portable against a clean git checkout; each is
 -- a temporary library workaround documented in LIBRARY_CHANGES.md.
-open import NinftyExtras using (ℕ∞)          -- adds the Stone iso missing in Ninfty
-import StoneSums                             -- Sp(A ×BR B) ≅ Sp A ⊎ Sp B  (see σ⊎)
-import ProductClosureLocal                   -- algebraic product-closure (fixes ProductClosure)
+import StoneSums            -- Sp(A ×BR B) ≅ Sp A ⊎ Sp B  (see σ⊎)
+import ProductClosureLocal  -- algebraic product-closure (fixes ProductClosure)
 
 open import EvenOddSplit using (splitHom ; splitHom-kernel)
 open import SplitNaturality using (evenNaturality ; oddNaturality ; splitIntoEvens ; splitIntoOdds ; toℕ∞seq)
-open import SpNfcIso using (σ)
+open import SpNfcIso using (σ ; σfun≡toℕ∞seq)
 
 LLPOExplicitAt : ℕ∞ → Type
 LLPOExplicitAt (α , _) =
@@ -110,6 +89,8 @@ module LLPOProof (formalSurjections : formalSurjectionsAreSurjectionsAxiom) wher
       fst α (suc (double k))
     ≡⟨ sym (cong (λ y → fst y (suc (double k))) p) ⟩
       fst (Spf (inl β)) (suc (double k))
+    ≡⟨ funExt⁻ (σfun≡toℕ∞seq (SpSplit (Iso.inv σ⊎ (inl β)))) (suc (double k)) ⟩
+      toℕ∞seq (SpSplit (Iso.inv σ⊎ (inl β))) (suc (double k))
     ≡⟨ funExt⁻ (evenNaturality (Iso.inv σ β)) (suc (double k)) ⟩
       splitIntoEvens (toℕ∞seq (Iso.inv σ β)) (suc (double k))
     ≡⟨ evenOddElim-odd k ⟩
@@ -118,6 +99,8 @@ module LLPOProof (formalSurjections : formalSurjectionsAreSurjectionsAxiom) wher
       fst α (double k)
     ≡⟨ sym (cong (λ y → fst y (double k)) p) ⟩
       fst (Spf (inr β)) (double k)
+    ≡⟨ funExt⁻ (σfun≡toℕ∞seq (SpSplit (Iso.inv σ⊎ (inr β)))) (double k) ⟩
+      toℕ∞seq (SpSplit (Iso.inv σ⊎ (inr β))) (double k)
     ≡⟨ funExt⁻ (oddNaturality (Iso.inv σ β)) (double k) ⟩
       splitIntoOdds (toℕ∞seq (Iso.inv σ β)) (double k)
     ≡⟨ evenOddElim-even k ⟩

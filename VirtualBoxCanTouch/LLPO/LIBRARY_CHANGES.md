@@ -8,36 +8,32 @@ Where a proof really belongs upstream in the library, it is instead developed in
 **local** module here, and the intended upstream edit is recorded below for you to
 apply and review later.
 
-## 1. `StoneSpaces/Examples/Ninfty.agda` — complete `neededIso`
+## 1. `StoneSpaces/Examples/Ninfty.agda` — `neededIso` (DONE — committed upstream)
 
-The Stone iso `neededIso : Iso SpB∞ ℕ∞` is currently commented out at the bottom of
-the file, with its `inv` written but `sec`/`ret` left as holes.
+The Stone iso `neededIso : Iso SpB∞ ℕ∞` (where `SpB∞ = Sp presentation` and
+`presentation = freeBA ℕ /Im relationsℕ`) is now finished and committed in the
+library. There is nothing left to do upstream, and there is **no** `NinftyExtras`
+stand-in.
 
-Local stand-in: **`NinftyExtras.agda`** (module `NinftyExtras`), which re-exports
-`StoneSpaces.Examples.Ninfty` and adds the finished `neededIso`.
-
-Upstream action: uncomment the `neededIso` block and replace the two holes with:
+Caveat — why a local adapter remains: the LLPO development is phrased over
+`ℕfinCofinBA` (the concrete finite/cofinite sub-BA, required for the even/odd
+`splitHom`), not over `presentation`. The two are isomorphic but **not**
+definitionally equal, so `neededIso` (over `presentation`) is not the iso the proof
+consumes. The local module **`SpNfcIso.agda`** therefore *transports* it:
 
 ```agda
-neededIso : Iso SpB∞ ℕ∞
-neededIso .Iso.fun f = Sp→BinarySequence f , SpHits1AtMostOnce f
-neededIso .Iso.inv (α , α1atmostOnce) = inducedHom BoolBR (BinarySequence→SpFreeℕ α)
-  λ n → hits1AtMostOnce→respectsRelations α α1atmostOnce (fst $ Iso.inv ℕ×ℕ≅ℕ n) (snd $ Iso.inv ℕ×ℕ≅ℕ n)
-neededIso .Iso.sec (α , α1atmostOnce) = Σ≡Prop isPropHits1AtMostOnce
-  (funExt (λ n → cong (λ h → h $cr generator n) (evalInduce BoolBR)) ∙ evalBAInduce ℕ BoolBR α)
-neededIso .Iso.ret f = inducedHomUnique BoolBR _ _ f
-  (inducedBAHomUnique ℕ BoolBR (Sp→BinarySequence f) (f ∘cr quotientImageHom) refl)
+σ = compIso (Sp ℕFinCof=Presentation) neededIso : Iso (Sp ℕfinCofinBA) ℕ∞
 ```
 
-- `sec`: `Σ≡Prop` reduces to equality of underlying sequences; `evalInduce` gives
-  `inv (α,_) ∘cr quotientImageHom ≡ BinarySequence→SpFreeℕ α`, then `evalBAInduce`
-  identifies that with `α` on each generator.
-- `ret`: a hom out of the quotient is fixed by its precomposition with
-  `quotientImageHom` (`inducedHomUnique`); that precomposition agrees with
-  `f ∘cr quotientImageHom` on generators definitionally (`inducedBAHomUnique … refl`).
+across the committed BA-iso `ℕFinCof=Presentation : BooleanRingEquiv presentation
+ℕfinCofinBA` (in `CountablyPresentedBooleanRings.Examples.NFinCofin`), pushed through
+the contravariant spectrum action (precomposition). The bridge lemma
+`σfun≡toℕ∞seq` reconciles the upstream read-off `Sp→BinarySequence` (via
+`generator`/`quotientImageHom`) with the local `toℕ∞seq` (via `singleton`); these
+agree only propositionally (`eval-gen`).
 
-Once this is upstream, `NinftyExtras` can be deleted and imports pointed back at
-`StoneSpaces.Examples.Ninfty`.
+`SpNfcIso` is thus a thin adapter of committed content, not a workaround for
+anything missing; it stays as long as the proof is phrased over `ℕfinCofinBA`.
 
 ## 2. New module `AntiEquivalence/StoneSums.agda` — `Sp (A ×BR B) ≅ Sp A ⊎ Sp B`
 

@@ -12,9 +12,7 @@ open import Cubical.Foundations.Powerset
 
 open import Cubical.Data.Sigma hiding (_∨_ ; _∧_)
 open import Cubical.Data.Sum
-open import Cubical.Data.Nat renaming (_+_ to _+ℕ_ ; _·_ to _·ℕ_)
 open import Cubical.Data.Unit
-open import Cubical.Data.Bool hiding (_≤_ ; _≥_) renaming (_≟_ to _=B_)
 
 open import Cubical.HITs.PropositionalTruncation as PT
 import Cubical.HITs.SetQuotients as SQ
@@ -23,7 +21,6 @@ import Cubical.Algebra.CommRing.Quotient.ImageQuotient as IQ
 open import Cubical.Algebra.CommRing
 open import Cubical.Algebra.BooleanRing
 open import Cubical.Algebra.Ring.Properties
-open import Cubical.Tactics.CommRingSolver
 
 open import BasicDefinitions
 open import BooleanRing.BooleanRingMaps
@@ -31,7 +28,8 @@ open import BooleanRing.BoolRingUnivalence
 open import BooleanRing.FreeBooleanRing.FreeBool
 open import BooleanRing.FreeBooleanRing.freeBATerms
 open import BooleanRing.BooleanRingQuotients.QuotientBool as QB
-open import ProductBAProjections
+open import BooleanRing.Products using (⟨_,_⟩BR)
+open import BooleanRing.ProductBA using (_×BR_)
 
 open import CountablyPresentedBooleanRings.Definitions
 open import CountablyPresentedBooleanRings.EquivalenceOfCountablyPresentedDefinitions

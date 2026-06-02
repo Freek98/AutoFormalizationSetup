@@ -1,83 +1,69 @@
 {-# OPTIONS --cubical --guardedness --lossy-unification #-}
 -- The Stone iso for the finite/cofinite model: Sp(ℕfinCofinBA) ≅ ℕ∞.
 --
--- This is the `neededIso` analogue built directly from ℕfinCofinBA's universal
--- property (`extensionMap`/`extensionCommutes`/`extensionUnique` of NFinCofin),
--- with `fun` reading a point off as its values on the singleton generators —
--- exactly the `toℕ∞seq` of SplitNaturality.  It lets the spectrum action of
--- splitFC be transported to ℕ∞ ⊎ ℕ∞ → ℕ∞.
+-- Obtained by TRANSPORT from the upstream
+--   neededIso : Iso (Sp presentation) ℕ∞                              (StoneSpaces.Examples.Ninfty)
+-- across the Boolean-algebra iso
+--   ℕFinCof=Presentation : BooleanRingEquiv presentation ℕfinCofinBA  (…Examples.NFinCofin)
+-- pushed through the contravariant spectrum action (precomposition):
+--   σ = Sp(ℕfinCofinBA) ──Sp e₊──▶ Sp(presentation) ──neededIso──▶ ℕ∞.
+--
+-- `σfun≡toℕ∞seq` records that the transported `Iso.fun σ` still reads a point off on the
+-- singleton generators (= `toℕ∞seq`).  The main file's fibre proof needs this, because the
+-- upstream read-off `Sp→BinarySequence` (via `generator`/`quotientImageHom`) agrees with the
+-- local `toℕ∞seq` (via `singleton`) only propositionally — exactly `eval-gen`.
 module SpNfcIso where
 
-open import Cubical.Foundations.Prelude hiding (_∨_ ; _∧_)
-open import Cubical.Foundations.Structure
-open import Cubical.Foundations.Function
-open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.Function using (_∘_)
 open import Cubical.Foundations.Isomorphism
+open import Cubical.Data.Sigma
 
-open import Cubical.Data.Bool hiding (_≤_ ; _≥_) renaming (_≟_ to _=B_)
-open import Cubical.Data.Nat
-open import Cubical.Data.Sigma hiding (_∧_)
-open import Cubical.Data.Empty renaming (rec to ex-falso)
-open import Cubical.Relation.Nullary
-open import Cubical.Data.Nat.Bijections.Product using (ℕ×ℕ≅ℕ)
+open import Cubical.Algebra.CommRing using (CommRingHom≡ ; _∘cr_ ; _$cr_)
+open import Cubical.Algebra.BooleanRing using (BoolHom)
 
-open import Cubical.Algebra.CommRing
-open import Cubical.Algebra.BooleanRing
-open import Cubical.Algebra.BooleanRing.Instances.Bool
-
-open import BasicDefinitions using (binarySequence ; δSequence)
 open import BooleanRing.BooleanRingMaps
-open import BooleanRing.FreeBooleanRing.FreeBool
+  using (BooleanEquivToHom ; BooleanEquivToHomInv
+        ; BooleanEquivLeftInv ; BooleanEquivRightInv)
+open import BooleanRing.FreeBooleanRing.FreeBool using (generator)
+open import BooleanRing.BooleanRingQuotients.QuotientBool using (quotientImageHom ; evalInduce)
 open import StoneSpaces.Spectrum using (SpGeneralBooleanRing)
+open import StoneSpaces.Examples.Ninfty using (ℕ∞ ; neededIso ; Sp→BinarySequence)
 open import CountablyPresentedBooleanRings.Examples.NFinCofin
-open NFinCofinPresentation
-  using (singleton ; extensionMap ; extensionCommutes ; extensionUnique
-        ; eval-gen ; freeℕ→ℕFinCof ; δn∧δm=0)
-open import NinftyExtras
-  using (ℕ∞ ; hits1AtMostOnce ; isPropHits1AtMostOnce
-        ; BinarySequence→SpFreeℕ ; hits1AtMostOnce→respectsRelations)
+  using (ℕfinCofinBA ; presentation ; ℕFinCof=Presentation ; module NFinCofinPresentation)
+open NFinCofinPresentation using (singleton ; eval-gen ; freeℕ→ℕFinCof)
 open import SplitNaturality using (toℕ∞seq)
 
 private
-  𝟘fc : ⟨ ℕfinCofinBA ⟩
-  𝟘fc = BooleanRingStr.𝟘 (snd ℕfinCofinBA)
+  -- the Boolean-algebra iso `presentation ≅ ℕfinCofinBA`, as two homs + roundtrips
+  e₊ : BoolHom presentation ℕfinCofinBA
+  e₊ = BooleanEquivToHom    presentation ℕfinCofinBA ℕFinCof=Presentation
+  e₋ : BoolHom ℕfinCofinBA presentation
+  e₋ = BooleanEquivToHomInv presentation ℕfinCofinBA ℕFinCof=Presentation
 
--- orthogonality of singletons in ℕfinCofinBA
-sing·0 : (n m : ℕ) → (n ≡ m → ⊥) → BooleanRingStr._·_ (snd ℕfinCofinBA) (singleton n) (singleton m) ≡ 𝟘fc
-sing·0 n m n≠m = FC≡ (funExt (δn∧δm=0 n m n≠m))
+-- Sp applied to that BA-iso (contravariant ⇒ precomposition): Sp(ℕfinCofinBA) ≅ Sp(presentation)
+SpEq : Iso (SpGeneralBooleanRing ℕfinCofinBA) (SpGeneralBooleanRing presentation)
+SpEq .Iso.fun γ = γ ∘cr e₊
+SpEq .Iso.inv δ = δ ∘cr e₋
+SpEq .Iso.sec δ = CommRingHom≡ (cong (fst δ ∘_)
+  (cong fst (BooleanEquivLeftInv  presentation ℕfinCofinBA ℕFinCof=Presentation)))
+SpEq .Iso.ret γ = CommRingHom≡ (cong (fst γ ∘_)
+  (cong fst (BooleanEquivRightInv presentation ℕfinCofinBA ℕFinCof=Presentation)))
 
--- a point hits 1 at most once: its values on distinct singletons can't both be 1
-atMostOnce : (γ : SpGeneralBooleanRing ℕfinCofinBA) → hits1AtMostOnce (toℕ∞seq γ)
-atMostOnce γ n m γn=1 γm=1 with discreteℕ n m
-... | yes p = p
-... | no n≠m = ex-falso (true≢false
-      ( sym (cong₂ _and_ γn=1 γm=1)
-      ∙ sym (IsCommRingHom.pres· (snd γ) (singleton n) (singleton m))
-      ∙ cong (fst γ) (sing·0 n m n≠m)
-      ∙ IsCommRingHom.pres0 (snd γ) ))
-
--- the relations of the presentation are respected by a point's free extension
-relproof : (α : binarySequence) → hits1AtMostOnce α
-  → (n : ℕ) → BinarySequence→SpFreeℕ α $cr relationsℕ n ≡ BooleanRingStr.𝟘 (snd BoolBR)
-relproof α α1 n = hits1AtMostOnce→respectsRelations α α1
-  (fst (Iso.inv ℕ×ℕ≅ℕ n)) (snd (Iso.inv ℕ×ℕ≅ℕ n))
-
+-- the transported Stone iso
 σ : Iso (SpGeneralBooleanRing ℕfinCofinBA) ℕ∞
-σ .Iso.fun γ = toℕ∞seq γ , atMostOnce γ
-σ .Iso.inv (α , α1) = extensionMap BoolBR (BinarySequence→SpFreeℕ α) (relproof α α1)
-σ .Iso.sec (α , α1) = Σ≡Prop isPropHits1AtMostOnce (funExt secAt)
+σ = compIso SpEq neededIso
+
+-- bridge: the transported read-off equals reading a point off on the singleton generators
+σfun≡toℕ∞seq : (γ : SpGeneralBooleanRing ℕfinCofinBA) → fst (Iso.fun σ γ) ≡ toℕ∞seq γ
+σfun≡toℕ∞seq γ = funExt λ n →
+    γ $cr (e₊ $cr (quotientImageHom $cr generator n))
+  ≡⟨ cong (λ b → γ $cr b) (funExt⁻ (cong fst e₊∘π≡φ) (generator n)) ⟩
+    γ $cr (freeℕ→ℕFinCof $cr generator n)
+  ≡⟨ cong (λ b → γ $cr b) (eval-gen n) ⟩
+    γ $cr singleton n ∎
   where
-    secAt : (n : ℕ) → toℕ∞seq (σ .Iso.inv (α , α1)) n ≡ α n
-    secAt n =
-      σ .Iso.inv (α , α1) $cr singleton n
-        ≡⟨ cong (λ s → σ .Iso.inv (α , α1) $cr s) (sym (eval-gen n)) ⟩
-      σ .Iso.inv (α , α1) $cr (freeℕ→ℕFinCof $cr generator n)
-        ≡⟨ cong (λ h → h $cr generator n)
-                (extensionCommutes BoolBR (BinarySequence→SpFreeℕ α) (relproof α α1)) ⟩
-      BinarySequence→SpFreeℕ α $cr generator n
-        ≡⟨ funExt⁻ (evalBAInduce ℕ BoolBR α) n ⟩
-      α n ∎
-σ .Iso.ret γ =
-  extensionUnique BoolBR (BinarySequence→SpFreeℕ (toℕ∞seq γ)) (relproof (toℕ∞seq γ) (atMostOnce γ)) γ
-    (inducedBAHomUnique ℕ BoolBR (toℕ∞seq γ) (γ ∘cr freeℕ→ℕFinCof)
-      (funExt λ n → cong (fst γ) (eval-gen n)))
+    -- e₊ is (definitionally, by η) the induced map `inducedHom ℕfinCofinBA freeℕ→ℕFinCof _`,
+    -- so its composite with the quotient map is the free extension `freeℕ→ℕFinCof`.
+    e₊∘π≡φ : e₊ ∘cr quotientImageHom ≡ freeℕ→ℕFinCof
+    e₊∘π≡φ = evalInduce ℕfinCofinBA

@@ -12,7 +12,6 @@ open import Cubical.Data.Sum
 
 open import Cubical.Algebra.CommRing
 open import Cubical.Algebra.BooleanRing
-open import Cubical.Algebra.BooleanRing.Instances.Bool
 
 open import BasicDefinitions using (binarySequence)
 open import Parity

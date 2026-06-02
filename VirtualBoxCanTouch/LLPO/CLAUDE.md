@@ -22,7 +22,10 @@ Never edit files under `FormalizationSSD-Library`. When a proof really belongs
 upstream, develop it in a **local module here** and record the intended upstream
 edit in `LIBRARY_CHANGES.md`. Current local stand-ins:
 
-- `NinftyExtras` — re-exports `StoneSpaces.Examples.Ninfty`, adds the finished `neededIso` (and `ℕ∞`).
+- `SpNfcIso` — `σ : Iso (Sp ℕfinCofinBA) ℕ∞`, obtained by transporting the (now
+  committed) upstream `neededIso` across the BA-iso `ℕFinCof=Presentation`. Not a
+  stand-in for missing content — a thin adapter, since the proof is phrased over
+  `ℕfinCofinBA` rather than `presentation`. See `LIBRARY_CHANGES.md §1`.
 - `StoneSums` — `Sp(A ×BR B) ≅ Sp A ⊎ Sp B` (used for `σ⊎`).
 - `ProductClosureLocal` — algebraic product-closure of countably-presented BAs.
 
