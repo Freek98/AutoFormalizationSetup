@@ -6,7 +6,7 @@
 -- with `fun` reading a point off as its values on the singleton generators —
 -- exactly the `toℕ∞seq` of SplitNaturality.  It lets the spectrum action of
 -- splitFC be transported to ℕ∞ ⊎ ℕ∞ → ℕ∞.
-module SpℕfcIso where
+module SpNfcIso where
 
 open import Cubical.Foundations.Prelude hiding (_∨_ ; _∧_)
 open import Cubical.Foundations.Structure
