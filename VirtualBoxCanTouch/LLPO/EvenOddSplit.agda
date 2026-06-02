@@ -81,22 +81,22 @@ oddPart-FC α (Cof c) = Cof (oddPart-cofin α c)
 splitFun : ⟨ ℕfinCofinBA ⟩ → ⟨ ℕfinCofinBA ×BR ℕfinCofinBA ⟩
 splitFun (α , w) = (evenPart α , evenPart-FC α w) , (oddPart α , oddPart-FC α w)
 
-splitFC : BoolHom ℕfinCofinBA (ℕfinCofinBA ×BR ℕfinCofinBA)
-fst splitFC = splitFun
-snd splitFC = makeIsCommRingHom
+splitHom : BoolHom ℕfinCofinBA (ℕfinCofinBA ×BR ℕfinCofinBA)
+fst splitHom = splitFun
+snd splitHom = makeIsCommRingHom
   (cong₂ _,_ (FC≡ refl) (FC≡ refl))
   (λ { (α , w) (β , w') → cong₂ _,_ (FC≡ refl) (FC≡ refl) })
   (λ { (α , w) (β , w') → cong₂ _,_ (FC≡ refl) (FC≡ refl) })
 
 -- sends a finite set to a pair of finite sets
-splitFC-finite : (α : binarySequence) → isFinite α
+splitHom-finite : (α : binarySequence) → isFinite α
   → isFinite (evenPart α) × isFinite (oddPart α)
-splitFC-finite α fin = evenPart-fin α fin , oddPart-fin α fin
+splitHom-finite α fin = evenPart-fin α fin , oddPart-fin α fin
 
 -- sends a cofinite set to a pair of cofinite sets
-splitFC-cofinite : (α : binarySequence) → isCofinite α
+splitHom-cofinite : (α : binarySequence) → isCofinite α
   → isCofinite (evenPart α) × isCofinite (oddPart α)
-splitFC-cofinite α cof = evenPart-cofin α cof , oddPart-cofin α cof
+splitHom-cofinite α cof = evenPart-cofin α cof , oddPart-cofin α cof
 
 -- if both halves of S are empty, so is S (every n is even or odd)
 -- This seems actually like two proofs of injectivity. 
@@ -108,7 +108,7 @@ seq-from-halves α e o = funExt λ n → help n (even-or-odd n)
     help n (inl (k , n≡2k)) = cong α n≡2k ∙ funExt⁻ e k
     help n (inr (k , n≡2k+1)) = cong α n≡2k+1 ∙ funExt⁻ o k
 
--- the kernel is trivial: splitFC S = (∅ , ∅) ⇒ S = ∅
-splitFC-kernel : (b : ⟨ ℕfinCofinBA ⟩) → splitFC $cr b ≡ 𝟘 → b ≡ 𝟘
-splitFC-kernel (a , _) fa=0 = Σ≡Prop isPropisFiniteOrCofinite
+-- the kernel is trivial: splitHom S = (∅ , ∅) ⇒ S = ∅
+splitHom-kernel : (b : ⟨ ℕfinCofinBA ⟩) → splitHom $cr b ≡ 𝟘 → b ≡ 𝟘
+splitHom-kernel (a , _) fa=0 = Σ≡Prop isPropisFiniteOrCofinite
   (seq-from-halves a (cong (λ z → fst (fst z)) fa=0) (cong (λ z → fst (snd z)) fa=0))

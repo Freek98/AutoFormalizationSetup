@@ -52,8 +52,8 @@ open import NinftyExtras using (ℕ∞)          -- adds the Stone iso missing i
 import StoneSums                             -- Sp(A ×BR B) ≅ Sp A ⊎ Sp B  (see σ⊎)
 import ProductClosureLocal                   -- algebraic product-closure (fixes ProductClosure)
 
-open import EvenOddSplit using (splitFC ; splitFC-kernel)
-open import SplitNaturality using (evenNaturality ; oddNaturality)
+open import EvenOddSplit using (splitHom ; splitHom-kernel)
+open import SplitNaturality using (evenNaturality ; oddNaturality ; splitIntoEvens ; splitIntoOdds ; toℕ∞seq)
 open import SpNfcIso using (σ)
 
 module LLPOProof (sd : StoneDualityAxiom) (formalSurjections : formalSurjectionsAreSurjectionsAxiom) where
@@ -81,15 +81,15 @@ module LLPOProof (sd : StoneDualityAxiom) (formalSurjections : formalSurjections
   σ⊎ : Iso (SpGeneralBooleanRing (ℕfinCofinBA ×BR ℕfinCofinBA)) (ℕ∞ ⊎ ℕ∞)
   σ⊎ = compIso (StoneSums.SpProd≅SpSum ℕfinCofinBA ℕfinCofinBA) (⊎Iso σ σ)
  
-  splitInj : isInjectiveBoolHom B∞ B∞xB∞ splitFC
-  splitInj = ker≡0→injBoolHom B∞ B∞xB∞ splitFC splitFC-kernel 
+  splitInj : isInjectiveBoolHom B∞ B∞xB∞ splitHom
+  splitInj = ker≡0→injBoolHom B∞ B∞xB∞ splitHom splitHom-kernel 
   
   -- this is the action of Sp on morphisms
   SpSplit : SpGeneralBooleanRing (ℕfinCofinBA ×BR ℕfinCofinBA) → SpGeneralBooleanRing ℕfinCofinBA
-  SpSplit γ = γ ∘cr splitFC
+  SpSplit γ = γ ∘cr splitHom
 
   SpSplitSurj : isSurjection SpSplit
-  SpSplitSurj = formalSurjections B∞ B∞xB∞ splitFC splitInj
+  SpSplitSurj = formalSurjections B∞ B∞xB∞ splitHom splitInj
 
   Spf : ℕ∞ ⊎ ℕ∞ → ℕ∞
   Spf = Iso.fun σ ∘ SpSplit ∘ Iso.inv σ⊎
@@ -97,14 +97,14 @@ module LLPOProof (sd : StoneDualityAxiom) (formalSurjections : formalSurjections
   SpfSurj : isSurjection Spf
   SpfSurj = snd
     (compSurjection
-      (Iso.inv σ⊎ , isEquiv→isSurjection (snd (isoToEquiv (invIso σ⊎))))
+      (Iso→↠ (invIso σ⊎))
       (compSurjection
         (SpSplit , SpSplitSurj)
-        (Iso.fun σ , isEquiv→isSurjection (snd (isoToEquiv σ)))))
+        (Iso→↠ σ)))
+    where
+    Iso→↠ : ∀ {ℓ ℓ'} {X : Type ℓ} {Y : Type ℓ'} → Iso X Y → X ↠ Y
+    Iso→↠ i = Iso.fun i , isEquiv→isSurjection (snd (isoToEquiv i))
 
-  -- A fibre of Spf over x yields the LLPO disjunct for x: Spf(inl β) is the even
-  -- split (0 on every odd index), Spf(inr β) the odd split (0 on every even
-  -- index), by SplitNaturality.  Only one coordinate of the fibre is inspected.
   Spf-fibre→LLPO : (x : ℕ∞) → fiber Spf x → LLPOExplicitAt x
   Spf-fibre→LLPO x (inl β , p) = inr λ k →
     sym (cong (λ y → fst y (suc (double k))) p)

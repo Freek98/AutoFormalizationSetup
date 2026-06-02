@@ -1,14 +1,14 @@
 {-# OPTIONS --cubical --guardedness --lossy-unification #-}
 -- Naturality of the even/odd split at the level of spectra.
 --
--- The spectrum action of `splitFC` sends a point of ℕfinCofinBA × ℕfinCofinBA to
+-- The spectrum action of `splitHom` sends a point of ℕfinCofinBA × ℕfinCofinBA to
 -- a point of ℕfinCofinBA by precomposition.  Read off through the coordinate map
 --     toℕ∞seq γ = (n ↦ γ(singleton n))      (a point as its sequence of bits),
--- and using the two component maps  evenHom = πB ∘ splitFC ,  oddHom = πC ∘ splitFC,
--- we prove the crux "Sp(splitFC) = e" computation at the point/sequence level:
+-- and using the two component maps  evenHom = πB ∘ splitHom ,  oddHom = πC ∘ splitHom,
+-- we prove the crux "Sp(splitHom) = e" computation at the point/sequence level:
 --     toℕ∞seq (γ ∘cr evenHom) ≡ splitIntoEvens (toℕ∞seq γ)
 --     toℕ∞seq (γ ∘cr oddHom)  ≡ splitIntoOdds  (toℕ∞seq γ).
--- So precomposing a point with splitFC's even (resp. odd) half is exactly the
+-- So precomposing a point with splitHom's even (resp. odd) half is exactly the
 -- even (resp. odd) split of the sequence the point represents — i.e. the map e
 -- of the main file, here free of the product-iso/ℕ∞-wrapper plumbing.
 module SplitNaturality where
@@ -31,17 +31,17 @@ open NFinCofinPresentation using (singleton)
 open import StoneSpaces.Spectrum using (SpGeneralBooleanRing)
 
 open import ProductBAProjections using (pr₁-BR ; pr₂-BR)
-open import EvenOddSplit using (splitFC ; evenPart ; oddPart)
+open import EvenOddSplit using (splitHom ; evenPart ; oddPart)
 
 private
   𝟘fc : ⟨ ℕfinCofinBA ⟩
   𝟘fc = BooleanRingStr.𝟘 (snd ℕfinCofinBA)
 
--- the two halves of splitFC as Boolean-algebra maps ℕfinCofinBA → ℕfinCofinBA
+-- the two halves of splitHom as Boolean-algebra maps ℕfinCofinBA → ℕfinCofinBA
 evenHom : BoolHom ℕfinCofinBA ℕfinCofinBA
-evenHom = pr₁-BR ℕfinCofinBA ℕfinCofinBA ∘cr splitFC
+evenHom = pr₁-BR ℕfinCofinBA ℕfinCofinBA ∘cr splitHom
 oddHom : BoolHom ℕfinCofinBA ℕfinCofinBA
-oddHom = pr₂-BR ℕfinCofinBA ℕfinCofinBA ∘cr splitFC
+oddHom = pr₂-BR ℕfinCofinBA ℕfinCofinBA ∘cr splitHom
 
 -- a point read off as the sequence of its values on the singleton generators
 toℕ∞seq : SpGeneralBooleanRing ℕfinCofinBA → binarySequence
