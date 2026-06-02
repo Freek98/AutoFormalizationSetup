@@ -17,7 +17,7 @@ open import BasicDefinitions using (binarySequence ; δSequence)
 open import Parity
 open import CountablyPresentedBooleanRings.Examples.NFinCofin
 open DefinitionFinCofin
-open NFinCofinPresentation using (singleton)
+open NFinCofinPresentation 
 open import BooleanRing.ProductBA using (_×BR_ ; induceProdMapBR)
 open import StoneSpaces.Spectrum using (SpGeneralBooleanRing)
 
@@ -101,28 +101,17 @@ splitHom-cofinite : (α : binarySequence) → isCofinite α
   → isCofinite (evenPart α) × isCofinite (oddPart α)
 splitHom-cofinite α cof = evenPart-cofin α cof , oddPart-cofin α cof
 
--- if both halves of S are empty, so is S (every n is even or odd)
-seq-from-halves : (α : binarySequence)
+kernelSplitCase : (α : binarySequence)
   → evenPart α ≡ 𝟘 → oddPart α ≡ 𝟘 → α ≡ 𝟘
-seq-from-halves α e o = funExt λ n → help n (even-or-odd n)
+kernelSplitCase α e o = funExt λ n → help n (even-or-odd n)
   where
     help : (n : ℕ) → Even n ⊎ Odd n → α n ≡ false
     help n (inl (k , n≡2k  )) = cong α n≡2k ∙ funExt⁻ e k
     help n (inr (k , n≡2k+1)) = cong α n≡2k+1 ∙ funExt⁻ o k
 
-splitHom-kernel : (b : ⟨ ℕfinCofinBA ⟩) → splitHom $cr b ≡ 𝟘 → b ≡ 𝟘
+splitHom-kernel : (b : g ℕfinCofinBA ⟩) → splitHom $cr b ≡ 𝟘 → b ≡ 𝟘
 splitHom-kernel (a , _) fa=0 = Σ≡Prop isPropisFiniteOrCofinite
-  (seq-from-halves a (cong (λ z → fst (fst z)) fa=0) (cong (λ z → fst (snd z)) fa=0))
-
--- ───────────────────────────────────────────────────────────────
--- Read-off lemmas: each half kills the wrong-parity singletons.
--- `evenHom` sends odd singletons to 𝟘, `oddHom` sends even singletons to 𝟘.
--- This is exactly what the LLPO fibre argument needs: a point arriving through
--- `Sp evenHom` (resp. `Sp oddHom`) vanishes on every odd (resp. even) coordinate.
--- ───────────────────────────────────────────────────────────────
-private
-  𝟘fc : ⟨ ℕfinCofinBA ⟩
-  𝟘fc = BooleanRingStr.𝟘 (snd ℕfinCofinBA)
+  (kernelSplitCase a (cong (λ z → fst (fst z)) fa=0) (cong (λ z → fst (snd z)) fa=0))
 
 even-≡ᵇ-odd : (k j : ℕ) → (double k ≡ᵇ suc (double j)) ≡ false
 even-≡ᵇ-odd zero j = refl
@@ -139,13 +128,11 @@ evenPart-δ-odd k = funExt λ j → odd-≡ᵇ-even k j
 oddPart-δ-even : (k : ℕ) → oddPart (δSequence (double k)) ≡ (λ _ → false)
 oddPart-δ-even k = funExt λ j → even-≡ᵇ-odd k j
 
-evenHom-sing-odd : (k : ℕ) → evenHom $cr singleton (suc (double k)) ≡ 𝟘fc
+evenHom-sing-odd : (k : ℕ) → evenHom $cr singleton (suc (double k)) ≡ 𝟘
 evenHom-sing-odd k = FC≡ (evenPart-δ-odd k)
-oddHom-sing-even : (k : ℕ) → oddHom $cr singleton (double k) ≡ 𝟘fc
+oddHom-sing-even : (k : ℕ) → oddHom $cr singleton (double k) ≡ 𝟘
 oddHom-sing-even k = FC≡ (oddPart-δ-even k)
 
--- … hence the Stone image of each half (precomposition with evenHom / oddHom) vanishes
--- on the wrong-parity singletons — for *any* point γ, with no reference to σ.
 SpEvenHom-odd0 : (γ : SpGeneralBooleanRing ℕfinCofinBA) (k : ℕ)
   → (γ ∘cr evenHom) $cr singleton (suc (double k)) ≡ false
 SpEvenHom-odd0 γ k =
