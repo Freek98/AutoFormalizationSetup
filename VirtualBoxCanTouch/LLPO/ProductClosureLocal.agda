@@ -28,8 +28,7 @@ open import BooleanRing.BoolRingUnivalence
 open import BooleanRing.FreeBooleanRing.FreeBool
 open import BooleanRing.FreeBooleanRing.freeBATerms
 open import BooleanRing.BooleanRingQuotients.QuotientBool as QB
-open import BooleanRing.Products using (⟨_,_⟩BR)
-open import BooleanRing.ProductBA using (_×BR_)
+open import BooleanRing.ProductBA using (_×BR_ ; induceProdMapBR)
 
 open import CountablyPresentedBooleanRings.Definitions
 open import CountablyPresentedBooleanRings.EquivalenceOfCountablyPresentedDefinitions
@@ -287,7 +286,7 @@ module ProductPresentation {GA GB RA RB : Type₀}
 
   -- Forward map: φ = ⟨q₁, q₂⟩
   φ : BoolHom Q (A ×BR B)
-  φ = ⟨ A , B ⟩BR q₁ q₂
+  φ = induceProdMapBR q₁ q₂
 
   -- ─── Backward: ψ : A ×BR B → Q ───
   -- ψ(a, b) = α(a) + β(b) where α, β defined by quotient elimination
@@ -776,4 +775,4 @@ Booleω-closed-×BR (A , cpA) (B , cpB) =
       (countably-presented-equivalence B .snd cpB))
 
 _×Booleω_ : (X Y : Booleω) → Booleω
-X@(A , cpA) ×Booleω Y@(B , cpB) = (A ×BR B , Booleω-closed-×BR X Y)
+X@(A , cpA) ×Booleω Y@(B , cp) = (A ×BR B , Booleω-closed-×BR X Y)

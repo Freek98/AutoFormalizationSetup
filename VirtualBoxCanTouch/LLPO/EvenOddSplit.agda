@@ -19,8 +19,6 @@ open import CountablyPresentedBooleanRings.Examples.NFinCofin
 open DefinitionFinCofin
 open import BooleanRing.ProductBA using (_×BR_)
 
--- pointwise Boolean-algebra structure on sequences (so `¬` is pointwise not,
--- matching the `¬` used in `isCofinite`)
 open BooleanAlgebraStr ⦃...⦄
 open BooleanRingStr ⦃...⦄
 instance
@@ -67,6 +65,7 @@ oddPart-cofin α cof = subst isFinite (sym (oddPart-¬ α)) (oddPart-fin (¬ α)
 evenPart-FC : (α : binarySequence) → isFiniteOrCofinite α → isFiniteOrCofinite (evenPart α)
 evenPart-FC α (Fin f) = Fin (evenPart-fin α f)
 evenPart-FC α (Cof c) = Cof (evenPart-cofin α c)
+
 oddPart-FC : (α : binarySequence) → isFiniteOrCofinite α → isFiniteOrCofinite (oddPart α)
 oddPart-FC α (Fin f) = Fin (oddPart-fin α f)
 oddPart-FC α (Cof c) = Cof (oddPart-cofin α c)
@@ -98,16 +97,14 @@ splitHom-cofinite : (α : binarySequence) → isCofinite α
 splitHom-cofinite α cof = evenPart-cofin α cof , oddPart-cofin α cof
 
 -- if both halves of S are empty, so is S (every n is even or odd)
--- This seems actually like two proofs of injectivity. 
 seq-from-halves : (α : binarySequence)
   → evenPart α ≡ 𝟘 → oddPart α ≡ 𝟘 → α ≡ 𝟘
 seq-from-halves α e o = funExt λ n → help n (even-or-odd n)
   where
     help : (n : ℕ) → Even n ⊎ Odd n → α n ≡ false
-    help n (inl (k , n≡2k)) = cong α n≡2k ∙ funExt⁻ e k
+    help n (inl (k , n≡2k  )) = cong α n≡2k ∙ funExt⁻ e k
     help n (inr (k , n≡2k+1)) = cong α n≡2k+1 ∙ funExt⁻ o k
 
--- the kernel is trivial: splitHom S = (∅ , ∅) ⇒ S = ∅
 splitHom-kernel : (b : ⟨ ℕfinCofinBA ⟩) → splitHom $cr b ≡ 𝟘 → b ≡ 𝟘
 splitHom-kernel (a , _) fa=0 = Σ≡Prop isPropisFiniteOrCofinite
   (seq-from-halves a (cong (λ z → fst (fst z)) fa=0) (cong (λ z → fst (snd z)) fa=0))

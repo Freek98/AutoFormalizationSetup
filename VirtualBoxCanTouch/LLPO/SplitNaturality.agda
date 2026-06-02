@@ -4,7 +4,7 @@
 -- The spectrum action of `splitHom` sends a point of ℕfinCofinBA × ℕfinCofinBA to
 -- a point of ℕfinCofinBA by precomposition.  Read off through the coordinate map
 --     toℕ∞seq γ = (n ↦ γ(singleton n))      (a point as its sequence of bits),
--- and using the two component maps  evenHom = πB ∘ splitHom ,  oddHom = πC ∘ splitHom,
+-- and using the two component maps  evenHom = fstBA ∘ splitHom ,  oddHom = sndBA ∘ splitHom,
 -- we prove the crux "Sp(splitHom) = e" computation at the point/sequence level:
 --     toℕ∞seq (γ ∘cr evenHom) ≡ splitIntoEvens (toℕ∞seq γ)
 --     toℕ∞seq (γ ∘cr oddHom)  ≡ splitIntoOdds  (toℕ∞seq γ).
@@ -29,7 +29,7 @@ open import CountablyPresentedBooleanRings.Examples.NFinCofin
 open NFinCofinPresentation using (singleton)
 open import StoneSpaces.Spectrum using (SpGeneralBooleanRing)
 
-open import BooleanRing.Products using (pr₁-BR ; pr₂-BR)
+open import BooleanRing.ProductBA using (module BRProduct)
 open import EvenOddSplit using (splitHom ; evenPart ; oddPart)
 
 private
@@ -38,9 +38,9 @@ private
 
 -- the two halves of splitHom as Boolean-algebra maps ℕfinCofinBA → ℕfinCofinBA
 evenHom : BoolHom ℕfinCofinBA ℕfinCofinBA
-evenHom = pr₁-BR ℕfinCofinBA ℕfinCofinBA ∘cr splitHom
+evenHom = BRProduct.fstBA ℕfinCofinBA ℕfinCofinBA ∘cr splitHom
 oddHom : BoolHom ℕfinCofinBA ℕfinCofinBA
-oddHom = pr₂-BR ℕfinCofinBA ℕfinCofinBA ∘cr splitHom
+oddHom = BRProduct.sndBA ℕfinCofinBA ℕfinCofinBA ∘cr splitHom
 
 -- a point read off as the sequence of its values on the singleton generators
 toℕ∞seq : SpGeneralBooleanRing ℕfinCofinBA → binarySequence

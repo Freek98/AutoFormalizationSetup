@@ -141,8 +141,8 @@ module _ (A B : BooleanRing ℓ-zero) where
 
     -- ── The inverse map ─────────────────────────────────────────────────────
     bwd : SpGeneralBooleanRing A ⊎ SpGeneralBooleanRing B → BoolHom AB BoolBR
-    bwd (inl ψ) = ψ ∘cr BRProduct.πB A B
-    bwd (inr χ) = χ ∘cr BRProduct.πC A B
+    bwd (inl ψ) = ψ ∘cr BRProduct.fstBA A B
+    bwd (inr χ) = χ ∘cr BRProduct.sndBA A B
 
     -- ── Decomposition of φ along the two factors ────────────────────────────
     -- (a , b) ≡ (a , 𝟘) + (𝟘 , b) in the product
@@ -194,7 +194,7 @@ module _ (A B : BooleanRing ℓ-zero) where
     ret φ = retAux φ (φ $cr e , refl)
 
     -- ── Section: fwd ∘ bwd ≡ id ─────────────────────────────────────────────
-    -- For inl ψ: bwd (inl ψ) = ψ ∘cr πB, whose value at e is ψ 𝟙_A = true.
+    -- For inl ψ: bwd (inl ψ) = ψ ∘cr fstBA, whose value at e is ψ 𝟙_A = true.
     secInl : (ψ : SpGeneralBooleanRing A) → fwd (bwd (inl ψ)) ≡ inl ψ
     secInl ψ =
       cong (funAux (bwd (inl ψ)))
