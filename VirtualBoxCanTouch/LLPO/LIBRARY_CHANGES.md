@@ -27,7 +27,10 @@ consumes. The local module **`SpNfcIso.agda`** therefore *transports* it:
 
 across the committed BA-iso `ℕFinCof=Presentation : BooleanRingEquiv presentation
 ℕfinCofinBA` (in `CountablyPresentedBooleanRings.Examples.NFinCofin`), pushed through
-the contravariant spectrum action (precomposition). The bridge lemma
+the contravariant spectrum action. Concretely, `SpNfcIso.SpEq` turns the BA-iso into a
+`CatIso BACat` via `BAIso≅BAEquiv` and applies the spectrum *functor* `SpGeneralFunctor`'s
+preservation of isomorphisms (`preserveIsosF`) — which on morphisms is precomposition —
+rather than hand-proving the section/retraction. The bridge lemma
 `σfun≡toℕ∞seq` reconciles the upstream read-off `Sp→BinarySequence` (via
 `generator`/`quotientImageHom`) with the local `toℕ∞seq` (via `singleton`); these
 agree only propositionally (`eval-gen`).
@@ -86,9 +89,9 @@ Booleω-closed-×BR : (X Y : Booleω) → is-countably-presented-alt (fst X ×BR
 
 with two fixes:
 
-- **`_×BR_` swap:** the `BooleanRing.Products` import is replaced by the local shim
-  `ProductBAProjections` (item 5), so the product is git-tracked
-  `BooleanRing.ProductBA`'s `_×BR_` and `⟨_,_⟩BR = ProductBAProjections.⟨_,_⟩BR`.
+- **`_×BR_` swap:** the `BooleanRing.Products` import is replaced by the git-tracked
+  `BooleanRing.ProductBA` (item 5), so the product is its `_×BR_` and the forward map
+  `φ` is built with the pairing `induceProdMapBR`.
   Both products have carrier `⟨A⟩ × ⟨B⟩` with componentwise operations, and at
   `ℓ-zero` the same universe level, so the proof body is otherwise verbatim. This
   also makes `Booleω-closed-×BR` produce `is-countably-presented-alt (B∞ ×BR B∞)`
@@ -152,20 +155,27 @@ Upstream action: once item 3 is fixed, drop `CategoricalSumsProducts` in as e.g.
 `ClosedUnderProductsBR` hypothesis with `Booleω-closed-×BR`, so that
 `Stone-BinCoproducts : BinCoproducts (StoneCat ^op)` depends only on `sd`.
 
-## 5. `BooleanRing.Products` is not in git — local shim `ProductBAProjections`
+## 5. `BooleanRing.Products` is not in git — names inlined from `BooleanRing.ProductBA`
 
 `BooleanRing/Products.agda` (named projections `pr₁-BR`/`pr₂-BR`, pairing
 `⟨_,_⟩BR`, and its universal property) exists in the working library but is
-**untracked** — it is not in the library's git version, so depending on it breaks
-portability of this folder. `CategoricalSumsProducts` originally imported it.
+**untracked** — not in the library's git version, so depending on it breaks
+portability of this folder.
 
-Fix: the local shim **`ProductBAProjections.agda`** rebuilds that exact interface
-on top of the git-tracked `BooleanRing.ProductBA` (`pr₁-BR = BRProduct.πB`,
-`⟨_,_⟩BR = BRProduct.UP.⟨f,g⟩`, etc.), and `CategoricalSumsProducts` now imports
-the shim. Bonus: this makes the categorical file use the *same* `_×BR_` as
-`StoneSums` and the main LLPO file (previously it used a different, nominally
-distinct product).
+Fix: depend only on the git-tracked `BooleanRing.ProductBA`, which already carries
+the same content under its own names — the pairing `induceProdMapBR` and the
+projections `BRProduct.fstBA` / `BRProduct.sndBA` (the product `_×BR_` lives there
+too). These are used directly at the call sites:
 
-Upstream action: commit `BooleanRing.Products` to the library (or add those names
-to `BooleanRing.ProductBA`); then `ProductBAProjections` can be deleted and
-`CategoricalSumsProducts` can import the library module directly.
+- `SplitNaturality.agda` — `evenHom`/`oddHom` via `BRProduct.fstBA`/`BRProduct.sndBA`;
+- `StoneSums.agda` — the inverse `bwd` via `BRProduct.fstBA`/`BRProduct.sndBA`;
+- `ProductClosureLocal.agda` — the forward map `φ` via `induceProdMapBR`.
+
+An earlier local shim **`ProductBAProjections.agda`** re-exported these under the
+`pr₁-BR`/`pr₂-BR`/`⟨_,_⟩BR` spelling (on top of the then-current `BRProduct.πB`/`πC`
+names); it has been **deleted**, and the projections were renamed `πB`/`πC` →
+`fstBA`/`sndBA` upstream.
+
+Upstream action: none needed for portability. If the `pr₁-BR`/`⟨_,_⟩BR` spelling
+should be available library-wide, commit `BooleanRing.Products` to git; the call
+sites here can then use it but do not depend on it.

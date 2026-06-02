@@ -57,7 +57,7 @@ module LLPOProof (formalSurjections : formalSurjectionsAreSurjectionsAxiom) wher
   -- Sp(A ×BR B) ≅ Sp A ⊎ Sp B 
   -- Right now, we also use an algebraic proof for this. 
   -- It should be proven using categorical facts. 
-  σ⊎ : Iso (SpGeneralBooleanRing (ℕfinCofinBA ×BR ℕfinCofinBA)) (ℕ∞ ⊎ ℕ∞)
+  σ⊎ : Iso (Sp B∞xB∞) (ℕ∞ ⊎ ℕ∞)
   σ⊎ = compIso (StoneSums.SpProd≅SpSum ℕfinCofinBA ℕfinCofinBA) (⊎Iso σ σ)
  
   splitInj : isInjectiveBoolHom B∞ B∞xB∞ splitHom

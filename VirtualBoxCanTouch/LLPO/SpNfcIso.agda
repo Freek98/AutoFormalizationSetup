@@ -22,48 +22,41 @@ open import Cubical.Data.Sigma
 open import Cubical.Algebra.CommRing using (CommRingHom≡ ; _∘cr_ ; _$cr_)
 open import Cubical.Algebra.BooleanRing using (BoolHom)
 
-open import BooleanRing.BooleanRingMaps
-  using (BooleanEquivToHom ; BooleanEquivToHomInv
-        ; BooleanEquivLeftInv ; BooleanEquivRightInv)
+-- `Sp` as a functor: the general "functors preserve isos" machinery
+open import Cubical.Categories.Category.Base using (CatIso)
+open import Cubical.Categories.Functor.Properties using (preserveIsosF)
+open import Cubical.Categories.Isomorphism using (op-Iso⁻)
+open import Cubical.Categories.Instances.Sets using (SET ; CatIso→Iso)
+
+open import BooleanRing.BooleanRingMaps using (BooleanEquivToHom)
 open import BooleanRing.FreeBooleanRing.FreeBool using (generator)
 open import BooleanRing.BooleanRingQuotients.QuotientBool using (quotientImageHom ; evalInduce)
 open import StoneSpaces.Spectrum using (SpGeneralBooleanRing)
+open import CategoryTheory.StuffFromStoneAboutBAs using (BACat ; SpGeneralFunctor ; BAIso≅BAEquiv)
 open import StoneSpaces.Examples.Ninfty using (ℕ∞ ; neededIso ; Sp→BinarySequence)
 open import CountablyPresentedBooleanRings.Examples.NFinCofin
   using (ℕfinCofinBA ; presentation ; ℕFinCof=Presentation ; module NFinCofinPresentation)
 open NFinCofinPresentation using (singleton ; eval-gen ; freeℕ→ℕFinCof)
 open import SplitNaturality using (toℕ∞seq)
 
-private
-  -- the Boolean-algebra iso `presentation ≅ ℕfinCofinBA`, as two homs + roundtrips
-  e₊ : BoolHom presentation ℕfinCofinBA
-  e₊ = BooleanEquivToHom    presentation ℕfinCofinBA ℕFinCof=Presentation
-  e₋ : BoolHom ℕfinCofinBA presentation
-  e₋ = BooleanEquivToHomInv presentation ℕfinCofinBA ℕFinCof=Presentation
-
--- Sp applied to that BA-iso (contravariant ⇒ precomposition): Sp(ℕfinCofinBA) ≅ Sp(presentation)
 SpEq : Iso (SpGeneralBooleanRing ℕfinCofinBA) (SpGeneralBooleanRing presentation)
-SpEq .Iso.fun γ = γ ∘cr e₊
-SpEq .Iso.inv δ = δ ∘cr e₋
-SpEq .Iso.sec δ = CommRingHom≡ (cong (fst δ ∘_)
-  (cong fst (BooleanEquivLeftInv  presentation ℕfinCofinBA ℕFinCof=Presentation)))
-SpEq .Iso.ret γ = CommRingHom≡ (cong (fst γ ∘_)
-  (cong fst (BooleanEquivRightInv presentation ℕfinCofinBA ℕFinCof=Presentation)))
+SpEq = invIso (CatIso→Iso (op-Iso⁻ {C = SET ℓ-zero}
+              (preserveIsosF {F = SpGeneralFunctor} pres≅ℕfc)))
+  where
+    pres≅ℕfc : CatIso BACat presentation ℕfinCofinBA
+    pres≅ℕfc = BAIso≅BAEquiv presentation ℕfinCofinBA .Iso.inv ℕFinCof=Presentation
 
--- the transported Stone iso
 σ : Iso (SpGeneralBooleanRing ℕfinCofinBA) ℕ∞
 σ = compIso SpEq neededIso
 
 -- bridge: the transported read-off equals reading a point off on the singleton generators
 σfun≡toℕ∞seq : (γ : SpGeneralBooleanRing ℕfinCofinBA) → fst (Iso.fun σ γ) ≡ toℕ∞seq γ
 σfun≡toℕ∞seq γ = funExt λ n →
-    γ $cr (e₊ $cr (quotientImageHom $cr generator n))
-  ≡⟨ cong (λ b → γ $cr b) (funExt⁻ (cong fst e₊∘π≡φ) (generator n)) ⟩
+    γ $cr (fst (fst ℕFinCof=Presentation) (quotientImageHom $cr generator n))
+  ≡⟨ cong (λ b → γ $cr b) (funExt⁻ (cong fst e∘π≡φ) (generator n)) ⟩
     γ $cr (freeℕ→ℕFinCof $cr generator n)
   ≡⟨ cong (λ b → γ $cr b) (eval-gen n) ⟩
     γ $cr singleton n ∎
   where
-    -- e₊ is (definitionally, by η) the induced map `inducedHom ℕfinCofinBA freeℕ→ℕFinCof _`,
-    -- so its composite with the quotient map is the free extension `freeℕ→ℕFinCof`.
-    e₊∘π≡φ : e₊ ∘cr quotientImageHom ≡ freeℕ→ℕFinCof
-    e₊∘π≡φ = evalInduce ℕfinCofinBA
+    e∘π≡φ : (BooleanEquivToHom presentation ℕfinCofinBA ℕFinCof=Presentation) ∘cr quotientImageHom ≡ freeℕ→ℕFinCof
+    e∘π≡φ = evalInduce ℕfinCofinBA
