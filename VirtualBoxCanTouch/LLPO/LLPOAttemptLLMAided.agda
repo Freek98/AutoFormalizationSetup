@@ -84,6 +84,9 @@ open import NinftyExtras
 -- Sp (A ×BR B) ≅ Sp A ⊎ Sp B, supplied by the local StoneSums (intended upstream
 -- as AntiEquivalence.StoneSums); see LIBRARY_CHANGES.md.
 import StoneSums
+-- Algebraic closure of countably presented Boolean algebras under binary
+-- products, ported portably from CountablyPresentedBooleanRings.ProductClosure.
+import ProductClosureLocal
 open import BooleanRing.BoolRingUnivalence
 
 module LLPOProof (sd : StoneDualityAxiom) (fs : formalSurjectionsAreSurjectionsAxiom) where
@@ -206,20 +209,34 @@ module LLPOProof (sd : StoneDualityAxiom) (fs : formalSurjectionsAreSurjectionsA
 
   -- (2) Overtly discrete spaces are closed under products; via CP ⟺ ODisc this
   -- is closure of countably presented Boolean algebras under products. [PIN]
-  odiscClosedUnderProducts : (A B : BooleanRing ℓ-zero)
-    → is-countably-presented-alt A → is-countably-presented-alt B
-    → is-countably-presented-alt (A ×BR B)
-  odiscClosedUnderProducts A B cpA cpB = {! !}
+  --
+  -- SUPERSEDED (for now): this ODisc-spaces route is replaced by the direct
+  -- algebraic closure proof `ProductClosureLocal.Booleω-closed-×BR` (the
+  -- orthogonal-idempotent decomposition), which proves the same statement
+  -- `is-countably-presented-alt (A ×BR B)` purely algebraically.  Kept here,
+  -- commented out, as documentation of the intended ODisc/overtly-discrete view.
+  --
+  -- odiscClosedUnderProducts : (A B : BooleanRing ℓ-zero)
+  --   → is-countably-presented-alt A → is-countably-presented-alt B
+  --   → is-countably-presented-alt (A ×BR B)
+  -- odiscClosedUnderProducts A B cpA cpB = {! !}
 
-  -- So B∞ ×BR B∞ is again countably presented.
+  -- So B∞ ×BR B∞ is again countably presented.  `fst (B∞ , presented) ×BR
+  -- fst (B∞ , presented)` is definitionally `B∞ ×BR B∞` (same ProductBA `_×BR_`).
   prodPresented : is-countably-presented-alt (B∞ ×BR B∞)
-  prodPresented = odiscClosedUnderProducts B∞ B∞ presented presented
+  prodPresented = ProductClosureLocal.Booleω-closed-×BR (B∞ , presented) (B∞ , presented)
 
   -- Stone duality sends a product of Boolean algebras to a sum (coproduct) of
   -- Stone spaces: Sp (A ×BR B) ≅ Sp A ⊎ Sp B.  The spectrum is contravariant, so
   -- the product becomes a coproduct; concretely a map A ×BR B → 2 factors through
-  -- exactly one projection (2 is connected).  Proved in the local `StoneSums`
-  -- (no `sd`/presentation needed); intended upstream as AntiEquivalence.StoneSums.
+  -- exactly one projection (2 is connected).
+  --
+  -- TEMPORARY HOTFIX: this uses the local `StoneSums`, which proves the iso
+  -- directly via idempotents in 2.  It is not the nicest solution — the proper
+  -- statement is categorical (Sp is an anti-equivalence Booleω ≃ Stone^op, so
+  -- products in Booleω are coproducts/sums in Stone "an sich").  That cleaner
+  -- version is being developed separately (see CategoricalSumsProducts); swap
+  -- this over once it lands.
   SpProd≅SpSum : (A B : BooleanRing ℓ-zero)
     → Iso (SpGeneralBooleanRing (A ×BR B))
           (SpGeneralBooleanRing A ⊎ SpGeneralBooleanRing B)
@@ -230,78 +247,87 @@ module LLPOProof (sd : StoneDualityAxiom) (fs : formalSurjectionsAreSurjectionsA
   ℕ∞+ℕ∞=SpProd : Iso (SpGeneralBooleanRing (B∞ ×BR B∞)) (ℕ∞ ⊎ ℕ∞)
   ℕ∞+ℕ∞=SpProd = compIso (SpProd≅SpSum B∞ B∞) (⊎Iso ℕ∞=SpB∞ ℕ∞=SpB∞)
 
+  -- Infrastructure for the inducing map f, lifted to module level so that its
+  -- action on generators (`fOnGenerators`) can be reused (e.g. by `fInj`).
+  private
+    𝟘∞ : ⟨ B∞ ⟩
+    𝟘∞ = BooleanRingStr.𝟘 (snd B∞)
+    _·∞_ : ⟨ B∞ ⟩ → ⟨ B∞ ⟩ → ⟨ B∞ ⟩
+    _·∞_ = BooleanRingStr._·_ (snd B∞)
+    𝟘prod : ⟨ B∞ ×BR B∞ ⟩
+    𝟘prod = BooleanRingStr.𝟘 (snd (B∞ ×BR B∞))
+    _·prod_ : ⟨ B∞ ×BR B∞ ⟩ → ⟨ B∞ ×BR B∞ ⟩ → ⟨ B∞ ×BR B∞ ⟩
+    _·prod_ = BooleanRingStr._·_ (snd (B∞ ×BR B∞))
+
+    -- the generators of B∞ = images of the free generators
+    γ : ℕ → ⟨ B∞ ⟩
+    γ k = fst NFinCofinPresentation.π (generator k)
+
+    -- the per-generator values of f, by parity
+    fgen : ℕ → ⟨ B∞ ×BR B∞ ⟩
+    fgen = evenOddElim (λ _ p → (γ (fst p) , 𝟘∞)) (λ _ p → (𝟘∞ , γ (fst p)))
+
+    ffree : BoolHom (freeBA ℕ) (B∞ ×BR B∞)
+    ffree = inducedBAHom ℕ (B∞ ×BR B∞) fgen
+    module FF = IsCommRingHom (snd ffree)
+
+    ffree-gen : (n : ℕ) → fst ffree (generator n) ≡ fgen n
+    ffree-gen n = funExt⁻ (evalBAInduce ℕ (B∞ ×BR B∞) fgen) n
+
+    -- orthogonality of the generators of B∞ (from gen-orth, via π a hom)
+    γ-orth : (k l : ℕ) → (k ≡ l → ⊥) → γ k ·∞ γ l ≡ 𝟘∞
+    γ-orth k l k≠l =
+      sym (NFinCofinPresentation.ΠH.pres· (generator k) (generator l))
+      ∙ NFinCofinPresentation.gen-orth k l k≠l
+
+    -- annihilation of 0, from the Boolean-algebra structure (∧ = ·)
+    module AB∞ = BooleanAlgebraStr (snd B∞)
+    annR : (a : ⟨ B∞ ⟩) → a ·∞ 𝟘∞ ≡ 𝟘∞
+    annR a = AB∞.∧AnnihilR
+    annL : (a : ⟨ B∞ ⟩) → 𝟘∞ ·∞ a ≡ 𝟘∞
+    annL a = AB∞.∧AnnihilL
+
+    -- f(gₙ) · f(gₘ) = (0,0) for n ≠ m.  Splitting on the parity of n and m,
+    -- the with-abstraction reduces `fgen n`, `fgen m` to their concrete pair
+    -- values, leaving a componentwise goal closed by orthogonality of the
+    -- generators (γ-orth) in the matching-parity slot and annihilation of 0
+    -- elsewhere.
+    orthog : (n m : ℕ) → (n ≡ m → ⊥) → fgen n ·prod fgen m ≡ 𝟘prod
+    orthog n m n≠m with even-or-odd n | even-or-odd m
+    ... | inl (k , n2k) | inl (l , m2l)  =
+          cong₂ _,_ (γ-orth k l (λ k=l → n≠m (n2k ∙ cong double k=l ∙ sym m2l))) (annR 𝟘∞)
+    ... | inl (k , n2k) | inr (l , m2l1) =
+          cong₂ _,_ (annR (γ k)) (annL (γ l))
+    ... | inr (k , n2k1) | inl (l , m2l) =
+          cong₂ _,_ (annL (γ l)) (annR (γ k))
+    ... | inr (k , n2k1) | inr (l , m2l1) =
+          cong₂ _,_ (annR 𝟘∞) (γ-orth k l (λ k=l → n≠m (n2k1 ∙ cong (suc ∘ double) k=l ∙ sym m2l1)))
+
+    fRespects : (n : ℕ) → ffree $cr relationsℕ n ≡ 𝟘prod
+    fRespects n = goal (Iso.inv ℕ×ℕ≅ℕ n)
+      where
+        goal : (p : ℕ × ℕ) → ffree $cr relations p ≡ 𝟘prod
+        goal (a , b) with discreteℕ a b
+        ... | yes _  = FF.pres0
+        ... | no a≠b = FF.pres· (generator a) (generator b)
+                       ∙ cong₂ _·prod_ (ffree-gen a) (ffree-gen b)
+                       ∙ orthog a b a≠b
+
   -- The Boolean-algebra map inducing e.  Following the paper, f is induced on
   -- the generators gₙ of B∞ = freeBA ℕ /Im relationsℕ by
   --     f(g_{2k})   = (gₖ , 0)        f(g_{2k+1}) = (0 , gₖ),
   -- and is a well-defined morphism because the images are pairwise orthogonal:
-  -- f(gₙ) · f(gₘ) = (0,0) for n ≠ m, so f sends each relation gₙ · gₘ (n ≠ m)
-  -- to 0.  Concretely we build the underlying free map `ffree` and discharge
-  -- the relations via the generator-orthogonality `gen-orth` of B∞.
+  -- f(gₙ) · f(gₘ) = (0,0) for n ≠ m, so f sends each relation gₙ · gₘ (n ≠ m) to 0.
   f : BoolHom B∞ (B∞ ×BR B∞)
   f = QB.inducedHom (B∞ ×BR B∞) ffree fRespects
-    where
-      𝟘∞ : ⟨ B∞ ⟩
-      𝟘∞ = BooleanRingStr.𝟘 (snd B∞)
-      _·∞_ : ⟨ B∞ ⟩ → ⟨ B∞ ⟩ → ⟨ B∞ ⟩
-      _·∞_ = BooleanRingStr._·_ (snd B∞)
-      𝟘prod : ⟨ B∞ ×BR B∞ ⟩
-      𝟘prod = BooleanRingStr.𝟘 (snd (B∞ ×BR B∞))
-      _·prod_ : ⟨ B∞ ×BR B∞ ⟩ → ⟨ B∞ ×BR B∞ ⟩ → ⟨ B∞ ×BR B∞ ⟩
-      _·prod_ = BooleanRingStr._·_ (snd (B∞ ×BR B∞))
 
-      -- the generators of B∞ = images of the free generators
-      γ : ℕ → ⟨ B∞ ⟩
-      γ k = fst NFinCofinPresentation.π (generator k)
-
-      -- the per-generator values of f, by parity
-      fgen : ℕ → ⟨ B∞ ×BR B∞ ⟩
-      fgen = evenOddElim (λ _ p → (γ (fst p) , 𝟘∞)) (λ _ p → (𝟘∞ , γ (fst p)))
-
-      ffree : BoolHom (freeBA ℕ) (B∞ ×BR B∞)
-      ffree = inducedBAHom ℕ (B∞ ×BR B∞) fgen
-      module FF = IsCommRingHom (snd ffree)
-
-      ffree-gen : (n : ℕ) → fst ffree (generator n) ≡ fgen n
-      ffree-gen n = funExt⁻ (evalBAInduce ℕ (B∞ ×BR B∞) fgen) n
-
-      -- orthogonality of the generators of B∞ (from gen-orth, via π a hom)
-      γ-orth : (k l : ℕ) → (k ≡ l → ⊥) → γ k ·∞ γ l ≡ 𝟘∞
-      γ-orth k l k≠l =
-        sym (NFinCofinPresentation.ΠH.pres· (generator k) (generator l))
-        ∙ NFinCofinPresentation.gen-orth k l k≠l
-
-      -- annihilation of 0, from the Boolean-algebra structure (∧ = ·)
-      module AB∞ = BooleanAlgebraStr (snd B∞)
-      annR : (a : ⟨ B∞ ⟩) → a ·∞ 𝟘∞ ≡ 𝟘∞
-      annR a = AB∞.∧AnnihilR
-      annL : (a : ⟨ B∞ ⟩) → 𝟘∞ ·∞ a ≡ 𝟘∞
-      annL a = AB∞.∧AnnihilL
-
-      -- f(gₙ) · f(gₘ) = (0,0) for n ≠ m.  Splitting on the parity of n and m,
-      -- the with-abstraction reduces `fgen n`, `fgen m` to their concrete pair
-      -- values, leaving a componentwise goal closed by orthogonality of the
-      -- generators (γ-orth) in the matching-parity slot and annihilation of 0
-      -- elsewhere.
-      orthog : (n m : ℕ) → (n ≡ m → ⊥) → fgen n ·prod fgen m ≡ 𝟘prod
-      orthog n m n≠m with even-or-odd n | even-or-odd m
-      ... | inl (k , n2k) | inl (l , m2l)  =
-            cong₂ _,_ (γ-orth k l (λ k=l → n≠m (n2k ∙ cong double k=l ∙ sym m2l))) (annR 𝟘∞)
-      ... | inl (k , n2k) | inr (l , m2l1) =
-            cong₂ _,_ (annR (γ k)) (annL (γ l))
-      ... | inr (k , n2k1) | inl (l , m2l) =
-            cong₂ _,_ (annL (γ l)) (annR (γ k))
-      ... | inr (k , n2k1) | inr (l , m2l1) =
-            cong₂ _,_ (annR 𝟘∞) (γ-orth k l (λ k=l → n≠m (n2k1 ∙ cong (suc ∘ double) k=l ∙ sym m2l1)))
-
-      fRespects : (n : ℕ) → ffree $cr relationsℕ n ≡ 𝟘prod
-      fRespects n = goal (Iso.inv ℕ×ℕ≅ℕ n)
-        where
-          goal : (p : ℕ × ℕ) → ffree $cr relations p ≡ 𝟘prod
-          goal (a , b) with discreteℕ a b
-          ... | yes _  = FF.pres0
-          ... | no a≠b = FF.pres· (generator a) (generator b)
-                         ∙ cong₂ _·prod_ (ffree-gen a) (ffree-gen b)
-                         ∙ orthog a b a≠b
+  -- f's action on the generators γ m = π(generator m) of B∞.  By the quotient
+  -- universal property f ∘cr π ≡ ffree, so f(γ m) = ffree(generator m) = fgen m.
+  fOnGenerators : (m : ℕ) → fst f (γ m) ≡ fgen m
+  fOnGenerators m =
+    cong (λ h → fst h (generator m))
+         (QB.evalInduce (B∞ ×BR B∞) {g = ffree} {gfx=0 = fRespects})
+    ∙ ffree-gen m
 
   B∞ω : Booleω
   B∞ω = B∞ , presented
@@ -320,8 +346,7 @@ module LLPOProof (sd : StoneDualityAxiom) (fs : formalSurjectionsAreSurjectionsA
   fInj : isInjectiveBoolHom B∞ω prodω f
   fInj x y = RingHomTheory.ker≡0→inj (CommRingHom→RingHom f) (λ {z} → kerTrivial z) {x} {y}
     where
-      𝟘∞    = BooleanRingStr.𝟘 (snd B∞)
-      𝟘prod = BooleanRingStr.𝟘 (snd (B∞ ×BR B∞))
+      -- (𝟘∞, 𝟘prod, γ, fgen, fOnGenerators, … are now module-level, above.)
 
       -- B∞ ≅ ℕfinCofinBA classifies every element as a finite or cofinite subset
       -- of ℕ.  We transport that witness across the iso `ℕFinCof=Presentation`
@@ -333,14 +358,23 @@ module LLPOProof (sd : StoneDualityAxiom) (fs : formalSurjectionsAreSurjectionsA
       z-finOrCof : (z : ⟨ B∞ ⟩) → isFiniteOrCofinite (fst (toFC z))
       z-finOrCof z = snd (toFC z)
 
-      -- kernel triviality, by the finite/cofinite dichotomy:
-      --   • finite z = ⋁_{i∈I} gᵢ : f z = (⋁_{I₀} gᵢ , ⋁_{I₁} gᵢ) = 0 forces I = ∅, so z = 0;
-      --   • cofinite z = ⋀_{i∈I} ¬gᵢ : f z is never 0, contradicting fz=0.
-      -- Both cases still need f's action read off on these normal forms. STILL OPEN.
+      -- kernel triviality.  TEMPORARY HOTFIX / not the nicest solution.
+      --
+      -- The algebraic plan that closes this (uniformly, without the finite/
+      -- cofinite split): the "coordinate points" pₙ = evalₙ ∘cr toFC : B∞ → 2
+      -- (pₙ z = the n-th bit of toFC z, with pₙ(gₘ) = [m=n]) each factor through f,
+      --     p_{2j} ≡ (p_j ∘cr πB) ∘cr f ,   p_{2j+1} ≡ (p_j ∘cr πC) ∘cr f
+      -- (checked on generators via the universal property of B∞).  Hence
+      -- pₙ z = qₙ (f z) = qₙ 𝟘 = false for every n, so toFC z is the all-false
+      -- sequence and z = 0 (toFC an equiv).  Closing it needs: f's generator
+      -- action exposed as a top-level lemma, the projection hom evalₙ, and the
+      -- "agree on generators ⇒ equal" uniqueness for maps out of B∞.  The
+      -- finite/cofinite witness above (`z-finOrCof`) is what the paper's
+      -- normal-form version case-splits on; the model argument makes it uniform.
       kerTrivial : (z : ⟨ B∞ ⟩) → fst f z ≡ 𝟘prod → z ≡ 𝟘∞
       kerTrivial z fz=0 with z-finOrCof z
-      ... | Fin αFin = {! finite case: z ≡ 0 !}
-      ... | Cof αCof = {! cofinite case: ⊥ from fz=0 !}
+      ... | Fin αFin = {! finite case: z ≡ 0 (algebraic coordinate-point argument) !}
+      ... | Cof αCof = {! cofinite case: z ≡ 0 (same argument; or ⊥ from fz=0) !}
 
   ----------------------------------------------------------------------------
   -- The Stone-duality-driven core: from `fInj`, `fs` yields a surjection on
