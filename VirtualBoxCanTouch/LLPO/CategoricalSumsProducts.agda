@@ -1,5 +1,5 @@
 {-# OPTIONS --cubical --guardedness --lossy-unification #-}
-
+-- as far as I (Freek) can see, this file is not this categorical approach I suggested, it should somewhere state a fact that an antiequivalence sends products to sums, and that sums of Stone are exactly the ⊎ sums. 
 -- A categorical account of:
 --
 --   "Boolean algebras have binary products, therefore Stone spaces have binary

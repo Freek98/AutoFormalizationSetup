@@ -1,3 +1,4 @@
+{-# OPTIONS --cubical --guardedness --lossy-unification #-}
 module LLPOAttemptLLMAided where
 -- An LLM-aided rework of OmnisciencePrinciples.LLPO.
 --
@@ -88,6 +89,12 @@ import StoneSums
 -- products, ported portably from CountablyPresentedBooleanRings.ProductClosure.
 import ProductClosureLocal
 open import BooleanRing.BoolRingUnivalence
+-- The model map `splitFC : ℕfinCofinBA → ℕfinCofinBA × ℕfinCofinBA`, its trivial
+-- kernel, the naturality of its spectrum action (the evens/odds split), and the
+-- Stone iso σ : Sp(ℕfinCofinBA) ≅ ℕ∞.  These conclude LLPO directly.
+open import EvenOddSplit using (splitFC ; splitFC-kernel)
+open import SplitNaturality using (evenNaturality ; oddNaturality)
+open import SpℕfcIso using (σ)
 
 module LLPOProof (sd : StoneDualityAxiom) (fs : formalSurjectionsAreSurjectionsAxiom) where
 
@@ -329,87 +336,66 @@ module LLPOProof (sd : StoneDualityAxiom) (fs : formalSurjectionsAreSurjectionsA
          (QB.evalInduce (B∞ ×BR B∞) {g = ffree} {gfx=0 = fRespects})
     ∙ ffree-gen m
 
-  B∞ω : Booleω
-  B∞ω = B∞ , presented
-
-  prodω : Booleω
-  prodω = (B∞ ×BR B∞) , prodPresented
-
-  -- Injectivity of f.  As in the paper, injectivity reduces to triviality of
-  -- the kernel.  That reduction is the library lemma `RingHomTheory.ker≡0→inj`
-  -- (a ring map with trivial kernel is injective), so all that remains is the
-  -- genuine content: f z ≡ 0 ⇒ z ≡ 0.  This uses the finite/cofinite normal
-  -- form of B∞ ≅ ℕfinCofinBA (every z is a finite join ⋁ gᵢ or a cofinite meet
-  -- ⋀ ¬gᵢ of generators): f(⋁_{i∈I} gᵢ) = (⋁_{i∈I₀} gᵢ , ⋁_{i∈I₁} gᵢ), which is 0
-  -- only when I = ∅ (so z = 0), while f(⋀_{i∈I} ¬gᵢ) is never 0.  Isolated as
-  -- `kerTrivial`, still open.
-  fInj : isInjectiveBoolHom B∞ω prodω f
-  fInj x y = RingHomTheory.ker≡0→inj (CommRingHom→RingHom f) (λ {z} → kerTrivial z) {x} {y}
-    where
-      -- (𝟘∞, 𝟘prod, γ, fgen, fOnGenerators, … are now module-level, above.)
-
-      -- B∞ ≅ ℕfinCofinBA classifies every element as a finite or cofinite subset
-      -- of ℕ.  We transport that witness across the iso `ℕFinCof=Presentation`
-      -- (its carrier is Σ[ α ] isFiniteOrCofinite α), giving the normal-form
-      -- dichotomy the paper's injectivity argument case-splits on.
-      open DefinitionFinCofin using (isFiniteOrCofinite ; Fin ; Cof)
-      toFC : ⟨ B∞ ⟩ → ⟨ ℕfinCofinBA ⟩
-      toFC = equivFun (fst ℕFinCof=Presentation)
-      z-finOrCof : (z : ⟨ B∞ ⟩) → isFiniteOrCofinite (fst (toFC z))
-      z-finOrCof z = snd (toFC z)
-
-      -- kernel triviality.  TEMPORARY HOTFIX / not the nicest solution.
-      --
-      -- The algebraic plan that closes this (uniformly, without the finite/
-      -- cofinite split): the "coordinate points" pₙ = evalₙ ∘cr toFC : B∞ → 2
-      -- (pₙ z = the n-th bit of toFC z, with pₙ(gₘ) = [m=n]) each factor through f,
-      --     p_{2j} ≡ (p_j ∘cr πB) ∘cr f ,   p_{2j+1} ≡ (p_j ∘cr πC) ∘cr f
-      -- (checked on generators via the universal property of B∞).  Hence
-      -- pₙ z = qₙ (f z) = qₙ 𝟘 = false for every n, so toFC z is the all-false
-      -- sequence and z = 0 (toFC an equiv).  Closing it needs: f's generator
-      -- action exposed as a top-level lemma, the projection hom evalₙ, and the
-      -- "agree on generators ⇒ equal" uniqueness for maps out of B∞.  The
-      -- finite/cofinite witness above (`z-finOrCof`) is what the paper's
-      -- normal-form version case-splits on; the model argument makes it uniform.
-      kerTrivial : (z : ⟨ B∞ ⟩) → fst f z ≡ 𝟘prod → z ≡ 𝟘∞
-      kerTrivial z fz=0 with z-finOrCof z
-      ... | Fin αFin = {! finite case: z ≡ 0 (algebraic coordinate-point argument) !}
-      ... | Cof αCof = {! cofinite case: z ≡ 0 (same argument; or ⊥ from fz=0) !}
-
   ----------------------------------------------------------------------------
-  -- The Stone-duality-driven core: from `fInj`, `fs` yields a surjection on
-  -- spectra, which we carry across the two Stone isos.  No holes here.
+  -- Concluding LLPO directly from the model map `splitFC` (EvenOddSplit) and
+  -- the naturality of its spectrum action (SplitNaturality) — NOT via the
+  -- abstract f-route above (`f`/`Spf`/`eFromSp`, which are no longer used).
+  --
+  -- `splitFC : ℕfc → ℕfc × ℕfc` (ℕfc = ℕfinCofinBA, the finite/cofinite model)
+  -- has a trivial kernel (`splitFC-kernel`), hence is injective; by `fs` its
+  -- spectrum action is a surjection; transported across the Stone isos σ and σ⊎
+  -- it is a map e' : ℕ∞ ⊎ ℕ∞ → ℕ∞.  We do NOT prove e' ≡ e — instead a fibre of
+  -- e' over x directly yields the LLPO disjunct for x (its image is 0 on all
+  -- odds, resp. all evens), exactly the reasoning of `HowWeDoIt`.
   ----------------------------------------------------------------------------
 
-  -- The action of f on spectra, γ ↦ γ ∘cr f : Sp (B∞ ×BR B∞) → Sp B∞.
-  Spf : SpGeneralBooleanRing (B∞ ×BR B∞) → SpGeneralBooleanRing B∞
-  Spf γ = γ ∘cr f
+  private ℕfc = ℕfinCofinBA
 
-  -- f injective ⇒ its spectrum action is surjective (this is `fs`).
-  SpfSurj : isSurjection Spf
-  SpfSurj = fs B∞ω prodω f fInj
+  ℕfcω : Booleω
+  ℕfcω = ℕfc , ℕfinCofinIsCountablyPresented
+  ℕfcProdω : Booleω
+  ℕfcProdω = (ℕfc ×BR ℕfc) , ProductClosureLocal.Booleω-closed-×BR ℕfcω ℕfcω
 
-  -- Transport that surjection through the Stone isos to ℕ∞ ⊎ ℕ∞ → ℕ∞.
-  -- A composite of surjections (two of them equivalences) is a surjection.
-  eFromSp : ℕ∞ ⊎ ℕ∞ → ℕ∞
-  eFromSp = Iso.fun ℕ∞=SpB∞ ∘ Spf ∘ Iso.inv ℕ∞+ℕ∞=SpProd
+  -- splitFC has trivial kernel (EvenOddSplit.splitFC-kernel) ⇒ injective.
+  splitInj : isInjectiveBoolHom ℕfcω ℕfcProdω splitFC
+  splitInj x y = RingHomTheory.ker≡0→inj (CommRingHom→RingHom splitFC)
+                   (λ {z} → splitFC-kernel z) {x} {y}
 
-  eFromSpSurj : isSurjection eFromSp
-  eFromSpSurj = snd
+  -- ⇒ its spectrum action γ ↦ γ ∘cr splitFC is surjective (this is `fs`).
+  SpSplit : SpGeneralBooleanRing (ℕfc ×BR ℕfc) → SpGeneralBooleanRing ℕfc
+  SpSplit γ = γ ∘cr splitFC
+  SpSplitSurj : isSurjection SpSplit
+  SpSplitSurj = fs ℕfcω ℕfcProdω splitFC splitInj
+
+  -- the Stone iso for the product: Sp(ℕfc × ℕfc) ≅ ℕ∞ ⊎ ℕ∞.
+  σ⊎ : Iso (SpGeneralBooleanRing (ℕfc ×BR ℕfc)) (ℕ∞ ⊎ ℕ∞)
+  σ⊎ = compIso (StoneSums.SpProd≅SpSum ℕfc ℕfc) (⊎Iso σ σ)
+
+  -- the transported surjection e' : ℕ∞ ⊎ ℕ∞ → ℕ∞.
+  e' : ℕ∞ ⊎ ℕ∞ → ℕ∞
+  e' = Iso.fun σ ∘ SpSplit ∘ Iso.inv σ⊎
+
+  e'Surj : isSurjection e'
+  e'Surj = snd
     (compSurjection
-      (Iso.inv ℕ∞+ℕ∞=SpProd , isEquiv→isSurjection (snd (isoToEquiv (invIso ℕ∞+ℕ∞=SpProd))))
+      (Iso.inv σ⊎ , isEquiv→isSurjection (snd (isoToEquiv (invIso σ⊎))))
       (compSurjection
-        (Spf , SpfSurj)
-        (Iso.fun ℕ∞=SpB∞ , isEquiv→isSurjection (snd (isoToEquiv ℕ∞=SpB∞)))))
+        (SpSplit , SpSplitSurj)
+        (Iso.fun σ , isEquiv→isSurjection (snd (isoToEquiv σ)))))
 
-  -- The naturality input: f's spectrum action, read off through the isos, is
-  -- the concrete map e.  (This is what pins the abstract `f` to `e`.)
-  fcorrespondsToe : eFromSp ≡ e
-  fcorrespondsToe = {! !}
-
-  -- ...and therefore e is a surjection, giving LLPO.
-  esurj : isSurjection e
-  esurj = subst isSurjection fcorrespondsToe eFromSpSurj
+  -- A fibre of e' over x gives the LLPO disjunct for x.  By the naturality of
+  -- SplitNaturality, e'(inl β) is the even split (0 on every odd index) and
+  -- e'(inr β) the odd split (0 on every even index).  Only ONE coordinate of the
+  -- fibre is inspected, so this stays light (no e' ≡ e, no funExt over ℕ∞).
+  e'-fibre→LLPO : (x : ℕ∞) → fiber e' x → LLPOExplicitAt x
+  e'-fibre→LLPO x (inl β , p) = inr λ k →
+    sym (cong (λ y → fst y (suc (double k))) p)
+    ∙ funExt⁻ (evenNaturality (Iso.inv σ β)) (suc (double k))
+    ∙ evenOddElim-odd k
+  e'-fibre→LLPO x (inr β , p) = inl λ k →
+    sym (cong (λ y → fst y (double k)) p)
+    ∙ funExt⁻ (oddNaturality (Iso.inv σ β)) (double k)
+    ∙ evenOddElim-even k
 
   llpo : LLPO
-  llpo = e-surj→LLPO esurj
+  llpo x = PT.map (e'-fibre→LLPO x) (e'Surj x)
