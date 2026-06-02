@@ -39,16 +39,15 @@ open import NinftyExtras
 open import SplitNaturality using (toℕ∞seq)
 
 private
-  ℕfc = ℕfinCofinBA
-  𝟘fc : ⟨ ℕfc ⟩
-  𝟘fc = BooleanRingStr.𝟘 (snd ℕfc)
+  𝟘fc : ⟨ ℕfinCofinBA ⟩
+  𝟘fc = BooleanRingStr.𝟘 (snd ℕfinCofinBA)
 
 -- orthogonality of singletons in ℕfinCofinBA
-sing·0 : (n m : ℕ) → (n ≡ m → ⊥) → BooleanRingStr._·_ (snd ℕfc) (singleton n) (singleton m) ≡ 𝟘fc
+sing·0 : (n m : ℕ) → (n ≡ m → ⊥) → BooleanRingStr._·_ (snd ℕfinCofinBA) (singleton n) (singleton m) ≡ 𝟘fc
 sing·0 n m n≠m = FC≡ (funExt (δn∧δm=0 n m n≠m))
 
 -- a point hits 1 at most once: its values on distinct singletons can't both be 1
-atMostOnce : (γ : SpGeneralBooleanRing ℕfc) → hits1AtMostOnce (toℕ∞seq γ)
+atMostOnce : (γ : SpGeneralBooleanRing ℕfinCofinBA) → hits1AtMostOnce (toℕ∞seq γ)
 atMostOnce γ n m γn=1 γm=1 with discreteℕ n m
 ... | yes p = p
 ... | no n≠m = ex-falso (true≢false
@@ -63,7 +62,7 @@ relproof : (α : binarySequence) → hits1AtMostOnce α
 relproof α α1 n = hits1AtMostOnce→respectsRelations α α1
   (fst (Iso.inv ℕ×ℕ≅ℕ n)) (snd (Iso.inv ℕ×ℕ≅ℕ n))
 
-σ : Iso (SpGeneralBooleanRing ℕfc) ℕ∞
+σ : Iso (SpGeneralBooleanRing ℕfinCofinBA) ℕ∞
 σ .Iso.fun γ = toℕ∞seq γ , atMostOnce γ
 σ .Iso.inv (α , α1) = extensionMap BoolBR (BinarySequence→SpFreeℕ α) (relproof α α1)
 σ .Iso.sec (α , α1) = Σ≡Prop isPropHits1AtMostOnce (funExt secAt)

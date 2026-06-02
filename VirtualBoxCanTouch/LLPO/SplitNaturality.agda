@@ -34,18 +34,17 @@ open import ProductBAProjections using (pr₁-BR ; pr₂-BR)
 open import EvenOddSplit using (splitFC ; evenPart ; oddPart)
 
 private
-  ℕfc = ℕfinCofinBA
-  𝟘fc : ⟨ ℕfc ⟩
-  𝟘fc = BooleanRingStr.𝟘 (snd ℕfc)
+  𝟘fc : ⟨ ℕfinCofinBA ⟩
+  𝟘fc = BooleanRingStr.𝟘 (snd ℕfinCofinBA)
 
 -- the two halves of splitFC as Boolean-algebra maps ℕfinCofinBA → ℕfinCofinBA
-evenHom : BoolHom ℕfc ℕfc
-evenHom = pr₁-BR ℕfc ℕfc ∘cr splitFC
-oddHom : BoolHom ℕfc ℕfc
-oddHom = pr₂-BR ℕfc ℕfc ∘cr splitFC
+evenHom : BoolHom ℕfinCofinBA ℕfinCofinBA
+evenHom = pr₁-BR ℕfinCofinBA ℕfinCofinBA ∘cr splitFC
+oddHom : BoolHom ℕfinCofinBA ℕfinCofinBA
+oddHom = pr₂-BR ℕfinCofinBA ℕfinCofinBA ∘cr splitFC
 
 -- a point read off as the sequence of its values on the singleton generators
-toℕ∞seq : SpGeneralBooleanRing ℕfc → binarySequence
+toℕ∞seq : SpGeneralBooleanRing ℕfinCofinBA → binarySequence
 toℕ∞seq γ n = γ $cr singleton n
 
 -- the concrete even/odd split on sequences (as in the main file's `e`)
@@ -91,7 +90,7 @@ oddHom-sing-even : (k : ℕ) → oddHom $cr singleton (double k) ≡ 𝟘fc
 oddHom-sing-even k = FC≡ (oddPart-δ-even k)
 
 -- ── the naturality squares ──
-evenNaturality : (γ : SpGeneralBooleanRing ℕfc)
+evenNaturality : (γ : SpGeneralBooleanRing ℕfinCofinBA)
   → toℕ∞seq (γ ∘cr evenHom) ≡ splitIntoEvens (toℕ∞seq γ)
 evenNaturality γ = funExt ptwise
   where
@@ -103,7 +102,7 @@ evenNaturality γ = funExt ptwise
                            ∙ cong (λ x → γ $cr x) (evenHom-sing-odd k)
                            ∙ IsCommRingHom.pres0 (snd γ)
 
-oddNaturality : (γ : SpGeneralBooleanRing ℕfc)
+oddNaturality : (γ : SpGeneralBooleanRing ℕfinCofinBA)
   → toℕ∞seq (γ ∘cr oddHom) ≡ splitIntoOdds (toℕ∞seq γ)
 oddNaturality γ = funExt ptwise
   where

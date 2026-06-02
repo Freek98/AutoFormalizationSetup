@@ -1,25 +1,7 @@
 {-# OPTIONS --cubical --guardedness --lossy-unification #-}
--- Local copy (kept here for portability; intended upstream home is
--- AntiEquivalence/StoneSums.agda — see LIBRARY_CHANGES.md).  Produced with help
--- from a subagent.  Only the module name differs from the upstream version.
+-- This LLM generated file shows algebraically that the spectrum of the product of two countably presented boolean algebras is the sum of the spectra. I would prefer a categorical proof of this fact. So this should be seen as a hacky, temporary solution. Therefore I haven't read this LLM-generated file in full details, only checked that it makes no postulates and the end conclusion is what I want. 
 module StoneSums where
 
--- Sp is a contravariant equivalence (anti-equivalence) Boolean algebras ↔ Stone
--- spaces, and it sends (binary) products of Boolean algebras to (binary) sums
--- (coproducts) of Stone spaces.
---
--- The substantive content is purely algebraic and special to the codomain
--- 2 = BoolBR: a Boolean-algebra map out of a product A ×BR B into the connected
--- algebra 2 (which has no nontrivial idempotents) factors through exactly one
--- projection.  Concretely this is the iso
---
---     Sp (A ×BR B) ≅ Sp A ⊎ Sp B,   Sp X = BoolHom X BoolBR.
---
--- No Stone-duality axiom and no countable-presentation hypothesis are needed
--- for this iso; it holds for *all* Boolean rings A B : BooleanRing ℓ-zero.
--- (The anti-equivalence itself, recorded below, is what `sd` provides; the
--- products↦sums statement at the level of spectra is the `D = BoolBR` instance
--- and is proved directly.)
 
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Function
@@ -252,57 +234,14 @@ module _ (A B : BooleanRing ℓ-zero) where
   SpProd≅SpSumGeneral .Iso.sec = sec
   SpProd≅SpSumGeneral .Iso.ret = ret
 
--- ════════════════════════════════════════════════════════════════════════════
--- Packaged statements.
--- ════════════════════════════════════════════════════════════════════════════
-
--- The iso exactly in the shape needed downstream (for arbitrary Boolean rings;
--- no Stone-duality axiom or countable-presentation hypothesis is required).
 SpProd≅SpSum : (A B : BooleanRing ℓ-zero)
   → Iso (SpGeneralBooleanRing (A ×BR B))
         (SpGeneralBooleanRing A ⊎ SpGeneralBooleanRing B)
 SpProd≅SpSum = SpProd≅SpSumGeneral
 
--- The Booleω-indexed version, for callers working with countably presented
--- Boolean algebras.  (`fst A ×BR fst B` is the carrier-level product.)
 SpProd≅SpSumω : (A B : Booleω)
   → Iso (SpGeneralBooleanRing (fst A ×BR fst B))
         (SpGeneralBooleanRing (fst A) ⊎ SpGeneralBooleanRing (fst B))
 SpProd≅SpSumω A B = SpProd≅SpSumGeneral (fst A) (fst B)
 
--- ════════════════════════════════════════════════════════════════════════════
--- Part 1: Sp as an anti-equivalence Boole ↔ Stone, and the products↦sums slogan.
--- ════════════════════════════════════════════════════════════════════════════
---
--- Given the Stone-duality axiom `sd`, `Sp` is a contravariant equivalence:
---
---   * `SpFunctor : Functor Booleω StoneCat` is fully faithful (`SpFullyFaithful
---     sd`) and `StoneCat` is by definition its image (so it is essentially
---     surjective); `SpEmbedding sd` records that `Sp` is an embedding on
---     underlying types.  This is exactly the anti-equivalence of categories
---     between (countably presented) Boolean algebras and Stone spaces.
---
---   * `Booleω` has binary products: their object part is `×BR-Booleω` (the
---     `_×BR_` of Boolean algebras, closed under countable presentation).  Via
---     the fully faithful `SpFunctor`, this product structure transfers to
---     `StoneCat-BinProducts sd : BinProducts StoneCat`, which is *already
---     proved* in `AntiEquivalence.Products`.  Because `Sp` is *contravariant*,
---     a product in `Booleω` is a *coproduct* (sum) in the Stone world.
---     (We deliberately do not re-export `StoneCat-BinProducts` from this module,
---     to keep `AntiEquivalence.StoneSums` free of the currently-broken
---     `CountablyPresentedBooleanRings.ProductClosure` dependency.)
---
--- The concrete computation of those Stone sums at the level of underlying types
--- is `SpProd≅SpSum`: the underlying type of `Sp (A ×BR B)` is the disjoint
--- union `Sp A ⊎ Sp B`.  This is the special-to-`BoolBR` instance of "maps out
--- of a product = sum of maps", and (unlike the general-`D` version, which is
--- false for rings) it holds because `2 = BoolBR` is connected.
---
--- Sp is fully faithful (the anti-equivalence on morphisms), for the record.
-Sp-anti-equivalence-ff : (sd : StoneDualityAxiom) → _
-Sp-anti-equivalence-ff sd = SpFullyFaithful sd
 
--- Sp is an embedding on underlying types (anti-equivalence on objects), for the
--- record.
-Sp-anti-equivalence-embedding : (sd : StoneDualityAxiom) → _
-Sp-anti-equivalence-embedding sd = SpEmbedding sd

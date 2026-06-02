@@ -1,14 +1,6 @@
 {-# OPTIONS --cubical --guardedness --lossy-unification #-}
 module LLPOAttemptLLMAided where
--- LLPO over ℕ∞, concluded from the finite/cofinite model.
---
--- Given the Stone-duality axiom `sd` and `fs` (an injective Boolean-algebra map
--- induces a surjection on spectra), LLPO follows from the model map
---   splitFC : ℕfinCofinBA → ℕfinCofinBA × ℕfinCofinBA,   I ↦ (evens of I, odds of I)
--- (EvenOddSplit): it has a trivial kernel, hence is injective, so its spectrum
--- action is surjective; transported across the Stone isos this is a surjection
--- ℕ∞ ⊎ ℕ∞ → ℕ∞ whose fibres yield the LLPO disjunction directly (SplitNaturality).
-
+-- made in collaboration with LLM. 
 open import CountablyPresentedBooleanRings.Examples.NFinCofin
 open import BooleanRing.SubBooleanRing
 open import Parity
@@ -64,9 +56,8 @@ open import EvenOddSplit using (splitFC ; splitFC-kernel)
 open import SplitNaturality using (evenNaturality ; oddNaturality)
 open import SpNfcIso using (σ)
 
-module LLPOProof (sd : StoneDualityAxiom) (fs : formalSurjectionsAreSurjectionsAxiom) where
+module LLPOProof (sd : StoneDualityAxiom) (formalSurjections : formalSurjectionsAreSurjectionsAxiom) where
 
-  -- LLPO over ℕ∞ (sequences hitting 1 at most once).
   LLPOExplicitAt : ℕ∞ → Type
   LLPOExplicitAt (α , _) =
     (∀ (n : ℕ) → α (double n) ≡ false) ⊎ (∀ (n : ℕ) → α (suc $ double n) ≡ false)
@@ -74,64 +65,55 @@ module LLPOProof (sd : StoneDualityAxiom) (fs : formalSurjectionsAreSurjectionsA
   LLPO : Type
   LLPO = (x : ℕ∞) → ∥ LLPOExplicitAt x ∥₁
 
-  private ℕfc = ℕfinCofinBA
+  B∞ : Booleω
+  B∞ = ℕfinCofinBA , ℕfinCofinIsCountablyPresented
+  
+  -- We make use of the product of B∞ with itself, and we need that countably presented boolean algebras are closed under products. Right now, we use an algebraic proof for this. 
+  -- Another proof that we don't use is to show that a boolean algebra is countably presented iff it is overtly discrete and show that overtly discrete is closed under products. 
+  B∞xB∞ : Booleω
+  B∞xB∞ = B∞ ×Booleω B∞ where 
+    open ProductClosureLocal
 
-  ℕfcω : Booleω
-  ℕfcω = ℕfc , ℕfinCofinIsCountablyPresented
-
-  -- `ℕfc ×BR ℕfc` is again countably presented, by the direct algebraic proof
-  -- (orthogonal-idempotent decomposition) `ProductClosureLocal.Booleω-closed-×BR`.
-  --
-  -- Alternative idea (not used here): a Boolean algebra is countably presented
-  -- iff it is overtly discrete, and overtly discrete spaces are closed under
-  -- products; that route would instead supply
-  --   odiscClosedUnderProducts : (A B : BooleanRing ℓ-zero)
-  --     → is-countably-presented-alt A → is-countably-presented-alt B
-  --     → is-countably-presented-alt (A ×BR B)
-  ℕfcProdω : Booleω
-  ℕfcProdω = (ℕfc ×BR ℕfc) , ProductClosureLocal.Booleω-closed-×BR ℕfcω ℕfcω
-
-  -- splitFC has trivial kernel (EvenOddSplit.splitFC-kernel) ⇒ injective.
-  splitInj : isInjectiveBoolHom ℕfcω ℕfcProdω splitFC
-  splitInj x y = RingHomTheory.ker≡0→inj (CommRingHom→RingHom splitFC)
-                   (λ {z} → splitFC-kernel z) {x} {y}
-
-  -- ⇒ its spectrum action γ ↦ γ ∘cr splitFC is surjective (this is `fs`).
-  SpSplit : SpGeneralBooleanRing (ℕfc ×BR ℕfc) → SpGeneralBooleanRing ℕfc
+  -- We also use that Sp is an antiequivalence and thus 
+  -- Sp(A ×BR B) ≅ Sp A ⊎ Sp B 
+  -- Right now, we also use an algebraic proof for this. 
+  -- It should be proven using categorical facts. 
+  σ⊎ : Iso (SpGeneralBooleanRing (ℕfinCofinBA ×BR ℕfinCofinBA)) (ℕ∞ ⊎ ℕ∞)
+  σ⊎ = compIso (StoneSums.SpProd≅SpSum ℕfinCofinBA ℕfinCofinBA) (⊎Iso σ σ)
+ 
+  splitInj : isInjectiveBoolHom B∞ B∞xB∞ splitFC
+  splitInj = ker≡0→injBoolHom B∞ B∞xB∞ splitFC splitFC-kernel 
+  
+  -- this is the action of Sp on morphisms
+  SpSplit : SpGeneralBooleanRing (ℕfinCofinBA ×BR ℕfinCofinBA) → SpGeneralBooleanRing ℕfinCofinBA
   SpSplit γ = γ ∘cr splitFC
+
   SpSplitSurj : isSurjection SpSplit
-  SpSplitSurj = fs ℕfcω ℕfcProdω splitFC splitInj
+  SpSplitSurj = formalSurjections B∞ B∞xB∞ splitFC splitInj
 
-  -- TEMPORARY HOTFIX: σ⊎ uses the local `StoneSums.SpProd≅SpSum`, which proves
-  -- Sp(A ×BR B) ≅ Sp A ⊎ Sp B directly via idempotents in 2.  The intended,
-  -- nicer statement is categorical (Sp an anti-equivalence Booleω ≃ Stone^op, so
-  -- products in Booleω become sums in Stone); see CategoricalSumsProducts.
-  σ⊎ : Iso (SpGeneralBooleanRing (ℕfc ×BR ℕfc)) (ℕ∞ ⊎ ℕ∞)
-  σ⊎ = compIso (StoneSums.SpProd≅SpSum ℕfc ℕfc) (⊎Iso σ σ)
+  Spf : ℕ∞ ⊎ ℕ∞ → ℕ∞
+  Spf = Iso.fun σ ∘ SpSplit ∘ Iso.inv σ⊎
 
-  e' : ℕ∞ ⊎ ℕ∞ → ℕ∞
-  e' = Iso.fun σ ∘ SpSplit ∘ Iso.inv σ⊎
-
-  e'Surj : isSurjection e'
-  e'Surj = snd
+  SpfSurj : isSurjection Spf
+  SpfSurj = snd
     (compSurjection
       (Iso.inv σ⊎ , isEquiv→isSurjection (snd (isoToEquiv (invIso σ⊎))))
       (compSurjection
         (SpSplit , SpSplitSurj)
         (Iso.fun σ , isEquiv→isSurjection (snd (isoToEquiv σ)))))
 
-  -- A fibre of e' over x yields the LLPO disjunct for x: e'(inl β) is the even
-  -- split (0 on every odd index), e'(inr β) the odd split (0 on every even
+  -- A fibre of Spf over x yields the LLPO disjunct for x: Spf(inl β) is the even
+  -- split (0 on every odd index), Spf(inr β) the odd split (0 on every even
   -- index), by SplitNaturality.  Only one coordinate of the fibre is inspected.
-  e'-fibre→LLPO : (x : ℕ∞) → fiber e' x → LLPOExplicitAt x
-  e'-fibre→LLPO x (inl β , p) = inr λ k →
+  Spf-fibre→LLPO : (x : ℕ∞) → fiber Spf x → LLPOExplicitAt x
+  Spf-fibre→LLPO x (inl β , p) = inr λ k →
     sym (cong (λ y → fst y (suc (double k))) p)
     ∙ funExt⁻ (evenNaturality (Iso.inv σ β)) (suc (double k))
     ∙ evenOddElim-odd k
-  e'-fibre→LLPO x (inr β , p) = inl λ k →
+  Spf-fibre→LLPO x (inr β , p) = inl λ k →
     sym (cong (λ y → fst y (double k)) p)
     ∙ funExt⁻ (oddNaturality (Iso.inv σ β)) (double k)
     ∙ evenOddElim-even k
 
   llpo : LLPO
-  llpo x = PT.map (e'-fibre→LLPO x) (e'Surj x)
+  llpo x = PT.map (Spf-fibre→LLPO x) (SpfSurj x)

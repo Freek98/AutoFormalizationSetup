@@ -1,26 +1,6 @@
 {-# OPTIONS --cubical --guardedness --lossy-unification #-}
 module ProductClosureLocal where
-
--- PORTABLE copy of `CountablyPresentedBooleanRings.ProductClosure`.
---
--- The library file does not compile on a clean git checkout because:
---   (1) it imports the untracked module `BooleanRing.Products` for `_×BR_`
---       and `⟨_,_⟩BR`; and
---   (2) it references `QB.quotientRec`, `QB.quotientRecβ`, `QB.quotientElimProp`,
---       which are NOT present in git's `BooleanRing.BooleanRingQuotients.QuotientBool`.
---
--- This local module fixes both:
---   (1) it uses git-tracked `BooleanRing.ProductBA`'s `_×BR_`, with `⟨_,_⟩BR`
---       provided by the local `ProductBAProjections` shim.  ProductBA's product
---       has the same carrier `⟨A⟩ × ⟨B⟩` with componentwise operations, so the
---       statement and the whole proof go through unchanged.
---   (2) it reconstructs `quotientRec`/`quotientRecβ`/`quotientElimProp` in a tiny
---       local module `QBExtra`, which `unfolding`s QB's opaque `_/Im_` and
---       `quotientImageHom` so that `⟨ B /Im f ⟩` reduces to a `SetQuotient` and
---       set-quotient recursion (`SQ.rec`/`SQ.elimProp`) applies directly.  The
---       computation rule `quotientRecβ` holds by `refl`.
---
--- The proof body below is otherwise verbatim from the library file.
+-- This LLM generated file shows algebraically that the product of two countably presented boolean algebras is again countably presented. I prefer to this via a proof that countably presented boolean algebras are exactly overtly discrete boolean algebras, and show for both overtly discrete and for boolean algebras that they are closed under products. So this should be seen as a hacky, temporary solution (although it is nice to have). Therefore I haven't read this LLM-generated file in full details, only checked that it makes no postulates and the end conclusion is what I want. 
 
 open import Cubical.Foundations.Prelude hiding (_∨_ ; _∧_)
 open import Cubical.Foundations.Function using (_∘_)
@@ -796,3 +776,6 @@ Booleω-closed-×BR (A , cpA) (B , cpB) =
     (is-countably-presented-×BR A B
       (countably-presented-equivalence A .snd cpA)
       (countably-presented-equivalence B .snd cpB))
+
+_×Booleω_ : (X Y : Booleω) → Booleω
+X@(A , cpA) ×Booleω Y@(B , cpB) = (A ×BR B , Booleω-closed-×BR X Y)
