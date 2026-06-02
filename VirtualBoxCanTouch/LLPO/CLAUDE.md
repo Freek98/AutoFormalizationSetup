@@ -42,7 +42,7 @@ than upstreaming it — `Cubical.Functions.Surjection` only ships the predicate-
   are illuminating — spell out each node so the argument reads top-to-bottom. See
   `Spf-fibre→LLPO`. Note some joints between steps are *definitional* (judgemental)
   and stay implicit; making them explicit would need extra imports.
-- When a reasoning node names a helper (`splitIntoEvens`, `toℕ∞seq`, …), add it to
+- When a reasoning node names a helper (`evenHom-sing-odd`, `toℕ∞seq`, …), add it to
   the relevant `open import ... using (...)` list rather than fully-qualifying.
 
 ## Finding definitions

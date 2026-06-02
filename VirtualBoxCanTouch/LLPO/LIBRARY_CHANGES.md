@@ -167,8 +167,9 @@ the same content under its own names — the pairing `induceProdMapBR` and the
 projections `BRProduct.fstBA` / `BRProduct.sndBA` (the product `_×BR_` lives there
 too). These are used directly at the call sites:
 
-- `SplitNaturality.agda` — `evenHom`/`oddHom` via `BRProduct.fstBA`/`BRProduct.sndBA`;
 - `StoneSums.agda` — the inverse `bwd` via `BRProduct.fstBA`/`BRProduct.sndBA`;
+- `EvenOddSplit.agda` — `splitHom = induceProdMapBR evenHom oddHom` (the split map as the
+  universal product map of its two halves);
 - `ProductClosureLocal.agda` — the forward map `φ` via `induceProdMapBR`.
 
 An earlier local shim **`ProductBAProjections.agda`** re-exported these under the

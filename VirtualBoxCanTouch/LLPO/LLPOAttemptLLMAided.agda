@@ -31,9 +31,8 @@ open import StoneSpaces.Spectrum
 import StoneSums            -- Sp(A ×BR B) ≅ Sp A ⊎ Sp B  (see σ⊎)
 import ProductClosureLocal  -- algebraic product-closure (fixes ProductClosure)
 
-open import EvenOddSplit using (splitHom ; splitHom-kernel)
-open import SplitNaturality using (evenNaturality ; oddNaturality ; splitIntoEvens ; splitIntoOdds ; toℕ∞seq)
-open import SpNfcIso using (σ ; σfun≡toℕ∞seq)
+open import EvenOddSplit using (splitHom ; splitHom-kernel ; evenHom-sing-odd ; oddHom-sing-even)
+open import SpNfcIso using (σ ; σfun≡toℕ∞seq ; toℕ∞seq)
 
 LLPOExplicitAt : ℕ∞ → Type
 LLPOExplicitAt (α , _) =
@@ -91,9 +90,8 @@ module LLPOProof (formalSurjections : formalSurjectionsAreSurjectionsAxiom) wher
       fst (Spf (inl β)) (suc (double k))
     ≡⟨ funExt⁻ (σfun≡toℕ∞seq (SpSplit (Iso.inv σ⊎ (inl β)))) (suc (double k)) ⟩
       toℕ∞seq (SpSplit (Iso.inv σ⊎ (inl β))) (suc (double k))
-    ≡⟨ funExt⁻ (evenNaturality (Iso.inv σ β)) (suc (double k)) ⟩
-      splitIntoEvens (toℕ∞seq (Iso.inv σ β)) (suc (double k))
-    ≡⟨ evenOddElim-odd k ⟩
+    ≡⟨ cong (λ x → Iso.inv σ β $cr x) (evenHom-sing-odd k)
+       ∙ IsCommRingHom.pres0 (snd (Iso.inv σ β)) ⟩
       false ∎
   Spf-fibre→LLPO α (inr β , p) = inl λ k →
       fst α (double k)
@@ -101,9 +99,8 @@ module LLPOProof (formalSurjections : formalSurjectionsAreSurjectionsAxiom) wher
       fst (Spf (inr β)) (double k)
     ≡⟨ funExt⁻ (σfun≡toℕ∞seq (SpSplit (Iso.inv σ⊎ (inr β)))) (double k) ⟩
       toℕ∞seq (SpSplit (Iso.inv σ⊎ (inr β))) (double k)
-    ≡⟨ funExt⁻ (oddNaturality (Iso.inv σ β)) (double k) ⟩
-      splitIntoOdds (toℕ∞seq (Iso.inv σ β)) (double k)
-    ≡⟨ evenOddElim-even k ⟩
+    ≡⟨ cong (λ x → Iso.inv σ β $cr x) (oddHom-sing-even k)
+       ∙ IsCommRingHom.pres0 (snd (Iso.inv σ β)) ⟩
       false ∎
 
   llpo : LLPO

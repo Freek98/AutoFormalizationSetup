@@ -37,7 +37,7 @@ open import StoneSpaces.Examples.Ninfty using (ℕ∞ ; neededIso ; Sp→BinaryS
 open import CountablyPresentedBooleanRings.Examples.NFinCofin
   using (ℕfinCofinBA ; presentation ; ℕFinCof=Presentation ; module NFinCofinPresentation)
 open NFinCofinPresentation using (singleton ; eval-gen ; freeℕ→ℕFinCof)
-open import SplitNaturality using (toℕ∞seq)
+open import BasicDefinitions using (binarySequence)
 
 SpEq : Iso (SpGeneralBooleanRing ℕfinCofinBA) (SpGeneralBooleanRing presentation)
 SpEq = invIso (CatIso→Iso (op-Iso⁻ {C = SET ℓ-zero}
@@ -48,6 +48,10 @@ SpEq = invIso (CatIso→Iso (op-Iso⁻ {C = SET ℓ-zero}
 
 σ : Iso (SpGeneralBooleanRing ℕfinCofinBA) ℕ∞
 σ = compIso SpEq neededIso
+
+-- a point read off as the sequence of its values on the singleton generators
+toℕ∞seq : SpGeneralBooleanRing ℕfinCofinBA → binarySequence
+toℕ∞seq γ n = γ $cr singleton n
 
 -- bridge: the transported read-off equals reading a point off on the singleton generators
 σfun≡toℕ∞seq : (γ : SpGeneralBooleanRing ℕfinCofinBA) → fst (Iso.fun σ γ) ≡ toℕ∞seq γ
