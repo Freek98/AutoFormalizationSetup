@@ -6,12 +6,12 @@
 module StoneSums where
 
 open import Cubical.Foundations.Prelude hiding (_∧_)
-open import Cubical.Foundations.Function
+open import Cubical.Foundations.Function 
 open import Cubical.Foundations.Structure
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
 
-open import Cubical.Data.Sigma
+open import Cubical.Data.Sigma hiding (_∧_)
 open import Cubical.Data.Sum as ⊎ using (_⊎_ ; inl ; inr)
 open import Cubical.Data.Bool hiding (_≤_ ; _≥_)
 
@@ -36,7 +36,7 @@ private
   recoverʳ : (x y : Bool) → x ≡ false → x ⊕ y ≡ true → y ≡ true
   recoverʳ x y xp p = sym (cong (_⊕ y) xp) ∙ p
 
-module _ (A : BooleanRing ℓ) (B : BooleanRing ℓ') where
+module SpectrumProduct (A : BooleanRing ℓ) (B : BooleanRing ℓ') where
   open BRProduct A B 
   open BooleanRingStr ⦃...⦄
   open BooleanAlgebraStr ⦃...⦄
@@ -72,19 +72,8 @@ module _ (A : BooleanRing ℓ) (B : BooleanRing ℓ') where
     actsOnlyOnA : Type _
     actsOnlyOnA = (a : ⟨ A ⟩) → (b : ⟨ B ⟩) → f $cr (a , b) ≡ f $cr (a , 𝟘)
 
---      1check : f $cr (𝟙 , 𝟘) ≡ 𝟙
---      1check = f $cr (𝟙 , 𝟘) ≡⟨ (sym $ fab=fa0 𝟙 𝟙) ⟩ f $cr (𝟙 , 𝟙) ≡⟨ pres1 ⟩ 𝟙 ∎
-
---      etrue
---      (λ a a' → cong (φ .fst) (ΣPathP (refl , sym (B.+IdR B.𝟘)))
---              ∙ φ .snd .pres+ (a , B.𝟘) (a' , B.𝟘))
---      (λ a a' → cong (φ .fst) (ΣPathP (refl , sym (0LB B.𝟘)))
---              ∙ φ .snd .pres· (a , B.𝟘) (a' , B.𝟘))
---    
     actsOnlyOnB : Type _
     actsOnlyOnB = (a : ⟨ A ⟩) → (b : ⟨ B ⟩) → f $cr (a , b) ≡ f $cr (𝟘 , b)
-
-    
 
     private 
       onlyOneUnitCanLive : f $cr (𝟙 , 𝟘) ≡ true → f $cr (𝟘 , 𝟙) ≡ false
@@ -142,11 +131,18 @@ module _ (A : BooleanRing ℓ) (B : BooleanRing ℓ') where
       doesntCareAboutB : (a : ⟨ A ⟩) → (b b' : ⟨ B ⟩) → f $cr (a , b) ≡ f $cr (a , b')
       doesntCareAboutB a b b' = aEyesOnly a b ∙ (sym $ aEyesOnly a b') 
     
-      restrictToA : actsOnlyOnA → SpGeneralBooleanRing A
-      restrictToA fab=fa0 .fst a = f $cr (a , 𝟘)
-      restrictToA fab=fa0 .snd = FromPres¬∧.isBoolRingHom A BoolBR (\a → f $cr (a , 𝟘))
-        (λ a → f $cr (¬ a , 𝟘) ≡⟨ doesntCareAboutB (¬ a) 𝟘 (¬ 𝟘) ⟩ (f $cr (¬ a , (¬ 𝟘))) ≡⟨ pres¬ _ ⟩  ¬ (f $cr (a , 𝟘)) ∎ ) 
-        λ a a' → {! aEyesOnly (a ∧ a') ∙ ?  !} 
+      restrictToA : SpGeneralBooleanRing A
+      restrictToA .fst a = f $cr (a , 𝟘)
+      restrictToA .snd = FromPres¬∧.isBoolRingHom A BoolBR (\a → f $cr (a , 𝟘))
+        (λ a → f $cr (¬ a , 𝟘)     ≡⟨ doesntCareAboutB (¬ a) 𝟘 (¬ 𝟘) ⟩ 
+               f $cr (¬ a , (¬ 𝟘)) ≡⟨ pres¬ _ ⟩  
+              ¬ (f $cr (a , 𝟘))    ∎) 
+        λ a a' → f $cr (a ∧ a' , 𝟘 )        ≡⟨ cong (f $cr_) $ ΣPathP (refl , sym (·Idem 𝟘))⟩ 
+                 f $cr ((a , 𝟘) ∧ (a' , 𝟘)) ≡⟨ pres∧ _ _ ⟩ 
+                 f $cr (a , 𝟘) ∧ f $cr (a' , 𝟘) ∎ 
+
+      restrictionIsHalfInverse : onlyLookAtA restrictToA ≡ f
+      restrictionIsHalfInverse = CommRingHom≡ (funExt λ ((a , b)) → sym $ aEyesOnly a b) 
     
     
   private
