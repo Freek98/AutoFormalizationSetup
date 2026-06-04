@@ -1,5 +1,5 @@
 {-# OPTIONS --cubical --guardedness --lossy-unification #-}
--- This file shows algebraically that the spectrum of the product of two Boolean algebras is the sum of the spectra. The proof was written by an LLM.
+-- This file shows algebraically that the spectrum of the product of two Boolean algebras is the sum of the spectra. An LLM wrote the original proof, and I rewrote it in a way I can follow. 
 --
 -- Note that this file does not depend on Stone duality. Also, the result is not a corollary of the adjunction between Sp and 2^. This I personally found surprising and confusing for some time.
 -- Rather, it's an application of an exercise in ring theory. See for example exercise 22 in chapter 1 of Atiyah-MacDonald, or https://stacks.math.columbia.edu/tag/00ED
@@ -35,7 +35,7 @@ private
 
 module SpectrumProduct (A : BooleanRing ℓ) (B : BooleanRing ℓ') where
   open BRProduct A B
-  open BooleanRingStr ⦃...⦄
+  open BooleanRingStr ⦃...⦄ 
   open BooleanAlgebraStr ⦃...⦄
   instance
     _ = snd A
@@ -89,13 +89,13 @@ module SpectrumProduct (A : BooleanRing ℓ) (B : BooleanRing ℓ') where
         f $cr (a , b)
           ≡⟨ cong (f $cr_) (splitTupleAsSum a b) ⟩
         f $cr ((a , 𝟘) + (𝟘 , b))
-          ≡⟨ pres+ _ _ ⟩
+          ≡⟨ pres+ (a , 𝟘)  (𝟘 , b)  ⟩
         f $cr (a , 𝟘) + f $cr ( 𝟘 , b)
           ≡⟨ cong ((f $cr (a , 𝟘)) +_)
                 (f $cr (𝟘 , b)
                   ≡⟨ cong (f $cr_) (convenientProductFactorB 𝟘 b) ⟩
                 f $cr ((𝟘 , b) · (𝟘 , 𝟙))
-                  ≡⟨ pres· _ _ ⟩
+                  ≡⟨ pres· (𝟘 , b) (𝟘 , 𝟙) ⟩
                 f $cr (𝟘 , b) · f $cr (𝟘 , 𝟙)
                   ≡⟨ cong ((f $cr (𝟘 , b)) ·_) (onlyOneUnitCanLive f10=true) ⟩
                 f $cr (𝟘 , b) · 𝟘
@@ -108,13 +108,13 @@ module SpectrumProduct (A : BooleanRing ℓ) (B : BooleanRing ℓ') where
         f $cr (a , b)
           ≡⟨ cong (f $cr_) (splitTupleAsSum a b) ⟩
         f $cr ((a , 𝟘) + (𝟘 , b))
-          ≡⟨ pres+ _ _ ⟩
+          ≡⟨ pres+ (a , 𝟘) (𝟘 , b) ⟩
         f $cr (a , 𝟘)  + f $cr (𝟘 , b)
           ≡⟨ cong (_+ (f $cr (𝟘 , b))) $
                f $cr (a , 𝟘)
                  ≡⟨ cong (f $cr_) (convenientProductFactorA a 𝟘) ⟩
                f $cr ((a , 𝟘) · (𝟙 , 𝟘))
-                 ≡⟨ pres· _ _ ⟩
+                 ≡⟨ pres· (a , 𝟘) (𝟙 , 𝟘) ⟩
                f $cr (a , 𝟘) · f $cr (𝟙 , 𝟘)
                  ≡⟨ cong ((f $cr (a , 𝟘)) ·_) f10=false ⟩
                f $cr (a , 𝟘) · 𝟘
@@ -132,10 +132,10 @@ module SpectrumProduct (A : BooleanRing ℓ) (B : BooleanRing ℓ') where
       restrictToA .fst a = f $cr (a , 𝟘)
       restrictToA .snd = FromPres¬∧.isBoolRingHom A BoolBR (\a → f $cr (a , 𝟘))
         (λ a → f $cr (¬ a , 𝟘)     ≡⟨ doesntCareAboutB (¬ a) 𝟘 (¬ 𝟘) ⟩
-               f $cr (¬ a , (¬ 𝟘)) ≡⟨ pres¬ _ ⟩
+               f $cr (¬ a , (¬ 𝟘)) ≡⟨ pres¬ (a , 𝟘) ⟩
               ¬ (f $cr (a , 𝟘))    ∎)
         λ a a' → f $cr (a ∧ a' , 𝟘 )        ≡⟨ cong (f $cr_) $ ΣPathP (refl , sym (·Idem 𝟘))⟩
-                 f $cr ((a , 𝟘) ∧ (a' , 𝟘)) ≡⟨ pres∧ _ _ ⟩
+                 f $cr ((a , 𝟘) ∧ (a' , 𝟘)) ≡⟨ pres∧ (a , 𝟘) (a' , 𝟘) ⟩
                  f $cr (a , 𝟘) ∧ f $cr (a' , 𝟘) ∎
 
       restrictionIsRetract : onlyLookAtA restrictToA ≡ f
@@ -149,10 +149,10 @@ module SpectrumProduct (A : BooleanRing ℓ) (B : BooleanRing ℓ') where
       restrictToB .fst b = f $cr (𝟘 , b)
       restrictToB .snd = FromPres¬∧.isBoolRingHom B BoolBR (\b → f $cr (𝟘 , b))
         (λ b → f $cr (𝟘 , ¬ b)     ≡⟨ doesntCareAboutA (¬ b) 𝟘 (¬ 𝟘) ⟩
-               f $cr ((¬ 𝟘) , ¬ b) ≡⟨ pres¬ _ ⟩
+               f $cr ((¬ 𝟘) , ¬ b) ≡⟨ pres¬ (𝟘 , b) ⟩
               ¬ (f $cr (𝟘 , b))    ∎)
         λ b b' → f $cr (𝟘 , b ∧ b' )        ≡⟨ cong (f $cr_) $ ΣPathP (sym (·Idem 𝟘) , refl) ⟩
-                 f $cr ((𝟘 , b) ∧ (𝟘 , b')) ≡⟨ pres∧ _ _ ⟩
+                 f $cr ((𝟘 , b) ∧ (𝟘 , b')) ≡⟨ pres∧ (𝟘 , b) (𝟘 , b') ⟩
                  f $cr (𝟘 , b) ∧ f $cr (𝟘 , b') ∎
 
       restrictionIsRetract : onlyLookAtB restrictToB ≡ f
