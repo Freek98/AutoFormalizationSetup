@@ -1,0 +1,16 @@
+ Today we're going to work on the statement that Sp is an anti-equivalence.
+  This statement should be nuanced a bit and our formalization should reflect
+  that. Some of the results I will describe to you now are already in
+  FormalizationSSD, so please read that library (you're in ultracode mode as
+  you're going to read some libraries). First of all, it should always be the
+  case there is an adjunction between Sp and taking decidable subsets. The
+  stone duality axiom then states that the unit of this adjunction
+  (evaluation) is an isomorphism on countably presented Boolean algebras.
+  There should be a general fact (this I tried to prove at some points in the
+  Categories part of the formalizationSSD library, but it might already be
+  somewhere in the cubical library. It's definitely in some standard agda
+  libraries like unimath) that when the unit of an adjunction is an iso, the
+  adjunction is an equivalence. I want a new file that provides a nice
+  interface for stating things about this adjunction and the consequences of
+  Stone duality. I want to develop this interactively with you 
+
