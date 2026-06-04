@@ -1,3 +1,23 @@
+I didn't get what was going on in StoneSums, and asked it to generate an explanation for it
+
+I also asked for references. Turns out it is a standard exercise:
+Chapter 1, Exc22 in 
+@book {MR3525784,
+    AUTHOR = {Atiyah, M. F. and Macdonald, I. G.},
+     TITLE = {Introduction to commutative algebra},
+    SERIES = {Addison-Wesley Series in Mathematics},
+   EDITION = {economy},
+      NOTE = {For the 1969 original see [MR0242802]},
+ PUBLISHER = {Westview Press, Boulder, CO},
+      YEAR = {2016},
+     PAGES = {ix+128},
+      ISBN = {978-0-8133-5018-9; 0-201-00361-9; 0-201-40751-5},
+   MRCLASS = {13-01 (13-00)},
+  MRNUMBER = {3525784},
+}
+And https://stacks.math.columbia.edu/tag/00ED
+
+
 Walk-through of StoneSums.agda — Sp(A ×BR B) ≅ Sp A ⊎ Sp B
 ============================================================
 
