@@ -9,7 +9,7 @@ open import Cubical.Algebra.CommRing
 open import Cubical.Data.Nat.Order
 open import Cubical.Algebra.BooleanRing
 
-open import Parity
+open import LLMGeneratedFixes.Parity
 open import BooleanRing.FreeBooleanRing.FreeBool
 open import BooleanRing.BooleanRingQuotients.QuotientBool using (quotientImageHom ; evalInduce)
 open import BasicDefinitions
@@ -41,8 +41,10 @@ open import Cubical.Categories.Isomorphism using (op-Iso⁻)
 open import Cubical.Categories.Instances.Sets using (SET ; CatIso→Iso)
 open import CategoryTheory.StuffFromStoneAboutBAs using (BACat ; SpGeneralFunctor ; BAIso≅BAEquiv)
 
+-- Sp(A ×BR B) ≅ Sp A ⊎ Sp B, from the universal property of the product
+-- (the injections are Sp of the two projections); see SpB∞≃ℕ∞⊎.
+import StoneSums
 -- LLM gave a temporary library workaround documented in LIBRARY_CHANGES.md.
-import StoneSums            -- Sp(A ×BR B) ≅ Sp A ⊎ Sp B  (see SpB∞≃ℕ∞⊎)
 import ProductBooleExplicit -- algebraic product-closure (fixes ProductClosure)
 
 LLPOExplicitAt : ℕ∞ → Type
@@ -82,10 +84,10 @@ B∞xB∞ : Booleω
 B∞xB∞ = B∞ ×Booleω B∞ where 
   open ProductBooleExplicit
 
--- We also use that Sp is an antiequivalence and thus 
--- Sp(A ×BR B) ≅ Sp A ⊎ Sp B 
--- Right now, we also use an algebraic proof for this. 
--- It should be proven using categorical facts. 
+-- Sp(A ×BR B) ≅ Sp A ⊎ Sp B: the universal property of the product A ×BR B,
+-- read through the dualising object 2.  The two injections are precomposition
+-- with the projections fstBA, sndBA (i.e. Sp fstBA, Sp sndBA), and a map out
+-- of the product comes from exactly one factor because 2 is indecomposable.
 SpB∞≃ℕ∞⊎ : Iso (Sp B∞xB∞) (ℕ∞ ⊎ ℕ∞)
 SpB∞≃ℕ∞⊎ = compIso (StoneSums.SpProd≅SpSum ℕfinCofinBA ℕfinCofinBA) (⊎Iso SpB∞≃ℕ∞ SpB∞≃ℕ∞)
 

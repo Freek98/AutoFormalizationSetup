@@ -38,30 +38,32 @@ agree only propositionally (`eval-gen`).
 `SpNfcIso` is thus a thin adapter of committed content, not a workaround for
 anything missing; it stays as long as the proof is phrased over `ℕfinCofinBA`.
 
-## 2. New module `AntiEquivalence/StoneSums.agda` — `Sp (A ×BR B) ≅ Sp A ⊎ Sp B`
+## 2. `StoneSums.agda` — `Sp (A ×BR B) ≅ Sp A ⊎ Sp B`
 
-A new, self-contained module proving that the spectrum sends binary products of
-Boolean algebras to binary sums of Stone spaces (the contravariant
-"products ↦ coproducts" direction of the anti-equivalence). The substantive iso
+A self-contained local module proving that the spectrum sends binary products of
+Boolean rings to binary sums of spectra. The substantive iso
 
 ```agda
-SpProd≅SpSum : (A B : BooleanRing ℓ-zero)
+SpProd≅SpSum : (A : BooleanRing ℓ) (B : BooleanRing ℓ')
   → Iso (SpGeneralBooleanRing (A ×BR B))
         (SpGeneralBooleanRing A ⊎ SpGeneralBooleanRing B)
 ```
 
-needs **no** Stone-duality axiom and **no** countable-presentation hypothesis: it
-is special to the codomain `2 = BoolBR` (connected/indecomposable), where a map
-`A ×BR B → 2` factors through exactly one projection. It also re-exports the
-anti-equivalence facts `SpFullyFaithful`/`SpEmbedding` from `Axioms.StoneDuality`.
+is the **universal property of the product** `A ×BR B` (taken from
+`BooleanRing.ProductBA` — its projections `fstBA`/`sndBA`, with `induceProdMapBR`
+available there too) read through the dualising object `2 = BoolBR`. The two
+coproduct injections are precomposition with the two projections (i.e.
+`Sp fstBA`, `Sp sndBA`), so the inverse `bwd` is literally their copairing; the
+forward map factors a `φ : A ×BR B → 2` through exactly one projection because
+`2` is indecomposable (the complementary idempotents `e = (𝟙,𝟘)`, `e' = (𝟘,𝟙)`
+go to complementary booleans, so exactly one of `φ e`, `φ e'` is `true`). It
+needs **no** Stone-duality axiom and **no** countable-presentation hypothesis.
 
-Local stand-in: **`StoneSums.agda`** (module `StoneSums`) — identical except for
-the module name.
-
-Upstream action: drop it in as `AntiEquivalence/StoneSums.agda` (restore
-`module AntiEquivalence.StoneSums where`). Then `LLPOAttemptLLMAided` can
-`import AntiEquivalence.StoneSums` instead of the local `StoneSums`, and
-`StoneSums.agda` here can be deleted.
+This proof lives here by choice; it is **not** a stand-in for missing content.
+An earlier version of this slot held an LLM-generated *algebraic* proof flagged
+for upstreaming as `AntiEquivalence/StoneSums.agda`; that framing is superseded.
+Its only nontrivial dependency is the product universal property in
+`BooleanRing.ProductBA`, so if ever upstreamed it would sit next to it.
 
 ## 3. Pre-existing breakage (NOT introduced here) — `ProductClosure` / `Products`
 

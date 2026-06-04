@@ -26,7 +26,10 @@ edit in `LIBRARY_CHANGES.md`. Current local stand-ins:
   committed) upstream `neededIso` across the BA-iso `ℕFinCof=Presentation`. Not a
   stand-in for missing content — a thin adapter, since the proof is phrased over
   `ℕfinCofinBA` rather than `presentation`. See `LIBRARY_CHANGES.md §1`.
-- `StoneSums` — `Sp(A ×BR B) ≅ Sp A ⊎ Sp B` (used for `σ⊎`).
+- `StoneSums` — `Sp(A ×BR B) ≅ Sp A ⊎ Sp B`, from the universal property of the
+  product (`BooleanRing.ProductBA`) read through `2`: the injections are `Sp` of
+  the two projections, and the forward map uses that `2` is indecomposable. Used
+  in `SpB∞≃ℕ∞⊎`. A genuine local proof, not a stand-in for missing content.
 - `ProductClosureLocal` — algebraic product-closure of countably-presented BAs.
 
 Likewise, prefer small one-off helpers in a **local `where` block** over adding

@@ -1,0 +1,144 @@
+Walk-through of StoneSums.agda — Sp(A ×BR B) ≅ Sp A ⊎ Sp B
+============================================================
+
+(This pass covers the math, the notation, the skeleton, and the two maps
+fwd/bwd plus their construction. The two "they're inverse" proofs ret/sec
+are deferred to a later step.)
+
+
+1. The mathematics in one breath
+--------------------------------
+
+A point of the spectrum `Sp C` is a ring hom `C → 2` (2 = BoolBR, the
+two-element Boolean ring). We want
+
+    Sp(A × B) ≅ Sp A ⊎ Sp B.
+
+- Easy direction (bwd): a point ψ : A → 2 gives a point of A × B by
+  (a,b) ↦ ψ a — i.e. precompose with the projection A × B → A. Likewise for
+  B. So a point of *either* factor gives a point of the product.
+
+- Hard direction (fwd): given φ : A × B → 2, look at the idempotent
+  e = (𝟙,𝟘). Its image φ e is true or false (there's nothing else in 2 —
+  this is "2 is indecomposable"). The complementary idempotent e' = (𝟘,𝟙)
+  satisfies e + e' = 𝟙, so φ e ⊕ φ e' = 1: exactly one of φ e, φ e' is true.
+  That one selects the factor φ came from, and φ is recovered by restricting
+  to it.
+
+Everything else is bookkeeping to make Agda agree.
+
+
+2. Notation the code leans on
+-----------------------------
+
+- SpGeneralBooleanRing C is by definition BoolHom C BoolBR = ring homs
+  C → 2 (line 37's import). A hom is a pair: .fst is the underlying
+  function, .snd the proof it preserves structure.
+
+- φ $cr x = φ .fst x (apply a hom). g ∘cr f = compose homs.
+
+- The product product = A ×BR B has carrier ⟨A⟩ × ⟨B⟩ with componentwise,
+  definitional operations: (a,b)+(a',b') = (a+a', b+b'), 𝟘 = (𝟘,𝟘),
+  𝟙 = (𝟙,𝟙), etc. That definitional-ness is why the projections are strict
+  homs and why the "massaging" steps below are tiny.
+
+- In 2, again definitionally, + is xor (_⊕_), · is and, 𝟘 = false,
+  𝟙 = true. So a hom's preservation fields read:
+    φ .snd .pres0 : φ 𝟘 ≡ false      φ .snd .pres1 : φ 𝟙 ≡ true
+    pres+ x y : φ (x + y) ≡ φ x ⊕ φ y
+    pres· x y : φ (x · y) ≡ φ x and φ y
+
+That's the whole vocabulary.
+
+
+3. The skeleton (lines 167–173)
+-------------------------------
+
+Iso X Y is four fields: fun : X → Y, inv : Y → X, and two round-trip proofs
+sec : ∀ y → fun (inv y) ≡ y and ret : ∀ x → inv (fun x) ≡ x. Here
+X = Sp(A×B), Y = Sp A ⊎ Sp B, fun = fwd, inv = bwd. So the real work is
+fwd, bwd, and the two round-trips.
+
+
+4. bwd — the easy map (lines 78–79)
+-----------------------------------
+
+    bwd = ⊎.rec (_∘cr fstBA) (_∘cr sndBA)
+
+⊎.rec f g is case analysis on the sum: bwd (inl ψ) = ψ ∘cr fstBA and
+bwd (inr χ) = χ ∘cr sndBA. Unfolding, bwd (inl ψ) is the hom (a,b) ↦ ψ a,
+and bwd (inr χ) is (a,b) ↦ χ b. These are exactly the two coproduct
+injections — "Sp applied to the projections fstBA, sndBA." This is where the
+universal property of the product enters: the projections are the structure,
+and bwd is just their copairing.
+
+
+5. fwd — branch on φ e (lines 109–117)
+--------------------------------------
+
+    fwdAux φ (true  , etrue)  = inl (restrA φ etrue)
+    fwdAux φ (false , efalse) = inr (restrB φ (recoverʳ (φ $cr e) (φ $cr e') efalse (φe⊕φe' φ)))
+
+    fwd φ = fwdAux φ (φ $cr e , refl)
+
+The one trick here: fwd doesn't case on φ e directly, it cases on a pair
+(b , p) where b : Bool is the value and p : φ e ≡ b records that it is that
+value (line 117 feeds in (φ e , refl) — the actual value with the trivial
+proof). Why bother? Because to build the restricted hom I need the equation
+φ e ≡ true, not just the boolean. Matching on the pair gives me both at once
+in each branch:
+
+- true branch: I have etrue : φ e ≡ true, return inl (restrA φ etrue).
+
+- false branch: I have efalse : φ e ≡ false. Then φe⊕φe' φ : φ e ⊕ φ e' ≡ true
+  (lines 106–107: rewrite φe ⊕ φe' = φ(e+e') = φ 𝟙 = true), and recoverʳ
+  (line 47: from x = false and x ⊕ y = true conclude y = true) gives
+  φ e' ≡ true. Return inr (restrB φ …).
+
+This Σ[ b ] (φ e ≡ b) packaging is the standard "inspect the value but
+remember where it came from" idiom; it'll also be exactly what makes the
+section proof go through in step 8.
+
+
+6. The restricted homs restrA / restrB (lines 81–100)
+-----------------------------------------------------
+
+restrA φ etrue is the function a ↦ φ (a, 𝟘) (line 84), claimed to be a hom
+A → 2. makeIsCommRingHom only asks for three things — preservation of 𝟙, +,
+· — and derives the rest:
+
+- pres1: need φ (𝟙, 𝟘) ≡ true. But (𝟙,𝟘) is e, so this is precisely etrue.
+  This is the only place the hypothesis φ e ≡ true is used — it's what makes
+  the restriction a unital hom.
+
+- pres+ (lines 87–88): need φ(a+a', 𝟘) ≡ φ(a,𝟘) ⊕ φ(a',𝟘). The product's +
+  gives (a,𝟘)+(a',𝟘) = (a+a', 𝟘+𝟘), so I first nudge the second coordinate
+  𝟘 ⤳ 𝟘+𝟘 (cong (φ.fst) (ΣPathP (refl , sym (B.+IdR B.𝟘)))) and then apply
+  φ .snd .pres+. The ΣPathP is just "this path in the first coordinate, that
+  path in the second."
+
+- pres· (lines 89–90): same shape, nudging 𝟘 ⤳ 𝟘·𝟘 via the annihilator
+  0LB B.𝟘 : 𝟘·𝟘 ≡ 𝟘.
+
+restrB (lines 92–100) is the mirror image: b ↦ φ(𝟘, b), with the 𝟘-nudging
+happening in the first coordinate (A.+IdR, 0LA).
+
+The four 0RA/0LA/0RB/0LB (lines 60–67) are just "x·𝟘 = 𝟘" / "𝟘·x = 𝟘" in
+each factor — the only non-definitional facts about 𝟘 we need.
+
+
+What's left (deferred)
+----------------------
+
+That's the construction: two maps, plus the lemma φe⊕φe' that powers the
+branch. The conceptual content is all here.
+
+The two round-trips remain:
+
+- ret (bwd ∘ fwd ≡ id): uses φ(a,b) = φ(a,𝟘) ⊕ φ(𝟘,b) (φ-split) and the fact
+  that the "off-factor" summand vanishes (rA≡false/rB≡false, via the killʳ
+  Bool lemma).
+
+- sec (fwd ∘ bwd ≡ id): the only genuinely cubical step — using isContrSingl
+  to transport fwd's argument from the value φ e to the literal constructor
+  true/false so the branch computes.
