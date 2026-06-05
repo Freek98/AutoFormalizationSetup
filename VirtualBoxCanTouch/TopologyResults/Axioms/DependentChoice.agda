@@ -88,3 +88,5 @@ module TowerChoiceToDependentChoice {ℓ : Level} (dc : DependentChoiceTowerAxio
     (limitPoint pUpTo _ , _) ← dc partialChoiceTower fstSurjective p0elem
     return λ n → lastChoice n (pUpTo n)
 
+DependentChoiceTowerAxiomToDependentChoice : DependentChoiceTowerAxiom {ℓ} → DependentChoice {ℓ}
+DependentChoiceTowerAxiomToDependentChoice = TowerChoiceToDependentChoice.infiniteBranch 
