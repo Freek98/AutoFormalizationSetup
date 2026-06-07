@@ -1,4 +1,4 @@
-module Axioms.DependentChoice where
+module TempAxioms.DependentChoice where
 
 open import Cubical.Functions.Surjection
 open import Cubical.Foundations.Function
@@ -50,8 +50,14 @@ DependentChoice {ℓ} = (P : ℕ → Type ℓ) → DependentChoiceFor P
 CountableChoiceFor : (P : ℕ → Type ℓ) → Type _
 CountableChoiceFor P = (∀ (n : ℕ) → ∥ P n ∥₁) → ∥ ((n : ℕ) → P n) ∥₁ 
 
-DependentChoiceToCountableChoiceAt : (P : ℕ → Type ℓ) → DependentChoiceFor P → CountableChoiceFor P
-DependentChoiceToCountableChoiceAt P dc ∀∃ = dc (λ n _ → ∀∃ (suc n)) (∀∃ zero) 
+DependentChoiceForToCountableChoiceAt : (P : ℕ → Type ℓ) → DependentChoiceFor P → CountableChoiceFor P
+DependentChoiceForToCountableChoiceAt P dc ∀∃ = dc (λ n _ → ∀∃ (suc n)) (∀∃ zero) 
+
+CountableChoice : {ℓ : Level} → Type _ 
+CountableChoice {ℓ} = (P : ℕ → Type ℓ) → CountableChoiceFor P
+
+DependentChoiceToCountableChoice : {ℓ : Level} → DependentChoice {ℓ} → CountableChoice {ℓ}
+DependentChoiceToCountableChoice dc P = DependentChoiceForToCountableChoiceAt P (dc P) 
 
 module TowerChoiceToDependentChoice {ℓ : Level} (dc : DependentChoiceTowerAxiom {ℓ})
   (P : ℕ → Type ℓ) (pSuc : (n : ℕ) → P n → ∥ P (suc n) ∥₁) (p0 : ∥ P 0 ∥₁ )   where

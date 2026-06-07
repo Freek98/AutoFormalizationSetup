@@ -1,4 +1,5 @@
 name: TopologyResults
 include: .
 depend: cubical-0.9
+        FormalizationSSD-Library
 flags: --cubical --guardedness

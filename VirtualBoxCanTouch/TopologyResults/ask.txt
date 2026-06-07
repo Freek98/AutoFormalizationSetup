@@ -1,1 +1,21 @@
 Look at ~/FormalizationSSD/Axioms/DependentChoice. Make a local copy here and we will together finish some proofs here. Finish the proof that the first map is surjective and then apply the dependent choice axiom to the resulting tower to see that the projection map is surjective. We will continue to conclude countable choice later, but first I want to see you make these edits so I can check the work.
+
+btw I'm noticing we use PT.rec PT.squash a lot, is there a common alias for that in the standard library
+
+no but good to know thanks! Can you instead finish the proof with the new suggestions?
+
+okay great now we're going to create a new file, based on PropositionalTopology where you show that a countable disjunction of open propositions is open and countable conjunction of closed is closed. These go in a module called assumingDC (where we assume dependent choice).
+
+oh can you make it based on CountableChoice instead?
+
+sorry did some renamings in the files, please reread.
+
+yes indeed, I'm writing it myself and will ask you some questions. First of all, did I already have a function somewhere that takes a binary sequence and outputs an increasing sequence
+
+do I have a function somewhere stating that a proposition is closed implies it is the negation of an open proposition?
+
+okay add it to the current file DisjunctionClosed above the module assumingLLPO.
+
+yes exactly great! Now suppose P,Q correspond to binary sequences \alpha , \beta respectively, where \alpha , \beta hit one at most once. Then we construct the sequence \gamma which equals 1 at 2k if and only if alpha k = 1 and gamma (2k+1) = 1 iff beta k = 1. I claim that as \neg (P /\ Q), there is at most one 1 in the sequence \gamma, thus LLPO applies and gamma is zero on all the evens (in which case alpha = 0 always) or odds (in which case beta = 0 always. And hus we can conclude -P vee -Q.
+
+good point. You can add a proof that a proposition is open iff it is equivalent to there being a 1 in an increasing sequence, and then work with that definition
