@@ -50,14 +50,14 @@ DependentChoice {ℓ} = (P : ℕ → Type ℓ) → DependentChoiceFor P
 CountableChoiceFor : (P : ℕ → Type ℓ) → Type _
 CountableChoiceFor P = (∀ (n : ℕ) → ∥ P n ∥₁) → ∥ ((n : ℕ) → P n) ∥₁ 
 
-DependentChoiceForToCountableChoiceAt : (P : ℕ → Type ℓ) → DependentChoiceFor P → CountableChoiceFor P
-DependentChoiceForToCountableChoiceAt P dc ∀∃ = dc (λ n _ → ∀∃ (suc n)) (∀∃ zero) 
+DependentChoiceForToCountableChoiceFor : (P : ℕ → Type ℓ) → DependentChoiceFor P → CountableChoiceFor P
+DependentChoiceForToCountableChoiceFor P dc ∀∃ = dc (λ n _ → ∀∃ (suc n)) (∀∃ zero) 
 
 CountableChoice : {ℓ : Level} → Type _ 
 CountableChoice {ℓ} = (P : ℕ → Type ℓ) → CountableChoiceFor P
 
 DependentChoiceToCountableChoice : {ℓ : Level} → DependentChoice {ℓ} → CountableChoice {ℓ}
-DependentChoiceToCountableChoice dc P = DependentChoiceForToCountableChoiceAt P (dc P) 
+DependentChoiceToCountableChoice dc P = DependentChoiceForToCountableChoiceFor P (dc P) 
 
 module TowerChoiceToDependentChoice {ℓ : Level} (dc : DependentChoiceTowerAxiom {ℓ})
   (P : ℕ → Type ℓ) (pSuc : (n : ℕ) → P n → ∥ P (suc n) ∥₁) (p0 : ∥ P 0 ∥₁ )   where

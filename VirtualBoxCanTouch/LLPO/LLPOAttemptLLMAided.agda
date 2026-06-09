@@ -49,7 +49,7 @@ import ProductBooleExplicit -- algebraic product-closure (fixes ProductClosure)
 
 LLPOExplicitAt : ℕ∞ → Type
 LLPOExplicitAt (α , _) =
-  (∀ (n : ℕ) → α (double n) ≡ false) ⊎ (∀ (n : ℕ) → α (suc $ double n) ≡ false)
+  (∀ (n : ℕ) → α (doubleℕ n) ≡ false) ⊎ (∀ (n : ℕ) → α (suc $ doubleℕ n) ≡ false)
 
 LLPO : Type
 LLPO = (x : ℕ∞) → ∥ LLPOExplicitAt x ∥₁
@@ -100,22 +100,22 @@ module LLPOProof (formalSurjections : formalSurjectionsAreSurjectionsAxiom) wher
     _ = snd $ ℕfinCofinBA ×BR ℕfinCofinBA
 
   evenPart : binarySequence → binarySequence
-  evenPart α k = α (double k)
+  evenPart α k = α (doubleℕ k)
 
   oddPart : binarySequence → binarySequence
-  oddPart α k = α (suc (double k))
+  oddPart α k = α (suc (doubleℕ k))
 
   -- ───────────────────────────────────────────────────────────────
   -- Both halves preserve finiteness, cofiniteness, hence isFiniteOrCofinite
   -- ───────────────────────────────────────────────────────────────
-  k≤double : (k : ℕ) → k ≤ double k
-  k≤double k = k , sym (double≡+self k)
+  k≤doubleℕ : (k : ℕ) → k ≤ doubleℕ k
+  k≤doubleℕ k = k , sym (doubleℕ≡+self k)
 
   evenPart-zeroFrom : (α : binarySequence) (n : ℕ) → isZeroFrom n α → isZeroFrom n (evenPart α)
-  evenPart-zeroFrom α n z k k≥n = z (double k) (≤-trans k≥n (k≤double k))
+  evenPart-zeroFrom α n z k k≥n = z (doubleℕ k) (≤-trans k≥n (k≤doubleℕ k))
 
   oddPart-zeroFrom : (α : binarySequence) (n : ℕ) → isZeroFrom n α → isZeroFrom n (oddPart α)
-  oddPart-zeroFrom α n z k k≥n = z (suc (double k)) (≤-trans k≥n (≤-trans (k≤double k) (≤-suc ≤-refl)))
+  oddPart-zeroFrom α n z k k≥n = z (suc (doubleℕ k)) (≤-trans k≥n (≤-trans (k≤doubleℕ k) (≤-suc ≤-refl)))
 
   evenPart-fin : (α : binarySequence) → isFinite α → isFinite (evenPart α)
   evenPart-fin α fin = let (n , z) = finite→Bounded α fin
@@ -184,39 +184,39 @@ module LLPOProof (formalSurjections : formalSurjectionsAreSurjectionsAxiom) wher
   splitHom-kernel (a , _) fa=0 = Σ≡Prop isPropisFiniteOrCofinite
     (kernelSplitCase a (cong (λ z → fst (fst z)) fa=0) (cong (λ z → fst (snd z)) fa=0))
 
-  even≠odd : (k j : ℕ) → (double k ≡ᵇ suc (double j)) ≡ false
+  even≠odd : (k j : ℕ) → (doubleℕ k ≡ᵇ suc (doubleℕ j)) ≡ false
   even≠odd zero j = refl
   even≠odd (suc k) zero = refl
   even≠odd (suc k) (suc j) = even≠odd k j
 
-  odd≠even : (k j : ℕ) → (suc (double k) ≡ᵇ double j) ≡ false
+  odd≠even : (k j : ℕ) → (suc (doubleℕ k) ≡ᵇ doubleℕ j) ≡ false
   odd≠even k zero = refl
   odd≠even zero (suc j) = refl
   odd≠even (suc k) (suc j) = odd≠even k j
 
-  evenPart-δ-odd : (k : ℕ) → evenPart (δSequence (suc (double k))) ≡ (λ _ → false)
+  evenPart-δ-odd : (k : ℕ) → evenPart (δSequence (suc (doubleℕ k))) ≡ (λ _ → false)
   evenPart-δ-odd k = funExt λ j → odd≠even k j
-  oddPart-δ-even : (k : ℕ) → oddPart (δSequence (double k)) ≡ (λ _ → false)
+  oddPart-δ-even : (k : ℕ) → oddPart (δSequence (doubleℕ k)) ≡ (λ _ → false)
   oddPart-δ-even k = funExt λ j → even≠odd k j
 
-  evenHom-sing-odd : (k : ℕ) → evenHom $cr singleton (suc (double k)) ≡ 𝟘
+  evenHom-sing-odd : (k : ℕ) → evenHom $cr singleton (suc (doubleℕ k)) ≡ 𝟘
   evenHom-sing-odd k = FC≡ (evenPart-δ-odd k)
-  oddHom-sing-even : (k : ℕ) → oddHom $cr singleton (double k) ≡ 𝟘
+  oddHom-sing-even : (k : ℕ) → oddHom $cr singleton (doubleℕ k) ≡ 𝟘
   oddHom-sing-even k = FC≡ (oddPart-δ-even k)
 
   SpEvenHom-odd0 : (γ : SpGeneralBooleanRing ℕfinCofinBA) (k : ℕ)
-    → (γ ∘cr evenHom) $cr singleton (suc (double k)) ≡ false
+    → (γ ∘cr evenHom) $cr singleton (suc (doubleℕ k)) ≡ false
   SpEvenHom-odd0 γ k =
-      (γ ∘cr evenHom) $cr singleton (suc (double k))
+      (γ ∘cr evenHom) $cr singleton (suc (doubleℕ k))
     ≡⟨ cong (λ x → γ $cr x) (evenHom-sing-odd k) ⟩
       γ $cr 𝟘
     ≡⟨ IsCommRingHom.pres0 (snd γ) ⟩
       false ∎
 
   SpOddHom-even0 : (γ : SpGeneralBooleanRing ℕfinCofinBA) (k : ℕ)
-    → (γ ∘cr oddHom) $cr singleton (double k) ≡ false
+    → (γ ∘cr oddHom) $cr singleton (doubleℕ k) ≡ false
   SpOddHom-even0 γ k =
-      (γ ∘cr oddHom) $cr singleton (double k)
+      (γ ∘cr oddHom) $cr singleton (doubleℕ k)
     ≡⟨ cong (λ x → γ $cr x) (oddHom-sing-even k) ⟩
       γ $cr 𝟘
     ≡⟨ IsCommRingHom.pres0 (snd γ) ⟩
@@ -268,33 +268,33 @@ module LLPOProof (formalSurjections : formalSurjectionsAreSurjectionsAxiom) wher
   -- `evenHom` kills the odd singletons, so its Stone image is 0 on every odd
   -- coordinate; dually `oddHom` gives 0 on every even coordinate.
 
-  evenStone-odd0 : (β : ℕ∞) (k : ℕ) → fst (evenStone β) (suc (double k)) ≡ false
+  evenStone-odd0 : (β : ℕ∞) (k : ℕ) → fst (evenStone β) (suc (doubleℕ k)) ≡ false
   evenStone-odd0 β k =
-      fst (evenStone β) (suc (double k))
-    ≡⟨ funExt⁻ (ℕ∞IsoIsEval (Iso.inv SpB∞≃ℕ∞ β ∘cr evenHom)) (suc (double k)) ⟩   -- SpB∞≃ℕ∞ reads off on singletons
-      B∞eval (Iso.inv SpB∞≃ℕ∞ β ∘cr evenHom) (suc (double k))
+      fst (evenStone β) (suc (doubleℕ k))
+    ≡⟨ funExt⁻ (ℕ∞IsoIsEval (Iso.inv SpB∞≃ℕ∞ β ∘cr evenHom)) (suc (doubleℕ k)) ⟩   -- SpB∞≃ℕ∞ reads off on singletons
+      B∞eval (Iso.inv SpB∞≃ℕ∞ β ∘cr evenHom) (suc (doubleℕ k))
     ≡⟨ SpEvenHom-odd0 (Iso.inv SpB∞≃ℕ∞ β) k ⟩                                       -- evenHom kills the odd singleton
       false ∎
 
-  oddStone-even0 : (β : ℕ∞) (k : ℕ) → fst (oddStone β) (double k) ≡ false
+  oddStone-even0 : (β : ℕ∞) (k : ℕ) → fst (oddStone β) (doubleℕ k) ≡ false
   oddStone-even0 β k =
-      fst (oddStone β) (double k)
-    ≡⟨ funExt⁻ (ℕ∞IsoIsEval (Iso.inv SpB∞≃ℕ∞ β ∘cr oddHom)) (double k) ⟩          -- SpB∞≃ℕ∞ reads off on singletons
-      B∞eval (Iso.inv SpB∞≃ℕ∞ β ∘cr oddHom) (double k)
+      fst (oddStone β) (doubleℕ k)
+    ≡⟨ funExt⁻ (ℕ∞IsoIsEval (Iso.inv SpB∞≃ℕ∞ β ∘cr oddHom)) (doubleℕ k) ⟩          -- SpB∞≃ℕ∞ reads off on singletons
+      B∞eval (Iso.inv SpB∞≃ℕ∞ β ∘cr oddHom) (doubleℕ k)
     ≡⟨ SpOddHom-even0 (Iso.inv SpB∞≃ℕ∞ β) k ⟩                                       -- oddHom kills the even singleton
       false ∎
 
   Spf-fibre→LLPO : (α : ℕ∞) → fiber Spf α → LLPOExplicitAt α
   Spf-fibre→LLPO α (inl β , p) = inr λ k →
-      fst α (suc (double k))
-    ≡⟨ cong (λ y → fst y (suc (double k))) (sym p) ⟩
-      fst (evenStone β) (suc (double k))
+      fst α (suc (doubleℕ k))
+    ≡⟨ cong (λ y → fst y (suc (doubleℕ k))) (sym p) ⟩
+      fst (evenStone β) (suc (doubleℕ k))
     ≡⟨ evenStone-odd0 β k ⟩
       false ∎
   Spf-fibre→LLPO α (inr β , p) = inl λ k →
-      fst α (double k)
-    ≡⟨ cong (λ y → fst y (double k)) (sym p) ⟩
-      fst (oddStone β) (double k)
+      fst α (doubleℕ k)
+    ≡⟨ cong (λ y → fst y (doubleℕ k)) (sym p) ⟩
+      fst (oddStone β) (doubleℕ k)
     ≡⟨ oddStone-even0 β k ⟩
       false ∎
 
