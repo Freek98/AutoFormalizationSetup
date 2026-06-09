@@ -16,7 +16,7 @@
 module ClosedNegationOpen where
 
 open import BasicDefinitions                       -- binarySequence , Σℕ , _↔_
-open import BinarySequences.Properties using (module extractFirstHitInBinarySequence)
+open import BinarySequences.Properties using (module AtMostOneHit)  -- extract (was: module extractFirstHitInBinarySequence)
 open import PropositionalTopology.Definitions      -- isOpenWitness , isClosedWitness , isOpenProp , isClosedProp
 open import PropositionalTopology.Properties using (negOpenWitnessIsClosedWitness)
 
@@ -67,7 +67,7 @@ module ClosedWitnessIsNegOpen (P : hProp ℓ-zero) (cw : isClosedWitness P) wher
   P↔all0 : ⟨ P ⟩ ↔ (∀ n → α n ≡ false)
   P↔all0 = snd cw
 
-  open extractFirstHitInBinarySequence α using (extract)
+  open AtMostOneHit α using (extract)
 
   -- the open proposition dual to P
   Q : hProp ℓ-zero

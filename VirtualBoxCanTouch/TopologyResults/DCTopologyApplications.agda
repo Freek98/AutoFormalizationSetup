@@ -7,7 +7,7 @@ import Cubical.HITs.PropositionalTruncation as PT
 
 open import PropositionalTopology.Definitions
 open import PropositionalTopology.Properties
-open import TempAxioms.DependentChoice
+open import Axioms.DependentChoice
 
 module assumingCC (countableChoice : CountableChoice {ℓ-zero}) where
   -- a countable disjunction of open propositions is open

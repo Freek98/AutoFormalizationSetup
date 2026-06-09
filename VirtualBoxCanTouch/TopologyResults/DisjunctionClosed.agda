@@ -10,8 +10,13 @@
 --        - deMorganEasy                  ¬P ⊔ ¬Q → ¬(P ⊓ Q)            (no LLPO)
 --        - isClosedProp-↔ , ⊔-cong↔ , ↔-trans   transport closedness along ↔
 --   * AtMostOnce
---        - firstHitOnly + at-most-once   every open prop has an at-most-once witness
---        - Interleave.combine            α on the evens, β on the odds
+--        - isAtMostOnceOpenWitness / openProp→atMostOnceProp
+--                                        every open prop has an at-most-once witness
+--                                        (built on the library's AtMostOneHit.onlyFirstHit)
+--
+-- The even/odd interleaving of two sequences is the library's `interleave`
+-- (BinarySequences.Definitions), with `BinarySequences.Properties.Interleave`
+-- providing fstOnEvens / sndOnOdds; the small evenHit / oddHit wrappers are local.
 --
 -- so this file only assembles the three results the development is about:
 --   (1) deMorganHard / deMorganOpen   de Morgan for open propositions, and
@@ -32,21 +37,20 @@ import Cubical.Data.Empty as Empty
 open import Cubical.HITs.PropositionalTruncation as PT using (∥_∥₁ ; ∣_∣₁ ; squash₁)
 open import Cubical.Functions.Logic using (¬_ ; _⊔_ ; _⊓_ ; ⇔toPath)
 
-open import BasicDefinitions using (binarySequence ; Σℕ ; _↔_)
+open import BasicDefinitions using (binarySequence ; Σℕ ; _↔_ ; ℕ∞ ; hits1AtMostOnce ; interleave)
 open import PropositionalTopology.Definitions
 open import PropositionalTopology.Properties using (Open⊓ ; negOpenIsClosed)
+open import BinarySequences.Properties using (module Interleave)  -- fstOnEvens , sndOnOdds
 open import AtMostOnce
 open import ClosedNegationOpen
 
 open import OmnisciencePrinciples.LLPO using (LLPO ; LLPOExplicitAt)
-open import StoneSpaces.Examples.Ninfty using (ℕ∞ ; hits1AtMostOnce)
 open import LLMGeneratedFixes.Parity using (even-or-odd)
 
--- The sequence-level core "closed = ¬ open" the rewrite started from is now
--- PropositionalTopology.ClosedNegationOpen.all0↔¬Σℕ.
+-- The sequence-level core "closed = ¬ open" the rewrite started from is
+-- ClosedNegationOpen.all0↔¬Σℕ.
 
 module assumingLLPO (llpo : LLPO) where
-  open Interleave  -- combine , fstOnEvens , sndOnOdds , evenHit , oddHit
 
   ------------------------------------------------------------------------
   -- de Morgan, hard half (LLPO).
@@ -78,28 +82,37 @@ module assumingLLPO (llpo : LLPO) where
     Q↔Σβ = snd (snd amQ)
 
     γ : binarySequence
-    γ = combine α β
+    γ = interleave α β
+
+    open Interleave α β using (fstOnEvens ; sndOnOdds)
+
+    -- a hit of the interleaving at an even / odd index comes from a hit of α / β
+    -- (the local wrappers the library Interleave does not provide)
+    evenHit : (n a : ℕ) → n ≡ doubleℕ a → γ n ≡ true → α a ≡ true
+    evenHit n a n≡2a   hit = sym (fstOnEvens a) ∙ cong γ (sym n≡2a)   ∙ hit
+    oddHit  : (n a : ℕ) → n ≡ suc (doubleℕ a) → γ n ≡ true → β a ≡ true
+    oddHit  n a n≡2a+1 hit = sym (sndOnOdds a) ∙ cong γ (sym n≡2a+1) ∙ hit
 
     γAtMostOnce : hits1AtMostOnce γ
     γAtMostOnce n m γn γm with even-or-odd n | even-or-odd m
     ... | inl (a , n≡2a)   | inl (b , m≡2b)   =
-            n≡2a ∙ cong doubleℕ (αOnce a b (evenHit α β n a n≡2a γn) (evenHit α β m b m≡2b γm)) ∙ sym m≡2b
+            n≡2a ∙ cong doubleℕ (αOnce a b (evenHit n a n≡2a γn) (evenHit m b m≡2b γm)) ∙ sym m≡2b
     ... | inl (a , n≡2a)   | inr (b , m≡2b+1) =
-            Empty.rec (¬pq ( snd P↔Σα (a , evenHit α β n a n≡2a γn)
-                           , snd Q↔Σβ (b , oddHit α β m b m≡2b+1 γm) ))
+            Empty.rec (¬pq ( snd P↔Σα (a , evenHit n a n≡2a γn)
+                           , snd Q↔Σβ (b , oddHit m b m≡2b+1 γm) ))
     ... | inr (a , n≡2a+1) | inl (b , m≡2b)   =
-            Empty.rec (¬pq ( snd P↔Σα (b , evenHit α β m b m≡2b γm)
-                           , snd Q↔Σβ (a , oddHit α β n a n≡2a+1 γn) ))
+            Empty.rec (¬pq ( snd P↔Σα (b , evenHit m b m≡2b γm)
+                           , snd Q↔Σβ (a , oddHit n a n≡2a+1 γn) ))
     ... | inr (a , n≡2a+1) | inr (b , m≡2b+1) =
-            n≡2a+1 ∙ cong (λ k → suc (doubleℕ k)) (βOnce a b (oddHit α β n a n≡2a+1 γn) (oddHit α β m b m≡2b+1 γm)) ∙ sym m≡2b+1
+            n≡2a+1 ∙ cong (λ k → suc (doubleℕ k)) (βOnce a b (oddHit n a n≡2a+1 γn) (oddHit m b m≡2b+1 γm)) ∙ sym m≡2b+1
 
     concl : LLPOExplicitAt (γ , γAtMostOnce) → ⟨ ¬ P ⟩ ⊎ ⟨ ¬ Q ⟩
     concl (inl evensFalse) = inl λ p →
       let (n , αn) = fst P↔Σα p
-      in true≢false (sym αn ∙ sym (fstOnEvens α β n) ∙ evensFalse n)
+      in true≢false (sym αn ∙ sym (fstOnEvens n) ∙ evensFalse n)
     concl (inr oddsFalse) = inr λ q →
       let (n , βn) = fst Q↔Σβ q
-      in true≢false (sym βn ∙ sym (sndOnOdds α β n) ∙ oddsFalse n)
+      in true≢false (sym βn ∙ sym (sndOnOdds n) ∙ oddsFalse n)
 
     result : ⟨ ¬ P ⊔ ¬ Q ⟩
     result = PT.map concl (llpo (γ , γAtMostOnce))
