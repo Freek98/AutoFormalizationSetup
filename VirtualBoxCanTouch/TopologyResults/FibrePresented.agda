@@ -14,6 +14,7 @@ module FibrePresented where
 
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Function
+open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.Structure using (⟨_⟩)
 open import Cubical.Foundations.HLevels using (isPropΠ)
 import Cubical.Data.Empty as ⊥
@@ -21,32 +22,33 @@ import Cubical.Data.Empty as ⊥
 open import Cubical.Data.Bool 
 open import Cubical.Data.Sigma
 
-open import Cubical.Algebra.CommRing 
+open import Cubical.Algebra.CommRing
 open import Cubical.Algebra.BooleanRing
-open import Cubical.Algebra.BooleanRing.Instances.Bool 
-open import Cubical.Algebra.BooleanRing.Initial 
-open import BooleanRing.BooleanRingMaps 
+open import Cubical.Algebra.BooleanRing.Instances.Bool
 
-open import BasicDefinitions 
-open import BooleanRing.FreeBooleanRing.FreeBool 
+open import BasicDefinitions
+open import BooleanRing.FreeBooleanRing.FreeBool
+open import BooleanRing.BoolAlgMorphism using (module IsBoolAlgHom)
+open import CountablyPresentedBooleanRings.Properties
 open import StoneSpaces.Spectrum
 open import BooleanRing.BooleanRingQuotients.UniversalProperty
 open import Cubical.Foundations.Isomorphism
-open import BooleanRing.BooleanRingQuotients.QuotientBool 
-open import Countability.Properties 
+open import BooleanRing.BooleanRingQuotients.QuotientBool
 
 ------------------------------------------------------------------------
--- Bool (= the dualising object 2) arithmetic: + is xor.
+-- A Bool fact used per generator.
 ------------------------------------------------------------------------
-⊕≡false→≡ : (a b : Bool) → a ⊕ b ≡ false → a ≡ b
-⊕≡false→≡ false false _ = refl
-⊕≡false→≡ false true  p = ⊥.rec (true≢false p)
-⊕≡false→≡ true  false p = ⊥.rec (true≢false p)
-⊕≡false→≡ true  true  _ = refl
+private
+  not≡false→≡true : (c : Bool) → not c ≡ false → c ≡ true
+  not≡false→≡true true  _ = refl
+  not≡false→≡true false p = ⊥.rec (true≢false p)
 
-a⊕a≡false : (a : Bool) → a ⊕ a ≡ false
-a⊕a≡false false = refl
-a⊕a≡false true  = refl
+  -- Σ-cong over prop-valued predicates: give only the two maps, no roundtrip proofs
+  -- (fuses Σ-cong-iso-snd with isProp→Iso).
+  Σ-cong-iso-prop : {ℓ ℓ' ℓ'' : Level} {A : Type ℓ} {P : A → Type ℓ'} {Q : A → Type ℓ''}
+                  → (∀ a → isProp (P a)) → (∀ a → isProp (Q a))
+                  → (∀ a → P a → Q a) → (∀ a → Q a → P a) → Iso (Σ A P) (Σ A Q)
+  Σ-cong-iso-prop pP pQ to fro = Σ-cong-iso-snd (λ a → isProp→Iso (pP a) (pQ a) (to a) (fro a))
 
 ------------------------------------------------------------------------
 -- B given by a presentation:  generators GenB, relations RB / relB.
@@ -62,117 +64,78 @@ module Presentation
   (RC-count   : has-Countability-structure RC)
   (relC : RC → ⟨ freeBA GenC ⟩)
   where
-
-  B : BooleanRing ℓ-zero
-  B = freeBA GenB /Im relB
-
-  πB : BoolHom (freeBA GenB) B
-  πB = quotientImageHom {B = freeBA GenB} {f = relB}
-  
-  _$gen_ : (SpGeneralBooleanRing B) → GenB → Bool
-  x $gen g = (x ∘cr πB) $cr generator g 
-  
-  C : BooleanRing ℓ-zero
-  C = freeBA GenC /Im relC
-
-  πC : BoolHom (freeBA GenC) C
-  πC = quotientImageHom {B = freeBA GenC} {f = relC}
-  
-  homAgreeOnGen→≡ : (h₁ h₂ : SpGeneralBooleanRing B)
-                  → ((g : GenB) → h₁ $gen g ≡ h₂ $gen g) → h₁ ≡ h₂
-  -- note this is useful later to note that equality in Stone spaces is closed.
-  homAgreeOnGen→≡ h₁ h₂ agree =
-    CommRingHom≡ (quotientImageHomEpi {f = relB} (Bool , isSetBool) (cong fst h₁πB≡h₂πB))
-    where
-      h₁πB≡h₂πB : h₁ ∘cr πB ≡ h₂ ∘cr πB
-      h₁πB≡h₂πB = sym (inducedBAHomUnique GenB BoolBR (λ g → h₁ $gen g) (h₁ ∘cr πB) refl)
-                ∙ cong (inducedBAHom GenB BoolBR) (funExt agree)
-                ∙ inducedBAHomUnique GenB BoolBR (λ g → h₂ $gen g) (h₂ ∘cr πB) refl
-
-  -- the initial inclusion ι : 2 → C
-  ιC : Bool → ⟨ C ⟩
-  ιC = fst (BoolBR→ C)
-  
   private
-    _+C_ : ⟨ C ⟩ → ⟨ C ⟩ → ⟨ C ⟩
-    _+C_ = BooleanRingStr._+_ (snd C)
+    B : BooleanRing ℓ-zero
+    B = freeBA GenB /Im relB
+  
+    πB : BoolHom (freeBA GenB) B
+    πB = quotientImageHom {B = freeBA GenB} {f = relB}
+  
+    C : BooleanRing ℓ-zero
+    C = freeBA GenC /Im relC
 
-  -- γ ∘ ι is the identity on 2 (both are homs out of the initial BA 2)
-  γ∘ι≡id : (γ : SpGeneralBooleanRing C) (b : Bool) → γ $cr (ιC b) ≡ b
-  γ∘ι≡id γ b = funExt⁻ (BoolBR→IsUnique BoolBR (γ ∘cr BoolBR→ C)) b
-             ∙ sym (funExt⁻ (BoolBR→IsUnique BoolBR (idBoolHom BoolBR)) b)
+    πC : BoolHom (freeBA GenC) C
+    πC = quotientImageHom {B = freeBA GenC} {f = relC}
+  
+  open RepresentedBooleanRing relB 
 
   module FibersOfSp (f : BoolHom B C) (x : SpGeneralBooleanRing B) where
-    generatorsBsentTo0 : Type
-    generatorsBsentTo0 = Σ[ g ∈ GenB ] (not (x $gen g) ≡ true)
-    
-    generatorsBsentTo1 : Type
-    generatorsBsentTo1 = Σ[ g ∈ GenB ] (x $gen g ≡ true)
+    open BooleanAlgebraStr (snd C) using (¬_)
 
-    generatorsBsentTo0-count : has-Countability-structure generatorsBsentTo0
-    generatorsBsentTo0-count = has-Countability-structure-Σ-Bool (not ∘ (x $gen_)) GenB-count
-    
-    generatorsBsentTo1-count : has-Countability-structure generatorsBsentTo1
-    generatorsBsentTo1-count = has-Countability-structure-Σ-Bool (x $gen_) GenB-count
-  
-    open BooleanRingStr (snd C) 
-    open BooleanAlgebraStr (snd C) 
+    if_thenPos_ : Bool → ⟨ C ⟩ → ⟨ C ⟩
+    if_thenPos_ false c = c
+    if_thenPos_ true  c = ¬ c
 
     relInducedByfandx : GenB → ⟨ C ⟩
-    relInducedByfandx g = case (x $gen g) of λ 
-      { false → (f ∘cr πB) $cr generator g
-      ; true → ¬ ((f ∘cr πB) $cr generator g) } 
+    relInducedByfandx g = if (x $gen g) thenPos ((f ∘cr πB) $cr generator g) 
     
     C/fx : BooleanRing ℓ-zero 
     C/fx = C /Im relInducedByfandx
 
+    respRel→agree : (γ : SpGeneralBooleanRing C) (g : GenB)
+                → γ $cr relInducedByfandx g ≡ false → (γ ∘cr f) $gen g ≡ x $gen g
+    respRel→agree γ g = aux (x $gen g)
+      where
+        fg = f $gen g 
+        aux : (b : Bool) → γ $cr (if b thenPos fg) ≡ false → γ $cr fg ≡ b
+        aux false p = p
+        aux true  p = not≡false→≡true (γ $cr fg) (sym (IsBoolAlgHom.pres¬ γ fg) ∙ p)
 
-    fRestrictedTo0gens : generatorsBsentTo0 → ⟨ C ⟩
-    fRestrictedTo0gens (g , _) = (f ∘cr πB) $cr generator g
-
-    C/fRestricted : BooleanRing ℓ-zero
-    C/fRestricted = C /Im fRestrictedTo0gens
-
-    ----------------------------------------------------------------
-    -- The actual fibre.  To force  γ∘f = x  we must constrain EVERY generator, not
-    -- just the x-zero ones: quotient C by  f(genB g) + ι(x g)  for all g
-    -- (= f(genB g) when x(g)=0, and its complement f(genB g)+1 when x(g)=1).
-    ----------------------------------------------------------------
-    relFibre : GenB → ⟨ C ⟩
-    relFibre g = ((f ∘cr πB) $cr generator g) +C ιC (x $gen g)
-
-    C/fibre : BooleanRing ℓ-zero
-    C/fibre = C /Im relFibre
-
-    -- γ evaluates the g-th relation to the xor  (γ∘f)(g) ⊕ x(g)
-    relFibre-eval : (γ : SpGeneralBooleanRing C) (g : GenB)
-                  → γ $cr relFibre g ≡ ((γ ∘cr f) $gen g) ⊕ (x $gen g)
-    relFibre-eval γ g =
-      γ $cr relFibre g
-        ≡⟨ IsCommRingHom.pres+ (snd γ) ((f ∘cr πB) $cr generator g) (ιC (x $gen g)) ⟩
-      ((γ ∘cr f) $gen g) ⊕ (γ $cr ιC (x $gen g))
-        ≡⟨ cong (((γ ∘cr f) $gen g) ⊕_) (γ∘ι≡id γ (x $gen g)) ⟩
-      ((γ ∘cr f) $gen g) ⊕ (x $gen g) ∎
-
-    -- γ respects all relations  ⟺  γ∘f = x
-    resp↔fibre : (γ : SpGeneralBooleanRing C)
-               → Iso ((g : GenB) → γ $cr relFibre g ≡ false) (γ ∘cr f ≡ x)
-    resp↔fibre γ = isProp→Iso
-      (isPropΠ (λ g → isSetBool _ _))
-      (isSetBoolHom B BoolBR (γ ∘cr f) x)
-      (λ resp → homAgreeOnGen→≡ (γ ∘cr f) x
-         (λ g → ⊕≡false→≡ _ _ (sym (relFibre-eval γ g) ∙ resp g)))
-      (λ eq g → relFibre-eval γ g
-              ∙ cong (_⊕ (x $gen g)) (cong (λ h → h $gen g) eq)
-              ∙ a⊕a≡false (x $gen g))
+    agree→respRel : (γ : SpGeneralBooleanRing C) (g : GenB)
+                  → (γ ∘cr f) $gen g ≡ x $gen g → γ $cr relInducedByfandx g ≡ false
+    agree→respRel γ g = aux (x $gen g)
+      where
+        fg = f $gen g 
+        aux : (b : Bool) → γ $cr fg ≡ b → γ $cr (if b thenPos fg) ≡ false
+        aux false p = p
+        aux true  p = IsBoolAlgHom.pres¬ γ fg ∙ cong not p
 
     private
-      upFibre : Iso (Σ[ γ ∈ SpGeneralBooleanRing C ] ((g : GenB) → γ $cr relFibre g ≡ false))
-                    (SpGeneralBooleanRing C/fibre)
-      upFibre = MapsOutOfQuotientUniversalProperty.mapsOutQuotientUniversalProperty C relFibre BoolBR
+      Σγ-γRespRel : Type
+      Σγ-γRespRel = Σ[ γ ∈ SpGeneralBooleanRing C ] ((g : GenB) → γ $cr relInducedByfandx g ≡ false)
+      Σγ-γf=x-OnG : Type 
+      Σγ-γf=x-OnG = Σ[ γ ∈ SpGeneralBooleanRing C ] ((g : GenB) → (γ ∘cr f) $gen g ≡ x $gen g)
+      
+      Σγ-γf=x : Type 
+      Σγ-γf=x = Σ[ γ ∈ SpGeneralBooleanRing C ] (γ ∘cr f) ≡ x
 
-    -- THE RESULT:  Sp(C/fibre) ≅ { γ ∈ Sp C ∣ γ ∘cr f = x }  (= fibre of SpAction f over x)
-    SpC/fibre≅fibre : Iso (SpGeneralBooleanRing C/fibre)
-                          (Σ[ γ ∈ SpGeneralBooleanRing C ] (γ ∘cr f ≡ x))
-    SpC/fibre≅fibre = compIso (invIso upFibre) (Σ-cong-iso-snd resp↔fibre)
+      UP-C/fx : Iso Σγ-γRespRel (SpGeneralBooleanRing C/fx)
+      UP-C/fx = MapsOutOfQuotientUniversalProperty.mapsOutQuotientUniversalProperty C relInducedByfandx BoolBR
+    
+
+    -- the two remaining elementary isos between the private Σ-types:
+    respRel↔agreeOnG : Iso Σγ-γRespRel Σγ-γf=x-OnG
+    respRel↔agreeOnG = Σ-cong-iso-prop
+      (λ _ → isPropΠ (λ g → isSetBool _ _)) (λ _ → isPropΠ (λ g → isSetBool _ _))
+      (λ γ resp g → respRel→agree γ g (resp g))
+      (λ γ agr  g → agree→respRel γ g (agr g))
+
+    agreeOnG↔f=x : Iso Σγ-γf=x-OnG Σγ-γf=x
+    agreeOnG↔f=x = Σ-cong-iso-prop
+      (λ _ → isPropΠ (λ g → isSetBool _ _)) (λ γ → isSetBoolHom B BoolBR (γ ∘cr f) x)
+      (λ γ → agreeOnGens≡ BoolBR)
+      (λ γ eq g → cong (λ h → h $gen g) eq)
+
+    SpC/fx≅fiber : Iso (SpGeneralBooleanRing C/fx) Σγ-γf=x
+    SpC/fx≅fiber = compIso (compIso (invIso UP-C/fx) respRel↔agreeOnG) agreeOnG↔f=x
 
