@@ -13,9 +13,10 @@
 module FibrePresented where
 
 open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.Function
 open import Cubical.Foundations.Structure using (⟨_⟩)
 
-open import Cubical.Data.Bool using (Bool ; true)
+open import Cubical.Data.Bool 
 open import Cubical.Data.Sigma
 
 open import Cubical.Algebra.CommRing using (_$cr_ ; _∘cr_)
@@ -50,9 +51,9 @@ module Presentation
 
   _$gen_ : (SpGeneralBooleanRing B) → GenB → Bool
   x $gen g = (x ∘cr πB) $cr generator g 
-  module generatorsSentTo1 (x : BoolHom B BoolBR) where
-    GenB₁ : Type
-    GenB₁ = Σ[ g ∈ GenB ] (x $gen g ≡ true)
+  module generatorsSentTo0 (x : BoolHom B BoolBR) where
+    GenB0 : Type
+    GenB0 = Σ[ g ∈ GenB ] (not (x $gen g) ≡ true)
 
-    GenB₁-count : has-Countability-structure GenB₁
-    GenB₁-count = has-Countability-structure-Σ-Bool (x $gen_) GenB-count
+    GenB0-count : has-Countability-structure GenB0
+    GenB0-count = has-Countability-structure-Σ-Bool (not ∘ (x $gen_)) GenB-count
