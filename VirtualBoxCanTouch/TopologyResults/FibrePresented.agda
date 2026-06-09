@@ -21,11 +21,11 @@ import Cubical.Data.Empty as ⊥
 open import Cubical.Data.Bool 
 open import Cubical.Data.Sigma
 
-open import Cubical.Algebra.CommRing using (_$cr_ ; _∘cr_ ; CommRingHom≡ ; IsCommRingHom)
-open import Cubical.Algebra.BooleanRing using (BooleanRing ; BoolHom ; BooleanRingStr)
-open import Cubical.Algebra.BooleanRing.Instances.Bool using (BoolBR)
-open import Cubical.Algebra.BooleanRing.Initial using (BoolBR→ ; BoolBR→IsUnique)
-open import BooleanRing.BooleanRingMaps using (idBoolHom)
+open import Cubical.Algebra.CommRing 
+open import Cubical.Algebra.BooleanRing
+open import Cubical.Algebra.BooleanRing.Instances.Bool 
+open import Cubical.Algebra.BooleanRing.Initial 
+open import BooleanRing.BooleanRingMaps 
 
 open import BasicDefinitions 
 open import BooleanRing.FreeBooleanRing.FreeBool 
@@ -105,20 +105,33 @@ module Presentation
   module FibersOfSp (f : BoolHom B C) (x : SpGeneralBooleanRing B) where
     generatorsBsentTo0 : Type
     generatorsBsentTo0 = Σ[ g ∈ GenB ] (not (x $gen g) ≡ true)
+    
+    generatorsBsentTo1 : Type
+    generatorsBsentTo1 = Σ[ g ∈ GenB ] (x $gen g ≡ true)
 
     generatorsBsentTo0-count : has-Countability-structure generatorsBsentTo0
     generatorsBsentTo0-count = has-Countability-structure-Σ-Bool (not ∘ (x $gen_)) GenB-count
+    
+    generatorsBsentTo1-count : has-Countability-structure generatorsBsentTo1
+    generatorsBsentTo1-count = has-Countability-structure-Σ-Bool (x $gen_) GenB-count
+  
+    open BooleanRingStr (snd C) 
+    open BooleanAlgebraStr (snd C) 
 
-    fRestricted : generatorsBsentTo0 → ⟨ C ⟩
-    fRestricted (g , _) = (f ∘cr πB) $cr generator g
+    relInducedByfandx : GenB → ⟨ C ⟩
+    relInducedByfandx g = case (x $gen g) of λ 
+      { false → (f ∘cr πB) $cr generator g
+      ; true → ¬ ((f ∘cr πB) $cr generator g) } 
+    
+    C/fx : BooleanRing ℓ-zero 
+    C/fx = C /Im relInducedByfandx
+
+
+    fRestrictedTo0gens : generatorsBsentTo0 → ⟨ C ⟩
+    fRestrictedTo0gens (g , _) = (f ∘cr πB) $cr generator g
 
     C/fRestricted : BooleanRing ℓ-zero
-    C/fRestricted = C /Im fRestricted
-
-    SpC/fRestricted≅ : Iso 
-      (SpGeneralBooleanRing C/fRestricted)
-      (Σ[ h ∈ SpGeneralBooleanRing C ] ((p : generatorsBsentTo0) → (h ∘cr f) $gen (fst p) ≡ false))
-    SpC/fRestricted≅ = invIso (MapsOutOfQuotientUniversalProperty.mapsOutQuotientUniversalProperty C fRestricted BoolBR)
+    C/fRestricted = C /Im fRestrictedTo0gens
 
     ----------------------------------------------------------------
     -- The actual fibre.  To force  γ∘f = x  we must constrain EVERY generator, not
