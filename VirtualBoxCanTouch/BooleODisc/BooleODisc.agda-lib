@@ -1,0 +1,4 @@
+name: BooleODisc
+include: .
+depend: FormalizationSSD-Library
+flags: --cubical --guardedness

@@ -9,7 +9,7 @@ open import PropositionalTopology.Definitions
 open import PropositionalTopology.Properties
 open import Axioms.DependentChoice
 
-module assumingCC (countableChoice : CountableChoice {ℓ-zero}) where
+module assumingCC (countableChoice : ℕChoice {ℓ-zero}) where
   -- a countable disjunction of open propositions is open
   Openℕ⊔ : (P : ℕ → hProp ℓ-zero) → ((n : ℕ) → isOpenProp (P n)) → isOpenProp (ℕ⊔ P)
   Openℕ⊔ P opens =

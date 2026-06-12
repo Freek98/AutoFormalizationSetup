@@ -43,8 +43,6 @@ private
   not≡false→≡true true  _ = refl
   not≡false→≡true false p = ⊥.rec (true≢false p)
 
-  -- Σ-cong over prop-valued predicates: give only the two maps, no roundtrip proofs
-  -- (fuses Σ-cong-iso-snd with isProp→Iso).
   Σ-cong-iso-prop : {ℓ ℓ' ℓ'' : Level} {A : Type ℓ} {P : A → Type ℓ'} {Q : A → Type ℓ''}
                   → (∀ a → isProp (P a)) → (∀ a → isProp (Q a))
                   → (∀ a → P a → Q a) → (∀ a → Q a → P a) → Iso (Σ A P) (Σ A Q)
@@ -64,15 +62,15 @@ module Presentation
   (RC-count   : has-Countability-structure RC)
   (relC : RC → ⟨ freeBA GenC ⟩)
   where
+  B : BooleanRing ℓ-zero
+  B = freeBA GenB /Im relB
+
+  C : BooleanRing ℓ-zero
+  C = freeBA GenC /Im relC
+
   private
-    B : BooleanRing ℓ-zero
-    B = freeBA GenB /Im relB
-  
     πB : BoolHom (freeBA GenB) B
     πB = quotientImageHom {B = freeBA GenB} {f = relB}
-  
-    C : BooleanRing ℓ-zero
-    C = freeBA GenC /Im relC
 
     πC : BoolHom (freeBA GenC) C
     πC = quotientImageHom {B = freeBA GenC} {f = relC}
@@ -116,26 +114,24 @@ module Presentation
       Σγ-γf=x-OnG : Type 
       Σγ-γf=x-OnG = Σ[ γ ∈ SpGeneralBooleanRing C ] ((g : GenB) → (γ ∘cr f) $gen g ≡ x $gen g)
       
-      Σγ-γf=x : Type 
-      Σγ-γf=x = Σ[ γ ∈ SpGeneralBooleanRing C ] (γ ∘cr f) ≡ x
+    fiberSpf : Type 
+    fiberSpf = Σ[ γ ∈ SpGeneralBooleanRing C ] (γ ∘cr f) ≡ x
 
-      UP-C/fx : Iso Σγ-γRespRel (SpGeneralBooleanRing C/fx)
-      UP-C/fx = MapsOutOfQuotientUniversalProperty.mapsOutQuotientUniversalProperty C relInducedByfandx BoolBR
-    
+    UP-C/fx : Iso Σγ-γRespRel (SpGeneralBooleanRing C/fx)
+    UP-C/fx = MapsOutOfQuotientUniversalProperty.mapsOutQuotientUniversalProperty C relInducedByfandx BoolBR
 
-    -- the two remaining elementary isos between the private Σ-types:
     respRel↔agreeOnG : Iso Σγ-γRespRel Σγ-γf=x-OnG
     respRel↔agreeOnG = Σ-cong-iso-prop
       (λ _ → isPropΠ (λ g → isSetBool _ _)) (λ _ → isPropΠ (λ g → isSetBool _ _))
       (λ γ resp g → respRel→agree γ g (resp g))
       (λ γ agr  g → agree→respRel γ g (agr g))
 
-    agreeOnG↔f=x : Iso Σγ-γf=x-OnG Σγ-γf=x
+    agreeOnG↔f=x : Iso Σγ-γf=x-OnG fiberSpf
     agreeOnG↔f=x = Σ-cong-iso-prop
       (λ _ → isPropΠ (λ g → isSetBool _ _)) (λ γ → isSetBoolHom B BoolBR (γ ∘cr f) x)
       (λ γ → agreeOnGens≡ BoolBR)
       (λ γ eq g → cong (λ h → h $gen g) eq)
 
-    SpC/fx≅fiber : Iso (SpGeneralBooleanRing C/fx) Σγ-γf=x
+    SpC/fx≅fiber : Iso (SpGeneralBooleanRing C/fx) fiberSpf
     SpC/fx≅fiber = compIso (compIso (invIso UP-C/fx) respRel↔agreeOnG) agreeOnG↔f=x
 

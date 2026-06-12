@@ -47,7 +47,7 @@ module _ (SD : StoneDualityAxiom) where
   -- point δ of C, and then  γ x = (δ∘g) x = δ(g x) = δ(g y) = (δ∘g) y = γ y.
   surjectionsAreFormallySurjective :
     (B C : Booleω) (g : BoolHom (fst B) (fst C))
-    → isSurjectiveSpHom B C g → isInjectiveBoolHom B C g
+    → isSurjectiveSpHom B C g → isInjectiveBoolHom (fst B) (fst C) g
   surjectionsAreFormallySurjective B C g Spg-surj x y gx≡gy =
     separatedByPoints B x y λ γ →
       PT.rec (isSetBool (γ $cr x) (γ $cr y))
