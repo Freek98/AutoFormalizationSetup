@@ -4,7 +4,6 @@ module AdjunctionUnitIsoEquivalence where
 
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Function
-open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.Isomorphism hiding (isIso)
 open import Cubical.Data.Sigma
@@ -17,7 +16,7 @@ open import Cubical.Categories.Equivalence
 open import Cubical.Categories.Equivalence.WeakEquivalence
 open import Cubical.Categories.Isomorphism renaming (invIso to CatInvIso)
 open import QuickFixes
-open import CategoryTheory.SigmaPropCat
+open import Cubical.Categories.Constructions.FullSubcategory
 open import CategoryTheory.BasicFacts
 
 open Category hiding (_∘_)
@@ -61,11 +60,11 @@ module ImageFunctor
   {ℓC ℓC' ℓD ℓD' : Level} {C : Category ℓC ℓC'} {D : Category ℓD ℓD'}
   (F : Functor C D) 
   where
-  inImage : D .ob → hProp _
-  inImage Y = ∥ Σ[ X ∈ C .ob ] F .F-ob X ≡ Y ∥₁ , squash₁
+  inImage : D .ob → Type _
+  inImage Y = ∥ Σ[ X ∈ C .ob ] F .F-ob X ≡ Y ∥₁
 
   ImageCat : Category _ _
-  ImageCat = ΣPropCat* D inImage
+  ImageCat = FullSubcategory D inImage
 
   -- The corestriction of F to its image
   F|Image : Functor C ImageCat

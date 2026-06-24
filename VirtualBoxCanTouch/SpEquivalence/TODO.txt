@@ -1,0 +1,1 @@
+so I wrote my own SigmaPropCat* version which takes universe levels into account. Turns out there already exists something called FullSubCategory, which is eactly what I wanted actually. I'll save the refactor for later for now, because I want the equivalence of Sp and this is clearly a task the LLM can handle later. 
