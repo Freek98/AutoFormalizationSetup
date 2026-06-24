@@ -30,6 +30,38 @@ open import NewSpDuality
 open Category hiding (_∘_)
 open Functor
 open isWeakEquivalence
+open WeakInverse
+
+------------------------------------------------------------------------
+-- Composition of weak inverses (Cubical only provides symWeakInverse).  The
+-- unit of the composite is split out as compWInvη so the counit can reuse it
+-- by symmetry.
+------------------------------------------------------------------------
+
+compWInvη :
+  {ℓ𝓒 ℓ𝓒' ℓ𝓓 ℓ𝓓' ℓ𝓔 ℓ𝓔' : Level}
+  {𝓒 : Category ℓ𝓒 ℓ𝓒'} {𝓓 : Category ℓ𝓓 ℓ𝓓'} {𝓔 : Category ℓ𝓔 ℓ𝓔'}
+  {F : Functor 𝓒 𝓓} {H : Functor 𝓓 𝓔}
+  (wF : WeakInverse F) (wH : WeakInverse H)
+  → NatIso 𝟙⟨ 𝓒 ⟩ ((invFunc wF ∘F invFunc wH) ∘F (H ∘F F))
+compWInvη {F = F} {H = H} wF wH =
+  seqNatIso (η wF)
+   (seqNatIso (invFunc wF ∘ʳi midF)
+    (seqNatIso (CAT⋆Assoc F (invFunc wH ∘F H) (invFunc wF))
+     (seqNatIso (F ∘ˡi CAT⋆Assoc H (invFunc wH) (invFunc wF))
+      (symNatIso (CAT⋆Assoc F H (invFunc wF ∘F invFunc wH))))))
+  where
+    midF : NatIso F ((invFunc wH ∘F H) ∘F F)
+    midF = seqNatIso (symNatIso (CAT⋆IdR {F = F})) (F ∘ˡi η wH)
+
+compWeakInverse :
+  {ℓ𝓒 ℓ𝓒' ℓ𝓓 ℓ𝓓' ℓ𝓔 ℓ𝓔' : Level}
+  {𝓒 : Category ℓ𝓒 ℓ𝓒'} {𝓓 : Category ℓ𝓓 ℓ𝓓'} {𝓔 : Category ℓ𝓔 ℓ𝓔'}
+  {F : Functor 𝓒 𝓓} {H : Functor 𝓓 𝓔}
+  → WeakInverse F → WeakInverse H → WeakInverse (H ∘F F)
+compWeakInverse wF wH .invFunc = invFunc wF ∘F invFunc wH
+compWeakInverse wF wH .η = compWInvη wF wH
+compWeakInverse wF wH .ε = symNatIso (compWInvη (symWeakInverse wH) (symWeakInverse wF))
 
 -- The carrier of a Stone space is a set: it is (a transport of) the spectrum
 -- of a Boolean algebra, which is a set.
@@ -88,10 +120,26 @@ module _ (sd : StoneDualityAxiom) where
   counitIso .NatIso.trans .NatTrans.N-hom f = refl
   counitIso .NatIso.nIso S                   = isiso (λ x → x) refl refl
 
+  Stone→ImageWeakInverse : WeakInverse Stone→Image
+  Stone→ImageWeakInverse .invFunc = Image→Stone
+  Stone→ImageWeakInverse .η       = unitIso
+  Stone→ImageWeakInverse .ε       = counitIso
+
   StoneCat'^op≃StoneCat : (StoneCat' ^op) ≃ᶜ StoneCat
-  StoneCat'^op≃StoneCat = equivᶜ Stone→Image ∣ weakInverse ∣₁
-    where
-      weakInverse : WeakInverse Stone→Image
-      weakInverse .WeakInverse.invFunc = Image→Stone
-      weakInverse .WeakInverse.η       = unitIso
-      weakInverse .WeakInverse.ε       = counitIso
+  StoneCat'^op≃StoneCat = equivᶜ Stone→Image ∣ Stone→ImageWeakInverse ∣₁
+
+  ------------------------------------------------------------------------
+  -- Sp as a functor into StoneCat' ^op, and the proof it is an equivalence,
+  -- obtained by composing  BooleωCat ≃ StoneCat  (Sp-duality) with
+  -- StoneCat ≃ StoneCat' ^op  (the symmetric of StoneCat'^op≃StoneCat).
+  ------------------------------------------------------------------------
+
+  SpFunctor' : Functor BooleωCat (StoneCat' ^op)
+  SpFunctor' = Image→Stone ∘F SpStoneFunctor
+
+  SpFunctor'-isEquivalence : isEquivalence SpFunctor'
+  SpFunctor'-isEquivalence =
+    map2 compWeakInverse (Sp-isEquivalence sd) ∣ symWeakInverse Stone→ImageWeakInverse ∣₁
+
+  BooleωCat≃StoneCat'^op : BooleωCat ≃ᶜ (StoneCat' ^op)
+  BooleωCat≃StoneCat'^op = equivᶜ SpFunctor' SpFunctor'-isEquivalence
